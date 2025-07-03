@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +16,6 @@ import javax.sip.ResponseEvent;
 public class ByeResponseProcessor extends SIPResponseProcessorAbstract {
 
 	private final String method = "BYE";
-
-	@Autowired
-	private SipLayer sipLayer;
-
-	@Autowired
-	private SipConfig config;
-
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;

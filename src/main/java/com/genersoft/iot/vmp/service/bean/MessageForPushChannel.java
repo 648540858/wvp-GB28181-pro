@@ -1,9 +1,13 @@
 package com.genersoft.iot.vmp.service.bean;
 
+import lombok.Data;
+
 /**
  * 当上级平台
  * @author lin
  */
+
+@Data
 public class MessageForPushChannel {
     /**
      * 消息类型
@@ -66,78 +70,5 @@ public class MessageForPushChannel {
         messageForPushChannel.setPlatFormId(platFormId);
         messageForPushChannel.setPlatFormName(platFormName);
         return messageForPushChannel;
-    }
-
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public String getGbId() {
-        return gbId;
-    }
-
-    public void setGbId(String gbId) {
-        this.gbId = gbId;
-    }
-
-    public String getPlatFormId() {
-        return platFormId;
-    }
-
-    public void setPlatFormId(String platFormId) {
-        this.platFormId = platFormId;
-    }
-
-    public String getPlatFormName() {
-        return platFormName;
-    }
-
-    public void setPlatFormName(String platFormName) {
-        this.platFormName = platFormName;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
-    }
-
-    public int getPlatFormIndex() {
-        return platFormIndex;
-    }
-
-    public void setPlatFormIndex(int platFormIndex) {
-        this.platFormIndex = platFormIndex;
     }
 }

@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.conf;
 
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,9 @@ import java.util.List;
 /**
  * 录像文件定时删除
  */
+@Slf4j
 @Component
 public class CloudRecordTimer {
-
-    private final static Logger logger = LoggerFactory.getLogger(CloudRecordTimer.class);
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -36,7 +35,7 @@ public class CloudRecordTimer {
 //    @Scheduled(fixedRate = 10000) //每五秒执行一次，方便测试
     @Scheduled(cron = "0 0 0 * * ?")   //每天的0点执行
     public void execute(){
-        logger.info("[录像文件定时清理] 开始清理过期录像文件");
+        log.info("[录像文件定时清理] 开始清理过期录像文件");
         // 获取配置了assist的流媒体节点
         List<MediaServer> mediaServerItemList =  mediaServerService.getAllOnline();
         if (mediaServerItemList.isEmpty()) {
@@ -61,15 +60,18 @@ public class CloudRecordTimer {
                 // TODO 后续可以删除空了的过期日期文件夹
                 for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
-                    boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
-                            cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
-                    if (deleteResult) {
-                        logger.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
-                    }
+                    try {
+                        boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
+                                cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
+                        if (deleteResult) {
+                            log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                        }
+                    }catch (ControllerException ignored) {}
+
                 }
                 result += cloudRecordServiceMapper.deleteList(cloudRecordItemList);
             }
         }
-        logger.info("[录像文件定时清理] 共清理{}个过期录像文件", result);
+        log.info("[录像文件定时清理] 共清理{}个过期录像文件", result);
     }
 }

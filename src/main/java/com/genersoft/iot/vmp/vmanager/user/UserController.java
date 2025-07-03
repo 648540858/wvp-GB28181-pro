@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
@@ -42,6 +43,9 @@ public class UserController {
     @Autowired
     private IRoleService roleService;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @GetMapping("/login")
     @PostMapping("/login")
     @Operation(summary = "登录", description = "登录成功后返回AccessToken， 可以从返回值获取到也可以从响应头中获取到，" +
@@ -62,6 +66,7 @@ public class UserController {
             String jwt = JwtUtils.createToken(username);
             response.setHeader(JwtUtils.getHeader(), jwt);
             user.setAccessToken(jwt);
+            user.setServerId(userSetting.getServerId());
         }
         return user;
     }

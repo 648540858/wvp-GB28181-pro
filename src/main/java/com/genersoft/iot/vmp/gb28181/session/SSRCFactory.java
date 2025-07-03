@@ -2,18 +2,19 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * ssrc使用
  */
+@Slf4j
 @Component
 public class SSRCFactory {
 
@@ -91,17 +92,15 @@ public class SSRCFactory {
      * 获取后四位数SN,随机数
      */
     private String getSN(String mediaServerId) {
-        String sn = null;
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         Long size = redisTemplate.opsForSet().size(redisKey);
         if (size == null || size == 0) {
+            log.info("[获取 SSRC 失败] redisKey： {}", redisKey);
             throw new RuntimeException("ssrc已经用完");
         } else {
             // 在集合中移除并返回一个随机成员。
-            sn = (String) redisTemplate.opsForSet().pop(redisKey);
-            redisTemplate.opsForSet().remove(redisKey, sn);
+            return redisTemplate.opsForSet().pop(redisKey);
         }
-        return sn;
     }
 
     /**

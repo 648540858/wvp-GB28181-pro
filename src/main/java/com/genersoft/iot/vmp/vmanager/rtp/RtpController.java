@@ -5,13 +5,13 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -20,10 +20,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.ObjectUtils;
@@ -36,15 +35,13 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "第三方服务对接")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/rtp")
 public class RtpController {
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
-
-    private final static Logger logger = LoggerFactory.getLogger(RtpController.class);
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private HookSubscribe hookSubscribe;
@@ -73,7 +70,7 @@ public class RtpController {
     @Parameter(name = "callBack", description = "回调地址，如果收流超时会通道回调通知，回调为get请求，参数为callId", required = true)
     public OtherRtpSendInfo openRtpServer(Boolean isSend, @RequestParam(required = false)String ssrc, String callId, String stream, Integer tcpMode, String callBack) {
 
-        logger.info("[第三方服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
+        log.info("[第三方服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
 
         MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
@@ -107,7 +104,7 @@ public class RtpController {
             hookSubscribe.addSubscribe(hook,
                     (hookData)->{
                         if (stream.equals(hookData.getStream())) {
-                            logger.info("[开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
+                            log.info("[开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
                             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
                             OkHttpClient client = httpClientBuilder.build();
                             String url = callBack + "?callId="  + callId;
@@ -115,7 +112,7 @@ public class RtpController {
                             try {
                                 client.newCall(request).execute();
                             } catch (IOException e) {
-                                logger.error("[第三方服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调失败", callId, e);
+                                log.error("[第三方服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调失败", callId, e);
                             }
                             hookSubscribe.removeSubscribe(hook);
                         }
@@ -133,15 +130,15 @@ public class RtpController {
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
             // 预创建发流信息
-            int portForVideo = sendRtpPortManager.getNextPort(mediaServer);
-            int portForAudio = sendRtpPortManager.getNextPort(mediaServer);
+            int portForVideo = sendRtpServerService.getNextPort(mediaServer);
+            int portForAudio = sendRtpServerService.getNextPort(mediaServer);
 
             otherRtpSendInfo.setSendLocalIp(mediaServer.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);
             otherRtpSendInfo.setSendLocalPortForAudio(portForAudio);
             // 将信息写入redis中，以备后用
             redisTemplate.opsForValue().set(key, otherRtpSendInfo, 300, TimeUnit.SECONDS);
-            logger.info("[第三方服务对接->开启收流和获取发流信息] 结果，callId->{}， {}", callId, otherRtpSendInfo);
+            log.info("[第三方服务对接->开启收流和获取发流信息] 结果，callId->{}， {}", callId, otherRtpSendInfo);
         }
         // 将信息写入redis中，以备后用
         redisTemplate.opsForValue().set(key, otherRtpSendInfo, 300, TimeUnit.SECONDS);
@@ -153,7 +150,7 @@ public class RtpController {
     @Operation(summary = "关闭收流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
-        logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
+        log.info("[第三方服务对接->关闭收流] stream->{}", stream);
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         mediaServerService.closeRTPServer(mediaServerItem, stream);
         mediaServerService.closeRTPServer(mediaServerItem, stream+ "_a");
@@ -193,7 +190,7 @@ public class RtpController {
                         @RequestParam(required = false)Integer ptForAudio,
                         @RequestParam(required = false)Integer ptForVideo
         ) {
-        logger.info("[第三方服务对接->发送流] " +
+        log.info("[第三方服务对接->发送流] " +
                         "ssrc->{}, \r\n" +
                         "dstIpForAudio->{}, \n" +
                         "dstIpForAudio->{}, \n" +
@@ -228,15 +225,15 @@ public class RtpController {
         sendInfo.setPushSSRC(ssrc);
 
 
-        SendRtpItem sendRtpItemForVideo;
-        SendRtpItem sendRtpItemForAudio;
+        SendRtpInfo sendRtpItemForVideo;
+        SendRtpInfo sendRtpItemForAudio;
         if (!ObjectUtils.isEmpty(dstIpForAudio) && dstPortForAudio > 0) {
-            sendRtpItemForAudio = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForAudio(), ptForAudio);
+            sendRtpItemForAudio = SendRtpInfo.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForAudio(), ptForAudio);
         } else {
             sendRtpItemForAudio = null;
         }
         if (!ObjectUtils.isEmpty(dstIpForVideo) && dstPortForVideo > 0) {
-            sendRtpItemForVideo = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForVideo(), ptForVideo);
+            sendRtpItemForVideo = SendRtpInfo.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForVideo(), ptForVideo);
         } else {
             sendRtpItemForVideo = null;
         }
@@ -245,20 +242,20 @@ public class RtpController {
         if (streamReady) {
             if (sendRtpItemForVideo != null) {
                 mediaServerService.startSendRtp(mediaServer,  sendRtpItemForVideo);
-                logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
+                log.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
                 redisTemplate.opsForValue().set(key, sendInfo);
             }
             if(sendRtpItemForAudio != null) {
                 mediaServerService.startSendRtp(mediaServer, sendRtpItemForAudio);
-                logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
+                log.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
                 redisTemplate.opsForValue().set(key, sendInfo);
             }
         }else {
-            logger.info("[第三方服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
+            log.info("[第三方服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
             String uuid = UUID.randomUUID().toString();
             Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
             dynamicTask.startDelay(uuid, ()->{
-                logger.info("[第三方服务对接->发送流] 等待流上线超时 callId->{}", callId);
+                log.info("[第三方服务对接->发送流] 等待流上线超时 callId->{}", callId);
                 redisTemplate.delete(key);
                 hookSubscribe.removeSubscribe(hook);
             }, 10000);
@@ -269,7 +266,7 @@ public class RtpController {
             hookSubscribe.addSubscribe(hook,
                     (hookData)->{
                         dynamicTask.stop(uuid);
-                        logger.info("[第三方服务对接->发送流] 流上线，开始发流 callId->{}", callId);
+                        log.info("[第三方服务对接->发送流] 流上线，开始发流 callId->{}", callId);
                         try {
                             Thread.sleep(400);
                         } catch (InterruptedException e) {
@@ -277,12 +274,12 @@ public class RtpController {
                         }
                         if (sendRtpItemForVideo != null) {
                             mediaServerService.startSendRtp(mediaServer, sendRtpItemForVideo);
-                            logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
+                            log.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
                             redisTemplate.opsForValue().set(key, finalSendInfo);
                         }
                         if(sendRtpItemForAudio != null) {
                             mediaServerService.startSendRtp(mediaServer, sendRtpItemForAudio);
-                            logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
+                            log.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
                             redisTemplate.opsForValue().set(key, finalSendInfo);
                         }
                         hookSubscribe.removeSubscribe(hook);
@@ -295,7 +292,7 @@ public class RtpController {
     @Operation(summary = "关闭发送流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "callId", description = "整个过程的唯一标识，不传则使用随机端口发流", required = true)
     public void closeSendRTP(String callId) {
-        logger.info("[第三方服务对接->关闭发送流] callId->{}", callId);
+        log.info("[第三方服务对接->关闭发送流] callId->{}", callId);
         String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null){
@@ -303,7 +300,7 @@ public class RtpController {
         }
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         mediaServerService.stopSendRtp(mediaServerItem, sendInfo.getPushApp(), sendInfo.getPushStream(), sendInfo.getPushSSRC());
-        logger.info("[第三方服务对接->关闭发送流] 成功 callId->{}", callId);
+        log.info("[第三方服务对接->关闭发送流] 成功 callId->{}", callId);
         redisTemplate.delete(key);
     }
 

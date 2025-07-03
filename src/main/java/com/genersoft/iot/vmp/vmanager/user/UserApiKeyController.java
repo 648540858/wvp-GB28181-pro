@@ -63,9 +63,9 @@ public class UserApiKeyController {
 
         Long expirationTime = null;
         if (expiresAt != null) {
-            long timestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(expiresAt);
-            expirationTime = (timestamp - System.currentTimeMillis()) / (60 * 1000);
-            if (expirationTime < 0) {
+            expirationTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(expiresAt);
+            long difference = (expirationTime - System.currentTimeMillis()) / (60 * 1000);
+            if (difference < 0) {
                 throw new ControllerException(ErrorCode.ERROR400.getCode(), "过期时间不能早于当前时间");
             }
         }

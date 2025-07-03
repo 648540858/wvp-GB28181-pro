@@ -1,12 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
 
+@Setter
+@Getter
 public class CatalogEvent  extends ApplicationEvent {
+
     public CatalogEvent(Object source) {
         super(source);
     }
@@ -46,40 +51,10 @@ public class CatalogEvent  extends ApplicationEvent {
      */
     public static final String UPDATE = "UPDATE";
 
-    private List<DeviceChannel> deviceChannels;
-    private List<GbStream> gbStreams;
+    private List<CommonGBChannel> channels;
+
     private String type;
-    private String platformId;
 
-    public List<DeviceChannel> getDeviceChannels() {
-        return deviceChannels;
-    }
+    private Platform platform;
 
-    public void setDeviceChannels(List<DeviceChannel> deviceChannels) {
-        this.deviceChannels = deviceChannels;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getPlatformId() {
-        return platformId;
-    }
-
-    public void setPlatformId(String platformId) {
-        this.platformId = platformId;
-    }
-
-    public List<GbStream> getGbStreams() {
-        return gbStreams;
-    }
-
-    public void setGbStreams(List<GbStream> gbStreams) {
-        this.gbStreams = gbStreams;
-    }
 }

@@ -42,6 +42,7 @@ public interface MediaServerMapper {
             "create_time,"+
             "update_time,"+
             "transcode_suffix,"+
+            "server_id,"+
             "hook_alive_interval"+
             ") VALUES " +
             "(" +
@@ -74,12 +75,13 @@ public interface MediaServerMapper {
             "#{createTime}, " +
             "#{updateTime}, " +
             "#{transcodeSuffix}, " +
+            "#{serverId}, " +
             "#{hookAliveInterval})")
     int add(MediaServer mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
-            "SET update_time=#{updateTime}" +
+            "SET update_time=#{updateTime}, transcode_suffix=#{transcodeSuffix} " +
             "<if test=\"ip != null\">, ip=#{ip}</if>" +
             "<if test=\"hookIp != null\">, hook_ip=#{hookIp}</if>" +
             "<if test=\"sdpIp != null\">, sdp_ip=#{sdpIp}</if>" +
@@ -104,7 +106,7 @@ public interface MediaServerMapper {
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
-            "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
+            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"type != null\">, type=#{type}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
@@ -138,32 +140,27 @@ public interface MediaServerMapper {
             "<if test=\"type != null\">, type=#{type}</if>" +
             "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
+            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})
     int updateByHostAndPort(MediaServer mediaServerItem);
 
-    @Select("SELECT * FROM wvp_media_server WHERE id=#{id}")
-    MediaServer queryOne(String id);
+    @Select("SELECT * FROM wvp_media_server WHERE id=#{id} and server_id = #{serverId}")
+    MediaServer queryOne(@Param("id") String id, @Param("serverId") String serverId);
 
-    @Select("SELECT * FROM wvp_media_server")
-    List<MediaServer> queryAll();
+    @Select("SELECT * FROM wvp_media_server where server_id = #{serverId}")
+    List<MediaServer> queryAll(@Param("serverId") String serverId);
 
-    @Delete("DELETE FROM wvp_media_server WHERE id=#{id}")
-    void delOne(String id);
+    @Delete("DELETE FROM wvp_media_server WHERE id=#{id} and server_id = #{serverId}")
+    void delOne(String id, @Param("serverId") String serverId);
 
-    @Select("DELETE FROM wvp_media_server WHERE ip=#{host} and http_port=#{port}")
-    void delOneByIPAndPort(@Param("host") String host, @Param("port") int port);
+    @Select("SELECT * FROM wvp_media_server WHERE ip=#{host} and http_port=#{port} and server_id = #{serverId}")
+    MediaServer queryOneByHostAndPort(@Param("host") String host, @Param("port") int port, @Param("serverId") String serverId);
 
-    @Delete("DELETE FROM wvp_media_server WHERE default_server=true")
-    int delDefault();
+    @Select("SELECT * FROM wvp_media_server WHERE default_server=true and server_id = #{serverId}")
+    MediaServer queryDefault(@Param("serverId") String serverId);
 
-    @Select("SELECT * FROM wvp_media_server WHERE ip=#{host} and http_port=#{port}")
-    MediaServer queryOneByHostAndPort(@Param("host") String host, @Param("port") int port);
-
-    @Select("SELECT * FROM wvp_media_server WHERE default_server=true")
-    MediaServer queryDefault();
-
-    @Select("SELECT * FROM wvp_media_server WHERE record_assist_port > 0")
-    List<MediaServer> queryAllWithAssistPort();
+    @Select("SELECT * FROM wvp_media_server WHERE record_assist_port > 0 and server_id = #{serverId}")
+    List<MediaServer> queryAllWithAssistPort(@Param("serverId") String serverId);
 
 }

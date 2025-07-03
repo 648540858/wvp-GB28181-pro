@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.GitUtil;
@@ -37,7 +34,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 	@Autowired
 	private SipConfig sipConfig;
-	
+
 	@Autowired
 	private SipLayer sipLayer;
 
@@ -47,12 +44,12 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String toTag, CallIdHeader callIdHeader, int expires) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull Platform parentPlatform, long CSeq, String fromTag, String toTag, CallIdHeader callIdHeader, int expires) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort();
 		//请求行
 		SipURI requestLine = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(),
-				parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+				parentPlatform.getServerIp() + ":" + parentPlatform.getServerPort());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 		ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(parentPlatform.getDeviceIp(),
@@ -88,16 +85,16 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
 	}
 
-	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String toTag,
-										 WWWAuthenticateHeader www , CallIdHeader callIdHeader, int expires) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+	public Request createRegisterRequest(@NotNull Platform parentPlatform, String fromTag, String toTag,
+                                         WWWAuthenticateHeader www , CallIdHeader callIdHeader, int expires) throws ParseException, PeerUnavailableException, InvalidArgumentException {
 
 
 		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, toTag, callIdHeader, expires);
-		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIp() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = SipFactory.getInstance().createHeaderFactory().createAuthorizationHeader("Digest");
 			String username = parentPlatform.getUsername();
-			if ( username == null || username == "" )
+			if ( username == null || username.isEmpty())
 			{
 				authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
 			} else {
@@ -165,20 +162,20 @@ public class SIPRequestHeaderPlarformProvider {
 		return registerRequest;
 	}
 
-	public Request createMessageRequest(ParentPlatform parentPlatform, String content, SendRtpItem sendRtpItem) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public Request createMessageRequest(Platform parentPlatform, String content, SendRtpInfo sendRtpItem) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(sendRtpItem.getCallId());
 		callIdHeader.setCallId(sendRtpItem.getCallId());
 		return createMessageRequest(parentPlatform, content, sendRtpItem.getToTag(), SipUtils.getNewViaTag(), sendRtpItem.getFromTag(), callIdHeader);
 	}
 
-	public Request createMessageRequest(ParentPlatform parentPlatform, String content, String fromTag, String viaTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public Request createMessageRequest(Platform parentPlatform, String content, String fromTag, String viaTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		return createMessageRequest(parentPlatform, content, fromTag, viaTag, null, callIdHeader);
 	}
 
 
-	public Request createMessageRequest(ParentPlatform parentPlatform, String content, String fromTag, String viaTag, String toTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public Request createMessageRequest(Platform parentPlatform, String content, String fromTag, String viaTag, String toTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
-		String serverAddress = parentPlatform.getServerIP()+ ":" + parentPlatform.getServerPort();
+		String serverAddress = parentPlatform.getServerIp()+ ":" + parentPlatform.getServerPort();
 		// sipuri
 		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), serverAddress);
 		// via
@@ -214,10 +211,10 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
 	}
 
-	public SIPRequest createNotifyRequest(ParentPlatform parentPlatform, String content, SubscribeInfo subscribeInfo) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public SIPRequest createNotifyRequest(Platform parentPlatform, String content, SubscribeInfo subscribeInfo) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		SIPRequest request = null;
 		// sipuri
-		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP()+ ":" + parentPlatform.getServerPort());
+		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIp()+ ":" + parentPlatform.getServerPort());
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
 		ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(parentPlatform.getDeviceIp(), parentPlatform.getDevicePort(),
@@ -228,11 +225,11 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
 				parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort());
 		Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
-		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, subscribeInfo.getResponse() != null ? subscribeInfo.getResponse().getToTag(): subscribeInfo.getSimulatedToTag());
+		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, subscribeInfo.getTransactionInfo() != null ? subscribeInfo.getTransactionInfo() .getToTag(): subscribeInfo.getSimulatedToTag());
 		// to
 		SipURI toSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerGBDomain());
 		Address toAddress = SipFactory.getInstance().createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress, subscribeInfo.getRequest() != null ?subscribeInfo.getRequest().getFromTag(): subscribeInfo.getSimulatedFromTag());
+		ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress, subscribeInfo.getTransactionInfo() != null ?subscribeInfo.getTransactionInfo().getFromTag(): subscribeInfo.getSimulatedFromTag());
 
 		// Forwards
 		MaxForwardsHeader maxForwards = SipFactory.getInstance().createHeaderFactory().createMaxForwardsHeader(70);
@@ -242,7 +239,7 @@ public class SIPRequestHeaderPlarformProvider {
 		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset("gb2312");
 
-		CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(subscribeInfo.getRequest() != null ? subscribeInfo.getRequest().getCallIdHeader().getCallId(): subscribeInfo.getSimulatedCallId());
+		CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(subscribeInfo.getTransactionInfo() != null ? subscribeInfo.getTransactionInfo().getCallId(): subscribeInfo.getSimulatedCallId());
 
 		request = (SIPRequest) messageFactory.createRequest(requestURI, Request.NOTIFY, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
@@ -269,7 +266,7 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
     }
 
-	public SIPRequest createByeRequest(ParentPlatform platform, SendRtpItem sendRtpItem) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public SIPRequest createByeRequest(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 
 		if (sendRtpItem == null ) {
 			return null;
@@ -277,7 +274,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 		SIPRequest request = null;
 		// sipuri
-		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(), platform.getServerIP()+ ":" + platform.getServerPort());
+		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(), platform.getServerIp()+ ":" + platform.getServerPort());
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
 		ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(platform.getDeviceIp(), platform.getDevicePort(),
@@ -285,7 +282,7 @@ public class SIPRequestHeaderPlarformProvider {
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
-		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(sendRtpItem.getChannelId(),
+		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(channel.getGbDeviceId(),
 				platform.getDeviceIp() + ":" + platform.getDevicePort());
 		Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, sendRtpItem.getToTag());
@@ -315,12 +312,12 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
 	}
 
-    public Request createInviteRequest(ParentPlatform platform, String channelId, String content, String viaTag, String fromTag, String ssrc, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+    public Request createInviteRequest(Platform platform,String sourceId, String channelId, String content, String viaTag, String fromTag, String ssrc, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
 		//请求行
-		String platformHostAddress = platform.getServerIP() + ":" + platform.getServerPort();
+		String platformHostAddress = platform.getServerIp() + ":" + platform.getServerPort();
 		String localHostAddress = sipLayer.getLocalIp(platform.getDeviceIp())+":"+ platform.getDevicePort();
-		SipURI requestLine = SipFactory.getInstance().createAddressFactory().createSipURI(channelId, platformHostAddress);
+		SipURI requestLine = SipFactory.getInstance().createAddressFactory().createSipURI(sourceId, platformHostAddress);
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 		ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(sipLayer.getLocalIp(platform.getDeviceIp()), platform.getDevicePort(), platform.getTransport(), viaTag);
@@ -332,7 +329,7 @@ public class SIPRequestHeaderPlarformProvider {
 		Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, fromTag); //必须要有标记，否则无法创建会话，无法回应ack
 		//to
-		SipURI toSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(channelId, platformHostAddress);
+		SipURI toSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(sourceId, platformHostAddress);
 		Address toAddress = SipFactory.getInstance().createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress,null);
 
@@ -348,14 +345,14 @@ public class SIPRequestHeaderPlarformProvider {
 		Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(SipFactory.getInstance().createAddressFactory().createSipURI(sipConfig.getId(),localHostAddress));
 		request.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader(concatAddress));
 		// Subject
-		SubjectHeader subjectHeader = SipFactory.getInstance().createHeaderFactory().createSubjectHeader(String.format("%s:%s,%s:%s", channelId, ssrc, sipConfig.getId(), 0));
+		SubjectHeader subjectHeader = SipFactory.getInstance().createHeaderFactory().createSubjectHeader(String.format("%s:%s,%s:%s", sourceId, ssrc, channelId, 0));
 		request.addHeader(subjectHeader);
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 		request.setContent(content, contentTypeHeader);
 		return request;
     }
 
-	public Request createByteRequest(ParentPlatform platform, String channelId, SipTransactionInfo transactionInfo) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public Request createByteRequest(Platform platform, String channelId, SipTransactionInfo transactionInfo) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		String deviceHostAddress = platform.getDeviceIp() + ":" + platform.getDevicePort();
 		Request request = null;
 		SipURI requestLine = SipFactory.getInstance().createAddressFactory().createSipURI(channelId, deviceHostAddress);

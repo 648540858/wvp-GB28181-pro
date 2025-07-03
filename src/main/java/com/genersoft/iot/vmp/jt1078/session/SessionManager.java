@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp.jt1078.session;
 
 import com.genersoft.iot.vmp.jt1078.proc.entity.Cmd;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,9 +15,9 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/4/27 19:54
  * @email qingtaij@163.com
  */
+@Slf4j
 public enum SessionManager {
     INSTANCE;
-    private final static Logger log = LoggerFactory.getLogger(SessionManager.class);
 
     // 用与消息的缓存
     private final Map<String, SynchronousQueue<String>> topicSubscribers = new ConcurrentHashMap<>();

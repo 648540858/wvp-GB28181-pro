@@ -2,9 +2,10 @@ package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
@@ -49,7 +50,7 @@ public interface IMediaNodeServerService {
 
     WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
 
-    WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType);
+    WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout);
 
     Boolean delFFmpegSource(MediaServer mediaServer, String streamKey);
 
@@ -57,9 +58,21 @@ public interface IMediaNodeServerService {
 
     Map<String, String> getFFmpegCMDs(MediaServer mediaServer);
 
-    void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout);
+    Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
-    void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem);
+    void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
+
+    void startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+
+    void stopProxy(MediaServer mediaServer, String streamKey);
+
+    List<String> listRtpServer(MediaServer mediaServer);
+
+    void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
+
+    void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema);
+
+    void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema);
 }

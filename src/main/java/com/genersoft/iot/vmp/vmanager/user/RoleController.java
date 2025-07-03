@@ -34,7 +34,7 @@ public class RoleController {
         // 获取当前登录用户id
         int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
         if (currenRoleId != 1) {
-            // 只用角色id为1才可以删除和添加用户
+            // 只用角色id为0才可以删除和添加用户
             throw new ControllerException(ErrorCode.ERROR403);
         }
 
@@ -71,7 +71,6 @@ public class RoleController {
     @Operation(summary = "查询角色", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<Role> all(){
         // 获取当前登录用户id
-        List<Role> allRoles = roleService.getAll();
         return roleService.getAll();
     }
 }

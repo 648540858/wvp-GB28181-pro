@@ -1,39 +1,25 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import lombok.Data;
 
-import javax.sip.header.*;
+import javax.sip.header.EventHeader;
+import java.util.UUID;
 
+@Data
 public class SubscribeInfo {
 
-
-    public SubscribeInfo(SIPRequest request, String id) {
-        this.id = id;
-        this.request = request;
-        this.expires = request.getExpires().getExpires();
-        EventHeader eventHeader = (EventHeader)request.getHeader(EventHeader.NAME);
-        this.eventId = eventHeader.getEventId();
-        this.eventType = eventHeader.getEventType();
-
-    }
-
-    public SubscribeInfo() {
-    }
-
     private String id;
-
-    private SIPRequest request;
     private int expires;
     private String eventId;
     private String eventType;
-    private SIPResponse response;
+    private SipTransactionInfo transactionInfo;
 
     /**
      * 以下为可选字段
-     * @return
      */
     private String sn;
+
     private int gpsInterval;
 
     /**
@@ -51,91 +37,28 @@ public class SubscribeInfo {
      */
     private String simulatedCallId;
 
-    public String getId() {
-        return id;
+
+    public static SubscribeInfo getInstance(SIPResponse response, String id, int expires, EventHeader eventHeader){
+        SubscribeInfo subscribeInfo = new SubscribeInfo();
+        subscribeInfo.id = id;
+        subscribeInfo.transactionInfo = new SipTransactionInfo(response);
+
+        subscribeInfo.expires = expires;
+        subscribeInfo.eventId = eventHeader.getEventId();
+        subscribeInfo.eventType = eventHeader.getEventType();
+        return subscribeInfo;
+    }
+    public static SubscribeInfo buildSimulated(String platFormServerId, String platFormServerIp){
+        SubscribeInfo subscribeInfo = new SubscribeInfo();
+        subscribeInfo.setId(platFormServerId);
+        subscribeInfo.setExpires(-1);
+        subscribeInfo.setEventType("Catalog");
+        int random = (int) Math.floor(Math.random() * 10000);
+        subscribeInfo.setEventId(random + "");
+        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + platFormServerIp);
+        subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
+        subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
+        return subscribeInfo;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public SIPRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(SIPRequest request) {
-        this.request = request;
-    }
-
-    public int getExpires() {
-        return expires;
-    }
-
-    public void setExpires(int expires) {
-        this.expires = expires;
-    }
-
-    public String getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
-    }
-
-    public String getEventType() {
-        return eventType;
-    }
-
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
-
-    public SIPResponse getResponse() {
-        return response;
-    }
-
-    public void setResponse(SIPResponse response) {
-        this.response = response;
-    }
-
-    public String getSn() {
-        return sn;
-    }
-
-    public void setSn(String sn) {
-        this.sn = sn;
-    }
-
-    public int getGpsInterval() {
-        return gpsInterval;
-    }
-
-    public void setGpsInterval(int gpsInterval) {
-        this.gpsInterval = gpsInterval;
-    }
-
-    public String getSimulatedFromTag() {
-        return simulatedFromTag;
-    }
-
-    public void setSimulatedFromTag(String simulatedFromTag) {
-        this.simulatedFromTag = simulatedFromTag;
-    }
-
-    public String getSimulatedCallId() {
-        return simulatedCallId;
-    }
-
-    public void setSimulatedCallId(String simulatedCallId) {
-        this.simulatedCallId = simulatedCallId;
-    }
-
-    public String getSimulatedToTag() {
-        return simulatedToTag;
-    }
-
-    public void setSimulatedToTag(String simulatedToTag) {
-        this.simulatedToTag = simulatedToTag;
-    }
 }

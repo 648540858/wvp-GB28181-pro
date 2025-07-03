@@ -1,23 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.HandlerCatchData;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,31 +19,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * SIP命令类型： NOTIFY请求中的目录请求处理
  */
+@Slf4j
 @Component
 public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent {
 
+    private final ConcurrentLinkedQueue<NotifyCatalogChannel> channelList = new ConcurrentLinkedQueue<>();
 
-    private final static Logger logger = LoggerFactory.getLogger(NotifyRequestForCatalogProcessor.class);
-
-	private final List<DeviceChannel> updateChannelOnlineList = new CopyOnWriteArrayList<>();
-	private final List<DeviceChannel> updateChannelOfflineList = new CopyOnWriteArrayList<>();
-	private final Map<String, DeviceChannel> updateChannelMap = new ConcurrentHashMap<>();
-
-	private final Map<String, DeviceChannel> addChannelMap = new ConcurrentHashMap<>();
-	private final List<DeviceChannel> deleteChannelList = new CopyOnWriteArrayList<>();
-
-	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Autowired
 	private UserSetting userSetting;
@@ -63,49 +49,58 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
 
-	@Autowired
-	private DynamicTask dynamicTask;
+//	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
+//	public void showSize(){
+//		log.warn("[notify-目录订阅] 待处理消息数量： {}", taskQueue.size() );
+//	}
 
-	@Autowired
-	private SipConfig sipConfig;
-
-	@Transactional
 	public void process(RequestEvent evt) {
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
-			logger.error("[notify-目录订阅] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
+			log.error("[notify-目录订阅] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
 			return;
 		}
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedRate = 400)   //每400毫秒执行一次
+	@Scheduled(fixedDelay = 400)   //每400毫秒执行一次
 	public void executeTaskQueue(){
 		if (taskQueue.isEmpty()) {
 			return;
 		}
-		for (HandlerCatchData take : taskQueue) {
+		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
+		int size = taskQueue.size();
+		for (int i = 0; i < size; i++) {
+			HandlerCatchData poll = taskQueue.poll();
+			if (poll != null) {
+				handlerCatchDataList.add(poll);
+			}
+		}
+		if (handlerCatchDataList.isEmpty()) {
+			return;
+		}
+		for (HandlerCatchData take : handlerCatchDataList) {
 			if (take == null) {
 				continue;
 			}
 			RequestEvent evt = take.getEvt();
 			try {
-				long start = System.currentTimeMillis();
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
 				String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null || !device.isOnLine()) {
-					logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId() : ""));
-					return;
+					log.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId() : ""));
+					continue;
 				}
 				Element rootElement = getRootElement(evt, device.getCharset());
 				if (rootElement == null) {
-					logger.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
-					return;
+					log.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
+					continue;
 				}
 				Element deviceListElement = rootElement.element("DeviceList");
 				if (deviceListElement == null) {
-					return;
+					log.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
+					continue;
 				}
 				Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
 				if (deviceListIterator != null) {
@@ -113,210 +108,176 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 					// 遍历DeviceList
 					while (deviceListIterator.hasNext()) {
 						Element itemDevice = deviceListIterator.next();
-						Element eventElement = itemDevice.element("Event");
-						String event;
-						if (eventElement == null) {
-							logger.warn("[收到目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId() : ""));
-							event = CatalogEvent.ADD;
-						} else {
-							event = eventElement.getText().toUpperCase();
-						}
-						DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event);
-						if (channel == null) {
-							logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
+						CatalogChannelEvent catalogChannelEvent = null;
+                        try {
+                            catalogChannelEvent = CatalogChannelEvent.decode(itemDevice);
+							if (catalogChannelEvent.getChannel() == null) {
+								log.info("[解析CatalogChannelEvent]成功：但是解析通道信息失败， 原文如下： \n{}", new String(evt.getRequest().getRawContent()));
+								continue;
+							}
+							catalogChannelEvent.getChannel().setDataDeviceId(device.getId());
+                        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+                                 IllegalAccessException e) {
+                            log.error("[解析CatalogChannelEvent]失败，", e);
+                            log.error("[解析CatalogChannelEvent]失败原文: \n{}", new String(evt.getRequest().getRawContent(), Charset.forName(device.getCharset())));
 							continue;
+                        }
+						if (log.isDebugEnabled()){
+							log.debug("[收到目录订阅]：{}/{}-{}", device.getDeviceId(),
+									catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getEvent());
 						}
-						if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
-							channel.setParentId(null);
-						}
-						channel.setDeviceId(device.getDeviceId());
-						logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
-						switch (event) {
+						DeviceChannel channel = catalogChannelEvent.getChannel();
+						switch (catalogChannelEvent.getEvent()) {
 							case CatalogEvent.ON:
 								// 上线
-								logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-								updateChannelOnlineList.add(channel);
+								log.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
+								channel.setStatus("ON");
+								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
-									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), true);
+									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
 								}
 								break;
 							case CatalogEvent.OFF:
 								// 离线
-								logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+								log.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
-									logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+									log.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(channel);
+									channel.setStatus("OFF");
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
-										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
+										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
 									}
 								}
 								break;
 							case CatalogEvent.VLOST:
 								// 视频丢失
-								logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+								log.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
-									logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+									log.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(channel);
+									channel.setStatus("OFF");
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
-										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
+										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
 									}
 								}
 								break;
 							case CatalogEvent.DEFECT:
 								// 故障
-								logger.info("[收到通道视频故障通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+								log.info("[收到通道视频故障通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
-									logger.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+									log.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(channel);
+									channel.setStatus("OFF");
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
-										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
+										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
 									}
 								}
 								break;
 							case CatalogEvent.ADD:
 								// 增加
-								logger.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+								log.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								// 判断此通道是否存在
-								DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channel.getChannelId());
+								DeviceChannel deviceChannel = deviceChannelService.getOneForSource(device.getId(), catalogChannelEvent.getChannel().getDeviceId());
 								if (deviceChannel != null) {
-									logger.info("[增加通道] 已存在，不发送通知只更新，设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+									log.info("[增加通道] 已存在，不发送通知只更新，设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 									channel.setId(deviceChannel.getId());
-									channel.setHasAudio(null);
-									updateChannelMap.put(channel.getChannelId(), channel);
+									channel.setHasAudio(deviceChannel.isHasAudio());
+									channel.setUpdateTime(DateUtil.getNow());
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
 								} else {
-									addChannelMap.put(channel.getChannelId(), channel);
+									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
+									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
-										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
+										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
 									}
 								}
 
 								break;
 							case CatalogEvent.DEL:
 								// 删除
-								logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-								deleteChannelList.add(channel);
+								log.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
+								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.DELETE, channel));
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
-									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), false);
+									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
 								}
 								break;
 							case CatalogEvent.UPDATE:
 								// 更新
-								logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+								log.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								// 判断此通道是否存在
-								DeviceChannel deviceChannelForUpdate = deviceChannelService.getOne(deviceId, channel.getChannelId());
+								DeviceChannel deviceChannelForUpdate = deviceChannelService.getOneForSource(device.getId(), catalogChannelEvent.getChannel().getDeviceId());
 								if (deviceChannelForUpdate != null) {
 									channel.setId(deviceChannelForUpdate.getId());
+									channel.setHasAudio(deviceChannelForUpdate.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
-									channel.setHasAudio(null);
-									updateChannelMap.put(channel.getChannelId(), channel);
+									channel.setUpdateTime(DateUtil.getNow());
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
 								} else {
-									addChannelMap.put(channel.getChannelId(), channel);
+									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
+									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
-										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
+										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
 									}
 								}
 								break;
 							default:
-								logger.warn("[ NotifyCatalog ] event not found ： {}", event);
+								log.warn("[ NotifyCatalog ] event not found ： {}", catalogChannelEvent.getEvent());
 
 						}
 						// 转发变化信息
-						eventPublisher.catalogEventPublish(null, channel, event);
+						eventPublisher.catalogEventPublish(null, catalogChannelEvent.getChannel(), catalogChannelEvent.getEvent());
 					}
 				}
 
 			} catch (DocumentException e) {
-				logger.error("未处理的异常 ", e);
+				log.error("未处理的异常 ", e);
 			}
 		}
-		taskQueue.clear();
-		if (!updateChannelMap.keySet().isEmpty()
-				|| !addChannelMap.keySet().isEmpty()
-				|| !updateChannelOnlineList.isEmpty()
-				|| !updateChannelOfflineList.isEmpty()
-				|| !deleteChannelList.isEmpty()) {
+		if (!channelList.isEmpty()) {
 			executeSave();
 		}
 	}
 
-	public void executeSave(){
-		try {
-			executeSaveForAdd();
-		} catch (Exception e) {
-			logger.error("[存储收到的增加通道] 异常： ", e );
+	@Transactional
+	public void executeSave() {
+		int size = channelList.size();
+		List<NotifyCatalogChannel> channelListForSave = new ArrayList<>();
+		for (int i = 0; i < size; i++) {
+			channelListForSave.add(channelList.poll());
 		}
-		try {
-			executeSaveForOnline();
-		} catch (Exception e) {
-			logger.error("[存储收到的通道上线] 异常： ", e );
-		}
-		try {
-			executeSaveForOffline();
-		} catch (Exception e) {
-			logger.error("[存储收到的通道离线] 异常： ", e );
-		}
-		try {
-			executeSaveForUpdate();
-		} catch (Exception e) {
-			logger.error("[存储收到的更新通道] 异常： ", e );
-		}
-		try {
-			executeSaveForDelete();
-		} catch (Exception e) {
-			logger.error("[存储收到的删除通道] 异常： ", e );
-		}
-	}
 
-	private void executeSaveForUpdate(){
-		if (!updateChannelMap.values().isEmpty()) {
-			logger.info("[存储收到的更新通道], 数量： {}", updateChannelMap.size());
-			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
-			deviceChannelService.batchUpdateChannel(deviceChannels);
-			updateChannelMap.clear();
+		for (NotifyCatalogChannel notifyCatalogChannel : channelListForSave) {
+			try {
+				switch (notifyCatalogChannel.getType()) {
+					case STATUS_CHANGED:
+						deviceChannelService.updateChannelStatus(notifyCatalogChannel.getChannel());
+						break;
+					case ADD:
+						deviceChannelService.addChannel(notifyCatalogChannel.getChannel());
+						break;
+					case UPDATE:
+						deviceChannelService.updateChannelForNotify(notifyCatalogChannel.getChannel());
+						break;
+					case DELETE:
+						deviceChannelService.delete(notifyCatalogChannel.getChannel());
+						break;
+				}
+			}catch (Exception e) {
+				log.error("[存储收到的通道]类型：{}，编号：{}", notifyCatalogChannel.getType(),
+						notifyCatalogChannel.getChannel().getDeviceId(), e);
+			}
 		}
-	}
-
-	private void executeSaveForAdd(){
-		if (!addChannelMap.values().isEmpty()) {
-			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(addChannelMap.values());
-			addChannelMap.clear();
-			deviceChannelService.batchAddChannel(deviceChannels);
-		}
-	}
-
-	private void executeSaveForDelete(){
-		if (!deleteChannelList.isEmpty()) {
-			deviceChannelService.deleteChannels(deleteChannelList);
-			deleteChannelList.clear();
-		}
-	}
-
-	private void executeSaveForOnline(){
-		if (!updateChannelOnlineList.isEmpty()) {
-			deviceChannelService.channelsOnline(updateChannelOnlineList);
-			updateChannelOnlineList.clear();
-		}
-	}
-
-	private void executeSaveForOffline(){
-		if (!updateChannelOfflineList.isEmpty()) {
-			deviceChannelService.channelsOffline(updateChannelOfflineList);
-			updateChannelOfflineList.clear();
-		}
-	}
-
-	@Scheduled(fixedRate = 10000)   //每1秒执行一次
-	public void execute(){
-		logger.info("[待处理Notify-目录订阅消息数量]: {}", taskQueue.size());
 	}
 }

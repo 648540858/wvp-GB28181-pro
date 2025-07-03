@@ -1,18 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -34,9 +34,8 @@ import java.util.List;
  * @author: songww
  * @date:   2020年5月3日 下午4:42:22     
  */
+@Slf4j
 public abstract class SIPRequestProcessorParent {
-
-	private final static Logger logger = LoggerFactory.getLogger(SIPRequestProcessorParent.class);
 
 	@Autowired
 	private SIPSender sipSender;
@@ -45,7 +44,7 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			return SipFactory.getInstance().createHeaderFactory();
 		} catch (PeerUnavailableException e) {
-			logger.error("未处理的异常 ", e);
+			log.error("未处理的异常 ", e);
 		}
 		return null;
 	}
@@ -54,7 +53,7 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			return SipFactory.getInstance().createMessageFactory();
 		} catch (PeerUnavailableException e) {
-			logger.error("未处理的异常 ", e);
+			log.error("未处理的异常 ", e);
 		}
 		return null;
 	}
@@ -94,7 +93,7 @@ public abstract class SIPRequestProcessorParent {
 
 		if (responseAckExtraParam != null) {
 			if (responseAckExtraParam.sipURI != null && sipRequest.getMethod().equals(Request.INVITE)) {
-				logger.debug("responseSdpAck SipURI: {}:{}", responseAckExtraParam.sipURI.getHost(), responseAckExtraParam.sipURI.getPort());
+				log.debug("responseSdpAck SipURI: {}:{}", responseAckExtraParam.sipURI.getHost(), responseAckExtraParam.sipURI.getPort());
 				Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(
 						SipFactory.getInstance().createAddressFactory().createSipURI(responseAckExtraParam.sipURI.getUser(),  responseAckExtraParam.sipURI.getHost()+":"+responseAckExtraParam.sipURI.getPort()
 						));
@@ -106,7 +105,7 @@ public abstract class SIPRequestProcessorParent {
 
 			if (sipRequest.getMethod().equals(Request.SUBSCRIBE)) {
 				if (responseAckExtraParam.expires == -1) {
-					logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
+					log.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
 				}else {
 					ExpiresHeader expiresHeader = SipFactory.getInstance().createHeaderFactory().createExpiresHeader(responseAckExtraParam.expires);
 					response.addHeader(expiresHeader);
@@ -114,7 +113,7 @@ public abstract class SIPRequestProcessorParent {
 			}
 		}else {
 			if (sipRequest.getMethod().equals(Request.SUBSCRIBE)) {
-				logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
+				log.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
 			}
 		}
 
@@ -129,14 +128,14 @@ public abstract class SIPRequestProcessorParent {
 	/**
 	 * 回复带sdp的200
 	 */
-	public SIPResponse responseSdpAck(SIPRequest request, String sdp, ParentPlatform platform) throws SipException, InvalidArgumentException, ParseException {
+	public SIPResponse responseSdpAck(SIPRequest request, String sdp, Platform platform) throws SipException, InvalidArgumentException, ParseException {
 
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 
 		// 兼容国标中的使用编码@域名作为RequestURI的情况
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;
@@ -152,12 +151,12 @@ public abstract class SIPRequestProcessorParent {
 	/**
 	 * 回复带xml的200
 	 */
-	public SIPResponse responseXmlAck(SIPRequest request, String xml, ParentPlatform platform, Integer expires) throws SipException, InvalidArgumentException, ParseException {
+	public SIPResponse responseXmlAck(SIPRequest request, String xml, Platform platform, Integer expires) throws SipException, InvalidArgumentException, ParseException {
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;
@@ -172,10 +171,17 @@ public abstract class SIPRequestProcessorParent {
 	}
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
 
+		byte[] rawContent = evt.getRequest().getRawContent();
+		if (evt.getRequest().getContentLength().getContentLength() == 0
+				|| rawContent == null
+				|| rawContent.length == 0
+				|| ObjectUtils.isEmpty(new String(rawContent))) {
+			return null;
+		}
+
 		if (charset == null) {
 			charset = "gb2312";
 		}
-		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
@@ -184,10 +190,6 @@ public abstract class SIPRequestProcessorParent {
 		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
-		byte[] rawContent = request.getRawContent();
-		if (rawContent == null) {
-			return null;
-		}
 		for (int i = 0; i < rawContent.length; i++) {
 			if (rawContent[i] == destBye) {
 				boolean resul = false;
@@ -210,8 +212,8 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			xml = reader.read(new ByteArrayInputStream(bytesResult));
 		}catch (DocumentException e) {
-			logger.warn("[xml解析异常]： 原文如下： \r\n{}", new String(bytesResult));
-			logger.warn("[xml解析异常]： 原文如下： 尝试兼容性处理");
+			log.warn("[xml解析异常]： 原文如下： \r\n{}", new String(bytesResult));
+			log.warn("[xml解析异常]： 原文如下： 尝试兼容性处理");
 			String[] xmlLineArray = new String(bytesResult).split("\\r?\\n");
 
 			// 兼容海康的address字段带有<破换xml结构导致无法解析xml的问题

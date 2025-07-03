@@ -3,8 +3,7 @@ package com.genersoft.iot.vmp.jt1078.proc.factory;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.genersoft.iot.vmp.jt1078.util.ClassUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +14,8 @@ import java.util.Map;
  * @date 2023/4/27 18:29
  * @email qingtaij@163.com
  */
-
+@Slf4j
 public class CodecFactory {
-    private final static Logger log = LoggerFactory.getLogger(CodecFactory.class);
 
     private static Map<String, Class<?>> protocolHash;
 

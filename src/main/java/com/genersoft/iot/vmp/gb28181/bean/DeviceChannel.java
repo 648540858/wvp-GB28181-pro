@@ -1,260 +1,190 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.gb28181.utils.MessageElementForCatalog;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.dom4j.Element;
+import org.springframework.util.ObjectUtils;
 
+import java.lang.reflect.InvocationTargetException;
+
+@Data
+@Slf4j
 @Schema(description = "通道信息")
-public class DeviceChannel {
+@EqualsAndHashCode(callSuper = true)
+public class DeviceChannel extends CommonGBChannel {
 
-
-	/**
-	 * 数据库自增ID
-	 */
 	@Schema(description = "数据库自增ID")
 	private int id;
 
-	/**
-	 * 通道国标编号
-	 */
-	@Schema(description = "通道国标编号")
-	private String channelId;
+	@Schema(description = "父设备编码")
+	private String parentDeviceId;
 
-	/**
-	 * 设备国标编号
-	 */
-	@Schema(description = "设备国标编号")
+	@Schema(description = "父设备名称")
+	private String parentName;
+
+	@MessageElementForCatalog("DeviceID")
+	@Schema(description = "编码")
 	private String deviceId;
-	
-	/**
-	 * 通道名
-	 */
+
+	@MessageElementForCatalog("Name")
 	@Schema(description = "名称")
 	private String name;
-	
-	/**
-	 * 生产厂商
-	 */
-	@Schema(description = "生产厂商")
-	private String manufacture;
-	
-	/**
-	 * 型号
-	 */
-	@Schema(description = "型号")
+
+	@MessageElementForCatalog("Manufacturer")
+	@Schema(description = "设备厂商")
+	private String manufacturer;
+
+	@MessageElementForCatalog("Model")
+	@Schema(description = "设备型号")
 	private String model;
-	
-	/**
-	 * 设备归属
-	 */
+
+	// 2016
+	@MessageElementForCatalog("Owner")
 	@Schema(description = "设备归属")
 	private String owner;
-	
-	/**
-	 * 行政区域
-	 */
+
+	@MessageElementForCatalog("CivilCode")
 	@Schema(description = "行政区域")
 	private String civilCode;
-	
-	/**
-	 * 警区
-	 */
+
+	@MessageElementForCatalog("Block")
 	@Schema(description = "警区")
 	private String block;
 
-	/**
-	 * 安装地址
-	 */
+	@MessageElementForCatalog("Address")
 	@Schema(description = "安装地址")
 	private String address;
-	
-	/**
-	 * 是否有子设备 1有, 0没有
-	 */
-	@Schema(description = "是否有子设备 1有, 0没有")
-	private int parental;
-	
-	/**
-	 * 父级id
-	 */
-	@Schema(description = "父级id")
+
+	@MessageElementForCatalog("Parental")
+	@Schema(description = "是否有子设备(必选)1有,0没有")
+	private Integer parental;
+
+
+	@MessageElementForCatalog("ParentID")
+	@Schema(description = "父节点ID")
 	private String parentId;
-	
-	/**
-	 * 信令安全模式  缺省为0; 0:不采用; 2: S/MIME签名方式; 3: S/ MIME加密签名同时采用方式; 4:数字摘要方式
-	 */
-	@Schema(description = "信令安全模式  缺省为0; 0:不采用; 2: S/MIME签名方式; 3: S/ MIME加密签名同时采用方式; 4:数字摘要方式")
-	private int safetyWay;
-	
-	/**
-	 * 注册方式 缺省为1;1:符合IETFRFC3261标准的认证注册模 式; 2:基于口令的双向认证注册模式; 3:基于数字证书的双向认证注册模式
-	 */
-	@Schema(description = "注册方式 缺省为1;1:符合IETFRFC3261标准的认证注册模 式; 2:基于口令的双向认证注册模式; 3:基于数字证书的双向认证注册模式")
-	private int registerWay;
-	
-	/**
-	 * 证书序列号
-	 */
+
+	// 2016
+	@MessageElementForCatalog("SafetyWay")
+	@Schema(description = "信令安全模式")
+	private Integer safetyWay;
+
+	@MessageElementForCatalog("RegisterWay")
+	@Schema(description = "注册方式")
+	private Integer registerWay;
+
+	// 2016
+	@MessageElementForCatalog("CertNum")
 	@Schema(description = "证书序列号")
 	private String certNum;
-	
-	/**
-	 * 证书有效标识 缺省为0;证书有效标识:0:无效1: 有效
-	 */
-	@Schema(description = "证书有效标识 缺省为0;证书有效标识:0:无效1: 有效")
-	private int certifiable;
-	
-	/**
-	 * 证书无效原因码
-	 */
-	@Schema(description = "证书无效原因码")
-	private int errCode;
-	
-	/**
-	 * 证书终止有效期
-	 */
-	@Schema(description = "证书终止有效期")
+
+	// 2016
+	@MessageElementForCatalog("Certifiable")
+	@Schema(description = "证书有效标识, 缺省为0;证书有效标识:0:无效 1:有效")
+	private Integer certifiable;
+
+	// 2016
+	@MessageElementForCatalog("ErrCode")
+	@Schema(description = "无效原因码(有证书且证书无效的设备必选)")
+	private Integer errCode;
+
+	// 2016
+	@MessageElementForCatalog("EndTime")
+	@Schema(description = "证书终止有效期(有证书且证书无效的设备必选)")
 	private String endTime;
-	
-	/**
-	 * 保密属性 缺省为0; 0:不涉密, 1:涉密
-	 */
-	@Schema(description = "保密属性 缺省为0; 0:不涉密, 1:涉密")
-	private String secrecy;
-	
-	/**
-	 * IP地址
-	 */
-	@Schema(description = "IP地址")
+
+	@MessageElementForCatalog("Secrecy")
+	@Schema(description = "保密属性(必选)缺省为0;0-不涉密,1-涉密")
+	private Integer secrecy;
+
+	@MessageElementForCatalog("IPAddress")
+	@Schema(description = "设备/系统IPv4/IPv6地址")
 	private String ipAddress;
-	
-	/**
-	 * 端口号
-	 */
-	@Schema(description = "端口号")
-	private int port;
-	
-	/**
-	 * 密码
-	 */
-	@Schema(description = "密码")
+
+	@MessageElementForCatalog("Port")
+	@Schema(description = "设备/系统端口")
+	private Integer port;
+
+	@MessageElementForCatalog("Password")
+	@Schema(description = "设备口令")
 	private String password;
 
-	/**
-	 * 云台类型
-	 */
-	@Schema(description = "云台类型")
-	private int ptzType;
+	@MessageElementForCatalog("Status")
+	@Schema(description = "设备状态")
+	private String status;
 
-	/**
-	 * 云台类型描述字符串
-	 */
+	@MessageElementForCatalog("Longitude")
+	@Schema(description = "经度 WGS-84坐标系")
+	private Double longitude;
+
+
+	@MessageElementForCatalog("Latitude")
+	@Schema(description = ",纬度 WGS-84坐标系")
+	private Double latitude;
+
+	@MessageElementForCatalog("Info.PTZType")
+	@Schema(description = "摄像机结构类型,标识摄像机类型: 1-球机; 2-半球; 3-固定枪机; 4-遥控枪机;5-遥控半球;6-多目设备的全景/拼接通道;7-多目设备的分割通道")
+	private Integer ptzType;
+
+	@MessageElementForCatalog("Info.PositionType")
+	@Schema(description = "摄像机位置类型扩展。1-省际检查站、2-党政机关、3-车站码头、4-中心广场、5-体育场馆、" +
+			"6-商业中心、7-宗教场所、8-校园周边、9-治安复杂区域、10-交通干线")
+	private Integer positionType;
+
+	@MessageElementForCatalog("Info.RoomType")
+	@Schema(description = "摄像机安装位置室外、室内属性。1-室外、2-室内。")
+	private Integer roomType;
+
+	@MessageElementForCatalog("Info.UseType")
+	@Schema(description = "用途属性， 1-治安、2-交通、3-重点。")
+	private Integer useType;
+
+	@MessageElementForCatalog("Info.SupplyLightType")
+	@Schema(description = "摄像机补光属性。1-无补光;2-红外补光;3-白光补光;4-激光补光;9-其他")
+	private Integer supplyLightType;
+
+	@MessageElementForCatalog("Info.DirectionType")
+	@Schema(description = "摄像机监视方位(光轴方向)属性。1-东(西向东)、2-西(东向西)、3-南(北向南)、4-北(南向北)、" +
+			"5-东南(西北到东南)、6-东北(西南到东北)、7-西南(东北到西南)、8-西北(东南到西北)")
+	private Integer directionType;
+
+	@MessageElementForCatalog("Info.Resolution")
+	@Schema(description = "摄像机支持的分辨率,可多值")
+	private String resolution;
+
+	@MessageElementForCatalog({"BusinessGroupID","Info.BusinessGroupID"})
+	@Schema(description = "虚拟组织所属的业务分组ID")
+	private String businessGroupId;
+
+	@MessageElementForCatalog("Info.DownloadSpeed")
+	@Schema(description = "下载倍速(可选),可多值")
+	private String downloadSpeed;
+
+	@MessageElementForCatalog("Info.SVCSpaceSupportMode")
+	@Schema(description = "空域编码能力,取值0-不支持;1-1级增强(1个增强层);2-2级增强(2个增强层);3-3级增强(3个增强层)")
+	private Integer svcSpaceSupportMod;
+
+	@MessageElementForCatalog("Info.SVCTimeSupportMode")
+	@Schema(description = "时域编码能力,取值0-不支持;1-1级增强;2-2级增强;3-3级增强(可选)")
+	private Integer svcTimeSupportMode;
+
 	@Schema(description = "云台类型描述字符串")
 	private String ptzTypeText;
 
-	/**
-	 * 创建时间
-	 */
-	@Schema(description = "创建时间")
-	private String createTime;
-
-	/**
-	 * 更新时间
-	 */
-	@Schema(description = "更新时间")
-	private String updateTime;
-	
-	/**
-	 * 在线/离线
-	 * 1在线,0离线
-	 * 默认在线
-	 * 信令:
-	 * <Status>ON</Status>
-	 * <Status>OFF</Status>
-	 * 遇到过NVR下的IPC下发信令可以推流， 但是 Status 响应 OFF
-	 */
-	@Schema(description = "在线/离线， 1在线,0离线")
-	private boolean status;
-
-	/**
-	 * 经度
-	 */
-	@Schema(description = "经度")
-	private double longitude;
-	
-	/**
-	 * 纬度
-	 */
-	@Schema(description = "纬度")
-	private double latitude;
-
-	/**
-	 * 经度
-	 */
-	@Schema(description = "自定义经度")
-	private double customLongitude;
-
-	/**
-	 * 纬度
-	 */
-	@Schema(description = "自定义纬度")
-	private double customLatitude;
-
-	/**
-	 * 经度 GCJ02
-	 */
-	@Schema(description = "GCJ02坐标系经度")
-	private double longitudeGcj02;
-
-	/**
-	 * 纬度 GCJ02
-	 */
-	@Schema(description = "GCJ02坐标系纬度")
-	private double latitudeGcj02;
-
-	/**
-	 * 经度 WGS84
-	 */
-	@Schema(description = "WGS84坐标系经度")
-	private double longitudeWgs84;
-
-	/**
-	 * 纬度 WGS84
-	 */
-	@Schema(description = "WGS84坐标系纬度")
-	private double latitudeWgs84;
-
-	/**
-	 * 子设备数
-	 */
 	@Schema(description = "子设备数")
 	private int subCount;
 
-	/**
-	 * 流唯一编号，存在表示正在直播
-	 */
 	@Schema(description = "流唯一编号，存在表示正在直播")
 	private String  streamId;
 
-	/**
-	 *  是否含有音频
-	 */
 	@Schema(description = "是否含有音频")
-	private Boolean hasAudio;
+	private boolean hasAudio;
 
-	/**
-	 * 标记通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划
-	 */
-	@Schema(description = "标记通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划")
-	private int channelType;
-
-	/**
-	 * 业务分组
-	 */
-	@Schema(description = "业务分组")
-	private String businessGroupId;
-
-	/**
-	 * GPS的更新时间
-	 */
 	@Schema(description = "GPS的更新时间")
 	private String gpsTime;
 
@@ -262,21 +192,10 @@ public class DeviceChannel {
 			"用于选择码流时组成码流标识。默认为null，不设置。可选值: stream/streamnumber/streamprofile/streamMode")
 	private String streamIdentification;
 
-	public int getId() {
-		return id;
-	}
+	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
+	private int channelType;
 
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
+	private Integer dataType = ChannelDataType.GB28181.value;
 
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
@@ -296,322 +215,50 @@ public class DeviceChannel {
 			case 4:
 				this.ptzTypeText = "遥控枪机";
 				break;
+			case 5:
+				this.ptzTypeText = "遥控半球";
+				break;
+			case 6:
+				this.ptzTypeText = "多目设备的全景/拼接通道";
+				break;
+			case 7:
+				this.ptzTypeText = "多目设备的分割通道";
+				break;
 		}
 	}
 
-	public String getChannelId() {
-		return channelId;
+	public static DeviceChannel decode(Element element) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+		DeviceChannel deviceChannel = XmlUtil.elementDecode(element, DeviceChannel.class);
+		if(deviceChannel.getCivilCode() != null ) {
+			if (ObjectUtils.isEmpty(deviceChannel.getCivilCode())
+					|| deviceChannel.getCivilCode().length() > 8 ){
+				deviceChannel.setCivilCode(null);
+			}
+			// 此处对于不在wvp缓存中的行政区划,默认直接存储.保证即使出现wvp的行政区划缓存过老,也可以通过用户自主创建的方式正常使用系统
+		}
+		GbCode gbCode = GbCode.decode(deviceChannel.getDeviceId());
+		if (gbCode != null && "138".equals(gbCode.getTypeCode())) {
+			deviceChannel.setHasAudio(true);
+		}
+		return deviceChannel;
+	}
+
+	public static DeviceChannel decodeWithOnlyDeviceId(Element element) {
+		Element deviceElement = element.element("DeviceID");
+		DeviceChannel deviceChannel = new DeviceChannel();
+		deviceChannel.setDeviceId(deviceElement.getText());
+		return deviceChannel;
+	}
+
+	public CommonGBChannel buildCommonGBChannelForStatus() {
+		CommonGBChannel commonGBChannel = new CommonGBChannel();
+		commonGBChannel.setGbId(id);
+		commonGBChannel.setGbDeviceId(deviceId);
+		commonGBChannel.setGbName(name);
+		commonGBChannel.setDataType(ChannelDataType.GB28181.value);
+		commonGBChannel.setDataDeviceId(getDataDeviceId());
+		return commonGBChannel;
 	}
 
-	public void setChannelId(String channelId) {
-		this.channelId = channelId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getManufacture() {
-		return manufacture;
-	}
-
-	public void setManufacture(String manufacture) {
-		this.manufacture = manufacture;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-
-	public String getCivilCode() {
-		return civilCode;
-	}
-
-	public void setCivilCode(String civilCode) {
-		this.civilCode = civilCode;
-	}
-
-	public String getBlock() {
-		return block;
-	}
-
-	public void setBlock(String block) {
-		this.block = block;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public int getParental() {
-		return parental;
-	}
-
-	public void setParental(int parental) {
-		this.parental = parental;
-	}
-
-	public String getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
-
-	public int getSafetyWay() {
-		return safetyWay;
-	}
-
-	public void setSafetyWay(int safetyWay) {
-		this.safetyWay = safetyWay;
-	}
-
-	public int getRegisterWay() {
-		return registerWay;
-	}
-
-	public void setRegisterWay(int registerWay) {
-		this.registerWay = registerWay;
-	}
-
-	public String getCertNum() {
-		return certNum;
-	}
-
-	public void setCertNum(String certNum) {
-		this.certNum = certNum;
-	}
-
-	public int getCertifiable() {
-		return certifiable;
-	}
-
-	public void setCertifiable(int certifiable) {
-		this.certifiable = certifiable;
-	}
-
-	public int getErrCode() {
-		return errCode;
-	}
-
-	public void setErrCode(int errCode) {
-		this.errCode = errCode;
-	}
-
-	public String getEndTime() {
-		return endTime;
-	}
-
-	public void setEndTime(String endTime) {
-		this.endTime = endTime;
-	}
-
-	public String getSecrecy() {
-		return secrecy;
-	}
-
-	public void setSecrecy(String secrecy) {
-		this.secrecy = secrecy;
-	}
-
-	public String getIpAddress() {
-		return ipAddress;
-	}
-
-	public void setIpAddress(String ipAddress) {
-		this.ipAddress = ipAddress;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
 
-	public int getPtzType() {
-		return ptzType;
-	}
-
-	public String getPtzTypeText() {
-		return ptzTypeText;
-	}
-
-	public void setPtzTypeText(String ptzTypeText) {
-		this.ptzTypeText = ptzTypeText;
-	}
-
-	public boolean isStatus() {
-		return status;
-	}
-
-	public void setStatus(boolean status) {
-		this.status = status;
-	}
-
-	public double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(double longitude) {
-		this.longitude = longitude;
-	}
-
-	public double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(double latitude) {
-		this.latitude = latitude;
-	}
-
-	public double getLongitudeGcj02() {
-		return longitudeGcj02;
-	}
-
-	public void setLongitudeGcj02(double longitudeGcj02) {
-		this.longitudeGcj02 = longitudeGcj02;
-	}
-
-	public double getLatitudeGcj02() {
-		return latitudeGcj02;
-	}
-
-	public void setLatitudeGcj02(double latitudeGcj02) {
-		this.latitudeGcj02 = latitudeGcj02;
-	}
-
-	public double getLongitudeWgs84() {
-		return longitudeWgs84;
-	}
-
-	public void setLongitudeWgs84(double longitudeWgs84) {
-		this.longitudeWgs84 = longitudeWgs84;
-	}
-
-	public double getLatitudeWgs84() {
-		return latitudeWgs84;
-	}
-
-	public void setLatitudeWgs84(double latitudeWgs84) {
-		this.latitudeWgs84 = latitudeWgs84;
-	}
-
-	public int getSubCount() {
-		return subCount;
-	}
-
-	public void setSubCount(int subCount) {
-		this.subCount = subCount;
-	}
-
-	public Boolean getHasAudio() {
-		return hasAudio;
-	}
-
-	public void setHasAudio(Boolean hasAudio) {
-		this.hasAudio = hasAudio;
-	}
-
-	public String getStreamId() {
-		return streamId;
-	}
-
-	public void setStreamId(String streamId) {
-		this.streamId = streamId;
-	}
-
-	public String getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(String createTime) {
-		this.createTime = createTime;
-	}
-
-	public String getUpdateTime() {
-		return updateTime;
-	}
-
-	public void setUpdateTime(String updateTime) {
-		this.updateTime = updateTime;
-	}
-
-	public int getChannelType() {
-		return channelType;
-	}
-
-	public void setChannelType(int channelType) {
-		this.channelType = channelType;
-	}
-
-	public String getBusinessGroupId() {
-		return businessGroupId;
-	}
-
-	public void setBusinessGroupId(String businessGroupId) {
-		this.businessGroupId = businessGroupId;
-	}
-
-	public String getGpsTime() {
-		return gpsTime;
-	}
-
-	public void setGpsTime(String gpsTime) {
-		this.gpsTime = gpsTime;
-	}
-
-	public String getStreamIdentification() {
-		return streamIdentification;
-	}
-
-	public void setStreamIdentification(String streamIdentification) {
-		this.streamIdentification = streamIdentification;
-	}
-
-	public double getCustomLongitude() {
-		return customLongitude;
-	}
-
-	public void setCustomLongitude(double customLongitude) {
-		this.customLongitude = customLongitude;
-	}
-
-	public double getCustomLatitude() {
-		return customLatitude;
-	}
-
-	public void setCustomLatitude(double customLatitude) {
-		this.customLatitude = customLatitude;
-	}
 }

@@ -1,19 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,17 +22,17 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 @Component
 public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(BroadcastResponseMessageHandler.class);
     private final String cmdType = "Broadcast";
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private DynamicTask dynamicTask;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
@@ -55,9 +51,21 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {
             String channelId = getText(rootElement, "DeviceID");
-            if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+            DeviceChannel channel = null;
+            if (!channelId.equals(device.getDeviceId())) {
+                channel = deviceChannelService.getOneBySourceId(device.getId(), channelId);
+            }else {
+                channel = deviceChannelService.getBroadcastChannel(device.getId());
+            }
+            if (channel == null) {
+                log.info("[语音广播]回复： 未找到通道{}/{}", device.getDeviceId(), channelId );
                 // 回复410
-                responseAck((SIPRequest) evt.getRequest(), Response.GONE);
+                responseAck((SIPRequest) evt.getRequest(), Response.NOT_FOUND);
+                return;
+            }
+            if (!audioBroadcastManager.exit(channel.getId())) {
+                // 回复410
+                responseAck((SIPRequest) evt.getRequest(), Response.BUSY_HERE);
                 return;
             }
             String result = getText(rootElement, "Result");
@@ -66,24 +74,26 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             if (infoElement != null) {
                 reason = getText(infoElement, "Reason");
             }
-            logger.info("[语音广播]回复：{}, {}/{}", reason == null? result : result + ": " + reason, device.getDeviceId(), channelId );
+            log.info("[语音广播]回复：{}, {}/{}", reason == null? result : result + ": " + reason, device.getDeviceId(), channelId );
 
             // 回复200 OK
             responseAck(request, Response.OK);
             if (result.equalsIgnoreCase("OK")) {
-                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(channel.getId());
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
             }else {
-                playService.stopAudioBroadcast(device.getDeviceId(), channelId);
+                playService.stopAudioBroadcast(device, channel);
             }
         } catch (ParseException | SipException | InvalidArgumentException e) {
-            logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
 
     }
+
+
 }

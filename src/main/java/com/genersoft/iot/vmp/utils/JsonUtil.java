@@ -31,4 +31,15 @@ public final class JsonUtil {
         }
         return clazz.cast(jsonObject);
     }
+
+    public static <T> T redisHashJsonToObject(RedisTemplate<Object, Object> redisTemplate, String key, String objKey, Class<T> clazz) {
+//        if (key == null || objKey == null) {
+//            return null;
+//        }
+        Object jsonObject = redisTemplate.opsForHash().get(key, objKey);
+        if (Objects.isNull(jsonObject)) {
+            return null;
+        }
+        return clazz.cast(jsonObject);
+    }
 }

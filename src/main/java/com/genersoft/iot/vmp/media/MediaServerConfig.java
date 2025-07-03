@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.media;
 
 import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
@@ -17,11 +17,10 @@ import java.util.List;
 /**
  * 启动是从配置文件加载节点信息，以及发送个节点状态管理去控制节点状态
  */
+@Slf4j
 @Component
 @Order(value=12)
 public class MediaServerConfig implements CommandLineRunner {
-
-    private final static Logger logger = LoggerFactory.getLogger(MediaServerConfig.class);
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
@@ -32,6 +31,9 @@ public class MediaServerConfig implements CommandLineRunner {
     @Autowired
     private MediaConfig mediaConfig;
 
+    @Autowired
+    private UserSetting userSetting;
+
 
     @Override
     public void run(String... strings) throws Exception {
@@ -39,11 +41,12 @@ public class MediaServerConfig implements CommandLineRunner {
         mediaServerService.clearMediaServerForOnline();
         MediaServer defaultMediaServer = mediaServerService.getDefaultMediaServer();
         MediaServer mediaSerItemInConfig = mediaConfig.getMediaSerItem();
+        mediaSerItemInConfig.setServerId(userSetting.getServerId());
         if (defaultMediaServer != null && mediaSerItemInConfig.getId().equals(defaultMediaServer.getId())) {
             mediaServerService.update(mediaSerItemInConfig);
         }else {
             if (defaultMediaServer != null) {
-                mediaServerService.delete(defaultMediaServer.getId());
+                mediaServerService.delete(defaultMediaServer);
             }
             MediaServer mediaServerItem = mediaServerService.getOneFromDatabase(mediaSerItemInConfig.getId());
             if (mediaServerItem == null) {
@@ -56,7 +59,7 @@ public class MediaServerConfig implements CommandLineRunner {
         mediaServerService.syncCatchFromDatabase();
         // 获取所有的zlm， 并开启主动连接
         List<MediaServer> all = mediaServerService.getAllFromDatabase();
-        logger.info("[媒体节点] 加载节点列表， 共{}个节点", all.size());
+        log.info("[媒体节点] 加载节点列表， 共{}个节点", all.size());
         MediaServerChangeEvent event = new MediaServerChangeEvent(this);
         event.setMediaServerItemList(all);
         applicationEventPublisher.publishEvent(event);

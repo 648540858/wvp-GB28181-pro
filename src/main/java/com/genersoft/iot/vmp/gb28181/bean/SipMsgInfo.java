@@ -7,7 +7,7 @@ import javax.sip.RequestEvent;
 public class SipMsgInfo {
     private RequestEvent evt;
     private  Device device;
-    private ParentPlatform platform;
+    private Platform platform;
     private Element rootElement;
 
     public SipMsgInfo(RequestEvent evt, Device device, Element rootElement) {
@@ -16,7 +16,7 @@ public class SipMsgInfo {
         this.rootElement = rootElement;
     }
 
-    public SipMsgInfo(RequestEvent evt, ParentPlatform platform, Element rootElement) {
+    public SipMsgInfo(RequestEvent evt, Platform platform, Element rootElement) {
         this.evt = evt;
         this.platform = platform;
         this.rootElement = rootElement;
@@ -38,11 +38,11 @@ public class SipMsgInfo {
         this.device = device;
     }
 
-    public ParentPlatform getPlatform() {
+    public Platform getPlatform() {
         return platform;
     }
 
-    public void setPlatform(ParentPlatform platform) {
+    public void setPlatform(Platform platform) {
         this.platform = platform;
     }
 

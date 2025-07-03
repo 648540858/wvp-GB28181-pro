@@ -1,19 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,26 +24,20 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 @Component
 public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceStatusQueryMessageHandler.class);
     private final String cmdType = "DeviceStatus";
 
     @Autowired
     private QueryMessageHandler queryMessageHandler;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IGbChannelService channelService;
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
-
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
+    private ISIPCommanderForPlatform cmderFroPlatform;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -59,27 +50,27 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
 
-        logger.info("接收到DeviceStatus查询消息");
+        log.info("接收到DeviceStatus查询消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复200OK: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 DeviceStatus查询回复200OK: {}", e.getMessage());
         }
         String sn = rootElement.element("SN").getText();
         String channelId = getText(rootElement, "DeviceID");
-        DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(parentPlatform.getServerGBId(), channelId);
-        if (deviceChannel ==null){
-            logger.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
+        CommonGBChannel channel= channelService.queryOneWithPlatform(parentPlatform.getId(), channelId);
+        if (channel ==null){
+            log.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
             return;
         }
         try {
-            cmderFroPlatform.deviceStatusResponse(parentPlatform,channelId, sn, fromHeader.getTag(),deviceChannel.isStatus());
+            cmderFroPlatform.deviceStatusResponse(parentPlatform, channelId, sn, fromHeader.getTag(), "ON".equalsIgnoreCase(channel.getGbStatus()));
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
         }
     }
 }

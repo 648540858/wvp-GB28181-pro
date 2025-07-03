@@ -17,8 +17,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,8 +27,8 @@ import java.util.concurrent.TimeUnit;
  * @email qingtaij@163.com
  */
 
+@Slf4j
 public class TcpServer {
-    private final static Logger log = LoggerFactory.getLogger(TcpServer.class);
 
     private final Integer port;
     private boolean isRunning = false;

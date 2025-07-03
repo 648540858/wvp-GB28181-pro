@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response;
 
+import org.springframework.scheduling.annotation.Async;
+
 import javax.sip.ResponseEvent;
 
 /**    
@@ -8,6 +10,7 @@ import javax.sip.ResponseEvent;
  * @date:   2020年5月3日 下午4:42:22     
  */
 public interface ISIPResponseProcessor {
+
 
 	void process(ResponseEvent evt);
 

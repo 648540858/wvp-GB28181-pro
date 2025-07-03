@@ -1,16 +1,16 @@
 package com.genersoft.iot.vmp.utils;
 
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.DigestUtils;
 import oshi.SystemInfo;
-import oshi.hardware.*;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
-import oshi.util.FormatUtil;
 
 import java.io.File;
-import java.text.DecimalFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,9 +22,8 @@ import java.util.concurrent.TimeUnit;
  * 版权声明：本文为xiaozhangnomoney原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明
  * 原文出处链接：https://blog.csdn.net/xiaozhangnomoney/article/details/107769147
  */
+@Slf4j
 public class SystemInfoUtils {
-
-    private final static Logger logger = LoggerFactory.getLogger(SystemInfoUtils.class);
 
     /**
      * 获取cpu信息
@@ -78,7 +77,7 @@ public class SystemInfoUtils {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            logger.error("[线程休眠失败] : {}", e.getMessage());
+            log.error("[线程休眠失败] : {}", e.getMessage());
         }
         List<NetworkIF> afterNetworkIFs = hal.getNetworkIFs();
         NetworkIF afterNet = afterNetworkIFs.get(afterNetworkIFs.size() - 1);
@@ -144,5 +143,20 @@ public class SystemInfoUtils {
             result.add(infoMap);
         }
         return result;
+    }
+
+    public static String getHardwareId(){
+        SystemInfo systemInfo = new SystemInfo();
+        HardwareAbstractionLayer hardware = systemInfo.getHardware();
+        // CPU ID
+        String cpuId = hardware.getProcessor().getProcessorIdentifier().getProcessorID();
+        // 主板序号
+        String serialNumber = hardware.getComputerSystem().getSerialNumber();
+
+        return DigestUtils.md5DigestAsHex(
+                (
+                        DigestUtils.md5DigestAsHex(cpuId.getBytes(StandardCharsets.UTF_8)) +
+                        DigestUtils.md5DigestAsHex(serialNumber.getBytes(StandardCharsets.UTF_8))
+                ).getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -1,43 +1,40 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IRecordPlanService;
+import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class MediaServiceImpl implements IMediaService {
-
-    private final static Logger logger = LoggerFactory.getLogger(MediaServiceImpl.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -58,19 +55,13 @@ public class MediaServiceImpl implements IMediaService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private VideoStreamSessionManager sessionManager;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private SipInviteSessionManager sessionManager;
 
     @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
-    private ISIPCommanderForPlatform commanderForPlatform;
-
-    @Autowired
-    private ISIPCommander commander;
+    private IRecordPlanService recordPlanService;
 
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {
@@ -91,7 +82,13 @@ public class MediaServiceImpl implements IMediaService {
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
         if (!"rtp".equals(app)) {
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            if ("talk".equals(app) && stream.endsWith("_talk")) {
+                ResultForOnPublish result = new ResultForOnPublish();
+                result.setEnable_mp4(false);
+                result.setEnable_audio(true);
+                return result;
+            }
+            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
             if (streamProxyItem != null) {
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_audio(streamProxyItem.isEnableAudio());
@@ -103,13 +100,13 @@ public class MediaServiceImpl implements IMediaService {
                 Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
                 // 推流鉴权
                 if (params == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
+                    log.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
 
                 String sign = paramMap.get("sign");
                 if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
+                    log.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
                 // 推流自定义播放鉴权码
@@ -117,7 +114,7 @@ public class MediaServiceImpl implements IMediaService {
                 // 鉴权配置
                 boolean hasAuthority = userService.checkPushAuthority(callId, sign);
                 if (!hasAuthority) {
-                    logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
+                    log.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
                 StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(app, stream, mediaServer.getId());
@@ -132,16 +129,16 @@ public class MediaServiceImpl implements IMediaService {
         ResultForOnPublish result = new ResultForOnPublish();
         result.setEnable_audio(true);
 
-        // 是否录像
-        if ("rtp".equals(app)) {
-            result.setEnable_mp4(userSetting.getRecordSip());
-        } else {
-            result.setEnable_mp4(userSetting.isRecordPushLive());
-        }
         // 国标流
         if ("rtp".equals(app)) {
 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
+
+            if (inviteInfo != null) {
+                result.setEnable_mp4(inviteInfo.getRecord());
+            }else {
+                result.setEnable_mp4(userSetting.getRecordSip());
+            }
 
             // 单端口模式下修改流 ID
             if (!mediaServer.isRtpEnable() && inviteInfo == null) {
@@ -149,36 +146,36 @@ public class MediaServiceImpl implements IMediaService {
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
-                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
+                    log.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
                     stream = inviteInfo.getStream();
                 }
             }
 
             // 设置音频信息及录制信息
-            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, stream);
-            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
+            if (ssrcTransaction != null ) {
 
                 // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
                 StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(app, stream, mediaServer.getId());
                 streamAuthorityInfo.setApp(app);
-                streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
-                streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
+                streamAuthorityInfo.setStream(ssrcTransaction.getStream());
+                streamAuthorityInfo.setCallId(ssrcTransaction.getSipTransactionInfo().getCallId());
 
-                redisCatchStorage.updateStreamAuthorityInfo(app, ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
+                redisCatchStorage.updateStreamAuthorityInfo(app, ssrcTransaction.getStream(), streamAuthorityInfo);
 
-                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-                String channelId = ssrcTransactionForAll.get(0).getChannelId();
-                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+                String deviceId = ssrcTransaction.getDeviceId();
+                Integer channelId = ssrcTransaction.getChannelId();
+                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channelId);
                 if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.getHasAudio());
+                    result.setEnable_audio(deviceChannel.isHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
+                if (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD) {
                     // 获取录像的总时长，然后设置为这个视频的时长
-                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, stream);
-                    if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
-                        String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
-                        String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
+                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD,  channelId, stream);
+                    if (inviteInfoForDownload != null) {
+                        String startTime = inviteInfoForDownload.getStartTime();
+                        String endTime = inviteInfoForDownload.getEndTime();
                         long difference = DateUtil.getDifference(startTime, endTime) / 1000;
                         result.setMp4_max_second((int) difference);
                         result.setEnable_mp4(true);
@@ -187,14 +184,18 @@ public class MediaServiceImpl implements IMediaService {
                     }
                 }
                 // 如果是talk对讲，则默认获取声音
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
+                if (ssrcTransaction.getType() == InviteSessionType.TALK) {
                     result.setEnable_audio(true);
                 }
             }
         } else if (app.equals("broadcast")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
         } else if (app.equals("talk")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
+        }else {
+            result.setEnable_mp4(userSetting.getRecordPushLive());
         }
         if (app.equalsIgnoreCase("rtp")) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + stream;
@@ -212,64 +213,26 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public boolean closeStreamOnNoneReader(String mediaServerId, String app, String stream, String schema) {
         boolean result = false;
+        if (recordPlanService.recording(app, stream) != null) {
+            return false;
+        }
         // 国标类型的流
         if ("rtp".equals(app)) {
             result = userSetting.getStreamOnDemand();
             // 国标流， 点播/录像回放/录像下载
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
             // 点播
-            if (inviteInfo != null) {
+            if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok) {
                 // 录像下载
                 if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
                     return false;
                 }
-                // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
-                            inviteInfo.getChannelId());
-                    if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                            try {
-                                commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                            }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem,parentPlatform);
-                            }
-                        }
-                    }
+                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
+                if (deviceChannel == null) {
+                    return false;
                 }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        // 多查询一次防止已经被处理了
-                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
-                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                        if (info != null) {
-                            commander.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
-                        } else {
-                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                } else {
-                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
-                }
-
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                        inviteInfo.getChannelId(), inviteInfo.getStream());
-                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return result;
-            }
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
+            }else {
                 return false;
             }
         } else if ("talk".equals(app) || "broadcast".equals(app)) {
@@ -277,25 +240,25 @@ public class MediaServiceImpl implements IMediaService {
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
-            if (streamProxyItem != null) {
-                if (streamProxyItem.isEnableRemoveNoneReader()) {
+            StreamProxy streamProxy = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            if (streamProxy != null) {
+                if (streamProxy.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
-                    result = true;
-                    streamProxyService.del(app, stream);
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
-                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, url);
-                } else if (streamProxyItem.isEnableDisableNoneReader()) {
+                    streamProxyService.delteByAppAndStream(app, stream);
+                    log.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
+                    return true;
+                } else if (streamProxy.isEnableDisableNoneReader()) {
                     // 无人观看停用
-                    result = true;
                     // 修改数据
-                    streamProxyService.stop(app, stream);
+                    streamProxyService.stopByAppAndStream(app, stream);
+                    return true;
                 } else {
                     // 无人观看不做处理
-                    result = false;
+                    return false;
                 }
+            }else {
+                return false;
             }
         }
-        return result;
     }
 }

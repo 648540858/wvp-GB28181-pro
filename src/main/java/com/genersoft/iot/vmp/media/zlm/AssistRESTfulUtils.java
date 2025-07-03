@@ -4,11 +4,10 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.SSLSocketClientUtil;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -22,11 +21,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class AssistRESTfulUtils {
-
-    private final static Logger logger = LoggerFactory.getLogger(AssistRESTfulUtils.class);
-
 
     private OkHttpClient client;
 
@@ -51,9 +48,9 @@ public class AssistRESTfulUtils {
             httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
-            if (logger.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
-                    logger.debug("http请求参数：" + message);
+                    log.debug("http请求参数：" + message);
                 });
                 logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
                 // OkHttp進行添加攔截器loggingInterceptor
@@ -77,7 +74,7 @@ public class AssistRESTfulUtils {
             return null;
         }
         if (mediaServerItem.getRecordAssistPort() <= 0) {
-            logger.warn("未启用Assist服务");
+            log.warn("未启用Assist服务");
             return null;
         }
         StringBuilder stringBuffer = new StringBuilder();
@@ -99,7 +96,7 @@ public class AssistRESTfulUtils {
         }
 
         String url = stringBuffer.toString();
-        logger.info("[访问assist]： {}", url);
+        log.info("[访问assist]： {}", url);
         Request request = new Request.Builder()
                 .get()
                 .url(url)
@@ -118,10 +115,10 @@ public class AssistRESTfulUtils {
                         Objects.requireNonNull(response.body()).close();
                     }
                 } catch (ConnectException e) {
-                    logger.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-                    logger.info("请检查media配置并确认Assist已启动...");
+                    log.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+                    log.info("请检查media配置并确认Assist已启动...");
                 }catch (IOException e) {
-                    logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                    log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                 }
             }else {
                 client.newCall(request).enqueue(new Callback(){
@@ -133,7 +130,7 @@ public class AssistRESTfulUtils {
                                 String responseStr = Objects.requireNonNull(response.body()).string();
                                 callback.run(JSON.parseObject(responseStr));
                             } catch (IOException e) {
-                                logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                                log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
 
                         }else {
@@ -144,8 +141,8 @@ public class AssistRESTfulUtils {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        logger.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-                        logger.info("请检查media配置并确认Assist已启动...");
+                        log.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+                        log.info("请检查media配置并确认Assist已启动...");
                     }
                 });
             }
@@ -163,7 +160,7 @@ public class AssistRESTfulUtils {
         if (mediaServerItem == null) {
             return null;
         }
-        logger.info("[访问assist]： {}, 参数： {}", url, param);
+        log.info("[访问assist]： {}, 参数： {}", url, param);
         JSONObject responseJSON = new JSONObject();
         //-2自定义流媒体 调用错误码
         responseJSON.put("code",-2);
@@ -190,19 +187,19 @@ public class AssistRESTfulUtils {
                     Objects.requireNonNull(response.body()).close();
                 }
             }catch (IOException e) {
-                logger.error(String.format("[ %s ]ASSIST请求失败: %s", url, e.getMessage()));
+                log.error(String.format("[ %s ]ASSIST请求失败: %s", url, e.getMessage()));
 
                 if(e instanceof SocketTimeoutException){
                     //读取超时超时异常
-                    logger.error(String.format("读取ASSIST数据失败: %s, %s", url, e.getMessage()));
+                    log.error(String.format("读取ASSIST数据失败: %s, %s", url, e.getMessage()));
                 }
                 if(e instanceof ConnectException){
                     //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                    logger.error(String.format("连接ASSIST失败: %s, %s", url, e.getMessage()));
+                    log.error(String.format("连接ASSIST失败: %s, %s", url, e.getMessage()));
                 }
 
             }catch (Exception e){
-                logger.error(String.format("访问ASSIST失败: %s, %s", url, e.getMessage()));
+                log.error(String.format("访问ASSIST失败: %s, %s", url, e.getMessage()));
             }
         }else {
             client.newCall(request).enqueue(new Callback(){
@@ -214,7 +211,7 @@ public class AssistRESTfulUtils {
                             String responseStr = Objects.requireNonNull(response.body()).string();
                             callback.run(JSON.parseObject(responseStr));
                         } catch (IOException e) {
-                            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                            log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                         }
 
                     }else {
@@ -225,15 +222,15 @@ public class AssistRESTfulUtils {
 
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                    log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
 
                     if(e instanceof SocketTimeoutException){
                         //读取超时超时异常
-                        logger.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
+                        log.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
                     }
                     if(e instanceof ConnectException){
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                        logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                        log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
                     }
                 }
             });

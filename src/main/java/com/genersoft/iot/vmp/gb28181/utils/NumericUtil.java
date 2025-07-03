@@ -1,17 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 数值格式判断和处理
  * @author lawrencehj
  * @date 2021年1月27日
  */
 public class NumericUtil {
-
-    private static Logger logger = LoggerFactory.getLogger(NumericUtil.class);
-
     /**
      * 判断是否Double格式
      * @param str

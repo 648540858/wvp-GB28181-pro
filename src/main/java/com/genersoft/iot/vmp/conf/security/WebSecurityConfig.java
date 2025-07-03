@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +11,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,7 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * 配置Spring Security
@@ -36,9 +34,8 @@ import java.util.Collections;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Order(1)
+@Slf4j
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
     private UserSetting userSetting;
@@ -60,33 +57,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     /**
-     * 描述: 静态资源放行，这里的放行，是不走 Spring Security 过滤器链
-     **/
-    @Override
-    public void configure(WebSecurity web) {
-        if (userSetting.isInterfaceAuthentication()) {
-            ArrayList<String> matchers = new ArrayList<>();
-            matchers.add("/");
-            matchers.add("/#/**");
-            matchers.add("/static/**");
-            matchers.add("/swagger-ui.html");
-            matchers.add("/swagger-ui/");
-            matchers.add("/index.html");
-            matchers.add("/doc.html");
-            matchers.add("/webjars/**");
-            matchers.add("/swagger-resources/**");
-            matchers.add("/v3/api-docs/**");
-            matchers.add("/js/**");
-            matchers.add("/api/device/query/snap/**");
-            matchers.add("/record_proxy/*/**");
-            matchers.add("/api/emit");
-            matchers.add("/favicon.ico");
-            // 可以直接访问的静态数据
-            web.ignoring().antMatchers(matchers.toArray(new String[0]));
-        }
-    }
-
-    /**
      * 配置认证方式
      *
      * @param auth
@@ -106,6 +76,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        List<String> defaultExcludes = new ArrayList<>();
+        defaultExcludes.add("/");
+        defaultExcludes.add("/#/**");
+        defaultExcludes.add("/static/**");
+
+        defaultExcludes.add("/swagger-ui.html");
+        defaultExcludes.add("/swagger-ui/**");
+        defaultExcludes.add("/swagger-resources/**");
+        defaultExcludes.add("/doc.html");
+        defaultExcludes.add("/doc.html#/**");
+        defaultExcludes.add("/v3/api-docs/**");
+
+        defaultExcludes.add("/index.html");
+        defaultExcludes.add("/webjars/**");
+
+        defaultExcludes.add("/js/**");
+        defaultExcludes.add("/api/device/query/snap/**");
+        defaultExcludes.add("/record_proxy/*/**");
+        defaultExcludes.add("/api/emit");
+        defaultExcludes.add("/favicon.ico");
+        defaultExcludes.add("/api/user/login");
+        defaultExcludes.add("/index/hook/**");
+        defaultExcludes.add("/api/device/query/snap/**");
+        defaultExcludes.add("/index/hook/abl/**");
+
+
+
+        if (userSetting.getInterfaceAuthentication() && !userSetting.getInterfaceAuthenticationExcludes().isEmpty()) {
+            defaultExcludes.addAll(userSetting.getInterfaceAuthenticationExcludes());
+        }
+
         http.headers().contentTypeOptions().disable()
                 .and().cors().configurationSource(configurationSource())
                 .and().csrf().disable()
@@ -116,8 +117,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .antMatchers(userSetting.getInterfaceAuthenticationExcludes().toArray(new String[0])).permitAll()
-                .antMatchers("/api/user/login", "/index/hook/**","/index/hook/abl/**", "/swagger-ui/**", "/doc.html#/**").permitAll()
+                .antMatchers(defaultExcludes.toArray(new String[0])).permitAll()
                 .anyRequest().authenticated()
                 // 异常处理器
                 .and()
@@ -140,8 +140,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             corsConfiguration.setAllowCredentials(true);
             corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
         }else {
-            corsConfiguration.setAllowCredentials(false);
-            corsConfiguration.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
+            // 在SpringBoot 2.4及以上版本处理跨域时，遇到错误提示：当allowCredentials为true时，allowedOrigins不能包含特殊值"*"。
+            // 解决方法是明确指定allowedOrigins或使用allowedOriginPatterns。
+            corsConfiguration.setAllowCredentials(true);
+            corsConfiguration.addAllowedOriginPattern(CorsConfiguration.ALL); // 默认全部允许所有跨域
         }
 
         corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));

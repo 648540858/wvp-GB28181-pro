@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.MessageHandlerAbstract;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.MessageRequestProcessor;
+import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.sip.RequestEvent;
 
 /**
  * 命令类型： 请求动作的应答
@@ -18,8 +22,15 @@ public class ResponseMessageHandler extends MessageHandlerAbstract implements In
     @Autowired
     private MessageRequestProcessor messageRequestProcessor;
 
+
+
     @Override
     public void afterPropertiesSet() throws Exception {
         messageRequestProcessor.addHandler(messageType, this);
+    }
+
+    @Override
+    public void handForDevice(RequestEvent evt, Device device, Element element) {
+        super.handForDevice(evt, device, element);
     }
 }

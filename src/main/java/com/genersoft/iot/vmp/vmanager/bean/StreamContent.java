@@ -98,6 +98,9 @@ public class StreamContent {
     @Schema(description = "文件下载地址（录像下载使用）")
     private DownloadFileInfo downLoadFilePath;
 
+    @Schema(description = "转码后的视频流")
+    private StreamContent transcodeStream;
+
     private double progress;
 
     public StreamContent(StreamInfo streamInfo) {
@@ -169,8 +172,10 @@ public class StreamContent {
         if (streamInfo.getRtcs() != null) {
             this.rtcs = streamInfo.getRtcs().getUrl();
         }
+        if (streamInfo.getMediaServer() != null) {
+            this.mediaServerId = streamInfo.getMediaServer().getId();
+        }
 
-        this.mediaServerId = streamInfo.getMediaServerId();
         this.mediaInfo = streamInfo.getMediaInfo();
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
@@ -179,6 +184,17 @@ public class StreamContent {
         if (streamInfo.getDownLoadFilePath() != null) {
             this.downLoadFilePath = streamInfo.getDownLoadFilePath();
         }
+        if (streamInfo.getTranscodeStream() != null) {
+            this.transcodeStream = new StreamContent(streamInfo.getTranscodeStream());
+        }
+    }
+
+    public StreamContent getTranscodeStream() {
+        return transcodeStream;
+    }
+
+    public void setTranscodeStream(StreamContent transcodeStream) {
+        this.transcodeStream = transcodeStream;
     }
 
     public String getApp() {

@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -14,14 +13,13 @@ import java.io.IOException;
 /**
  * 退出登录成功
  */
+@Slf4j
 @Component
 public class LogoutHandler implements LogoutSuccessHandler {
-
-    private final static Logger logger = LoggerFactory.getLogger(LogoutHandler.class);
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
         String username = request.getParameter("username");
-        logger.info("[退出登录成功] - [{}]", username);
+        log.info("[退出登录成功] - [{}]", username);
     }
 }

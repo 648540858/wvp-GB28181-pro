@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -20,10 +19,9 @@ import java.util.concurrent.TimeUnit;
  * 动态定时任务
  * @author lin
  */
+@Slf4j
 @Component
 public class DynamicTask {
-
-    private final Logger logger = LoggerFactory.getLogger(DynamicTask.class);
 
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
@@ -36,6 +34,7 @@ public class DynamicTask {
         threadPoolTaskScheduler.setPoolSize(300);
         threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
         threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
+        threadPoolTaskScheduler.setThreadNamePrefix("dynamicTask-");
         threadPoolTaskScheduler.initialize();
     }
 
@@ -53,9 +52,9 @@ public class DynamicTask {
         ScheduledFuture<?> future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {
-                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
+                log.debug("任务【{}】已存在但是关闭状态！！！", key);
             } else {
-                logger.debug("任务【{}】已存在且已启动！！！", key);
+                log.debug("任务【{}】已存在且已启动！！！", key);
                 return;
             }
         }
@@ -65,9 +64,9 @@ public class DynamicTask {
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
-            logger.debug("任务【{}】启动成功！！！", key);
+            log.debug("任务【{}】启动成功！！！", key);
         }else {
-            logger.debug("任务【{}】启动失败！！！", key);
+            log.debug("任务【{}】启动失败！！！", key);
         }
     }
 
@@ -90,9 +89,9 @@ public class DynamicTask {
         ScheduledFuture future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {
-                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
+                log.debug("任务【{}】已存在但是关闭状态！！！", key);
             } else {
-                logger.debug("任务【{}】已存在且已启动！！！", key);
+                log.debug("任务【{}】已存在且已启动！！！", key);
                 return;
             }
         }
@@ -101,9 +100,9 @@ public class DynamicTask {
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
-            logger.debug("任务【{}】启动成功！！！", key);
+            log.debug("任务【{}】启动成功！！！", key);
         }else {
-            logger.debug("任务【{}】启动失败！！！", key);
+            log.debug("任务【{}】启动失败！！！", key);
         }
     }
 

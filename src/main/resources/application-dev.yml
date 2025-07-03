@@ -26,25 +26,14 @@ spring:
     timeout: 10000
     # mysql数据源
   datasource:
-    dynamic:
-      primary: master
-      datasource:
-        master:
-          type: com.zaxxer.hikari.HikariDataSource
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
-          username: root
-          password: root123
-          hikari:
-            connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
-            initialSize: 50                       # 连接池初始化连接数
-            maximum-pool-size: 200                # 连接池最大连接数
-            minimum-idle: 10                       # 连接池最小空闲连接数
-            idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
-            max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/wvp273数据库统合?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 8080
+  port: 18080
   # [可选] HTTPS配置， 默认不开启
   ssl:
     # [可选] 是否开启HTTPS访问
@@ -68,21 +57,17 @@ sip:
   # [可选]
   id: 41010500002000000001
   # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-  password: bajiuwulian1006
+  password: 12345678
   # 是否存储alarm信息
-  alarm: true
+  alarm: false
 
 #zlm 默认服务器配置
 media:
   id: zlmediakit-local
   # [必须修改] zlm服务器的内网IP
-  ip: 172.19.128.50
-  # [可选] 有公网IP就配置公网IP, 不可用域名
-  wan_ip:
+  ip: 192.168.1.10
   # [必须修改] zlm服务器的http.port
   http-port: 9092
-  # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
-  hook-ip: 172.19.128.50
   # [必选选] zlm服务器的hook.admin_params=secret
   secret: TWSYFgYJOQWB4ftgeYut8DW4wbs7pQnj
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
@@ -90,9 +75,9 @@ media:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
     enable: true
     # [可选] 在此范围内选择端口用于媒体流传输, 必须提前在zlm上配置该属性，不然自动配置此属性可能不成功
-    port-range: 50000,50300 # 端口范围
+    port-range: 40000,45000 # 端口范围
     # [可选] 国标级联在此范围内选择端口发送媒体流,
-    send-port-range: 50000,50300 # 端口范围
+    send-port-range: 50000,55000 # 端口范围
 # [根据业务需求配置]
 user-settings:
   # 点播/录像回放 等待超时时间,单位：毫秒
@@ -105,4 +90,6 @@ user-settings:
   record-sip: true
   # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
   stream-on-demand: true
+  # 是否返回Date属性，true：不返回，避免摄像头通过该参数自动校时，false：返回，摄像头可能会根据该时间校时
+  disable-date-header: false
 

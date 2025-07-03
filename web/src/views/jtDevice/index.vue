@@ -1,5 +1,5 @@
 <template>
-  <div id="device" class="app-container">
+  <div id="JTDevice" class="app-container">
     <deviceList v-show="show === 'device'" @show-channel="showChannelList" @show-param="showParam" />
     <channelList v-if="show === 'channel'" :device-id="deviceId" @show-device="showDevice" />
     <deviceParam v-if="show === 'param'" :phone-number="phoneNumber" @show-device="showDevice" />
@@ -12,7 +12,7 @@ import channelList from './channel/index.vue'
 import deviceParam from './jtDeviceParam.vue'
 
 export default {
-  name: 'Device',
+  name: 'JTDevice',
   components: {
     deviceList,
     channelList,

@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.jt1078.config.JT1078Config;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
@@ -66,6 +67,9 @@ public class ServerController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private JT1078Config jt1078Config;
 
     @Autowired
     private IDeviceService deviceService;
@@ -196,6 +200,7 @@ public class ServerController {
         systemConfigInfo.setSip(sipConfig);
         systemConfigInfo.setAddOn(userSetting);
         systemConfigInfo.setServerPort(serverPort);
+        systemConfigInfo.setJt1078Config(jt1078Config);
         return systemConfigInfo;
     }
 

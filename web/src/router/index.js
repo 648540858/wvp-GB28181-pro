@@ -95,24 +95,16 @@ export const constantRoutes = [
         component: () => import('@/views/device/channel/record'),
       },
       {
-          path: '/jtDevice',
-          component: Layout,
-          redirect: '/jtDevice',
-          onlyIndex: 0,
-          children: [
-            {
-              path: '',
-              name: 'JTDevice',
-              component: () => import('@/views/jtDevice/index'),
-              meta: { title: '部标设备', icon: 'jtDevice' }
-            },
-            {
-              path: '/jtDevice/record/:phoneNumber/:channelId',
-              name: 'JTDeviceRecord',
-              component: () => import('@/views/jtDevice/channel/record'),
-            }
-          ]
-        },
+        path: '/jtDevice',
+        name: 'JTDevice',
+        component: () => import('@/views/jtDevice/index'),
+        meta: { title: '部标设备', icon: 'jtDevice' }
+      },
+      {
+        path: '/jtDevice/record/:phoneNumber/:channelId',
+        name: 'JTDeviceRecord',
+        component: () => import('@/views/jtDevice/channel/record')
+      },
       {
         path: '/push',
         name: 'PushList',

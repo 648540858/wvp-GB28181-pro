@@ -339,7 +339,7 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
-        this.$store.dispatch('group/add', {
+        this.$store.dispatch('commonChanel/addDeviceToGroup', {
           parentId: node.data.deviceId,
           businessGroup: node.data.businessGroup,
           deviceIds: deviceIds

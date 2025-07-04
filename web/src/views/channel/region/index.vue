@@ -5,7 +5,7 @@
       :show-header="true"
       :edit="true"
       @clickEvent="treeNodeClickEvent"
-      :on-channel-change="onChannelChange"
+      @onChannelChange="onChannelChange"
       :enable-add-channel="true"
       :add-channel-to-civil-code="addChannelToCivilCode"
     />
@@ -296,7 +296,9 @@ export default {
       console.log(selectedData)
     },
     onChannelChange: function(deviceId) {
-      //
+      if (this.regionDeviceId === deviceId) {
+        this.getChannelList()
+      }
     }
   }
 }

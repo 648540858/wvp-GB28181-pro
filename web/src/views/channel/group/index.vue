@@ -5,7 +5,7 @@
       :show-header="true"
       :edit="true"
       @clickEvent="treeNodeClickEvent"
-      :on-channel-change="onChannelChange"
+      @onChannelChange="onChannelChange"
       :enable-add-channel="true"
       :add-channel-to-group="addChannelToGroup"
     />
@@ -306,7 +306,10 @@ export default {
         })
     },
     onChannelChange: function(deviceId) {
-      //
+
+      if (this.groupDeviceId === deviceId) {
+        this.getChannelList()
+      }
     },
     showUnusualChanel: function() {
       this.$refs.unusualGroupChannelSelect.openDialog()

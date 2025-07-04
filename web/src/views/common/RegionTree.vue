@@ -131,7 +131,7 @@ export default {
     GbChannelSelect,
     VueEasyTree, regionEdit, gbDeviceSelect
   },
-  props: ['edit', 'enableAddChannel', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight'],
+  props: ['edit', 'enableAddChannel', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight'],
   data() {
     return {
       props: {
@@ -331,6 +331,7 @@ export default {
       this.$store.dispatch('region/deleteRegion', node.data.id)
         .then((data) => {
           console.log('移除成功')
+          this.$emit('onChannelChange', node.data.deviceId)
           node.parent.loaded = false
           node.parent.expand()
         }).catch(function(error) {
@@ -351,9 +352,7 @@ export default {
             showClose: true,
             message: '保存成功'
           })
-          if (this.onChannelChange) {
-            this.onChannelChange()
-          }
+          this.$emit('onChannelChange', node.data.deviceId)
           node.loaded = false
           node.expand()
         }).catch(function(error) {
@@ -375,9 +374,7 @@ export default {
               showClose: true,
               message: '保存成功'
             })
-            if (this.onChannelChange) {
-              this.onChannelChange(node.data.deviceId)
-            }
+            this.$emit('onChannelChange', node.data.deviceId)
             node.loaded = false
             node.expand()
           }).catch(function(error) {

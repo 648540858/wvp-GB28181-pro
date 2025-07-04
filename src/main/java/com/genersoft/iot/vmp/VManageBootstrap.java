@@ -26,7 +26,7 @@ import java.util.Collections;
 @EnableFeignClients
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
-@EnableScheduling
+@EnableScheduling // 启用定时任务功能
 @EnableCaching
 @Slf4j
 public class VManageBootstrap extends SpringBootServletInitializer {

@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+
 import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
@@ -47,9 +50,11 @@ public class MybatisConfig {
 
     @Bean
     public SqlSessionFactory sqlSessionFactory(DataSource dataSource, DatabaseIdProvider databaseIdProvider) throws Exception {
-       final SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
+//       final SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
+        final MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
         sqlSessionFactory.setDataSource(dataSource);
-        org.apache.ibatis.session.Configuration config = new org.apache.ibatis.session.Configuration();
+//        org.apache.ibatis.session.Configuration config = new org.apache.ibatis.session.Configuration();
+        MybatisConfiguration config = new MybatisConfiguration();
         if (userSetting.getSqlLog()){
             config.setLogImpl(StdOutImpl.class);
         }

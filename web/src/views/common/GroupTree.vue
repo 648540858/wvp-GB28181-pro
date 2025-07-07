@@ -130,7 +130,7 @@ export default {
     GbChannelSelect,
     VueEasyTree, groupEdit, gbDeviceSelect
   },
-  props: ['edit', 'enableAddChannel', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToGroup', 'treeHeight'],
+  props: ['edit', 'enableAddChannel', 'showHeader', 'hasChannel', 'addChannelToGroup', 'treeHeight'],
   data() {
     return {
       props: {
@@ -328,9 +328,7 @@ export default {
         .then(data => {
           node.parent.loaded = false
           node.parent.expand()
-          if (this.onChannelChange) {
-            this.onChannelChange(node.data.deviceId)
-          }
+          this.$emit('onChannelChange', node.data.deviceId)
         })
     },
     addChannelFormDevice: function(id, node) {
@@ -339,7 +337,7 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
-        this.$store.dispatch('group/add', {
+        this.$store.dispatch('commonChanel/addDeviceToGroup', {
           parentId: node.data.deviceId,
           businessGroup: node.data.businessGroup,
           deviceIds: deviceIds
@@ -349,10 +347,7 @@ export default {
               showClose: true,
               message: '保存成功'
             })
-            if (this.onChannelChange) {
-              this.onChannelChange()
-            }
-            console.log(node)
+            this.$emit('onChannelChange', node.data.deviceId)
             node.loaded = false
             node.expand()
           }).finally(() => {
@@ -372,9 +367,7 @@ export default {
               showClose: true,
               message: '保存成功'
             })
-            if (this.onChannelChange) {
-              this.onChannelChange()
-            }
+            this.$emit('onChannelChange', node.data.deviceId)
             node.loaded = false
             node.expand()
           }).finally(() => {

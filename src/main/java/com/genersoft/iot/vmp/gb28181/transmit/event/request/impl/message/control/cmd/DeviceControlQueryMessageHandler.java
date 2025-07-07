@@ -173,7 +173,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     }));
                     break;
                 case FI:
-                    channelControlService.fi(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                    channelControlService.fi(channel, (FrontEndControlCodeForFI) frontEndControlCode, ((code, msg, data) -> {
                         try {
                             responseAck(request, code, msg);
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
@@ -182,7 +182,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     }));
                     break;
                 case PRESET:
-                    channelControlService.preset(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                    channelControlService.preset(channel, (FrontEndControlCodeForPreset) frontEndControlCode, ((code, msg, data) -> {
                         try {
                             responseAck(request, code, msg);
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
@@ -191,7 +191,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     }));
                     break;
                 case TOUR:
-                    channelControlService.tour(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                    channelControlService.tour(channel, (FrontEndControlCodeForTour) frontEndControlCode, ((code, msg, data) -> {
                         try {
                             responseAck(request, code, msg);
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
@@ -200,7 +200,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     }));
                     break;
                 case SCAN:
-                    channelControlService.scan(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                    channelControlService.scan(channel, (FrontEndControlCodeForScan) frontEndControlCode, ((code, msg, data) -> {
                         try {
                             responseAck(request, code, msg);
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
@@ -209,7 +209,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     }));
                     break;
                 case AUXILIARY:
-                    channelControlService.auxiliary(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                    channelControlService.auxiliary(channel, (FrontEndControlCodeForAuxiliary) frontEndControlCode, ((code, msg, data) -> {
                         try {
                             responseAck(request, code, msg);
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {

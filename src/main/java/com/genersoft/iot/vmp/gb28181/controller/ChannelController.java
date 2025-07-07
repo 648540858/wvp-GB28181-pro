@@ -41,7 +41,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping(value = "/api/common/channel")
-public class CommonChannelController {
+public class ChannelController {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

@@ -63,7 +63,7 @@ export function getList(params) {
   const { page, count, query, online, hasRecordPlan, channelType } = params
   return request({
     method: 'get',
-    url: `/api/common/channel/list`,
+    url: '/api/common/channel/list',
     params: {
       page: page,
       count: count,
@@ -79,7 +79,7 @@ export function getCivilCodeList(params) {
   const { page, count, channelType, query, online, civilCode } = params
   return request({
     method: 'get',
-    url: `/api/common/channel/civilcode/list`,
+    url: '/api/common/channel/civilcode/list',
     params: {
       page: page,
       count: count,
@@ -95,7 +95,7 @@ export function getUnusualCivilCodeList(params) {
   const { page, count, channelType, query, online } = params
   return request({
     method: 'get',
-    url: `/api/common/channel/civilCode/unusual/list`,
+    url: '/api/common/channel/civilCode/unusual/list',
     params: {
       page: page,
       count: count,
@@ -110,7 +110,7 @@ export function getUnusualParentList(params) {
   const { page, count, channelType, query, online } = params
   return request({
     method: 'get',
-    url: `/api/common/channel/parent/unusual/list`,
+    url: '/api/common/channel/parent/unusual/list',
     params: {
       page: page,
       count: count,
@@ -125,7 +125,7 @@ export function clearUnusualCivilCodeList(params) {
   const { all, channelIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/civilCode/unusual/clear`,
+    url: '/api/common/channel/civilCode/unusual/clear',
     data: {
       all: all,
       channelIds: channelIds
@@ -137,7 +137,7 @@ export function clearUnusualParentList(params) {
   const { all, channelIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/parent/unusual/clear`,
+    url: '/api/common/channel/parent/unusual/clear',
     data: {
       all: all,
       channelIds: channelIds
@@ -149,7 +149,7 @@ export function getParentList(params) {
   const { page, count, channelType, query, online, groupDeviceId } = params
   return request({
     method: 'get',
-    url: `/api/common/channel/parent/list`,
+    url: '/api/common/channel/parent/list',
     params: {
       page: page,
       count: count,
@@ -165,7 +165,7 @@ export function addToRegion(params) {
   const { civilCode, channelIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/region/add`,
+    url: '/api/common/channel/region/add',
     data: {
       civilCode: civilCode,
       channelIds: channelIds
@@ -176,7 +176,7 @@ export function addToRegion(params) {
 export function deleteFromRegion(channels) {
   return request({
     method: 'post',
-    url: `/api/common/channel/region/delete`,
+    url: '/api/common/channel/region/delete',
     data: {
       channelIds: channels
     }
@@ -187,7 +187,7 @@ export function addDeviceToRegion(params) {
   const { civilCode, deviceIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/region/device/add`,
+    url: '/api/common/channel/region/device/add',
     data: {
       civilCode: civilCode,
       deviceIds: deviceIds
@@ -198,7 +198,7 @@ export function addDeviceToRegion(params) {
 export function deleteDeviceFromRegion(deviceIds) {
   return request({
     method: 'post',
-    url: `/api/common/channel/region/device/delete`,
+    url: '/api/common/channel/region/device/delete',
     data: {
       deviceIds: deviceIds
     }
@@ -209,7 +209,7 @@ export function addToGroup(params) {
   const { parentId, businessGroup, channelIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/group/add`,
+    url: '/api/common/channel/group/add',
     data: {
       parentId: parentId,
       businessGroup: businessGroup,
@@ -221,7 +221,7 @@ export function addToGroup(params) {
 export function deleteFromGroup(channels) {
   return request({
     method: 'post',
-    url: `/api/common/channel/group/delete`,
+    url: '/api/common/channel/group/delete',
     data: {
       channelIds: channels
     }
@@ -232,7 +232,7 @@ export function addDeviceToGroup(params) {
   const { parentId, businessGroup, deviceIds } = params
   return request({
     method: 'post',
-    url: `/api/common/channel/group/device/add`,
+    url: '/api/common/channel/group/device/add',
     data: {
       parentId: parentId,
       businessGroup: businessGroup,
@@ -244,7 +244,7 @@ export function addDeviceToGroup(params) {
 export function deleteDeviceFromGroup(deviceIds) {
   return request({
     method: 'post',
-    url: `/api/common/channel/group/device/delete`,
+    url: '/api/common/channel/group/device/delete',
     data: {
       deviceIds: deviceIds
     }
@@ -257,6 +257,246 @@ export function playChannel(channelId) {
     url: '/api/common/channel/play',
     params: {
       channelId: channelId
+    }
+  })
+}
+
+
+// 前端控制
+
+export function setSpeedForScan({ channelId, scanId, speed }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/scan/set/speed',
+    params: {
+      channelId: channelId,
+      scanId: scanId,
+      speed: speed
+    }
+  })
+}
+
+export function setLeftForScan({ channelId, scanId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/scan/set/left',
+    params: {
+      channelId: channelId,
+      scanId: scanId
+    }
+  })
+}
+
+export function setRightForScan({ channelId, scanId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/scan/set/right',
+    params: {
+      channelId: channelId,
+      scanId: scanId
+    }
+
+  })
+}
+
+export function startScan({ channelId, scanId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/scan/start',
+    params: {
+      channelId: channelId,
+      scanId: scanId
+    }
+  })
+}
+
+export function stopScan({ channelId, scanId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/scan/stop',
+    params: {
+      channelId: channelId,
+      scanId: scanId
+    }
+
+  })
+}
+
+export function queryPreset(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/preset/query',
+    params: {
+      channelId: channelId
+    }
+  })
+}
+
+export function addPointForCruise({ channelId, cruiseId, presetId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/point/add',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId,
+      presetId: presetId
+    }
+  })
+}
+
+export function deletePointForCruise({ channelId, cruiseId, presetId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/point/delete',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId,
+      presetId: presetId
+    }
+  })
+}
+
+export function setCruiseSpeed({ channelId, cruiseId, cruiseSpeed }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/speed',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId,
+      speed: cruiseSpeed
+    }
+  })
+}
+
+export function setCruiseTime({ channelId, cruiseId, cruiseTime }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/time',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId,
+      time: cruiseTime
+    }
+  })
+}
+
+export function startCruise({ channelId, cruiseId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/start',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId
+    }
+  })
+}
+
+export function stopCruise({ channelId, cruiseId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/cruise/stop',
+    params: {
+      channelId: channelId,
+      cruiseId: cruiseId
+    }
+  })
+}
+
+export function addPreset({ channelId, presetId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/preset/add',
+    params: {
+      channelId: channelId,
+      presetId: presetId
+    }
+  })
+}
+
+export function callPreset({ channelId, presetId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/preset/call',
+    params: {
+      channelId: channelId,
+      presetId: presetId
+    }
+  })
+}
+
+export function deletePreset({ channelId, presetId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/preset/delete',
+    params: {
+      channelId: channelId,
+      presetId: presetId
+    }
+  })
+}
+
+/**
+ * command: on 开启， off 关闭
+ */
+export function auxiliary({ channelId, command, switchId }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/auxiliary',
+    params: {
+      channelId: channelId,
+      command: command,
+      switchId: switchId
+    }
+  })
+}
+/**
+ * command: on 开启， off 关闭
+ */
+export function wiper({ channelId, command }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/wiper',
+    params: {
+      channelId: channelId,
+      command: command
+    }
+  })
+}
+
+export function ptz({ channelId, command, horizonSpeed, verticalSpeed, zoomSpeed }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/ptz',
+    params: {
+      channelId: channelId,
+      command: command,
+      horizonSpeed: horizonSpeed,
+      verticalSpeed: verticalSpeed,
+      zoomSpeed: zoomSpeed
+    }
+  })
+}
+
+export function iris({ channelId, command, speed }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/fi/iris',
+    params: {
+      channelId: channelId,
+      command: command,
+      speed: speed
+    }
+  })
+}
+
+export function focus({ channelId, command, speed }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/fi/focus',
+    params: {
+      channelId: channelId,
+      command: command,
+      speed: speed
     }
   })
 }

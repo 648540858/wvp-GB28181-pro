@@ -216,19 +216,22 @@
           <el-form-item label="疲劳驾驶预警差值(秒)" prop="drowsyDrivingWarningDifference">
             <el-input v-model="form.drowsyDrivingWarningDifference" clearable />
           </el-form-item>
-          <el-form-item label="碰撞报警-碰撞时间(毫秒)" prop="collisionAlarmParamsCollisionAlarmTime">
-            <el-input v-model="form.collisionAlarmParams.collisionAlarmTime" clearable />
-          </el-form-item>
-          <el-form-item label="碰撞报警-碰撞加速度(0.1g)" prop="collisionAlarmParamsCollisionAcceleration">
-            <el-input v-model="form.collisionAlarmParams.collisionAcceleration" clearable />
-          </el-form-item>
+          <div v-if="form.collisionAlarmParams">
+            <el-form-item label="碰撞报警-碰撞时间(毫秒)" prop="collisionAlarmParamsCollisionAlarmTime">
+              <el-input v-model="form.collisionAlarmParams.collisionAlarmTime" clearable />
+            </el-form-item>
+            <el-form-item label="碰撞报警-碰撞加速度(0.1g)" prop="collisionAlarmParamsCollisionAcceleration">
+              <el-input v-model="form.collisionAlarmParams.collisionAcceleration" clearable />
+            </el-form-item>
+          </div>
+
           <el-form-item label="侧翻报警参数-侧翻角度(度)" prop="rolloverAlarm">
             <el-input v-model="form.rolloverAlarm" clearable />
           </el-form-item>
         </el-form>
 
-        <el-divider content-position="center">定时拍照控制</el-divider>
-        <el-form ref="form" size="mini" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <el-divider v-if="form.cameraTimer" content-position="center">定时拍照控制</el-divider>
+        <el-form v-if="form.cameraTimer" ref="form" size="mini" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
           <el-form-item label="定时拍照开关-通道1" prop="rolloverAlarm">
             <el-switch v-model="form.cameraTimer.switchForChannel1" />
           </el-form-item>
@@ -261,7 +264,7 @@
           </el-form-item>
 
           <el-form-item label="定时时间间隔" prop="timeInterval">
-            <el-input v-model="form.timeInterval" clearable />
+            <el-input v-model="form.cameraTimer.timeInterval" clearable />
           </el-form-item>
           <el-form-item label="定时时间单位" prop="rolloverAlarm">
             <el-switch v-model="form.cameraTimer.timeUnit" active-text="分" inactive-text="秒" />

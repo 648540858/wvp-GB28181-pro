@@ -25,7 +25,7 @@ public class JTChannelProvider {
     public String selectAll(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
-        sqlBuild.append(" WHERE 1=1 ");
+        sqlBuild.append(" WHERE jc.terminal_db_id = #{terminalDbId} ");
         if (params.get("query") != null) {
             sqlBuild.append(" AND ")
                     .append(" jc.name LIKE ").append("'%").append(params.get("query")).append("%'")

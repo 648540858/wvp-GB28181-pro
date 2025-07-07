@@ -54,7 +54,7 @@ export default {
       console.log(this.jtChannel)
       const isEdit = typeof (this.jtChannel.id) !== 'undefined'
       if (isEdit) {
-        this.$store.dispatch('jtDevice/updateChannel')
+        this.$store.dispatch('jtDevice/updateChannel', this.jtChannel)
           .then(data => {
             this.$message({
               showClose: true,
@@ -67,7 +67,7 @@ export default {
             console.log(error)
           })
       } else {
-        this.$store.dispatch('jtDevice/addChannel')
+        this.$store.dispatch('jtDevice/addChannel', this.jtChannel)
           .then(data => {
             this.$message({
               showClose: true,

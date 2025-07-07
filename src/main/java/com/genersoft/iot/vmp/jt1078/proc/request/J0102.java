@@ -28,12 +28,13 @@ public class J0102 extends Re {
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-        int lenCode = buf.readUnsignedByte();
-        byte[] authenticationCodeBytes = new byte[lenCode];
-//        ByteBuf byteBuf = buf.readBytes(authenticationCodeBytes);
-        authenticationCode = buf.readCharSequence(lenCode, Charset.forName("GBK")).toString();
+        if (header.is2019Version()) {
+            int lenCode = buf.readUnsignedByte();
+            authenticationCode = buf.readCharSequence(lenCode, Charset.forName("GBK")).toString();
+        }else {
+            authenticationCode = buf.readCharSequence(buf.readableBytes(), Charset.forName("GBK")).toString();
+        }
         log.info("设备鉴权： authenticationCode： " + authenticationCode);
-        // if 2019 to decode next
         return null;
     }
 

@@ -42,10 +42,14 @@ public class J0107 extends Re {
         deviceAttribute.setMakerId(buf.readCharSequence(5, Charset.forName("GBK")).toString().trim());
 
         deviceAttribute.setDeviceModel(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
-        buf.readCharSequence(10, Charset.forName("GBK"));
+        if (header.is2019Version()) {
+            buf.readCharSequence(10, Charset.forName("GBK"));
+        }
 
         deviceAttribute.setTerminalId(buf.readCharSequence(7, Charset.forName("GBK")).toString().trim());
-        buf.readCharSequence(23, Charset.forName("GBK"));
+        if (header.is2019Version()) {
+            buf.readCharSequence(23, Charset.forName("GBK"));
+        }
 
         byte[] bytes = new byte[10];
         buf.readBytes(bytes);

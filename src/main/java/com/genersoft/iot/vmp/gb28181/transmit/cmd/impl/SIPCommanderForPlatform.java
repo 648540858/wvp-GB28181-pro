@@ -266,8 +266,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
             });
         }else {
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, eventResult -> {
-                log.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
-                dynamicTask.stop(timeoutTaskKey);
+                log.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, null);
             dynamicTask.startDelay(timeoutTaskKey, ()->{
                 int indexNext = index + parentPlatform.getCatalogGroup();

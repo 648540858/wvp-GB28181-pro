@@ -90,9 +90,11 @@ export const constantRoutes = [
         meta: { title: '国标设备', icon: 'device' }
       },
       {
+        hidden: true,
         path: '/device/record/:deviceId/:channelDeviceId',
         name: 'DeviceRecord',
         component: () => import('@/views/device/channel/record'),
+        meta: { title: '国标录像' }
       },
       {
         path: '/jtDevice',
@@ -101,9 +103,11 @@ export const constantRoutes = [
         meta: { title: '部标设备', icon: 'jtDevice' }
       },
       {
+        hidden: true,
         path: '/jtDevice/record/:phoneNumber/:channelId',
         name: 'JTDeviceRecord',
-        component: () => import('@/views/jtDevice/channel/record')
+        component: () => import('@/views/jtDevice/channel/record'),
+        meta: { title: '部标录像' }
       },
       {
         path: '/push',

@@ -1,0 +1,63 @@
+name: release-ubuntu
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # 触发条件是推送标签 如git tag v2.7.4 git push origin v2.7.4
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+      max-parallel: 1 # 最大并行数 这样amd和arm的打包不会互相影响
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # github action运行环境
+
+      - name: Create release # 创建文件夹
+        run: |
+          rm -rf release 
+          mkdir release
+          echo ${{ github.sha }} > Release.txt
+          cp Release.txt LICENSE release/
+          cat Release.txt
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v4
+        with:
+          # Eclipse基金会维护的开源Java发行版 因为github action参考java的用这个 所以用这个
+          # 还有microsoft(微软维护的openjdk发行版) oracle(商用SDK)等
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x' # Node.js版本 20系列的最新稳定版
+
+      - name: Compile backend
+        run: |
+          mvn package
+          mvn package -P war
+
+      - name: Compile frontend
+        run: |
+          cd ./web
+          npm install
+          npm run build:prod
+          cd ../
+
+      - name: Package Files
+        run: |
+          cp -r ./src/main/resources/static release/  # 复制前端文件
+          cp ./target/*.jar release/     # 复制 JAR 文件
+          cp ./src/main/resources/application-dev.yml release
+          zip -r release-ubuntu-${{ matrix.arch }}.zip release
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: release-ubuntu-${{ matrix.arch }}.zip

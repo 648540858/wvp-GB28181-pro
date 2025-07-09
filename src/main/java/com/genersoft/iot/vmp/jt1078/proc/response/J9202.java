@@ -32,7 +32,10 @@ public class J9202 extends Rs {
         buffer.writeByte(channel);
         buffer.writeByte(playbackType);
         buffer.writeByte(playbackSpeed);
-        buffer.writeBytes(ByteBufUtil.decodeHexDump(playbackTime));
+        if (playbackType == 5) {
+            buffer.writeBytes(ByteBufUtil.decodeHexDump(playbackTime));
+        }
+
         return buffer;
     }
 

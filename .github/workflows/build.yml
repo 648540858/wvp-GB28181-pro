@@ -64,7 +64,6 @@ jobs:
           fi
           
           TAG_NAME="${GITHUB_REF#refs/tags/}"
-          DATE=$(date +%Y%m%d)
           ZIP_FILE_NAME="${BRANCH_NAME}-${TAG_NAME}.zip"
           zip -r "$ZIP_FILE_NAME" release
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV

@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64]
-      max-parallel: 1 # 最大并行数 这样amd和arm的打包不会互相影响
+        arch: [amd64]
+      max-parallel: 1 # 最大并行数
     steps:
       - name: Checkout
         uses: actions/checkout@v4 # github action运行环境
@@ -54,10 +54,23 @@ jobs:
           cp -r ./src/main/resources/static release/  # 复制前端文件
           cp ./target/*.jar release/     # 复制 JAR 文件
           cp ./src/main/resources/application-dev.yml release
-          zip -r release-ubuntu-${{ matrix.arch }}.zip release
+          
+          BRANCH=${{ github.event.base_ref }}
+          BRANCH_NAME=$(echo "$BRANCH" | grep -oP 'refs/heads/\K.*')
+          echo "BRANCH_NAME= ${BRANCH_NAME}"
+          # 如果无法获取，使用默认分支
+          if [[ -z "BRANCH_NAME" ]]; then
+            BRANCH_NAME="${{ github.event.repository.default_branch }}"
+          fi
+          
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          DATE=$(date +%Y%m%d)
+          ZIP_FILE_NAME="${BRANCH_NAME}-${TAG_NAME}-${DATE}.zip"
+          zip -r "$ZIP_FILE_NAME" release
+          echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: release-ubuntu-${{ matrix.arch }}.zip
+          files: ${{ env.ZIP_FILE_NAME }}

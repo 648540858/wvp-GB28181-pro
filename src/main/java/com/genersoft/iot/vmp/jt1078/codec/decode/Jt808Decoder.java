@@ -40,7 +40,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         Session session = ctx.channel().attr(Session.KEY).get();
-        log.info("> {} hex:{}", session, ByteBufUtil.hexDump(in));
+        log.info("> {} hex: 7e{}7e", session, ByteBufUtil.hexDump(in));
 
         try {
             ByteBuf buf = unEscapeAndCheck(in);

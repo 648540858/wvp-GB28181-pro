@@ -41,6 +41,10 @@ public interface IMediaServerService {
 
     void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
 
+    SSRCInfo openJTTServer(MediaServer mediaServerItem, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
+
+    void closeJTTServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
+
     Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc);
 
     void closeRTPServer(String mediaServerId, String streamId);

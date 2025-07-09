@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.proc;
 
 import com.genersoft.iot.vmp.jt1078.util.Bin;
+import lombok.Data;
 
 /**
  * @author QingtaiJiang
  * @date 2023/4/27 18:22
  * @email qingtaij@163.com
  */
+@Data
 public class Header {
     // 消息ID
     String msgId;
@@ -23,46 +25,6 @@ public class Header {
     // 协议版本号
     Short version = -1;
 
-
-    public String getMsgId() {
-        return msgId;
-    }
-
-    public void setMsgId(String msgId) {
-        this.msgId = msgId;
-    }
-
-    public Integer getMsgPro() {
-        return msgPro;
-    }
-
-    public void setMsgPro(Integer msgPro) {
-        this.msgPro = msgPro;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public Integer getSn() {
-        return sn;
-    }
-
-    public void setSn(Integer sn) {
-        this.sn = sn;
-    }
-
-    public Short getVersion() {
-        return version;
-    }
-
-    public void setVersion(Short version) {
-        this.version = version;
-    }
 
     /**
      * 判断是否是2019的版本

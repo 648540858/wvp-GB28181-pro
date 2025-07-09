@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -215,6 +216,27 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public SSRCInfo openJTTServer(MediaServer mediaServer, @NotNull String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode) {
+        if (mediaServer == null || mediaServer.getId() == null) {
+            log.info("[openJTTServer] 失败, mediaServer == null || mediaServer.getId() == null");
+            return null;
+        }
+
+        int rtpServerPort;
+        if (mediaServer.isRtpEnable()) {
+            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+            if (mediaNodeServerService == null) {
+                log.info("[openJTTServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+                return null;
+            }
+            rtpServerPort = mediaNodeServerService.createJTTServer(mediaServer, streamId, port, disableVideo, disableAudio, tcpMode);
+        } else {
+            rtpServerPort = mediaServer.getJttProxyPort();
+        }
+        return new SSRCInfo(rtpServerPort, null, "1078", streamId, null);
+    }
+
+    @Override
     public List<String> listRtpServer(MediaServer mediaServer) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
@@ -234,7 +256,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServer, streamId);
+        mediaNodeServerService.closeRtpServer(mediaServer, streamId, null);
     }
 
     @Override
@@ -266,6 +288,20 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return;
         }
         mediaNodeServerService.closeStreams(mediaServer, "rtp", streamId);
+    }
+
+    @Override
+    public void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+        if (mediaServer == null) {
+            callback.run(false);
+            return;
+        }
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            log.info("[closeJTTServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return;
+        }
+        mediaNodeServerService.closeRtpServer(mediaServer, streamId, callback);
     }
 
     @Override

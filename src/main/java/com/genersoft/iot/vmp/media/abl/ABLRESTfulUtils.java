@@ -312,18 +312,24 @@ public class ABLRESTfulUtils {
         }
     }
 
-
-
-    public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio, Boolean record) {
+    public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio, Boolean record, Boolean isJtt) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "_defaultVhost_");
         param.put("app", app);
         param.put("stream_id", stream);
         param.put("payload", payload);
-        param.put("jtt1078_version", "2016");
-        param.put("RtpPayloadDataType", 4);
+        if (isJtt) {
+            // 1 PS 国标gb28181, 默认为1、
+            // 2 ES 视频支持 H246\H265，音频只支持G711A、G711U 、AAC
+            // 3 XHB (一家公司的打包格式) 只支持视频，音频不能加入打包
+            // 4 、Jt1078（2016版本）码流接入
+            param.put("RtpPayloadDataType", 4);
+            param.put("jtt1078_version", "2016");
+        }
         if (port != null) {
             param.put("port", port);
+        }else {
+            param.put("port", 0);
         }
         if (tcpMode != null) {
             param.put("enable_tcp", tcpMode);

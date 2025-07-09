@@ -66,6 +66,9 @@ public class MediaConfig{
     @Value("${media.rtp-proxy-port:0}")
     private Integer rtpProxyPort = 0;
 
+    @Value("${media.jtt-proxy-port:0}")
+    private Integer jttProxyPort = 0;
+
     @Value("${media.rtsp-port:0}")
     private Integer rtspPort = 0;
 
@@ -122,7 +125,7 @@ public class MediaConfig{
     public int getRtmpPort() {
         return rtmpPort;
     }
-    
+
     public int getRtmpSSlPort() {
         return rtmpSSlPort;
     }
@@ -134,6 +137,14 @@ public class MediaConfig{
             return rtpProxyPort;
         }
 
+    }
+
+    public Integer getJttProxyPort() {
+        if (jttProxyPort == null) {
+            return 0;
+        }else {
+            return jttProxyPort;
+        }
     }
 
     public int getRtspPort() {
@@ -159,7 +170,7 @@ public class MediaConfig{
     public String getRtpPortRange() {
         return rtpPortRange;
     }
-    
+
     public int getRecordAssistPort() {
         return recordAssistPort;
     }
@@ -229,6 +240,7 @@ public class MediaConfig{
         mediaServer.setRtmpPort(rtmpPort);
         mediaServer.setRtmpSSlPort(rtmpSSlPort);
         mediaServer.setRtpProxyPort(getRtpProxyPort());
+        mediaServer.setJttProxyPort(getJttProxyPort());
         mediaServer.setRtspPort(rtspPort);
         mediaServer.setRtspSSLPort(rtspSSLPort);
         mediaServer.setAutoConfig(autoConfig);

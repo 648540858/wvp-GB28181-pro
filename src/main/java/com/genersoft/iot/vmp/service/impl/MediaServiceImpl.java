@@ -99,7 +99,7 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
-        if (!"rtp".equals(app)) {
+        if (!"rtp".equals(app) && !"1078".equals(app) ) {
             if ("talk".equals(app) && stream.endsWith("_talk")) {
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_mp4(false);

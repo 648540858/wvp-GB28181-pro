@@ -53,6 +53,9 @@ public class MediaServer {
     @Schema(description = "RTP收流端口（单端口模式有用）")
     private int rtpProxyPort;
 
+    @Schema(description = "1078收流端口（单端口模式有用）")
+    private int jttProxyPort;
+
     @Schema(description = "RTSP端口")
     private int rtspPort;
 
@@ -153,7 +156,7 @@ public class MediaServer {
 //        wsFlvSSLPort = config.getHttpSSLport();
         rtmpPort = config.getRtmpPort();
 //        rtmpSSlPort = config.getRtmpSslPort();
-        rtpProxyPort = config.getPsTsRecvPort();
+        rtpProxyPort = config.getJtt1078RecvPort();
         rtspPort = config.getRtspPort();
 //        rtspSSLPort = config.getRtspSSlport();
         autoConfig = true; // 默认值true;

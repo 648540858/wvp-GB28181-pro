@@ -42,12 +42,17 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void closeRtpServer(MediaServer mediaServer, String streamId) {
-        zlmServerFactory.closeRtpServer(mediaServer, streamId);
+    public void closeRtpServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+        zlmServerFactory.closeRtpServer(mediaServer, streamId, callback);
     }
 
     @Override
-    public void closeRtpServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+    public int createJTTServer(MediaServer mediaServer, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode) {
+        return zlmServerFactory.createRTPServer(mediaServer, streamId, 0, port, disableVideo, disableAudio, false, tcpMode);
+    }
+
+    @Override
+    public void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
         zlmServerFactory.closeRtpServer(mediaServer, streamId, callback);
     }
 

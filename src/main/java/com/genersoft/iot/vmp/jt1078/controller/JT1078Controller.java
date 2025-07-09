@@ -88,7 +88,7 @@ public class JT1078Controller {
         }
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
-            log.info("[1078-点播等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
+            log.info("[JT-点播等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -152,7 +152,7 @@ public class JT1078Controller {
                          @Parameter(required = false) Boolean onlySend) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
-            log.info("[1078-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
+            log.info("[JT-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -275,7 +275,7 @@ public class JT1078Controller {
     ) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
-            log.info("[1078-回放-等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
+            log.info("[JT-回放-等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -359,7 +359,7 @@ public class JT1078Controller {
                                                                @Parameter(required = false) Integer storageType
 
     ) throws IOException {
-        log.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，报警标志: {}, 音视频类型： {}， 码流类型： {}，存储器类型： {}， ",
+        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，报警标志: {}, 音视频类型： {}， 码流类型： {}，存储器类型： {}， ",
                 phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType);
         if (!ftpSetting.getEnable()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
@@ -403,7 +403,7 @@ public class JT1078Controller {
     @GetMapping("/ptz")
     public void ptz(String phoneNumber, Integer channelId, String command, int speed){
 
-        log.info("[1078-云台控制] phoneNumber：{}, channelId：{}, command: {}, speed: {}", phoneNumber, channelId, command, speed);
+        log.info("[JT-云台控制] phoneNumber：{}, channelId：{}, command: {}, speed: {}", phoneNumber, channelId, command, speed);
         service.ptzControl(phoneNumber, channelId, command, speed);
     }
 
@@ -414,7 +414,7 @@ public class JT1078Controller {
     @GetMapping("/fill-light")
     public void fillLight(String phoneNumber, Integer channelId, String command){
 
-        log.info("[1078-补光灯开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
+        log.info("[JT-补光灯开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
         service.supplementaryLight(phoneNumber, channelId, command);
     }
 
@@ -425,7 +425,7 @@ public class JT1078Controller {
     @GetMapping("/wiper")
     public void wiper(String phoneNumber, Integer channelId, String command){
 
-        log.info("[1078-雨刷开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
+        log.info("[JT-雨刷开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
         service.wiper(phoneNumber, channelId, command);
     }
 
@@ -434,7 +434,7 @@ public class JT1078Controller {
     @GetMapping("/config")
     public JTDeviceConfig config(String phoneNumber, String[] params){
 
-        log.info("[1078-查询终端参数] phoneNumber：{}", phoneNumber);
+        log.info("[JT-查询终端参数] phoneNumber：{}", phoneNumber);
         return service.queryConfig(phoneNumber, params, null);
     }
 
@@ -444,7 +444,7 @@ public class JT1078Controller {
     @PostMapping("/set-config")
     public void setConfig(@RequestBody SetConfigParam config){
 
-        log.info("[1078-设置终端参数] 参数: {}", config.toString());
+        log.info("[JT-设置终端参数] 参数: {}", config.toString());
         service.setConfig(config.getPhoneNumber(), config.getConfig());
     }
 
@@ -453,7 +453,7 @@ public class JT1078Controller {
     @PostMapping("/control/connection")
     public void connectionControl(@RequestBody ConnectionControlParam control){
 
-        log.info("[1078-终端控制] 参数: {}", control.toString());
+        log.info("[JT-终端控制] 参数: {}", control.toString());
         service.connectionControl(control.getPhoneNumber(), control.getControl());
     }
 
@@ -462,7 +462,7 @@ public class JT1078Controller {
     @PostMapping("/control/reset")
     public void resetControl(String phoneNumber){
 
-        log.info("[1078-复位] phoneNumber: {}", phoneNumber);
+        log.info("[JT-复位] phoneNumber: {}", phoneNumber);
         service.resetControl(phoneNumber);
     }
 
@@ -471,7 +471,7 @@ public class JT1078Controller {
     @PostMapping("/control/factory-reset")
     public void factoryResetControl(String phoneNumber){
 
-        log.info("[1078-恢复出厂设置] phoneNumber: {}", phoneNumber);
+        log.info("[JT-恢复出厂设置] phoneNumber: {}", phoneNumber);
         service.factoryResetControl(phoneNumber);
     }
 
@@ -480,7 +480,7 @@ public class JT1078Controller {
     @GetMapping("/attribute")
     public JTDeviceAttribute attribute(String phoneNumber){
 
-        log.info("[1078-查询终端属性] phoneNumber: {}", phoneNumber);
+        log.info("[JT-查询终端属性] phoneNumber: {}", phoneNumber);
         return service.attribute(phoneNumber);
     }
 
@@ -489,7 +489,7 @@ public class JT1078Controller {
     @GetMapping("/position-info")
     public JTPositionBaseInfo queryPositionInfo(String phoneNumber){
 
-        log.info("[1078-查询位置信息] phoneNumber: {}", phoneNumber);
+        log.info("[JT-查询位置信息] phoneNumber: {}", phoneNumber);
         return service.queryPositionInfo(phoneNumber);
     }
 
@@ -500,7 +500,7 @@ public class JT1078Controller {
     @GetMapping("/control/temp-position-tracking")
     public void tempPositionTrackingControl(String phoneNumber, Integer timeInterval, Long validityPeriod){
 
-        log.info("[1078-临时位置跟踪控制] phoneNumber: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", phoneNumber, timeInterval, validityPeriod);
+        log.info("[JT-临时位置跟踪控制] phoneNumber: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", phoneNumber, timeInterval, validityPeriod);
         service.tempPositionTrackingControl(phoneNumber, timeInterval, validityPeriod);
     }
 
@@ -511,7 +511,7 @@ public class JT1078Controller {
     @PostMapping("/confirmation-alarm-message")
     public void confirmationAlarmMessage(@RequestBody ConfirmationAlarmMessageParam param){
 
-        log.info("[1078-人工确认报警消息] 参数: {}", param);
+        log.info("[JT-人工确认报警消息] 参数: {}", param);
         service.confirmationAlarmMessage(param.getPhoneNumber(), param.getAlarmPackageNo(), param.getAlarmMessageType());
     }
 
@@ -520,7 +520,7 @@ public class JT1078Controller {
     @GetMapping("/link-detection")
     public WVPResult<Integer> linkDetection(String phoneNumber){
 
-        log.info("[1078-链路检测] phoneNumber: {}", phoneNumber);
+        log.info("[JT-链路检测] phoneNumber: {}", phoneNumber);
         int result = service.linkDetection(phoneNumber);
         if (result == 0) {
             return WVPResult.success(result);
@@ -536,7 +536,7 @@ public class JT1078Controller {
     @PostMapping("/text-msg")
     public WVPResult<Integer> textMessage(@RequestBody TextMessageParam textMessageParam){
 
-        log.info("[1078-文本信息下发] textMessageParam: {}", textMessageParam);
+        log.info("[JT-文本信息下发] textMessageParam: {}", textMessageParam);
         int result = service.textMessage(textMessageParam.getPhoneNumber(), textMessageParam.getSign(), textMessageParam.getTextType(), textMessageParam.getContent());
         if (result == 0) {
             return WVPResult.success(result);
@@ -554,7 +554,7 @@ public class JT1078Controller {
     @GetMapping("/telephone-callback")
     public WVPResult<Integer> telephoneCallback(String phoneNumber, Integer sign, String destPhoneNumber){
 
-        log.info("[1078-电话回拨] phoneNumber: {}, sign: {}, phoneNumber: {},", phoneNumber, sign, phoneNumber);
+        log.info("[JT-电话回拨] phoneNumber: {}, sign: {}, phoneNumber: {},", phoneNumber, sign, phoneNumber);
         int result = service.telephoneCallback(phoneNumber, sign, destPhoneNumber);
         if (result == 0) {
             return WVPResult.success(result);
@@ -570,7 +570,7 @@ public class JT1078Controller {
     @PostMapping("/set-phone-book")
     public WVPResult<Integer> setPhoneBook(@RequestBody SetPhoneBookParam setPhoneBookParam){
 
-        log.info("[1078-设置电话本] setPhoneBookParam: {}", setPhoneBookParam);
+        log.info("[JT-设置电话本] setPhoneBookParam: {}", setPhoneBookParam);
         int result = service.setPhoneBook(setPhoneBookParam.getPhoneNumber(), setPhoneBookParam.getType(), setPhoneBookParam.getPhoneBookContactList());
         if (result == 0) {
             return WVPResult.success(result);
@@ -587,7 +587,7 @@ public class JT1078Controller {
     @GetMapping("/control/door")
     public WVPResult<Integer> controlDoor(String phoneNumber, Boolean open){
 
-        log.info("[1078-车门控制] phoneNumber: {}, open: {},", phoneNumber, open);
+        log.info("[JT-车门控制] phoneNumber: {}, open: {},", phoneNumber, open);
         JTPositionBaseInfo positionBaseInfo = service.controlDoor(phoneNumber, open);
 
         if (open == !positionBaseInfo.getStatus().isDoorLocking()) {
@@ -602,7 +602,7 @@ public class JT1078Controller {
     @PostMapping("/area/circle/update")
     public WVPResult<Integer> updateAreaForCircle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-更新圆形区域] areaParam: {},", areaParam);
+        log.info("[JT-更新圆形区域] areaParam: {},", areaParam);
         int result = service.setAreaForCircle(0, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
@@ -618,7 +618,7 @@ public class JT1078Controller {
     @PostMapping("/area/circle/add")
     public WVPResult<Integer> addAreaForCircle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-追加圆形区域] areaParam: {},", areaParam);
+        log.info("[JT-追加圆形区域] areaParam: {},", areaParam);
         int result = service.setAreaForCircle(1, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
@@ -634,7 +634,7 @@ public class JT1078Controller {
     @PostMapping("/area/circle/edit")
     public WVPResult<Integer> editAreaForCircle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-修改圆形区域] areaParam: {},", areaParam);
+        log.info("[JT-修改圆形区域] areaParam: {},", areaParam);
         int result = service.setAreaForCircle(2, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
@@ -651,7 +651,7 @@ public class JT1078Controller {
     @GetMapping("/area/circle/delete")
     public WVPResult<Integer> deleteAreaForCircle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-删除圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-删除圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         int result = service.deleteAreaForCircle(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
@@ -667,7 +667,7 @@ public class JT1078Controller {
     @GetMapping("/area/circle/query")
     public WVPResult<List<JTAreaOrRoute>> queryAreaForCircle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-查询圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-查询圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         List<JTAreaOrRoute> result = service.queryAreaForCircle(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
@@ -682,7 +682,7 @@ public class JT1078Controller {
     @PostMapping("/area/rectangle/update")
     public WVPResult<Integer> updateAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-更新矩形区域] areaParam: {},", areaParam);
+        log.info("[JT-更新矩形区域] areaParam: {},", areaParam);
         int result = service.setAreaForRectangle(0, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
@@ -698,7 +698,7 @@ public class JT1078Controller {
     @PostMapping("/area/rectangle/add")
     public WVPResult<Integer> addAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-追加矩形区域] areaParam: {},", areaParam);
+        log.info("[JT-追加矩形区域] areaParam: {},", areaParam);
         int result = service.setAreaForRectangle(1, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
@@ -714,7 +714,7 @@ public class JT1078Controller {
     @PostMapping("/area/rectangle/edit")
     public WVPResult<Integer> editAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-修改矩形区域] areaParam: {},", areaParam);
+        log.info("[JT-修改矩形区域] areaParam: {},", areaParam);
         int result = service.setAreaForRectangle(2, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
@@ -731,7 +731,7 @@ public class JT1078Controller {
     @GetMapping("/area/rectangle/delete")
     public WVPResult<Integer> deleteAreaForRectangle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-删除矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-删除矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         int result = service.deleteAreaForRectangle(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
@@ -747,7 +747,7 @@ public class JT1078Controller {
     @GetMapping("/area/rectangle/query")
     public WVPResult<List<JTAreaOrRoute>> queryAreaForRectangle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-查询矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-查询矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         List<JTAreaOrRoute> result = service.queryAreaForRectangle(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
@@ -761,7 +761,7 @@ public class JT1078Controller {
     @PostMapping("/area/polygon/set")
     public WVPResult<Integer> setAreaForPolygon(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-设置多边形区域] areaParam: {},", areaParam);
+        log.info("[JT-设置多边形区域] areaParam: {},", areaParam);
         int result = service.setAreaForPolygon(areaParam.getPhoneNumber(), areaParam.getPolygonArea());
         if (result == 0) {
             return WVPResult.success(result);
@@ -778,7 +778,7 @@ public class JT1078Controller {
     @GetMapping("/area/polygon/delete")
     public WVPResult<Integer> deleteAreaForPolygon(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-删除多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-删除多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         int result = service.deleteAreaForPolygon(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
@@ -794,7 +794,7 @@ public class JT1078Controller {
     @GetMapping("/area/polygon/query")
     public WVPResult<List<JTAreaOrRoute>> queryAreaForPolygon(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-查询多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-查询多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
         List<JTAreaOrRoute> result = service.queryAreaForPolygon(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
@@ -808,7 +808,7 @@ public class JT1078Controller {
     @PostMapping("/route/set")
     public WVPResult<Integer> setRoute(@RequestBody SetAreaParam areaParam){
 
-        log.info("[1078-设置路线] areaParam: {},", areaParam);
+        log.info("[JT-设置路线] areaParam: {},", areaParam);
         int result = service.setRoute(areaParam.getPhoneNumber(), areaParam.getRoute());
         if (result == 0) {
             return WVPResult.success(result);
@@ -825,7 +825,7 @@ public class JT1078Controller {
     @GetMapping("/route/delete")
     public WVPResult<Integer> deleteRoute(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-删除路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-删除路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
         int result = service.deleteRoute(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
@@ -841,7 +841,7 @@ public class JT1078Controller {
     @GetMapping("/route/query")
     public WVPResult<List<JTAreaOrRoute>> queryRoute(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        log.info("[1078-查询路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        log.info("[JT-查询路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
         List<JTAreaOrRoute> result = service.queryRoute(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
@@ -857,7 +857,7 @@ public class JT1078Controller {
     @GetMapping("/driver-information")
     public WVPResult<JTDriverInformation> queryDriverInformation(String phoneNumber){
 
-        log.info("[1078-上报驾驶员身份信息请求] phoneNumber: {}", phoneNumber);
+        log.info("[JT-上报驾驶员身份信息请求] phoneNumber: {}", phoneNumber);
         JTDriverInformation jtDriverInformation = service.queryDriverInformation(phoneNumber);
         if (jtDriverInformation != null) {
             return WVPResult.success(jtDriverInformation);
@@ -871,7 +871,7 @@ public class JT1078Controller {
     @PostMapping("/shooting")
     public WVPResult<List<Long>> shooting(@RequestBody ShootingParam param){
 
-        log.info("[1078-摄像头立即拍摄命令] param: {}", param );
+        log.info("[JT-摄像头立即拍摄命令] param: {}", param );
         List<Long> ids = service.shooting(param.getPhoneNumber(), param.getShootingCommand());
         if (ids != null) {
             return WVPResult.success(ids);
@@ -885,7 +885,7 @@ public class JT1078Controller {
     @PostMapping("/media-data-info")
     public WVPResult<List<JTMediaDataInfo>> queryMediaData(@RequestBody QueryMediaDataParam param){
 
-        log.info("[1078-存储多媒体数据检索] param: {}", param );
+        log.info("[JT-存储多媒体数据检索] param: {}", param );
         List<JTMediaDataInfo> ids = service.queryMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
         if (ids != null) {
             return WVPResult.success(ids);
@@ -899,12 +899,12 @@ public class JT1078Controller {
     @PostMapping("/media-data-upload")
     public DeferredResult<WVPResult<List<String>>> updateMediaData(@RequestBody QueryMediaDataParam param){
 
-        log.info("[1078-存储多媒体数据上传命令] param: {}", param );
+        log.info("[JT-存储多媒体数据上传命令] param: {}", param );
         DeferredResult<WVPResult<List<String>>> deferredResult = new DeferredResult<>(30000L);
         List<String> resultList = new ArrayList<>();
 
         deferredResult.onTimeout(()->{
-            log.info("[1078-存储多媒体数据上传命令超时] param: {}", param );
+            log.info("[JT-存储多媒体数据上传命令超时] param: {}", param );
             WVPResult<List<String>> fail = WVPResult.fail(ErrorCode.ERROR100);
             fail.setMsg("超时");
             fail.setData(resultList);
@@ -945,7 +945,7 @@ public class JT1078Controller {
         try {
             monitor.start();
         } catch (Exception e) {
-            log.info("[1078-存储多媒体数据上传命令监听文件失败] param: {}", param );
+            log.info("[JT-存储多媒体数据上传命令监听文件失败] param: {}", param );
             deferredResult.setResult(null);
             return deferredResult;
         }

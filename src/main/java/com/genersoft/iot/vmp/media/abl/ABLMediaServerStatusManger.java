@@ -231,6 +231,9 @@ public class ABLMediaServerStatusManger {
         if (mediaServerItem.getRtpProxyPort() != ablServerConfig.getPsTsRecvPort()) {
             mediaServerItem.setRtpProxyPort(ablServerConfig.getPsTsRecvPort());
         }
+        if (mediaServerItem.getRtpProxyPort() != ablServerConfig.getJtt1078RecvPort()) {
+            mediaServerItem.setJttProxyPort(ablServerConfig.getJtt1078RecvPort());
+        }
 //        if (mediaServerItem.getRtspSSLPort() == 0) {
 //            mediaServerItem.setRtspSSLPort(ablServerConfig.getRtspSSlport());
 //        }

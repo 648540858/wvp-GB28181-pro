@@ -174,7 +174,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         dynamicTask.startDelay(filePath, ()->{
             fileUploadMap.remove(filePath);
         }, 2*60*60*1000);
-        log.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
+        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
                 phoneNumber, channelId, startTime, endTime, filePath);
         // 发送停止命令
         J9206 j92026 = new J9206();
@@ -575,9 +575,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo == null) {
-            log.info("[1078-切换码流类型] 未找到点播信息 phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
+            log.info("[JT-切换码流类型] 未找到点播信息 phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
         }
-        log.info("[1078-切换码流类型] phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
+        log.info("[JT-切换码流类型] phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
         // 发送暂停命令
         J9102 j9102 = new J9102();
         j9102.setChannel(Integer.valueOf(channelId));

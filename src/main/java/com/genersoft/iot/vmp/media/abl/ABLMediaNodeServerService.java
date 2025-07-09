@@ -61,12 +61,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public int createRTPServer(MediaServer mediaServer, String stream, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
         Boolean recordSip = userSetting.getRecordSip();
-        return ablresTfulUtils.openRtpServer(mediaServer, "rtp", stream, 96, port, tcpMode, disableAudio?1:0, recordSip);
-    }
-
-    @Override
-    public void closeRtpServer(MediaServer mediaServer, String streamId) {
-        closeRtpServer(mediaServer, streamId, null);
+        return ablresTfulUtils.openRtpServer(mediaServer, "rtp", stream, 96, port, tcpMode, disableAudio?1:0, recordSip, false);
     }
 
     @Override
@@ -87,6 +82,17 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
             //  检查ZLM状态
             logger.error("[closeRtpServer] 失败: 请检查ZLM服务");
         }
+    }
+
+    @Override
+    public int createJTTServer(MediaServer mediaServer, String stream, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode) {
+        Boolean recordSip = userSetting.getRecordSip();
+        return ablresTfulUtils.openRtpServer(mediaServer, "1078", stream, 96, port, tcpMode, disableAudio?1:0, recordSip, true);
+    }
+
+    @Override
+    public void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+        closeRtpServer(mediaServer, streamId, callback);
     }
 
     @Override

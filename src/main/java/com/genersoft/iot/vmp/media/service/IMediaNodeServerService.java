@@ -14,9 +14,13 @@ import java.util.Map;
 public interface IMediaNodeServerService {
     int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode);
 
-    void closeRtpServer(MediaServer mediaServer, String streamId);
-
     void closeRtpServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback);
+
+
+    int createJTTServer(MediaServer mediaServer, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
+
+    void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback);
+
 
     void closeStreams(MediaServer mediaServer, String app, String stream);
 

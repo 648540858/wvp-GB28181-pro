@@ -414,6 +414,7 @@ export default {
     chooseFile(index) {
       this.chooseFileIndex = index
       const chooseFile = this.detailFiles[this.chooseFileIndex]
+      console.log(chooseFile)
       this.playTime = new Date(chooseFile.startTime).getTime()
       this.playRecord(chooseFile.startTime, this.endTime)
     },
@@ -428,8 +429,8 @@ export default {
         this.$store.dispatch('jtDevice/startPlayback', {
           phoneNumber: this.phoneNumber,
           channelId: this.channelId,
-          startTime: this.startTime,
-          endTime: this.endTime,
+          startTime: startTime,
+          endTime: endTime,
           type: 0,
           rate: 0,
           playbackType: 0,

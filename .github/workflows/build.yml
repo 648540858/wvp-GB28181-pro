@@ -53,7 +53,7 @@ jobs:
         run: |
           cp -r ./src/main/resources/static release/  # 复制前端文件
           cp ./target/*.jar release/     # 复制 JAR 文件
-          cp ./src/main/resources/application-dev.yml release
+          cp ./src/main/resources/application-dev.yml release/application.yml
           
           BRANCH=${{ github.event.base_ref }}
           BRANCH_NAME=$(echo "$BRANCH" | grep -oP 'refs/heads/\K.*')

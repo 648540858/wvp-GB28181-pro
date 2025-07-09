@@ -356,6 +356,16 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     @Override
     public void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
                          Integer rate, Integer playbackType, Integer playbackSpeed, CommonCallback<WVPResult<StreamInfo>> callback) {
+        JTDevice device = jt1078Service.getDevice(phoneNumber);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
+        jt1078Template.checkTerminalStatus(phoneNumber);
+        JTChannel channel = jt1078Service.getChannel(device.getId(), channelId);
+        if (channel == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
+        }
+
         log.info("[JT-回放] 回放，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， " +
                 "回放方式： {}， 快进或快退倍数： {}", phoneNumber, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
         // 检查流是否已经存在，存在则返回
@@ -365,24 +375,14 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         String logInfo = String.format("phoneNumber:%s, channelId:%s, startTime:%s, endTime:%s", phoneNumber, channelId, startTime, endTime);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playbackKey);
         if (streamInfo != null) {
-            MediaServer mediaServer = streamInfo.getMediaServer();
-            if (mediaServer != null) {
-                // 查询流是否存在，不存在则删除缓存数据
-                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, "1078", streamInfo.getStream());
-                if (mediaInfo != null) {
-                    log.info("[JT-回放] 回放已经存在，直接返回， logInfo： {}", logInfo);
-                    for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                        errorCallback.run(new WVPResult<>(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo));
-                    }
-                    return;
-                }
-            }
+
+            mediaServerService.closeJTTServer(streamInfo.getMediaServer(), streamInfo.getStream(), null);
             // 清理数据
             redisTemplate.delete(playbackKey);
         }
-        String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
-        String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
-        String stream = "jt_" + phoneNumber + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
+
+        String app = "1078";
+        String stream = phoneNumber + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
@@ -391,7 +391,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             return;
         }
         // 设置hook监听
-        Hook hookSubscribe = Hook.getInstance(HookType.on_media_arrival, "1078", stream, mediaServer.getId());
+        Hook hookSubscribe = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
         subscribe.addSubscribe(hookSubscribe, (hookData) -> {
             dynamicTask.stop(playbackKey);
             log.info("[JT-回放] 回放成功， logInfo： {}", logInfo);
@@ -413,11 +413,12 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                         InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null));
             }
-
+            mediaServerService.closeJTTServer(mediaServer, stream, null);
+            subscribe.removeSubscribe(hookSubscribe);
         }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openJTTServer(mediaServer, stream, null, false, false, 1);
+        SSRCInfo ssrcInfo = mediaServerService.openJTTServer(mediaServer, stream, null, false, !channel.isHasAudio(), 1);
         log.info("[JT-回放] logInfo： {}， 端口： {}", logInfo, ssrcInfo.getPort());
         J9201 j9201 = new J9201();
         j9201.setChannel(channelId);
@@ -443,11 +444,12 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
     @Override
     public void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time) {
-        log.info("[JT-回放控制] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
-                phoneNumber, channelId, command, playbackSpeed, time);
+        long l = System.currentTimeMillis();
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         if (command == 2) {
+            log.info("[JT-停止回放] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
+                    phoneNumber, channelId, command, playbackSpeed, time);
             // 结束回放
             StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
             // 删除缓存数据
@@ -465,18 +467,26 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                     callback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null));
                 }
             }
+        }else {
+            log.info("[JT-回放控制] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
+                    phoneNumber, channelId, command, playbackSpeed, time);
         }
+        System.out.println("清理回调 " + (System.currentTimeMillis() - l));
+        l = System.currentTimeMillis();
         // 发送停止命令
         J9202 j9202 = new J9202();
         j9202.setChannel(channelId);
         j9202.setPlaybackType(command);
+
         if (playbackSpeed != null) {
             j9202.setPlaybackSpeed(playbackSpeed);
+
         }
         if (!ObjectUtils.isEmpty(time)) {
             j9202.setPlaybackTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(time));
         }
-        jt1078Template.controlBackLive(phoneNumber, j9202, 6);
+        jt1078Template.controlBackLive(phoneNumber, j9202, 4);
+        System.out.println("发送指令 " + (System.currentTimeMillis() - l));
     }
 
     @Override

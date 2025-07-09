@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.jt1078.session;
 
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,9 @@ public class Session {
 
     public void writeObject(Object message) {
         log.info("<<<<<<<<<< cmd{},{}", this, message);
-        channel.writeAndFlush(message);
+        System.out.println(message);
+        ChannelFuture channelFuture = channel.writeAndFlush(message);
+        System.out.println(222);
     }
 
     /**

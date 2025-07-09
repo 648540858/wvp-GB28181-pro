@@ -65,14 +65,14 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void closeRtpServer(MediaServer serverItem, String streamId, CommonCallback<Boolean> callback) {
-       if (serverItem == null) {
+    public void closeRtpServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+       if (mediaServer == null) {
            return;
        }
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id", streamId);
         param.put("force", 1);
-        JSONObject jsonObject = ablresTfulUtils.closeStreams(serverItem, "rtp", streamId);
+        JSONObject jsonObject = ablresTfulUtils.closeStreams(mediaServer, "rtp", streamId);
         logger.info("关闭RTP Server " +  jsonObject);
         if (jsonObject != null ) {
             if (jsonObject.getInteger("code") != 0) {
@@ -92,7 +92,19 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
-        closeRtpServer(mediaServer, streamId, callback);
+        if (mediaServer == null) {
+            return;
+        }
+        JSONObject jsonObject = ablresTfulUtils.closeStreams(mediaServer, "1078", streamId);
+        logger.info("关闭RTP Server " +  jsonObject);
+        if (jsonObject != null ) {
+            if (jsonObject.getInteger("code") != 0) {
+                logger.error("[closeRtpServer] 失败: " + jsonObject.getString("msg"));
+            }
+        }else {
+            //  检查ZLM状态
+            logger.error("[closeRtpServer] 失败: 请检查ZLM服务");
+        }
     }
 
     @Override

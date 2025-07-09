@@ -301,7 +301,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[closeJTTServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServer, streamId, callback);
+        mediaNodeServerService.closeJTTServer(mediaServer, streamId, callback);
     }
 
     @Override

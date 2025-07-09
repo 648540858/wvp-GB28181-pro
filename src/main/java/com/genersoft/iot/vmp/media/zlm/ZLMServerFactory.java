@@ -119,7 +119,9 @@ public class ZLMServerFactory {
 
     public void closeRtpServer(MediaServer serverItem, String streamId, CommonCallback<Boolean> callback) {
         if (serverItem == null) {
-            callback.run(false);
+            if (callback != null) {
+                callback.run(false);
+            }
             return;
         }
         Map<String, Object> param = new HashMap<>();
@@ -127,7 +129,9 @@ public class ZLMServerFactory {
         zlmresTfulUtils.closeRtpServer(serverItem, param, jsonObject -> {
             if (jsonObject != null ) {
                 if (jsonObject.getInteger("code") == 0) {
-                    callback.run(jsonObject.getInteger("hit") == 1);
+                    if (callback != null) {
+                        callback.run(jsonObject.getInteger("hit") == 1);
+                    }
                     return;
                 }else {
                     log.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
@@ -136,10 +140,10 @@ public class ZLMServerFactory {
                 //  检查ZLM状态
                 log.error("关闭RTP Server 失败: 请检查ZLM服务");
             }
-            callback.run(false);
+            if (callback != null) {
+                callback.run(false);
+            }
         });
-
-
     }
 
 

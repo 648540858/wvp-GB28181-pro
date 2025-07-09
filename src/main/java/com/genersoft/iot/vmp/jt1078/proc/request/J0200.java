@@ -30,7 +30,7 @@ public class J0200 extends Re {
 //        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
 //        Map<Integer, byte[]> additionalMsg = new HashMap<>();
 //        getAdditionalMsg(buf, positionAdditionalInfo);
-        log.info("[JT-位置汇报]: {}", positionInfo.toString());
+        log.debug("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
     }
 

@@ -97,6 +97,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         defaultExcludes.add("/api/emit");
         defaultExcludes.add("/favicon.ico");
         defaultExcludes.add("/api/user/login");
+
+        defaultExcludes.add("/api/admin/login");
+        defaultExcludes.add("/api/admin/login/logs");
+
         defaultExcludes.add("/index/hook/**");
         defaultExcludes.add("/api/device/query/snap/**");
         defaultExcludes.add("/index/hook/abl/**");

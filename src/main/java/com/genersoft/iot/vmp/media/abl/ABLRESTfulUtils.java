@@ -106,8 +106,6 @@ public class ABLRESTfulUtils {
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {
-                        System.out.println( 2222);
-                        System.out.println( response.code());
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
@@ -388,8 +386,6 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         param.put("starttime", startTime);
         param.put("endtime", endTime);
-        System.out.println("starttime: "+  startTime);
-        System.out.println("endtime: "+  endTime);
         return sendPost(mediaServer,"queryRecordList", param, null);
     }
 

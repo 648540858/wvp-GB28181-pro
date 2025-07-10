@@ -4,10 +4,14 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.ftpServer.FtpFileSystemFactory;
+import com.genersoft.iot.vmp.conf.ftpServer.FtpFileSystemView;
 import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTask;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
@@ -16,6 +20,7 @@ import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.jt1078.session.DownloadManager;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -32,10 +37,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.ServletOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -64,6 +75,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Autowired
     private FtpSetting ftpSetting;
+
+    @Autowired
+    private FtpFileSystemFactory fileSystemFactory;
+
+    @Autowired
+    private DownloadManager downloadManager;
 
     /**
      * 流到来的处理
@@ -148,31 +165,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         jtDeviceMapper.updateDeviceStatus(connected, phoneNumber);
     }
 
-    private Map<String, CommonCallback<WVPResult<String>>> fileUploadMap = new ConcurrentHashMap<>();
-
-    @EventListener
-    public void onApplicationEvent(FtpUploadEvent event) {
-        if (fileUploadMap.isEmpty()) {
-            return;
-        }
-        fileUploadMap.keySet().forEach(key -> {
-            if (!event.getFileName().contains(key)) {
-                return;
-            }
-            CommonCallback<WVPResult<String>> callback = fileUploadMap.get(key);
-            if (callback != null) {
-                callback.run(new WVPResult<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), event.getFileName()));
-                fileUploadMap.remove(key);
-            }
-        });
-    }
 
     @Override
-    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, CommonCallback<WVPResult<String>> fileCallback) {
+    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign,
+                               Integer mediaType, Integer streamType, Integer storageType, OutputStream outputStream, CommonCallback<WVPResult<String>> fileCallback) {
         String filePath = UUID.randomUUID().toString();
-        fileUploadMap.put(filePath, fileCallback);
+        fileSystemFactory.addOutputStream(filePath, outputStream);
         dynamicTask.startDelay(filePath, ()->{
-            fileUploadMap.remove(filePath);
+            fileSystemFactory.removeOutputStream(filePath);
         }, 2*60*60*1000);
         log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
                 phoneNumber, channelId, startTime, endTime, filePath);
@@ -684,5 +684,52 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public JTChannel getChannelByDbId(Integer id) {
         return jtChannelMapper.selectChannelById(id);
+    }
+
+
+
+    @Override
+    public String getRecordTempUrl(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType) {
+        String filePath = UUID.randomUUID().toString();
+
+        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
+                phoneNumber, channelId, startTime, endTime, filePath);
+        // 发送停止命令
+        J9206 j9206 = new J9206();
+        j9206.setChannelId(channelId);
+        j9206.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
+        j9206.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
+        j9206.setServerIp(ftpSetting.getIp());
+        j9206.setPort(ftpSetting.getPort());
+        j9206.setUsername(ftpSetting.getUsername());
+        j9206.setPassword(ftpSetting.getPassword());
+        j9206.setPath(filePath);
+
+        if (mediaType != null) {
+            j9206.setMediaType(mediaType);
+        }
+        if (streamType != null) {
+            j9206.setStreamType(streamType);
+        }
+        if (storageType != null) {
+            j9206.setStorageType(storageType);
+        }
+        if (alarmSign != null) {
+            j9206.setAlarmSign(alarmSign);
+        }
+        downloadManager.addCatch(filePath, phoneNumber, j9206);
+        return filePath;
+    }
+
+
+    @Override
+    public void recordDownload(String filePath, ServletOutputStream outputStream) {
+        JTRecordDownloadCatch downloadCatch = downloadManager.getCatch(filePath);
+        Assert.notNull(downloadCatch, "地址不存在");
+        fileSystemFactory.addOutputStream(filePath, outputStream);
+        jt1078Template.fileUpload(downloadCatch.getPhoneNumber(), downloadCatch.getJ9206(), 7200);
+        downloadManager.runDownload(filePath, 2 * 60 * 60);
+        fileSystemFactory.removeOutputStream(filePath);
+
     }
 }

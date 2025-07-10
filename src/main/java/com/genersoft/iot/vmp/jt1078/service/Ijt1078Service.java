@@ -7,6 +7,8 @@ import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
+import javax.servlet.ServletOutputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 public interface Ijt1078Service {
@@ -101,7 +103,7 @@ public interface Ijt1078Service {
 
     void changeStreamType(String phoneNumber, Integer channelId, Integer streamType);
 
-    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, CommonCallback<WVPResult<String>> fileCallback);
+    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, OutputStream outputStream, CommonCallback<WVPResult<String>> fileCallback);
 
     PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query);
 
@@ -116,4 +118,8 @@ public interface Ijt1078Service {
     void updateDevicePosition(String phoneNumber, Double longitude, Double latitude);
 
     JTChannel getChannelByDbId(Integer id);
+
+    String getRecordTempUrl(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType);
+
+    void recordDownload(String filePath, ServletOutputStream outputStream);
 }

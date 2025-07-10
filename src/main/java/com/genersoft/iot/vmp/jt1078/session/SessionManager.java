@@ -58,7 +58,6 @@ public enum SessionManager {
      */
     protected void put(Object clientId, Session newSession) {
         sessionMap.put(clientId, newSession);
-        System.out.println(sessionMap.size());
     }
 
 
@@ -79,7 +78,6 @@ public enum SessionManager {
             return null;
         }
         String requestKey = requestKey(cmd.getPhoneNumber(), cmd.getRespId(), cmd.getPackageNo());
-        System.out.println("requestKey==" + requestKey);
         SynchronousQueue<Object> subscribe = subscribe(requestKey);
         if (subscribe == null) {
             log.error("DevId: {} key:{} send repaid", cmd.getPhoneNumber(), requestKey);
@@ -103,7 +101,6 @@ public enum SessionManager {
         if (responseNo == null) {
             for (String key : topicSubscribers.keySet()) {
                 if (key.startsWith(requestKey)) {
-                    System.out.println(key);
                     SynchronousQueue<Object> queue = topicSubscribers.get(key);
                     if (queue != null) {
                         result = true;

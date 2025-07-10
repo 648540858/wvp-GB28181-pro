@@ -22,7 +22,10 @@ public class FtpServerConfig {
     private UserManager userManager;
 
     @Autowired
-    private Ftplet ftpPlet;
+    private FtpFileSystemFactory fileSystemFactory;
+
+    @Autowired
+    private Ftplet ftplet;
 
     @Autowired
     private FtpSetting ftpSetting;
@@ -45,11 +48,12 @@ public class FtpServerConfig {
         serverFactory.addListener("default", listener);
         // 5、配置自定义用户事件
         Map<String, org.apache.ftpserver.ftplet.Ftplet> ftpLets = new HashMap<>();
-        ftpLets.put("ftpService", ftpPlet);
+        ftpLets.put("ftpService", ftplet);
         serverFactory.setFtplets(ftpLets);
         // 6、读取用户的配置信息
         // 6.2、设置用信息
         serverFactory.setUserManager(userManager);
+        serverFactory.setFileSystem(fileSystemFactory);
         // 7、实例化FTP Server
         FtpServer server = serverFactory.createServer();
         try {

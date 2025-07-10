@@ -444,7 +444,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
     @Override
     public void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time) {
-        long l = System.currentTimeMillis();
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         if (command == 2) {
@@ -471,8 +470,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             log.info("[JT-回放控制] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
                     phoneNumber, channelId, command, playbackSpeed, time);
         }
-        System.out.println("清理回调 " + (System.currentTimeMillis() - l));
-        l = System.currentTimeMillis();
         // 发送停止命令
         J9202 j9202 = new J9202();
         j9202.setChannel(channelId);
@@ -486,7 +483,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             j9202.setPlaybackTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(time));
         }
         jt1078Template.controlBackLive(phoneNumber, j9202, 4);
-        System.out.println("发送指令 " + (System.currentTimeMillis() - l));
     }
 
     @Override

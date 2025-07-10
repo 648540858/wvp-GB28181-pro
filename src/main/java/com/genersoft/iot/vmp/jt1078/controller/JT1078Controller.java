@@ -337,7 +337,67 @@ public class JT1078Controller {
         jt1078PlayService.stopPlayback(phoneNumber, channelId);
     }
 
-    @Operation(summary = "1078-录像-下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
+//    @Operation(summary = "1078-录像-下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
+//    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
+//    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+//    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+//    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+//    @Parameter(name = "alarmSign", description = "报警标志", required = true)
+//    @Parameter(name = "mediaType", description = "音视频资源类型： 0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
+//    @Parameter(name = "streamType", description = "码流类型：0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
+//    @Parameter(name = "storageType", description = "存储器类型", required = true)
+//    @GetMapping("/playback/download")
+//    public DeferredResult<Void> recordDownload(HttpServletRequest request,
+//                                                               HttpServletResponse response,
+//                                                               @Parameter(required = true) String phoneNumber,
+//                                                               @Parameter(required = true) Integer channelId,
+//                                                               @Parameter(required = true) String startTime,
+//                                                               @Parameter(required = true) String endTime,
+//                                                               @Parameter(required = false) Integer alarmSign,
+//                                                               @Parameter(required = false) Integer mediaType,
+//                                                               @Parameter(required = false) Integer streamType,
+//                                                               @Parameter(required = false) Integer storageType
+//
+//    ) throws IOException {
+//        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，报警标志: {}, 音视频类型： {}， 码流类型： {}，存储器类型： {}， ",
+//                phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType);
+//        if (!ftpSetting.getEnable()) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
+//        }
+//        DeferredResult<Void> result = new DeferredResult<>(600000L);
+//        ServletOutputStream outputStream = response.getOutputStream();
+//        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+//        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".mp4", "UTF-8"));
+//        response.setStatus(HttpServletResponse.SC_OK);
+//
+//        service.recordDownload(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType, outputStream, wvpResult -> {
+//            String filePath = "ftp" + wvpResult.getData();
+//            File file = new File(filePath);
+//            if (!file.exists()) {
+//                log.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);
+//                return;
+//            }
+//            try {
+//                final InputStream in = Files.newInputStream(file.toPath());
+//                IOUtils.copy(in, outputStream);
+//                outputStream.flush();
+//                in.close();
+//            } catch (IOException e) {
+//                log.warn("[下载录像] 读取文件异常: {}", filePath, e);
+//                return;
+//            } finally {
+//                try {
+//                    outputStream.close();
+//                    result.setResult(null);
+//                } catch (IOException ignored) {
+//                }
+//            }
+//        });
+//        return result;
+//    }
+
+
+    @Operation(summary = "1078-录像-获取下载地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
@@ -346,53 +406,39 @@ public class JT1078Controller {
     @Parameter(name = "mediaType", description = "音视频资源类型： 0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
     @Parameter(name = "streamType", description = "码流类型：0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
     @Parameter(name = "storageType", description = "存储器类型", required = true)
-    @GetMapping("/playback/download")
-    public DeferredResult<Void> recordDownload(HttpServletRequest request,
-                                                               HttpServletResponse response,
-                                                               @Parameter(required = true) String phoneNumber,
-                                                               @Parameter(required = true) Integer channelId,
-                                                               @Parameter(required = true) String startTime,
-                                                               @Parameter(required = true) String endTime,
-                                                               @Parameter(required = false) Integer alarmSign,
-                                                               @Parameter(required = false) Integer mediaType,
-                                                               @Parameter(required = false) Integer streamType,
-                                                               @Parameter(required = false) Integer storageType
+    @GetMapping("/playback/downloadUrl")
+    public String getRecordTempUrl(HttpServletRequest request,
+                                   @Parameter(required = true) String phoneNumber,
+                                   @Parameter(required = true) Integer channelId,
+                                   @Parameter(required = true) String startTime,
+                                   @Parameter(required = true) String endTime,
+                                   @Parameter(required = false) Integer alarmSign,
+                                   @Parameter(required = false) Integer mediaType,
+                                   @Parameter(required = false) Integer streamType,
+                                   @Parameter(required = false) Integer storageType
 
-    ) throws IOException {
+    ){
         log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，报警标志: {}, 音视频类型： {}， 码流类型： {}，存储器类型： {}， ",
                 phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType);
         if (!ftpSetting.getEnable()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
         }
-        DeferredResult<Void> result = new DeferredResult<>(600000L);
+        return service.getRecordTempUrl(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType);
+    }
+
+    @Operation(summary = "1078-录像-下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "path", description = "临时下载路径", required = true)
+    @GetMapping("/playback/download")
+    public void download(HttpServletRequest request, HttpServletResponse response, @Parameter(required = true) String path) throws IOException {
+        if (!ftpSetting.getEnable()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
+        }
+        DeferredResult<String> result = new DeferredResult<>();
         ServletOutputStream outputStream = response.getOutputStream();
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".mp4", "UTF-8"));
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(path + ".mp4", "UTF-8"));
         response.setStatus(HttpServletResponse.SC_OK);
-        service.recordDownload(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType, wvpResult -> {
-            String filePath = "ftp" + wvpResult.getData();
-            File file = new File(filePath);
-            if (!file.exists()) {
-                log.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);
-                return;
-            }
-            try {
-                final InputStream in = Files.newInputStream(file.toPath());
-                IOUtils.copy(in, outputStream);
-                outputStream.flush();
-                in.close();
-            } catch (IOException e) {
-                log.warn("[下载录像] 读取文件异常: {}", filePath, e);
-                return;
-            } finally {
-                try {
-                    outputStream.close();
-                    result.setResult(null);
-                } catch (IOException ignored) {
-                }
-            }
-        });
-        return result;
+        service.recordDownload(path, outputStream);
     }
 
     @Operation(summary = "1078-云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))

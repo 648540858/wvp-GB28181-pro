@@ -1,7 +1,7 @@
 import {
   add,
   addChannel, controlPlayback, deleteDevice,
-  fillLight,
+  fillLight, getRecordTempUrl,
   play, ptz,
   queryChannels, queryConfig,
   queryDeviceById,
@@ -194,6 +194,16 @@ const actions = {
   stopPlayback({ commit }, params) {
     return new Promise((resolve, reject) => {
       stopPlayback(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getRecordTempUrl({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getRecordTempUrl(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

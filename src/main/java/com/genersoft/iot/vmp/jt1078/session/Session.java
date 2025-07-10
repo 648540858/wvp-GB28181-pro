@@ -45,9 +45,7 @@ public class Session {
 
     public void writeObject(Object message) {
         log.info("<<<<<<<<<< cmd{},{}", this, message);
-        System.out.println(message);
-        ChannelFuture channelFuture = channel.writeAndFlush(message);
-        System.out.println(222);
+        channel.writeAndFlush(message);
     }
 
     /**

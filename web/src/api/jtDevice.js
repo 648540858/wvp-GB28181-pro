@@ -169,6 +169,22 @@ export function startPlayback(params) {
     }
   })
 }
+export function getRecordTempUrl({ phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType }) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/playback/downloadUrl',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      startTime: startTime,
+      endTime: endTime,
+      alarmSign: alarmSign,
+      mediaType: mediaType,
+      streamType: streamType,
+      storageType: storageType
+    }
+  })
+}
 export function controlPlayback(params) {
   const { phoneNumber, channelId, command, playbackSpeed, time } = params
   return request({

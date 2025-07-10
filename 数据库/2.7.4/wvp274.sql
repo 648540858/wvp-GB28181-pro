@@ -1,0 +1,1198 @@
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : 本机-MySQL-5.7
+ Source Server Type    : MySQL
+ Source Server Version : 50736 (5.7.36)
+ Source Host           : 127.0.0.1:3306
+ Source Schema         : wvp274
+
+ Target Server Type    : MySQL
+ Target Server Version : 50736 (5.7.36)
+ File Encoding         : 65001
+
+ Date: 08/07/2025 09:39:15
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for viid_ape_device
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_ape_device`;
+CREATE TABLE `viid_ape_device`  (
+  `ape_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备名称',
+  `model` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备型号',
+  `ip_addr` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备地址',
+  `ipv6_addr` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备IPV6地址',
+  `port` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备端口',
+  `longitude` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '经度',
+  `latitude` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '纬度',
+  `place_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '地区编码',
+  `place` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置名',
+  `org_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '管辖单位代码',
+  `cap_direction` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆抓拍方向',
+  `monitor_direction` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '监视方向',
+  `monitor_area_desc` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '监视区域说明',
+  `owner_aps_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '所属采集系统',
+  `is_online` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '2' COMMENT '是否在线',
+  `user_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '用户标识',
+  `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '授权密码',
+  `function_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '功能集',
+  `ext_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '关联外部设备ID',
+  PRIMARY KEY (`ape_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库APE设备' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_ape_device
+-- ----------------------------
+INSERT INTO `viid_ape_device` VALUES ('43100220251320384446', '千里眼', '55555', '信息大厦', NULL, '80', '111', '222', '0666', '大厦', NULL, NULL, '9', NULL, '43100220255038444698', '1', 'admin', '123456', NULL, NULL);
+
+-- ----------------------------
+-- Table structure for viid_disposition
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_disposition`;
+CREATE TABLE `viid_disposition`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `disposition_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '布控ID',
+  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '布控标题',
+  `disposition_category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '布控类别',
+  `target_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '目标特征',
+  `target_image_uri` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '目标图片路径',
+  `priority_level` int(11) NULL DEFAULT NULL COMMENT '优先等级',
+  `applicant_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '应用名称',
+  `applicant_info` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '应用信息',
+  `applicant_org` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '应用组织机构',
+  `begin_time` datetime NULL DEFAULT NULL COMMENT '布控开始时间',
+  `end_time` datetime NULL DEFAULT NULL COMMENT '布控结束时间',
+  `operate_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '操作类型',
+  `disposition_status` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '布控状态',
+  `disposition_range` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '布控范围',
+  `tollgate_list` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '布控卡口',
+  `disposition_area` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '布控行政区域',
+  `receive_addr` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '告警信息接收地址',
+  `receive_mobile` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '告警信息接收手机号',
+  `reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '布控理由',
+  `sub_image_list` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '图片信息',
+  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '节点ID',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '布控' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_disposition
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_faces
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_faces`;
+CREATE TABLE `viid_faces`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `data_time` timestamp NULL DEFAULT NULL COMMENT '数据时间',
+  `face_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人脸标识',
+  `info_kind` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '信息分类',
+  `source_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '来源标识',
+  `device_id` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备编码',
+  `left_top_x` int(11) NULL DEFAULT NULL COMMENT '左上角X坐标',
+  `left_top_y` int(11) NULL DEFAULT NULL COMMENT '左上角Y坐标',
+  `right_btm_x` int(11) NULL DEFAULT NULL COMMENT '右下角X坐标',
+  `right_btm_y` int(11) NULL DEFAULT NULL COMMENT '右下角Y坐标',
+  `id_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '证件种类',
+  `id_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '证件号码',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '姓名',
+  `used_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '曾用名',
+  `alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '绰号',
+  `gender_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '性别代码',
+  `age_up_limit` int(11) NULL DEFAULT NULL COMMENT '年龄上限',
+  `age_lower_limit` int(11) NULL DEFAULT NULL COMMENT '年龄下限',
+  `ethic_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '民族代码',
+  `nationality_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '国籍代码',
+  `native_city_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '籍贯省市县代码',
+  `residence_admin_division` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '居住地行政区划',
+  `chinese_accent_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '汉语口音代码',
+  `job_category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '职业类别代码',
+  `accompany_number` int(11) NULL DEFAULT NULL COMMENT '同行人脸数',
+  `skin_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '肤色',
+  `face_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '脸型',
+  `facial_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '脸部特征',
+  `physical_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体貌特征',
+  `is_driver` int(11) NULL DEFAULT NULL COMMENT '是否驾驶员',
+  `is_foreigner` int(11) NULL DEFAULT NULL COMMENT '是否涉外人员',
+  `immigrant_type_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '出入境人员类别代码',
+  `is_suspected_terrorist` int(11) NULL DEFAULT NULL COMMENT '是否涉恐人员',
+  `suspected_terrorist_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '涉恐人员编号',
+  `is_criminal_involved` int(11) NULL DEFAULT NULL COMMENT '是否涉案人员',
+  `criminal_involved_specilisation_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '涉案人员专长代码',
+  `body_speciall_mark` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体表特殊标记',
+  `crime_method` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作案手段',
+  `crime_character_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作案特点代码',
+  `escaped_criminal_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在逃人员编号',
+  `is_detainees` int(11) NULL DEFAULT NULL COMMENT '是否在押人员',
+  `detention_house_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '看守所编码',
+  `detainees_special_identity` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在押人员特殊身份',
+  `member_type_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '成员类型代码',
+  `is_victim` int(11) NULL DEFAULT NULL COMMENT '是否被害人',
+  `victim_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '被害人种类',
+  `corpse_condition_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '尸体状况代码',
+  `is_suspicious_person` int(11) NULL DEFAULT NULL COMMENT '是否可疑人',
+  `attitude` int(11) NULL DEFAULT NULL COMMENT '姿态分布',
+  `similaritydegree` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '相似度',
+  `eyebrow_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '眉型',
+  `nose_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '鼻型',
+  `mustache_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '胡型',
+  `lip_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '嘴唇',
+  `wrinkle_pouch` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '皱纹眼袋',
+  `acne_stain` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '痤疮色斑',
+  `freckle_birthmark` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '黑痣胎记',
+  `scar_dimple` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '疤痕酒窝',
+  `other_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '其他特征',
+  `maritalstatus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '婚姻状况',
+  `family_address` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '家庭地址',
+  `location_mark_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置标记时间',
+  `face_appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人脸出现时间',
+  `face_dis_appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人脸消失时间',
+  `shot_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '镜头时间',
+  `hair_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发型',
+  `hair_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发色',
+  `respirator_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '口罩颜色',
+  `cap_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '帽子款式',
+  `cap_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '帽子颜色',
+  `glass_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '眼镜款式',
+  `glass_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '眼镜颜色',
+  `passport_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '护照证件种类',
+  `detainees_identity` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在押人员身份',
+  `injured_degree` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '受伤害程度',
+  `sub_image_list` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '图片列表',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库_人脸' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_faces
+-- ----------------------------
+INSERT INTO `viid_faces` VALUES ('1919931283561725954', '2025-05-07 09:44:23', '431002202513203844460220250507094359000030600067', '1', '44060610091322000080022025050709435900003', '43100220251320384446', 1407, 491, 1534, 638, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094359', '20250507094359', '20250507094359', '20250507094359', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709435900003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931281124835329.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094359\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709435900010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931282974523393.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"128\",\"Height\":\"148\",\"ShotTime\":\"20250507094359\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919931287881859074', '2025-05-07 09:44:24', '431002202513203844460220250507094406000030600069', '1', '44060610091322000080022025050709440600003', '43100220251320384446', 1728, 444, 1839, 582, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094406', '20250507094406', '20250507094406', '20250507094406', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709440600003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931283763052546.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094406\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709440600010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931285428191233.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"140\",\"ShotTime\":\"20250507094406\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919931300645126145', '2025-05-07 09:44:27', '431002202513203844460220250507094424000030600073', '1', '44060610091322000080022025050709442400003', '43100220251320384446', 1440, 491, 1551, 638, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094424', '20250507094424', '20250507094424', '20250507094424', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709442400003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931296761200641.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094424\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709442400010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931299139371009.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"148\",\"ShotTime\":\"20250507094424\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919932029371891714', '2025-05-07 09:47:21', '431002202513203844460220250507094603000030600078', '1', '44060610091322000080022025050709460300003', '43100220251320384446', 1758, 523, 1918, 808, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094603', '20250507094603', '20250507094603', '20250507094603', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709460300003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932022547759105.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094603\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709460300010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932024779128834.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"288\",\"ShotTime\":\"20250507094603\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919932622534557697', '2025-05-07 09:49:42', '431002202513203844460220250507094937000030600082', '1', '44060610091322000080022025050709493700003', '43100220251320384446', 1695, 523, 1918, 840, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094937', '20250507094937', '20250507094937', '20250507094937', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709493700003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932611507732482.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094937\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709493700010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932617815965697.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"224\",\"Height\":\"320\",\"ShotTime\":\"20250507094937\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919932652297338881', '2025-05-07 09:49:50', '431002202513203844460220250507094945000030600084', '1', '44060610091322000080022025050709494500003', '43100220251320384446', 1791, 428, 1918, 859, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507094945', '20250507094945', '20250507094945', '20250507094945', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709494500003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932646081380353.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094945\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709494500010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932649357131777.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"128\",\"Height\":\"436\",\"ShotTime\":\"20250507094945\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919933046532554753', '2025-05-07 09:51:24', '431002202513203844460220250507095047000030600089', '1', '44060610091322000080022025050709504700003', '43100220251320384446', 1758, 491, 1918, 813, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095047', '20250507095047', '20250507095047', '20250507095047', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709504700003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932904282734594.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095047\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709504700010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933040031383554.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"324\",\"ShotTime\":\"20250507095047\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919933708569886721', '2025-05-07 09:54:01', '431002202513203844460220250507095349000030600093', '1', '44060610091322000080022025050709534900003', '43100220251320384446', 1695, 332, 1839, 503, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095349', '20250507095349', '20250507095349', '20250507095349', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709534900003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933700709761025.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095349\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709534900010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933706195910658.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"172\",\"ShotTime\":\"20250507095349\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919933861137694722', '2025-05-07 09:54:38', '431002202513203844460220250507095420000030600096', '1', '44060610091322000080022025050709542000003', '43100220251320384446', 591, 380, 702, 498, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095420', '20250507095420', '20250507095420', '20250507095420', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709542000003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933847908859905.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095420\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709542000010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933859418030081.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"120\",\"ShotTime\":\"20250507095420\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919933992591376386', '2025-05-07 09:55:09', '431002202513203844460220250507095437000030600099', '1', '44060610091322000080022025050709543700003', '43100220251320384446', 1632, 348, 1743, 490, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095437', '20250507095437', '20250507095437', '20250507095437', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709543700003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933944134582273.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095437\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709543700010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933977726763010.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"144\",\"ShotTime\":\"20250507095437\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934060455215106', '2025-05-07 09:55:25', '431002202513203844460220250507095120000030600102', '1', '44060610091322000080022025050709512000003', '43100220251320384446', 1758, 523, 1918, 816, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095120', '20250507095120', '20250507095120', '20250507095120', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709512000003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934033477451778.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095120\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709512000010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934055929561089.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"296\",\"ShotTime\":\"20250507095120\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934064779542529', '2025-05-07 09:55:26', '431002202513203844460220250507095500000030600105', '1', '44060610091322000080022025050709550000003', '43100220251320384446', 1359, 412, 1470, 566, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095500', '20250507095500', '20250507095500', '20250507095500', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709550000003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934060723650561.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095500\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709550000010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934062095187970.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"156\",\"ShotTime\":\"20250507095500\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934069099675650', '2025-05-07 09:55:27', '431002202513203844460220250507095457000030600107', '1', '44060610091322000080022025050709545700003', '43100220251320384446', 1758, 539, 1918, 837, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095457', '20250507095457', '20250507095457', '20250507095457', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709545700003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934063215067138.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095457\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709545700010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934064452386817.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"300\",\"ShotTime\":\"20250507095457\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934094538129409', '2025-05-07 09:55:33', '431002202513203844460220250507095521000030600111', '1', '44060610091322000080022025050709552100003', '43100220251320384446', 1776, 507, 1920, 816, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095521', '20250507095521', '20250507095521', '20250507095521', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709552100003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934089861480449.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095521\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709552100010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934091312709634.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"312\",\"ShotTime\":\"20250507095521\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934543739699202', '2025-05-07 09:57:21', '431002202513203844460220250507095716000030600114', '1', '44060610091322000080022025050709571600003', '43100220251320384446', 1776, 539, 1920, 824, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095716', '20250507095716', '20250507095716', '20250507095716', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709571600003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934538492624897.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095716\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709571600010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934539755110401.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"288\",\"ShotTime\":\"20250507095716\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934564908351489', '2025-05-07 09:57:26', '431002202513203844460220250507095722000030600116', '1', '44060610091322000080022025050709572200003', '43100220251320384446', 1806, 571, 1918, 773, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095722', '20250507095722', '20250507095722', '20250507095722', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709572200003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934558990188545.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095722\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709572200010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934561808760834.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"112\",\"Height\":\"204\",\"ShotTime\":\"20250507095722\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934662354616321', '2025-05-07 09:57:49', '431002202513203844460220250507095745000030600118', '1', '44060610091322000080022025050709574500003', '43100220251320384446', 1758, 539, 1918, 832, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095745', '20250507095745', '20250507095745', '20250507095745', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709574500003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934656298041345.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095745\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709574500010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934657619247106.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"296\",\"ShotTime\":\"20250507095745\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919934683544240129', '2025-05-07 09:57:54', '431002202513203844460220250507095750000030600120', '1', '44060610091322000080022025050709575000003', '43100220251320384446', 1776, 539, 1920, 824, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095750', '20250507095750', '20250507095750', '20250507095750', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709575000003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934681707134978.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095750\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709575000010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934682952843265.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"288\",\"ShotTime\":\"20250507095750\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919935047882457089', '2025-05-07 09:59:21', '431002202513203844460220250507095916000030600134', '1', '44060610091322000080022025050709591600003', '43100220251320384446', 591, 412, 687, 519, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095916', '20250507095916', '20250507095916', '20250507095916', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709591600003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935042522136577.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095916\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709591600010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935044682203138.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"96\",\"Height\":\"108\",\"ShotTime\":\"20250507095916\",\"Data\":null}]}');
+INSERT INTO `viid_faces` VALUES ('1919935102991417345', '2025-05-07 09:59:34', '431002202513203844460220250507095912000030600137', '1', '44060610091322000080022025050709591200003', '43100220251320384446', 1407, 475, 1551, 646, NULL, NULL, NULL, NULL, NULL, '0', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, 2, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '20250507095912', '20250507095912', '20250507095912', '20250507095912', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709591200003\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935085455032321.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095912\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709591200010\",\"EventSort\":10,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935101032677378.jpeg\",\"Type\":\"11\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"172\",\"ShotTime\":\"20250507095912\",\"Data\":null}]}');
+
+-- ----------------------------
+-- Table structure for viid_lanes
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_lanes`;
+CREATE TABLE `viid_lanes`  (
+  `id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `tollgate_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '卡口编号',
+  `lane_id` int(11) NOT NULL COMMENT '车道ID',
+  `lane_no` int(11) NULL DEFAULT NULL COMMENT '车道编号',
+  `name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车道名称',
+  `direction` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车道方向',
+  `desc` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车道描述',
+  `max_speed` int(11) NULL DEFAULT NULL COMMENT '限速',
+  `city_pass` int(11) NULL DEFAULT NULL COMMENT '车道出入城',
+  `ape_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备ID',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `viid_lanes_UN`(`tollgate_id`, `lane_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '车道' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_lanes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_motor_vehicle
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_motor_vehicle`;
+CREATE TABLE `viid_motor_vehicle`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `data_time` timestamp NULL DEFAULT NULL COMMENT '数据时间',
+  `motor_vehicle_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆ID',
+  `info_kind` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '信息分类',
+  `source_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '来源标识',
+  `device_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备ID',
+  `left_top_x` int(11) NULL DEFAULT NULL COMMENT '左上角X坐标',
+  `left_top_y` int(11) NULL DEFAULT NULL COMMENT '左上角Y坐标',
+  `right_btm_x` int(11) NULL DEFAULT NULL COMMENT '右下角X坐标',
+  `right_btm_y` int(11) NULL DEFAULT NULL COMMENT '右下角Y坐标',
+  `mark_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置标记时间',
+  `appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆出现时间',
+  `disappear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆消失时间',
+  `tollgate_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '卡口编号',
+  `pass_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '过车时间',
+  `lane_no` int(11) NULL DEFAULT NULL COMMENT '车道号',
+  `has_plate` tinyint(1) NULL DEFAULT NULL COMMENT '有无车牌',
+  `plate_class` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '号牌种类',
+  `plate_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '号牌颜色',
+  `plate_no` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车牌号',
+  `speed` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '速度',
+  `vehicle_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车身颜色',
+  `vehicle_class` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆类型',
+  `vehicle_brand` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆品牌',
+  `vehicle_model` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆型号',
+  `vehicle_length` int(11) NULL DEFAULT NULL COMMENT '车辆长度',
+  `direction` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行驶方向',
+  `storage_url1` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '图片1',
+  `storage_url2` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '图片2',
+  `sub_image_list` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '图片列表',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库机动车信息' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_motor_vehicle
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_non_motor_vehicle
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_non_motor_vehicle`;
+CREATE TABLE `viid_non_motor_vehicle`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `data_time` timestamp NULL DEFAULT NULL COMMENT '数据时间',
+  `non_motor_vehicle_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆标识',
+  `info_kind` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '信息分类',
+  `source_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '来源标识',
+  `device_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备ID',
+  `left_top_x` int(11) NULL DEFAULT NULL COMMENT '左上角X坐标',
+  `left_top_y` int(11) NULL DEFAULT NULL COMMENT '左上角Y坐标',
+  `right_btm_x` int(11) NULL DEFAULT NULL COMMENT '右下角X坐标',
+  `right_btm_y` int(11) NULL DEFAULT NULL COMMENT '右下角Y坐标',
+  `mark_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置标记时间',
+  `appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆出现时间',
+  `disappear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆消失时间',
+  `has_plate` tinyint(1) NULL DEFAULT NULL COMMENT '有无车牌',
+  `plate_class` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '号牌种类',
+  `plate_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车牌颜色',
+  `plate_no` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车牌号',
+  `plate_no_attach` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '挂车牌号',
+  `plate_describe` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车牌描述',
+  `is_decked` tinyint(1) NULL DEFAULT NULL COMMENT '是否套牌',
+  `is_altered` tinyint(1) NULL DEFAULT NULL COMMENT '是否涂改',
+  `is_covered` tinyint(1) NULL DEFAULT NULL COMMENT '是否遮挡',
+  `speed` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行驶速度',
+  `driving_status_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行驶状态代码',
+  `using_properties_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆使用性质代码',
+  `vehicle_brand` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆品牌',
+  `vehicle_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆款型',
+  `vehicle_length` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆长度',
+  `vehicle_width` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆宽度',
+  `vehicle_height` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车辆高度',
+  `vehicle_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车身颜色',
+  `vehicle_hood` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车前盖',
+  `vehicle_trunk` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车后盖',
+  `vehicle_wheel` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车轮',
+  `wheel_printed_pattern` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车轮印花纹',
+  `vehicle_window` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车窗',
+  `vehicle_roof` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车顶',
+  `vehicle_door` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车门',
+  `side_of_vehicle` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车侧',
+  `car_of_vehicle` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '车厢',
+  `rearview_mirror` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '后视镜',
+  `vehicle_chassis` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '底盘',
+  `vehicle_shielding` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '遮挡',
+  `film_color` int(11) NULL DEFAULT NULL COMMENT '贴膜颜色',
+  `is_modified` int(11) NULL DEFAULT NULL COMMENT '改装标志',
+  `sub_image_list` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '图片列表',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库非机动车信息' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_non_motor_vehicle
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_persons
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_persons`;
+CREATE TABLE `viid_persons`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '主键',
+  `data_time` timestamp NULL DEFAULT NULL COMMENT '数据时间',
+  `person_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人员标识',
+  `info_kind` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '信息分类',
+  `source_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '来源标识',
+  `device_id` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备编码',
+  `left_top_x` int(11) NULL DEFAULT NULL COMMENT '左上角X坐标',
+  `left_top_y` int(11) NULL DEFAULT NULL COMMENT '左上角Y坐标',
+  `right_btm_x` int(11) NULL DEFAULT NULL COMMENT '右下角X坐标',
+  `right_btm_y` int(11) NULL DEFAULT NULL COMMENT '右下角Y坐标',
+  `location_mark_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置标记时间',
+  `person_appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人员出现时间',
+  `person_dis_appear_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '人员消失时间',
+  `id_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '证件种类',
+  `id_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '证件号码',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '姓名',
+  `used_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '曾用名',
+  `alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '绰号',
+  `gender_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '性别代码',
+  `age_up_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '年龄上限',
+  `age_lower_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '年龄下限',
+  `ethic_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '民族代码',
+  `nationality_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '国籍代码',
+  `native_city_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '籍贯省市县代码',
+  `residence_admin_division` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '居住地行政区划',
+  `chinese_accent_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '汉语口音代码',
+  `person_org` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '单位名称',
+  `job_category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '职业类别代码',
+  `accompany_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '同行人数',
+  `height_up_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '身高上限',
+  `height_lower_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '身高下限',
+  `body_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体型',
+  `skin_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '肤色',
+  `hair_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发型',
+  `hair_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发色',
+  `gesture` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '姿态',
+  `status` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '状态',
+  `face_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '脸型',
+  `facial_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '脸部特征',
+  `physical_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体貌特征',
+  `body_feature` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体表特征',
+  `habitual_movement` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '习惯动作',
+  `behavior` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行为',
+  `behavior_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行为描述',
+  `appendant` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '附属物',
+  `appendant_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '附属物描述',
+  `umbrella_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '伞颜色',
+  `respirator_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '口罩颜色',
+  `cap_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '帽子款式',
+  `cap_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '帽子颜色',
+  `glass_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '眼镜款式',
+  `glass_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '眼镜颜色',
+  `scarf_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '围巾颜色',
+  `bag_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '包款式',
+  `bag_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '包颜色',
+  `coat_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '上衣款式',
+  `coat_length` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '上衣长度',
+  `coat_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '上衣颜色',
+  `trousers_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '裤子款式',
+  `trousers_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '裤子颜色',
+  `trousers_len` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '裤子长度',
+  `shoes_style` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '鞋子款式',
+  `shoes_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '鞋子颜色',
+  `is_driver` int(11) NULL DEFAULT NULL COMMENT '是否驾驶员',
+  `is_foreigner` int(11) NULL DEFAULT NULL COMMENT '是否涉外人员',
+  `passport_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '护照证件种类',
+  `immigrant_type_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '出入境人员类别代码',
+  `is_suspected_terrorist` int(11) NULL DEFAULT NULL COMMENT '是否涉恐人员',
+  `suspected_terrorist_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '涉恐人员编号',
+  `is_criminal_involved` int(11) NULL DEFAULT NULL COMMENT '是否涉案人员',
+  `criminal_involved_specilisation_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '涉案人员专长代码',
+  `body_speciall_mark` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '体表特殊标记',
+  `crime_method` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作案手段',
+  `crime_character_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作案特点代码',
+  `escaped_criminal_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在逃人员编号',
+  `is_detainees` int(11) NULL DEFAULT NULL COMMENT '是否在押人员',
+  `detention_house_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '看守所编码',
+  `detainees_identity` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在押人员身份',
+  `detainees_special_identity` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '在押特殊人员身份',
+  `member_type_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '成员类型代码',
+  `is_victim` int(11) NULL DEFAULT NULL COMMENT '是否被害人',
+  `victim_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '被害人种类',
+  `injured_degree` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '受伤害程度',
+  `corpse_condition_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '尸体状况代码',
+  `is_suspicious_person` int(11) NULL DEFAULT NULL COMMENT '是否可疑人',
+  `sub_image_list` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '图像列表',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库_人员' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_persons
+-- ----------------------------
+INSERT INTO `viid_persons` VALUES ('1919692019016122370', '2025-05-06 17:53:38', '431002202513203844460220250506175332000020100336', '1', '44060610091322000080022025050617533200002', '43100220251320384446', 128, 498, 213, 669, '20250506175332', '20250506175332', '20250506175332', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617533200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692014289141762.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175332\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617533200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692015069282305.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"244\",\"ShotTime\":\"20250506175332\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692035952721921', '2025-05-06 17:53:42', '431002202513203844460220250506175339000020100337', '1', '44060610091322000080022025050617533900002', '43100220251320384446', 685, 500, 739, 621, '20250506175339', '20250506175339', '20250506175339', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617533900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692031531925505.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175339\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617533900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692032651804673.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"168\",\"ShotTime\":\"20250506175339\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692061395369986', '2025-05-06 17:53:48', '431002202513203844460220250506175345000020100338', '1', '44060610091322000080022025050617534500002', '43100220251320384446', 1077, 481, 1134, 616, '20250506175345', '20250506175345', '20250506175345', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617534500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692057830211585.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175345\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617534500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692058690043905.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"176\",\"ShotTime\":\"20250506175345\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692124825829377', '2025-05-06 17:54:03', '431002202513203844460220250506175400000020100339', '1', '44060610091322000080022025050617540000002', '43100220251320384446', 1052, 475, 1138, 661, '20250506175400', '20250506175400', '20250506175400', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617540000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692119679418369.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175400\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617540000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692121457803265.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"208\",\"Height\":\"272\",\"ShotTime\":\"20250506175400\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692124825829378', '2025-05-06 17:54:03', '431002202513203844460220250506175400000020100340', '1', '44060610091322000080022025050617540000002', '43100220251320384446', 670, 491, 727, 632, '20250506175400', '20250506175400', '20250506175400', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617540000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692122447659009.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175400\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617540000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692123244576769.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"204\",\"ShotTime\":\"20250506175400\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692277016150017', '2025-05-06 17:54:40', '431002202513203844460220250506175437000020100341', '1', '44060610091322000080022025050617543700002', '43100220251320384446', 1747, 455, 1800, 577, '20250506175437', '20250506175437', '20250506175437', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617543700002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692273018978306.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175437\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617543700009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692274906415105.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"172\",\"ShotTime\":\"20250506175437\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692336206168066', '2025-05-06 17:54:54', '431002202513203844460220250506175450000020100342', '1', '44060610091322000080022025050617545000002', '43100220251320384446', 1334, 477, 1401, 627, '20250506175450', '20250506175450', '20250506175450', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617545000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692331487576066.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175450\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617545000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692332422905857.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"244\",\"ShotTime\":\"20250506175450\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692412303425537', '2025-05-06 17:55:12', '431002202513203844460220250506175509000020100343', '1', '44060610091322000080022025050617550900002', '43100220251320384446', 1367, 465, 1451, 638, '20250506175509', '20250506175509', '20250506175509', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617550900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692410134970369.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175509\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617550900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692410923499522.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"240\",\"ShotTime\":\"20250506175509\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692458793091074', '2025-05-06 17:55:23', '431002202513203844460220250506175521000020100344', '1', '44060610091322000080022025050617552100002', '43100220251320384446', 122, 490, 243, 613, '20250506175521', '20250506175521', '20250506175521', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617552100002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692454577815554.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175521\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617552100009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692456289091586.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"244\",\"ShotTime\":\"20250506175521\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692501008760834', '2025-05-06 17:55:33', '431002202513203844460220250506175530000020100345', '1', '44060610091322000080022025050617553000002', '43100220251320384446', 1296, 455, 1376, 623, '20250506175530', '20250506175530', '20250506175530', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617553000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692498706087938.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175530\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617553000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692499431702530.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"216\",\"ShotTime\":\"20250506175530\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692657334665217', '2025-05-06 17:56:10', '431002202513203844460220250506175604000020100346', '1', '44060610091322000080022025050617560400002', '43100220251320384446', 115, 447, 243, 723, '20250506175604', '20250506175604', '20250506175604', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617560400002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692654897774594.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175604\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617560400009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692655824715777.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"304\",\"Height\":\"376\",\"ShotTime\":\"20250506175604\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692665811353601', '2025-05-06 17:56:12', '431002202513203844460220250506175610000020100347', '1', '44060610091322000080022025050617561000002', '43100220251320384446', 712, 490, 779, 632, '20250506175610', '20250506175610', '20250506175610', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617561000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692662527213569.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175610\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617561000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692663311548418.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"200\",\"ShotTime\":\"20250506175610\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692687110029314', '2025-05-06 17:56:17', '431002202513203844460220250506175615000020100348', '1', '44060610091322000080022025050617561500002', '43100220251320384446', 1296, 453, 1370, 613, '20250506175615', '20250506175615', '20250506175615', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617561500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692684740247553.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175615\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617561500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692685528776706.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"208\",\"ShotTime\":\"20250506175615\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919692869335760897', '2025-05-06 17:57:01', '431002202513203844460220250506175658000020100353', '1', '44060610091322000080022025050617565800002', '43100220251320384446', 1296, 456, 1368, 606, '20250506175658', '20250506175658', '20250506175658', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617565800002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692864906575873.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175658\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617565800009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919692865699299330.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"204\",\"ShotTime\":\"20250506175658\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693156930797570', '2025-05-06 17:58:09', '431002202513203844460220250506175807000020100354', '1', '44060610091322000080022025050617580700002', '43100220251320384446', 69, 482, 149, 671, '20250506175807', '20250506175807', '20250506175807', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617580700002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693150802919426.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175807\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617580700009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693152644218881.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"224\",\"Height\":\"292\",\"ShotTime\":\"20250506175807\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693338711932930', '2025-05-06 17:58:53', '431002202513203844460220250506175849000020100355', '1', '44060610091322000080022025050617584900002', '43100220251320384446', 1292, 450, 1367, 615, '20250506175849', '20250506175849', '20250506175849', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617584900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693333443887106.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175849\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617584900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693334765092865.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"236\",\"ShotTime\":\"20250506175849\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693368420188162', '2025-05-06 17:59:00', '431002202513203844460220250506175856000020100356', '1', '44060610091322000080022025050617585600002', '43100220251320384446', 1240, 471, 1355, 695, '20250506175856', '20250506175856', '20250506175856', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617585600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693364154580993.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175856\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617585600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693365605810177.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"308\",\"ShotTime\":\"20250506175856\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693402427604993', '2025-05-06 17:59:08', '431002202513203844460220250506175905000020100357', '1', '44060610091322000080022025050617590500002', '43100220251320384446', 1, 487, 80, 666, '20250506175905', '20250506175905', '20250506175905', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617590500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693398367518721.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175905\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617590500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693400598888450.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"232\",\"ShotTime\":\"20250506175905\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693427945750529', '2025-05-06 17:59:14', '431002202513203844460220250506175910000020100358', '1', '44060610091322000080022025050617591000002', '43100220251320384446', 508, 470, 591, 692, '20250506175910', '20250506175910', '20250506175910', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617591000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693425466916865.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175910\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617591000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693426184142849.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"308\",\"ShotTime\":\"20250506175910\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693554844418049', '2025-05-06 17:59:44', '431002202513203844460220250506175941000020100361', '1', '44060610091322000080022025050617594100002', '43100220251320384446', 896, 494, 1004, 700, '20250506175941', '20250506175941', '20250506175941', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050617594100002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693551346368513.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506175941\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050617594100009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693552264921089.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"208\",\"Height\":\"272\",\"ShotTime\":\"20250506175941\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693711128379394', '2025-05-06 18:00:22', '431002202513203844460220250506180018000020100362', '1', '44060610091322000080022025050618001800002', '43100220251320384446', 1048, 479, 1138, 666, '20250506180018', '20250506180018', '20250506180018', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618001800002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693705252159489.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180018\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618001800009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693707630329858.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"208\",\"Height\":\"284\",\"ShotTime\":\"20250506180018\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693795689742338', '2025-05-06 18:00:42', '431002202513203844460220250506180039000020100365', '1', '44060610091322000080022025050618003900002', '43100220251320384446', 86, 472, 199, 689, '20250506180039', '20250506180039', '20250506180039', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618003900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693787150139394.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180039\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618003900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693788144189441.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"256\",\"Height\":\"308\",\"ShotTime\":\"20250506180039\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919693850681262082', '2025-05-06 18:00:55', '431002202513203844460220250506180052000020100366', '1', '44060610091322000080022025050618005200002', '43100220251320384446', 201, 472, 288, 637, '20250506180052', '20250506180052', '20250506180052', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618005200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693845337718786.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180052\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618005200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919693846184968193.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"248\",\"ShotTime\":\"20250506180052\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694193301372930', '2025-05-06 18:02:17', '431002202513203844460220250506180212000020100369', '1', '44060610091322000080022025050618021200002', '43100220251320384446', 1130, 452, 1246, 683, '20250506180212', '20250506180212', '20250506180212', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618021200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694188800884737.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180212\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618021200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694189660717058.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"312\",\"ShotTime\":\"20250506180212\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694218634969089', '2025-05-06 18:02:23', '431002202513203844460220250506180218000020100372', '1', '44060610091322000080022025050618021800002', '43100220251320384446', 973, 489, 1084, 691, '20250506180218', '20250506180218', '20250506180218', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618021800002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694213459197954.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180218\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618021800009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694214239338498.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"320\",\"ShotTime\":\"20250506180218\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694260938719233', '2025-05-06 18:02:33', '431002202513203844460220250506180229000020100373', '1', '44060610091322000080022025050618022900002', '43100220251320384446', 1178, 480, 1259, 682, '20250506180229', '20250506180229', '20250506180229', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618022900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694256706666498.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180229\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618022900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694257570693122.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"208\",\"Height\":\"300\",\"ShotTime\":\"20250506180229\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694379331338241', '2025-05-06 18:03:01', '431002202513203844460220250506180253000020100376', '1', '44060610091322000080022025050618025300002', '43100220251320384446', 117, 494, 216, 672, '20250506180253', '20250506180253', '20250506180253', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618025300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694365959897089.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180253\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618025300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694366945558530.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"208\",\"Height\":\"244\",\"ShotTime\":\"20250506180253\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694734186233858', '2025-05-06 18:04:25', '431002202513203844460220250506180421000020100377', '1', '44060610091322000080022025050618042100002', '43100220251320384446', 126, 498, 220, 669, '20250506180421', '20250506180421', '20250506180421', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618042100002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694730621075457.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180421\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618042100009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694732340740097.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"244\",\"ShotTime\":\"20250506180421\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919694860992626689', '2025-05-06 18:04:56', '431002202513203844460220250506180226000020100380', '1', '44060610091322000080022025050618022600002', '43100220251320384446', 1157, 513, 1211, 573, '20250506180226', '20250506180226', '20250506180226', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618022600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694856840265730.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180226\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618022600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919694857632989186.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"96\",\"Height\":\"128\",\"ShotTime\":\"20250506180226\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919695169525628929', '2025-05-06 18:06:09', '431002202513203844460220250506180606000020100381', '1', '44060610091322000080022025050618060600002', '43100220251320384446', 664, 506, 731, 631, '20250506180606', '20250506180606', '20250506180606', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618060600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919695164047867906.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180606\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618060600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919695165905944577.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"144\",\"Height\":\"184\",\"ShotTime\":\"20250506180606\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919695216002711554', '2025-05-06 18:06:20', '431002202513203844460220250506180617000020100382', '1', '44060610091322000080022025050618061700002', '43100220251320384446', 1067, 491, 1128, 636, '20250506180617', '20250506180617', '20250506180617', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050618061700002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919695212257198082.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250506180617\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050618061700009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/upload/431002202513203844461919695213251248130.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"208\",\"ShotTime\":\"20250506180617\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919930817884930050', '2025-05-07 09:42:32', '431002202513203844460220250507094214000020100057', '1', '44060610091322000080022025050709421400002', '43100220251320384446', 451, 535, 529, 752, '20250507094214', '20250507094214', '20250507094214', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709421400002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930751354880001.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094214\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709421400009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930762373316609.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"304\",\"ShotTime\":\"20250507094214\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919930923950489602', '2025-05-07 09:42:58', '431002202513203844460220250507094228000020100059', '1', '44060610091322000080022025050709422800002', '43100220251320384446', 399, 523, 476, 674, '20250507094228', '20250507094228', '20250507094228', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709422800002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930853754617857.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094228\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709422800009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930889246818305.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"212\",\"ShotTime\":\"20250507094228\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931284165705729', '2025-05-07 09:44:23', '431002202513203844460220250507094405000020100066', '1', '44060610091322000080022025050709440500002', '43100220251320384446', 391, 494, 476, 733, '20250507094405', '20250507094405', '20250507094405', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709440500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931272098693121.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094405\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709440500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931279862349826.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"272\",\"Height\":\"364\",\"ShotTime\":\"20250507094405\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931284165705730', '2025-05-07 09:44:23', '431002202513203844460220250507094213000020100058', '1', '44060610091322000080022025050709421300002', '43100220251320384446', 462, 486, 570, 803, '20250507094213', '20250507094213', '20250507094213', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709421300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930829566066690.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094213\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709421300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931279929458690.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"336\",\"Height\":\"432\",\"ShotTime\":\"20250507094213\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931292701114369', '2025-05-07 09:44:25', '431002202513203844460220250507094416000020100071', '1', '44060610091322000080022025050709441600002', '43100220251320384446', 1340, 489, 1395, 631, '20250507094416', '20250507094416', '20250507094416', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709441600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931286359326721.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094416\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709441600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931288146100225.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"196\",\"ShotTime\":\"20250507094416\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931297092550657', '2025-05-07 09:44:26', '431002202513203844460220250507094423000020100072', '1', '44060610091322000080022025050709442300002', '43100220251320384446', 389, 498, 468, 725, '20250507094423', '20250507094423', '20250507094423', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709442300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931291384102913.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094423\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709442300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931292768223233.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"256\",\"Height\":\"300\",\"ShotTime\":\"20250507094423\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931322497449986', '2025-05-07 09:44:33', '431002202513203844460220250507094428000020100075', '1', '44060610091322000080022025050709442800002', '43100220251320384446', 673, 457, 804, 887, '20250507094428', '20250507094428', '20250507094428', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709442800002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931316088553474.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094428\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709442800009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931318156345345.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"448\",\"Height\":\"572\",\"ShotTime\":\"20250507094428\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931407134310401', '2025-05-07 09:44:53', '431002202513203844460220250507094236000020100060', '1', '44060610091322000080022025050709423600002', '43100220251320384446', 403, 429, 537, 847, '20250507094236', '20250507094236', '20250507094236', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709423600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919930896930783234.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094236\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709423600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931403556569090.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"432\",\"Height\":\"544\",\"ShotTime\":\"20250507094236\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931449530335233', '2025-05-07 09:45:03', '431002202513203844460220250507094456000020100076', '1', '44060610091322000080022025050709445600002', '43100220251320384446', 420, 489, 508, 729, '20250507094456', '20250507094456', '20250507094456', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709445600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931431192838145.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094456\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709445600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931444694302721.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"256\",\"Height\":\"356\",\"ShotTime\":\"20250507094456\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919931487685918721', '2025-05-07 09:45:12', '431002202513203844460220250507094506000020100077', '1', '44060610091322000080022025050709450600002', '43100220251320384446', 556, 489, 679, 792, '20250507094506', '20250507094506', '20250507094506', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709450600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931480677236737.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094506\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709450600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919931483814576129.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"320\",\"Height\":\"424\",\"ShotTime\":\"20250507094506\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919932097579663362', '2025-05-07 09:47:37', '431002202513203844460220250507094732000020100080', '1', '44060610091322000080022025050709473200002', '43100220251320384446', 794, 474, 896, 687, '20250507094732', '20250507094732', '20250507094732', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709473200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932094027087873.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094732\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709473200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932095146967041.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"256\",\"Height\":\"300\",\"ShotTime\":\"20250507094732\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919932148464959489', '2025-05-07 09:47:49', '431002202513203844460220250507094744000020100081', '1', '44060610091322000080022025050709474400002', '43100220251320384446', 827, 472, 917, 683, '20250507094744', '20250507094744', '20250507094744', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709474400002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932145252122625.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094744\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709474400009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932146560745473.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"240\",\"Height\":\"300\",\"ShotTime\":\"20250507094744\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919932678490767361', '2025-05-07 09:49:56', '431002202513203844460220250507094952000020100086', '1', '44060610091322000080022025050709495200002', '43100220251320384446', 1372, 456, 1453, 611, '20250507094952', '20250507094952', '20250507094952', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709495200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932672111230977.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507094952\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709495200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932674330017794.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"208\",\"ShotTime\":\"20250507094952\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919932746304274434', '2025-05-07 09:50:12', '431002202513203844460220250507095003000020100087', '1', '44060610091322000080022025050709500300002', '43100220251320384446', 1403, 444, 1478, 586, '20250507095003', '20250507095003', '20250507095003', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709500300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932717346799618.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095003\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709500300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932737924055041.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"204\",\"ShotTime\":\"20250507095003\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919932780290719745', '2025-05-07 09:50:20', '431002202513203844460220250507095016000020100088', '1', '44060610091322000080022025050709501600002', '43100220251320384446', 1370, 474, 1447, 630, '20250507095016', '20250507095016', '20250507095016', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709501600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932769570078721.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095016\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709501600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919932776033501186.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"244\",\"ShotTime\":\"20250507095016\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934048849575937', '2025-05-07 09:55:23', '431002202513203844460220250507095443000020100098', '1', '44060610091322000080022025050709544300002', '43100220251320384446', 1344, 498, 1637, 1070, '20250507095443', '20250507095443', '20250507095443', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709544300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933894306250754.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095443\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709544300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934034131763202.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"432\",\"Height\":\"584\",\"ShotTime\":\"20250507095443\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934053161320449', '2025-05-07 09:55:24', '431002202513203844460220250507095401000020100095', '1', '44060610091322000080022025050709540100002', '43100220251320384446', 441, 453, 564, 766, '20250507095401', '20250507095401', '20250507095401', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709540100002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933717839298561.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095401\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709540100009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934046102306818.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"336\",\"Height\":\"424\",\"ShotTime\":\"20250507095401\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934061705117697', '2025-05-07 09:55:26', '431002202513203844460220250507095450000020100104', '1', '44060610091322000080022025050709545000002', '43100220251320384446', 480, 405, 714, 1016, '20250507095450', '20250507095450', '20250507095450', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709545000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934057317875714.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095450\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709545000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934059347918850.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"432\",\"Height\":\"592\",\"ShotTime\":\"20250507095450\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934070215360514', '2025-05-07 09:55:28', '431002202513203844460220250507095502000020100109', '1', '44060610091322000080022025050709550200002', '43100220251320384446', 677, 453, 812, 838, '20250507095502', '20250507095502', '20250507095502', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709550200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934065630986242.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095502\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709550200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934067719749633.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"400\",\"Height\":\"532\",\"ShotTime\":\"20250507095502\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934074489356289', '2025-05-07 09:55:29', '431002202513203844460220250507095520000020100110', '1', '44060610091322000080022025050709552000002', '43100220251320384446', 1795, 487, 1870, 637, '20250507095520', '20250507095520', '20250507095520', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709552000002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934068638302210.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095520\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709552000009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934073499500545.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"204\",\"ShotTime\":\"20250507095520\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934108400304130', '2025-05-07 09:55:37', '431002202513203844460220250507095446000020100101', '1', '44060610091322000080022025050709544600002', '43100220251320384446', 1407, 485, 1608, 895, '20250507095446', '20250507095446', '20250507095446', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709544600002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919933975830937601.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095446\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709544600009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934105292324865.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"432\",\"Height\":\"556\",\"ShotTime\":\"20250507095446\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934459719401473', '2025-05-07 09:57:01', '431002202513203844460220250507095657000020100113', '1', '44060610091322000080022025050709565700002', '43100220251320384446', 1774, 477, 1841, 627, '20250507095657', '20250507095657', '20250507095657', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709565700002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934453079818242.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095657\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709565700009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934456015831041.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"244\",\"ShotTime\":\"20250507095657\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934696777269249', '2025-05-07 09:57:57', '431002202513203844460220250507095755000020100122', '1', '44060610091322000080022025050709575500002', '43100220251320384446', 1451, 506, 1526, 657, '20250507095755', '20250507095755', '20250507095755', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709575500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934694055165953.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095755\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709575500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934694986301442.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"160\",\"Height\":\"212\",\"ShotTime\":\"20250507095755\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934739185876993', '2025-05-07 09:58:07', '431002202513203844460220250507095803000020100123', '1', '44060610091322000080022025050709580300002', '43100220251320384446', 558, 405, 743, 945, '20250507095803', '20250507095803', '20250507095803', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709580300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934734781857794.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095803\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709580300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934737675927554.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"448\",\"Height\":\"576\",\"ShotTime\":\"20250507095803\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934891539775489', '2025-05-07 09:58:43', '431002202513203844460220250507095839000020100125', '1', '44060610091322000080022025050709583900002', '43100220251320384446', 1760, 490, 1835, 639, '20250507095839', '20250507095839', '20250507095839', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709583900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934885575475202.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095839\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709583900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934889560064002.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"208\",\"ShotTime\":\"20250507095839\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934938222379009', '2025-05-07 09:58:55', '431002202513203844460220250507095844000020100126', '1', '44060610091322000080022025050709584400002', '43100220251320384446', 1374, 491, 1570, 872, '20250507095844', '20250507095844', '20250507095844', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709584400002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934925429751810.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095844\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709584400009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934933331820545.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"384\",\"Height\":\"508\",\"ShotTime\":\"20250507095844\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919934976457654274', '2025-05-07 09:59:04', '431002202513203844460220250507095859000020100129', '1', '44060610091322000080022025050709585900002', '43100220251320384446', 1764, 489, 1833, 633, '20250507095859', '20250507095859', '20250507095859', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709585900002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934965061730306.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095859\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709585900009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934973454532609.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"176\",\"Height\":\"200\",\"ShotTime\":\"20250507095859\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919935006132355074', '2025-05-07 09:59:11', '431002202513203844460220250507095905000020100130', '1', '44060610091322000080022025050709590500002', '43100220251320384446', 829, 458, 935, 696, '20250507095905', '20250507095905', '20250507095905', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709590500002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919934997508866049.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095905\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709590500009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935003427028994.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"256\",\"Height\":\"332\",\"ShotTime\":\"20250507095905\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919935035848998914', '2025-05-07 09:59:18', '431002202513203844460220250507095912000020100133', '1', '44060610091322000080022025050709591200002', '43100220251320384446', 1633, 457, 1716, 649, '20250507095912', '20250507095912', '20250507095912', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709591200002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935023492579330.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095912\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709591200009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935027410059266.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"192\",\"Height\":\"248\",\"ShotTime\":\"20250507095912\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919935069881581569', '2025-05-07 09:59:26', '431002202513203844460220250507095923000020100136', '1', '44060610091322000080022025050709592300002', '43100220251320384446', 1699, 553, 1918, 1057, '20250507095923', '20250507095923', '20250507095923', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709592300002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935064257019905.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095923\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709592300009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935065695666178.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"368\",\"Height\":\"616\",\"ShotTime\":\"20250507095923\",\"Data\":null}]}');
+INSERT INTO `viid_persons` VALUES ('1919935107991027714', '2025-05-07 09:59:35', '431002202513203844460220250507095931000020100139', '1', '44060610091322000080022025050709593100002', '43100220251320384446', 1338, 452, 1430, 708, '20250507095931', '20250507095931', '20250507095931', NULL, NULL, NULL, NULL, NULL, '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '99', NULL, '99', NULL, NULL, NULL, 2, 2, NULL, NULL, 2, NULL, 2, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, 2, '{\"SubImageInfoObject\":[{\"ImageID\":\"43100220251320384446022025050709593100002\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935102269997058.jpeg\",\"Type\":\"14\",\"FileFormat\":\"Jpeg\",\"Width\":\"1920\",\"Height\":\"1136\",\"ShotTime\":\"20250507095931\",\"Data\":null},{\"ImageID\":\"43100220251320384446022025050709593100009\",\"EventSort\":9,\"DeviceID\":\"43100220251320384446\",\"StoragePath\":\"https://minio.fyict.cn:21443/viid/431002202513203844461919935104304234498.jpeg\",\"Type\":\"10\",\"FileFormat\":\"Jpeg\",\"Width\":\"272\",\"Height\":\"336\",\"ShotTime\":\"20250507095931\",\"Data\":null}]}');
+
+-- ----------------------------
+-- Table structure for viid_publish
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_publish`;
+CREATE TABLE `viid_publish`  (
+  `subscribe_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '订阅标识符',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅标题',
+  `subscribe_detail` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅类型',
+  `resource_uri` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '资源ID',
+  `application_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '申请人',
+  `application_org` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '申请单位',
+  `begin_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '开始时间',
+  `end_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '结束时间',
+  `receive_addr` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅回调地址',
+  `report_interval` int(11) NULL DEFAULT NULL COMMENT '数据上报间隔',
+  `reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '理由',
+  `operate_type` int(11) NULL DEFAULT NULL COMMENT '操作类型',
+  `subscribe_status` int(11) NULL DEFAULT NULL COMMENT '订阅状态',
+  `resource_class` int(11) NULL DEFAULT NULL COMMENT '资源类型',
+  `result_image_declare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '未知属性',
+  `result_feature_declare` int(11) NULL DEFAULT NULL COMMENT '未知属性',
+  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '节点ID',
+  `create_time` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`subscribe_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库发布信息' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_publish
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_server
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_server`;
+CREATE TABLE `viid_server`  (
+  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '视图库编号',
+  `server_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '视图库名称',
+  `scheme` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '交互协议',
+  `host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '视图库地址',
+  `port` int(11) NULL DEFAULT NULL COMMENT '视图库端口',
+  `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '授权用户',
+  `authenticate` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '授权凭证',
+  `enabled` tinyint(1) NULL DEFAULT NULL COMMENT '是否启用',
+  `category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '节点类别',
+  `keepalive` tinyint(1) NULL DEFAULT NULL COMMENT '是否开启双向保活',
+  `create_time` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+  `transmission` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'http' COMMENT '数据传输类型',
+  `proxy_network` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '代理网络类型',
+  `online` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '2' COMMENT '是否在线',
+  PRIMARY KEY (`server_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '1400视图库' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_server
+-- ----------------------------
+INSERT INTO `viid_server` VALUES ('43100220255038444698', '初始化视图库', 'http', '127.0.0.1', 1400, 'admin', 'admin', 1, '0', 0, '2025-04-25 17:35:43', 'http', '1', '1');
+
+-- ----------------------------
+-- Table structure for viid_subscrube
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_subscrube`;
+CREATE TABLE `viid_subscrube`  (
+  `subscribe_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '订阅标识符',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅标题',
+  `subscribe_detail` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅类型',
+  `resource_uri` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '资源ID',
+  `application_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '申请人',
+  `application_org` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '申请单位',
+  `begin_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '开始时间',
+  `end_time` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '结束时间',
+  `receive_addr` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '订阅回调地址',
+  `report_interval` int(11) NULL DEFAULT NULL COMMENT '数据上报间隔',
+  `reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '理由',
+  `operate_type` int(11) NULL DEFAULT NULL COMMENT '操作类型',
+  `subscribe_status` int(11) NULL DEFAULT NULL COMMENT '订阅状态',
+  `resource_class` int(11) NULL DEFAULT NULL COMMENT '资源类型',
+  `result_image_declare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '未知属性',
+  `result_feature_declare` int(11) NULL DEFAULT NULL COMMENT '未知属性',
+  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '节点ID',
+  `create_time` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`subscribe_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库订阅信息' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_subscrube
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for viid_tollgate_device
+-- ----------------------------
+DROP TABLE IF EXISTS `viid_tollgate_device`;
+CREATE TABLE `viid_tollgate_device`  (
+  `tollgate_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '设备标识',
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '卡口名称',
+  `longitude` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '经度',
+  `latitude` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '纬度',
+  `place_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '位置编码',
+  `status` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '状态',
+  `tollgate_cat` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '卡口方向',
+  `tollgate_usage` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '关卡使用',
+  `lane_num` int(11) NULL DEFAULT NULL COMMENT '车道数量',
+  `org_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '组织机构编码',
+  `device_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备ID',
+  PRIMARY KEY (`tollgate_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '视图库卡口设备' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of viid_tollgate_device
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_cloud_record
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_cloud_record`;
+CREATE TABLE `wvp_cloud_record`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `call_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `start_time` bigint(20) NULL DEFAULT NULL,
+  `end_time` bigint(20) NULL DEFAULT NULL,
+  `media_server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `folder` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `file_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `collect` tinyint(1) NULL DEFAULT 0,
+  `file_size` bigint(20) NULL DEFAULT NULL,
+  `time_len` double NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_cloud_record
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_common_group
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_common_group`;
+CREATE TABLE `wvp_common_group`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `parent_id` int(11) NULL DEFAULT NULL,
+  `parent_device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `business_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `civil_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_common_group_device_platform`(`device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_common_group
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_common_region
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_common_region`;
+CREATE TABLE `wvp_common_region`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `parent_id` int(11) NULL DEFAULT NULL,
+  `parent_device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_common_region_device_id`(`device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_common_region
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_device
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_device`;
+CREATE TABLE `wvp_device`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `manufacturer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `firmware` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream_mode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `on_line` tinyint(1) NULL DEFAULT 0,
+  `register_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `keepalive_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `port` int(11) NULL DEFAULT NULL,
+  `expires` int(11) NULL DEFAULT NULL,
+  `subscribe_cycle_for_catalog` int(11) NULL DEFAULT 0,
+  `subscribe_cycle_for_mobile_position` int(11) NULL DEFAULT 0,
+  `mobile_position_submission_interval` int(11) NULL DEFAULT 5,
+  `subscribe_cycle_for_alarm` int(11) NULL DEFAULT 0,
+  `host_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `charset` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ssrc_check` tinyint(1) NULL DEFAULT 0,
+  `geo_coord_sys` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `media_server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'auto',
+  `custom_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `sdp_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `local_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `as_message_channel` tinyint(1) NULL DEFAULT 0,
+  `heart_beat_interval` int(11) NULL DEFAULT NULL,
+  `heart_beat_count` int(11) NULL DEFAULT NULL,
+  `position_capability` int(11) NULL DEFAULT NULL,
+  `broadcast_push_after_ack` tinyint(1) NULL DEFAULT 0,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_device_device`(`device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_device
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_device_alarm
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_device_alarm`;
+CREATE TABLE `wvp_device_alarm`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `channel_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `alarm_priority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `alarm_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `alarm_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `alarm_description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `longitude` double NULL DEFAULT NULL,
+  `latitude` double NULL DEFAULT NULL,
+  `alarm_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_device_alarm
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_device_channel
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_device_channel`;
+CREATE TABLE `wvp_device_channel`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `manufacturer` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `owner` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `civil_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `block` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `parental` int(11) NULL DEFAULT NULL,
+  `parent_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `safety_way` int(11) NULL DEFAULT NULL,
+  `register_way` int(11) NULL DEFAULT NULL,
+  `cert_num` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `certifiable` int(11) NULL DEFAULT NULL,
+  `err_code` int(11) NULL DEFAULT NULL,
+  `end_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `secrecy` int(11) NULL DEFAULT NULL,
+  `ip_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `port` int(11) NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `longitude` double NULL DEFAULT NULL,
+  `latitude` double NULL DEFAULT NULL,
+  `ptz_type` int(11) NULL DEFAULT NULL,
+  `position_type` int(11) NULL DEFAULT NULL,
+  `room_type` int(11) NULL DEFAULT NULL,
+  `use_type` int(11) NULL DEFAULT NULL,
+  `supply_light_type` int(11) NULL DEFAULT NULL,
+  `direction_type` int(11) NULL DEFAULT NULL,
+  `resolution` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `business_group_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `download_speed` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `svc_space_support_mod` int(11) NULL DEFAULT NULL,
+  `svc_time_support_mode` int(11) NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `sub_count` int(11) NULL DEFAULT NULL,
+  `stream_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `has_audio` tinyint(1) NULL DEFAULT 0,
+  `gps_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream_identification` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `channel_type` int(11) NOT NULL DEFAULT 0,
+  `gb_device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_manufacturer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_civil_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_block` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_parental` int(11) NULL DEFAULT NULL,
+  `gb_parent_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_safety_way` int(11) NULL DEFAULT NULL,
+  `gb_register_way` int(11) NULL DEFAULT NULL,
+  `gb_cert_num` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_certifiable` int(11) NULL DEFAULT NULL,
+  `gb_err_code` int(11) NULL DEFAULT NULL,
+  `gb_end_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_secrecy` int(11) NULL DEFAULT NULL,
+  `gb_ip_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_port` int(11) NULL DEFAULT NULL,
+  `gb_password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_longitude` double NULL DEFAULT NULL,
+  `gb_latitude` double NULL DEFAULT NULL,
+  `gb_business_group_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_ptz_type` int(11) NULL DEFAULT NULL,
+  `gb_position_type` int(11) NULL DEFAULT NULL,
+  `gb_room_type` int(11) NULL DEFAULT NULL,
+  `gb_use_type` int(11) NULL DEFAULT NULL,
+  `gb_supply_light_type` int(11) NULL DEFAULT NULL,
+  `gb_direction_type` int(11) NULL DEFAULT NULL,
+  `gb_resolution` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_download_speed` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gb_svc_space_support_mod` int(11) NULL DEFAULT NULL,
+  `gb_svc_time_support_mode` int(11) NULL DEFAULT NULL,
+  `record_plan_id` int(11) NULL DEFAULT NULL,
+  `data_type` int(11) NOT NULL,
+  `data_device_id` int(11) NOT NULL,
+  `gps_speed` double NULL DEFAULT NULL,
+  `gps_altitude` double NULL DEFAULT NULL,
+  `gps_direction` double NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_wvp_unique_channel`(`gb_device_id`) USING BTREE,
+  INDEX `data_type`(`data_type`) USING BTREE,
+  INDEX `data_device_id`(`data_device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_device_channel
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_device_mobile_position
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_device_mobile_position`;
+CREATE TABLE `wvp_device_mobile_position`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `channel_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `device_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `longitude` double NULL DEFAULT NULL,
+  `latitude` double NULL DEFAULT NULL,
+  `altitude` double NULL DEFAULT NULL,
+  `speed` double NULL DEFAULT NULL,
+  `direction` double NULL DEFAULT NULL,
+  `report_source` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_device_mobile_position
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_media_server
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_media_server`;
+CREATE TABLE `wvp_media_server`  (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `hook_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `sdp_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `http_port` int(11) NULL DEFAULT NULL,
+  `http_ssl_port` int(11) NULL DEFAULT NULL,
+  `rtmp_port` int(11) NULL DEFAULT NULL,
+  `rtmp_ssl_port` int(11) NULL DEFAULT NULL,
+  `rtp_proxy_port` int(11) NULL DEFAULT NULL,
+  `rtsp_port` int(11) NULL DEFAULT NULL,
+  `rtsp_ssl_port` int(11) NULL DEFAULT NULL,
+  `flv_port` int(11) NULL DEFAULT NULL,
+  `flv_ssl_port` int(11) NULL DEFAULT NULL,
+  `ws_flv_port` int(11) NULL DEFAULT NULL,
+  `ws_flv_ssl_port` int(11) NULL DEFAULT NULL,
+  `auto_config` tinyint(1) NULL DEFAULT 0,
+  `secret` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'zlm',
+  `rtp_enable` tinyint(1) NULL DEFAULT 0,
+  `rtp_port_range` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `send_rtp_port_range` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `record_assist_port` int(11) NULL DEFAULT NULL,
+  `default_server` tinyint(1) NULL DEFAULT 0,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `hook_alive_interval` int(11) NULL DEFAULT NULL,
+  `record_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `record_day` int(11) NULL DEFAULT 7,
+  `transcode_suffix` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_media_server_unique_ip_http_port`(`ip`, `http_port`, `server_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_media_server
+-- ----------------------------
+INSERT INTO `wvp_media_server` VALUES ('zlmediakit-local', '127.0.0.1', '127.0.0.1', '127.0.0.1', '127.0.0.1', 20001, 0, 0, 0, 0, 0, 0, 20001, 0, 20001, 0, 1, 'vN71K1sfi1GPlJogQRgxTN0aP1fMkYL1', 'zlm', 1, '40000,45000', '50000,55000', 0, 1, '2025-06-24 18:04:15', '2025-07-04 16:50:50', 10, '', 7, NULL, '000000');
+
+-- ----------------------------
+-- Table structure for wvp_platform
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_platform`;
+CREATE TABLE `wvp_platform`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `enable` tinyint(1) NULL DEFAULT 0,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_gb_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_gb_domain` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_port` int(11) NULL DEFAULT NULL,
+  `device_gb_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `device_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `device_port` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `expires` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `keep_timeout` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `civil_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `manufacturer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `character_set` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ptz` tinyint(1) NULL DEFAULT 0,
+  `rtcp` tinyint(1) NULL DEFAULT 0,
+  `status` tinyint(1) NULL DEFAULT 0,
+  `catalog_group` int(11) NULL DEFAULT NULL,
+  `register_way` int(11) NULL DEFAULT NULL,
+  `secrecy` int(11) NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `as_message_channel` tinyint(1) NULL DEFAULT 0,
+  `catalog_with_platform` int(11) NULL DEFAULT 1,
+  `catalog_with_group` int(11) NULL DEFAULT 1,
+  `catalog_with_region` int(11) NULL DEFAULT 1,
+  `auto_push_channel` tinyint(1) NULL DEFAULT 1,
+  `send_stream_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_platform_unique_server_gb_id`(`server_gb_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_platform
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_platform_channel
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_platform_channel`;
+CREATE TABLE `wvp_platform_channel`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `platform_id` int(11) NULL DEFAULT NULL,
+  `device_channel_id` int(11) NULL DEFAULT NULL,
+  `custom_device_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_manufacturer` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_owner` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_civil_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_block` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_parental` int(11) NULL DEFAULT NULL,
+  `custom_parent_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_safety_way` int(11) NULL DEFAULT NULL,
+  `custom_register_way` int(11) NULL DEFAULT NULL,
+  `custom_cert_num` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_certifiable` int(11) NULL DEFAULT NULL,
+  `custom_err_code` int(11) NULL DEFAULT NULL,
+  `custom_end_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_secrecy` int(11) NULL DEFAULT NULL,
+  `custom_ip_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_port` int(11) NULL DEFAULT NULL,
+  `custom_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_longitude` double NULL DEFAULT NULL,
+  `custom_latitude` double NULL DEFAULT NULL,
+  `custom_ptz_type` int(11) NULL DEFAULT NULL,
+  `custom_position_type` int(11) NULL DEFAULT NULL,
+  `custom_room_type` int(11) NULL DEFAULT NULL,
+  `custom_use_type` int(11) NULL DEFAULT NULL,
+  `custom_supply_light_type` int(11) NULL DEFAULT NULL,
+  `custom_direction_type` int(11) NULL DEFAULT NULL,
+  `custom_resolution` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_business_group_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_download_speed` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `custom_svc_space_support_mod` int(11) NULL DEFAULT NULL,
+  `custom_svc_time_support_mode` int(11) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_platform_gb_channel_platform_id_catalog_id_device_channel_id`(`platform_id`, `device_channel_id`) USING BTREE,
+  UNIQUE INDEX `uk_platform_gb_channel_device_id`(`custom_device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_platform_channel
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_platform_group
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_platform_group`;
+CREATE TABLE `wvp_platform_group`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `platform_id` int(11) NULL DEFAULT NULL,
+  `group_id` int(11) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_wvp_platform_group_platform_id_group_id`(`platform_id`, `group_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_platform_group
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_platform_region
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_platform_region`;
+CREATE TABLE `wvp_platform_region`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `platform_id` int(11) NULL DEFAULT NULL,
+  `region_id` int(11) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_wvp_platform_region_platform_id_group_id`(`platform_id`, `region_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_platform_region
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_record_plan
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_record_plan`;
+CREATE TABLE `wvp_record_plan`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `snap` tinyint(1) NULL DEFAULT 0,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_record_plan
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_record_plan_item
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_record_plan_item`;
+CREATE TABLE `wvp_record_plan_item`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `start` int(11) NULL DEFAULT NULL,
+  `stop` int(11) NULL DEFAULT NULL,
+  `week_day` int(11) NULL DEFAULT NULL,
+  `plan_id` int(11) NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_record_plan_item
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_stream_proxy
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_stream_proxy`;
+CREATE TABLE `wvp_stream_proxy`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `src_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `timeout` int(11) NULL DEFAULT NULL,
+  `ffmpeg_cmd_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `rtsp_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `media_server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `enable_audio` tinyint(1) NULL DEFAULT 0,
+  `enable_mp4` tinyint(1) NULL DEFAULT 0,
+  `pulling` tinyint(1) NULL DEFAULT 0,
+  `enable` tinyint(1) NULL DEFAULT 0,
+  `enable_remove_none_reader` tinyint(1) NULL DEFAULT 0,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `enable_disable_none_reader` tinyint(1) NULL DEFAULT 0,
+  `relates_media_server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_stream_proxy_app_stream`(`app`, `stream`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_stream_proxy
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_stream_push
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_stream_push`;
+CREATE TABLE `wvp_stream_push`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `media_server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `server_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `push_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `status` tinyint(1) NULL DEFAULT 0,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `pushing` tinyint(1) NULL DEFAULT 0,
+  `self` tinyint(1) NULL DEFAULT 0,
+  `start_offline_push` tinyint(1) NULL DEFAULT 1,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_stream_push_app_stream`(`app`, `stream`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_stream_push
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_user
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_user`;
+CREATE TABLE `wvp_user`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `role_id` int(11) NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `push_key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE,
+  UNIQUE INDEX `uk_user_username`(`username`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_user
+-- ----------------------------
+INSERT INTO `wvp_user` VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57', '2021-04-13 14:14:57', '3e80d1762a324d5b0ff636e0bd16f1e3');
+
+-- ----------------------------
+-- Table structure for wvp_user_api_key
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_user_api_key`;
+CREATE TABLE `wvp_user_api_key`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) NULL DEFAULT NULL,
+  `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `api_key` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `expired_at` bigint(20) NULL DEFAULT NULL,
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `enable` tinyint(1) NULL DEFAULT 1,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_user_api_key
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for wvp_user_role
+-- ----------------------------
+DROP TABLE IF EXISTS `wvp_user_role`;
+CREATE TABLE `wvp_user_role`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `authority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `update_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `id`(`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of wvp_user_role
+-- ----------------------------
+INSERT INTO `wvp_user_role` VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
+
+SET FOREIGN_KEY_CHECKS = 1;

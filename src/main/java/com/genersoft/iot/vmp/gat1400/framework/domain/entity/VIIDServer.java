@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -15,7 +16,7 @@ import lombok.Data;
 
 @Data
 @TableName(value = "viid_server")
-public class VIIDServer {
+public class VIIDServer implements Serializable {
 
     @ApiModelProperty(value = "视图库编号")
     @TableId(value = "server_id",type = IdType.NONE)

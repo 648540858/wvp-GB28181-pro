@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.genersoft.iot.vmp.gat1400.framework.mapper.MetricsMapper">
+
+    <select id="histogramOfHour" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT m.hour, SUM(m.count) AS count FROM (
+        SELECT HOUR(data_time) AS hour, COUNT(1) AS count FROM viid_faces WHERE data_time between #{startTime} and
+        #{endTime} GROUP BY HOUR(data_time)
+        UNION ALL
+        SELECT HOUR(data_time) AS hour, COUNT(1) AS count FROM viid_persons WHERE data_time between #{startTime} and
+        #{endTime} GROUP BY HOUR(data_time)
+        UNION ALL
+        SELECT HOUR(data_time) AS hour, COUNT(1) AS count FROM viid_motor_vehicle WHERE data_time between #{startTime}
+        and #{endTime} GROUP BY HOUR(data_time)
+        UNION ALL
+        SELECT HOUR(data_time) AS hour, COUNT(1) AS count FROM viid_non_motor_vehicle WHERE data_time between
+        #{startTime} and #{endTime} GROUP BY HOUR(data_time)
+        ) m group by m.hour
+    </select>
+
+    <delete id="releaseFace">
+        DELETE FROM viid_faces WHERE data_time &lt; DATE_SUB(NOW(), INTERVAL ${day} DAY)
+    </delete>
+
+    <delete id="releasePerson">
+        DELETE FROM viid_persons WHERE data_time &lt; DATE_SUB(NOW(), INTERVAL ${day} DAY)
+    </delete>
+
+    <delete id="releaseVehicle">
+        DELETE FROM viid_motor_vehicle WHERE data_time &lt; DATE_SUB(NOW(), INTERVAL ${day} DAY)
+    </delete>
+
+    <delete id="releaseNonVehicle">
+        DELETE FROM viid_non_motor_vehicle WHERE data_time &lt; DATE_SUB(NOW(), INTERVAL ${day} DAY)
+    </delete>
+</mapper>

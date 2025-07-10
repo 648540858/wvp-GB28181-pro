@@ -41,6 +41,7 @@ public class KeepaliveTask implements DisposableBean {
 
     /**
      * 主动保活 检查设置保活的视图库是否在线 不在线则注册重试
+     * 任务在容器启动后延迟 10 秒开始执行，每次任务执行结束后，等待 50 秒再执行下一次
      */
     @Scheduled(initialDelay = 10, fixedDelay = 50, timeUnit = TimeUnit.SECONDS)
     public void keepalive() {

@@ -18,6 +18,7 @@ public class J0A00 extends Re {
     /**
      * 透传消息类型, 0x00: GNSS 模块详细定位数据, 0X0B: 道路运输证 IC卡信息, 0X41: 串口1 透传, 0X42: 串口2 透传, 0XF0 ~ 0XFF: 用户自定义透传
      */
+
     private Integer type;
 
     /**

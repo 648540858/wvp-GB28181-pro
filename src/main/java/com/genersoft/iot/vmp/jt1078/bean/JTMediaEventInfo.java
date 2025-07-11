@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
+@Data
 @Schema(description = "多媒体事件信息")
 public class JTMediaEventInfo {
 
@@ -21,6 +23,10 @@ public class JTMediaEventInfo {
     @Schema(description = "通道 ID")
     private int channelId;
 
+    @Schema(description = "媒体数据")
+    private byte[] mediaData;
+
+
     public static JTMediaEventInfo decode(ByteBuf buf) {
         JTMediaEventInfo jtMediaEventInfo = new JTMediaEventInfo();
         jtMediaEventInfo.setId(buf.readUnsignedInt());
@@ -28,47 +34,12 @@ public class JTMediaEventInfo {
         jtMediaEventInfo.setCode(buf.readUnsignedByte());
         jtMediaEventInfo.setEventCode(buf.readUnsignedByte());
         jtMediaEventInfo.setChannelId(buf.readUnsignedByte());
+
+        byte[] bytes = new byte[buf.readableBytes()];
+        buf.readBytes(bytes);
+        jtMediaEventInfo.setMediaData(bytes);
+
         return jtMediaEventInfo;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public int getEventCode() {
-        return eventCode;
-    }
-
-    public void setEventCode(int eventCode) {
-        this.eventCode = eventCode;
-    }
-
-    public int getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(int channelId) {
-        this.channelId = channelId;
     }
 
     @Override
@@ -79,6 +50,7 @@ public class JTMediaEventInfo {
                 ", code=" + code +
                 ", eventCode=" + eventCode +
                 ", channelId=" + channelId +
+                ", fileSize=" + mediaData.length +
                 '}';
     }
 }

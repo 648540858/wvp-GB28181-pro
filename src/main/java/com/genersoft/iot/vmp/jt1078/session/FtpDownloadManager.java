@@ -1,11 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.session;
 
-import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.jt1078.bean.JTRecordDownloadCatch;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.J9206;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
-public class DownloadManager {
+public class FtpDownloadManager {
 
     private final Map<String, JTRecordDownloadCatch> downloadCatchMap = new ConcurrentHashMap<>();
     private final DelayQueue<JTRecordDownloadCatch> downloadCatchQueue = new DelayQueue<>();

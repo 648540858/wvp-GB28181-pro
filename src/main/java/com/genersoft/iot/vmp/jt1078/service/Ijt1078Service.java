@@ -122,4 +122,7 @@ public interface Ijt1078Service {
     String getRecordTempUrl(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType);
 
     void recordDownload(String filePath, ServletOutputStream outputStream);
+
+    void snap(String phoneNumber, int channelId, ServletOutputStream outputStream);
+
 }

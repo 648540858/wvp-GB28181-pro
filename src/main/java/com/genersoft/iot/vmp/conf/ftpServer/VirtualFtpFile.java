@@ -155,7 +155,6 @@ public class VirtualFtpFile implements FtpFile {
 
     @Override
     public OutputStream createOutputStream(long offset) throws IOException {
-        System.out.println("createOutputStream++++");
         return outputStream;
     }
 

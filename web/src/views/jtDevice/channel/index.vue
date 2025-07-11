@@ -92,8 +92,10 @@
                       设备录像</el-dropdown-item>
                     <el-dropdown-item command="cloudRecords" :disabled="device == null || device.online === 0">
                       云端录像</el-dropdown-item>
-                    <!--                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >-->
-                    <!--                    立即拍摄</el-dropdown-item>-->
+                    <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >
+                      抓图</el-dropdown-item>
+                    <el-dropdown-item command="searchData" v-bind:disabled="device == null || device.online === 0" >
+                      数据检索</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
               </template>
@@ -114,6 +116,7 @@
     </div>
     <devicePlayer ref="devicePlayer" />
     <channelEdit v-if="jtChannel" ref="channelEdit" :jt-channel="jtChannel" :close-edit="closeEdit" />
+    <shooting ref="shooting" />
 
   </div>
 </template>
@@ -121,12 +124,14 @@
 <script>
 import devicePlayer from '../jtDevicePlayer.vue'
 import channelEdit from './edit.vue'
+import shooting from './shooting.vue'
 
 export default {
   name: 'ChannelList',
   components: {
     channelEdit,
-    devicePlayer
+    devicePlayer,
+    shooting
   },
   props: {
     deviceId: {
@@ -240,6 +245,8 @@ export default {
         this.queryRecords(itemData)
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
+      } else if (command === 'shooting') {
+        this.shooting(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -315,6 +322,12 @@ export default {
     // 编辑
     closeEdit(row) {
       this.jtChannel = null
+    },
+    // 编辑
+    shooting(row) {
+      const baseUrl = window.baseUrl
+      let dev = (process.env.NODE_ENV === 'development' ? process.env.VUE_APP_BASE_API : baseUrl)
+      window.open(`${dev}/api/jt1078/snap?phoneNumber=${this.deviceId}&channelId=${row.channelId}`)
     }
   }
 }

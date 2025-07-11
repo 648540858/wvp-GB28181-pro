@@ -27,47 +27,16 @@ public class J0801 extends Re {
 
     private final static Logger log = LoggerFactory.getLogger(J0801.class);
 
-    private JTMediaEventInfo mediaEventInfo;
     private JTPositionBaseInfo positionBaseInfo;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-        mediaEventInfo = JTMediaEventInfo.decode(buf);
+        JTMediaEventInfo mediaEventInfo = JTMediaEventInfo.decode(buf);
         ByteBuf byteBuf = buf.readSlice(28);
         positionBaseInfo = JTPositionBaseInfo.decode(byteBuf);
-        String fileName = "mediaEvent/" + mediaEventInfo.getId() + ".";
         File mediaEventFile = new File("mediaEvent");
         if (!mediaEventFile.exists()) {
             mediaEventFile.mkdirs();
-        }
-        switch (mediaEventInfo.getCode()){
-            case 0:
-                fileName += "jpg";
-                break;
-            case 1:
-                fileName += "tif";
-                break;
-            case 2:
-                fileName += "mp3";
-                break;
-            case 3:
-                fileName += "wav";
-                break;
-            case 4:
-                fileName += "wmv";
-                break;
-        }
-        try {
-            File file = new File(fileName);
-            file.deleteOnExit();
-            file.createNewFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            byte[] bytes = new byte[buf.readableBytes()];
-            buf.readBytes(bytes);
-            fileOutputStream.write(bytes);
-            fileOutputStream.close();
-        } catch (IOException e) {
-            log.info("[JT-多媒体数据上传] 写入文件失败", e);
         }
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0801", null, mediaEventInfo);

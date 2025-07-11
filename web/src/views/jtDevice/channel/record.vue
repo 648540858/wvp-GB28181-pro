@@ -498,39 +498,6 @@ export default {
       }).finally(() => {
         loading.close()
       })
-
-
-
-      // const baseUrl = window.baseUrl ? window.baseUrl : ''
-      // const downloadFileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) +
-      //   `/api/jt1078/playback/download?phoneNumber=${this.phoneNumber}&channelId=${this.channelId}&startTime=${row.startTime}&endTime=${row.endTime}` +
-      //   `&alarmSign=${row.alarmSign}&mediaType=${row.mediaType}&streamType=${row.streamType}&storageType=${row.storageType}&access-token=${this.$store.getters.token}`
-      // const x = new XMLHttpRequest()
-      // x.open('GET', downloadFileUrl, true)
-      // x.responseType = 'blob'
-      // x.onload = (e) => {
-      //   const url = window.URL.createObjectURL(x.response)
-      //   const a = document.createElement('a')
-      //   a.href = url
-      //   a.download = this.phoneNumber + '-' + this.channelId + '.mp4'
-      //   a.click()
-      //   loading.close()
-      // }
-      // x.ontimeout = (e) => {
-      //   loading.close()
-      //   this.$message.error({
-      //     showClose: true,
-      //     message: '加载超时'
-      //   })
-      // }
-      // x.onerror = (e) => {
-      //   loading.close()
-      //   this.$message.error({
-      //     showClose: true,
-      //     message: e.error
-      //   })
-      // }
-      // x.send()
     },
     getFileShowName(item) {
       return moment(item.startTime).format('HH:mm:ss') + '-' + moment(item.endTime).format('HH:mm:ss')

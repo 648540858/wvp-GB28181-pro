@@ -25,7 +25,7 @@ public enum MultiPacketManager {
      */
     public ByteBuf add(MultiPacket packet) {
         String key = packet.getHeader().getMsgId() + "/" + packet.getHeader().getPhoneNumber();
-        logger.debug("分包消息： \n{}", packet);
+        logger.info("分包消息： \n{}", packet);
         List<MultiPacket> multiPackets = packetMap.computeIfAbsent(key, k -> new ArrayList<>(packet.getCount()));
         multiPackets.add(packet);
         packetTimeMap.put(key, System.currentTimeMillis());

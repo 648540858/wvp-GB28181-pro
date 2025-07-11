@@ -5,22 +5,18 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.ftpServer.FtpFileSystemFactory;
-import com.genersoft.iot.vmp.conf.ftpServer.FtpFileSystemView;
 import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTask;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
 import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
-import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
-import com.genersoft.iot.vmp.jt1078.session.DownloadManager;
+import com.genersoft.iot.vmp.jt1078.session.FtpDownloadManager;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -38,15 +34,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.ServletOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.SynchronousQueue;
 
 @Service
 @Slf4j
@@ -80,7 +74,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private FtpFileSystemFactory fileSystemFactory;
 
     @Autowired
-    private DownloadManager downloadManager;
+    private FtpDownloadManager downloadManager;
 
     /**
      * 流到来的处理
@@ -694,7 +688,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
         log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
                 phoneNumber, channelId, startTime, endTime, filePath);
-        // 发送停止命令
+        // 文件上传指令
         J9206 j9206 = new J9206();
         j9206.setChannelId(channelId);
         j9206.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
@@ -731,5 +725,45 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         downloadManager.runDownload(filePath, 2 * 60 * 60);
         fileSystemFactory.removeOutputStream(filePath);
 
+    }
+
+
+    @Override
+    public void snap(String phoneNumber, int channelId, ServletOutputStream outputStream) {
+        J8801 j8801 = new J8801();
+
+        JTShootingCommand shootingCommand = new JTShootingCommand();
+        shootingCommand.setChanelId(channelId);
+        shootingCommand.setCommand(1);
+        shootingCommand.setTime(0);
+        shootingCommand.setSave(0);
+        shootingCommand.setResolvingPower(0xff);
+        shootingCommand.setQuality(1);
+        shootingCommand.setBrightness(125);
+        shootingCommand.setContrastRatio(60);
+        shootingCommand.setSaturation(60);
+        shootingCommand.setChroma(125);
+
+        j8801.setCommand(shootingCommand);
+        log.info("[JT-抓图] 设备编号： {}， 通道编号： {}", phoneNumber, channelId);
+        @SuppressWarnings("unchecked")
+        List<Long> ids = (List<Long>) jt1078Template.shooting(phoneNumber, j8801, 300);
+        log.info("[JT-抓图] 抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+        J8805 j8805 = new J8805();
+        j8805.setMediaId(ids.get(0));
+        j8805.setDelete(1);
+        log.info("[JT-抓图] 请求上传图片，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 300);
+        if (mediaEventInfo == null) {
+            log.info("[]");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+        }
+        log.info("[JT-抓图] 图片上传完成，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+        try {
+            outputStream.write(mediaEventInfo.getMediaData());
+        } catch (IOException e) {
+            log.info("[JT-抓图] 数据写入异常，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId, e);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");
+        }
     }
 }

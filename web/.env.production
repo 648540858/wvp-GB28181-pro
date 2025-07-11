@@ -2,5 +2,5 @@
 ENV = 'production'
 
 # base api
-VUE_APP_BASE_API = ''
+VUE_APP_BASE_API = '/api'
 

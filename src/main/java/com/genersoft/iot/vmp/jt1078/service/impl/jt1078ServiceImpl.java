@@ -767,4 +767,25 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");
         }
     }
+
+    @Override
+    public void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream) {
+        log.info("[JT-单条存储多媒体数据上传] 媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
+        J8805 j8805 = new J8805();
+        j8805.setMediaId(mediaId);
+        j8805.setDelete(1);
+        log.info("[JT-单条存储多媒体数据上传] 请求上传图片，媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
+        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 300);
+        if (mediaEventInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+        }
+        log.info("[JT-单条存储多媒体数据上传] 图片上传完成，媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
+        try {
+            outputStream.write(mediaEventInfo.getMediaData());
+            outputStream.flush();
+        } catch (IOException e) {
+            log.info("[JT-单条存储多媒体数据上传] 数据写入异常，抓图编号： {}， 设备编号： {}", mediaId, phoneNumber, e);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");
+        }
+    }
 }

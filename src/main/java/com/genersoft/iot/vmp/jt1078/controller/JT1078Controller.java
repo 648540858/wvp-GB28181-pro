@@ -888,7 +888,7 @@ public class JT1078Controller {
 
     @Operation(summary = "JT-存储多媒体数据检索", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
-    @PostMapping("/media-data-info")
+    @PostMapping("/media/list")
     public WVPResult<List<JTMediaDataInfo>> queryMediaData(@RequestBody QueryMediaDataParam param){
 
         log.info("[JT-存储多媒体数据检索] param: {}", param );
@@ -900,71 +900,88 @@ public class JT1078Controller {
         }
     }
 
-    @Operation(summary = "JT-存储多媒体数据上传命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
-    @PostMapping("/media-data-upload")
-    public DeferredResult<WVPResult<List<String>>> updateMediaData(@RequestBody QueryMediaDataParam param){
+    @Operation(summary = "JT-单条存储多媒体数据上传", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
+    @Parameter(name = "mediaId", description = "多媒体ID", required = true)
+    @GetMapping("/media/upload/one")
+    public void uploadOneMedia(HttpServletResponse response, String phoneNumber, Long mediaId){
 
-        log.info("[JT-存储多媒体数据上传命令] param: {}", param );
-        DeferredResult<WVPResult<List<String>>> deferredResult = new DeferredResult<>(30000L);
-        List<String> resultList = new ArrayList<>();
-
-        deferredResult.onTimeout(()->{
-            log.info("[JT-存储多媒体数据上传命令超时] param: {}", param );
-            WVPResult<List<String>> fail = WVPResult.fail(ErrorCode.ERROR100);
-            fail.setMsg("超时");
-            fail.setData(resultList);
-            deferredResult.setResult(fail);
-        });
-        List<JTMediaDataInfo> ids;
-        if (param.getMediaId() != null) {
-            ids = new ArrayList<>();
-            JTMediaDataInfo mediaDataInfo = new JTMediaDataInfo();
-            mediaDataInfo.setId(param.getMediaId());
-            ids.add(mediaDataInfo);
-        }else {
-            ids = service.queryMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
-        }
-        if (ids.isEmpty()) {
-            deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100));
-            return deferredResult;
-        }
-        Map<String, JTMediaDataInfo> idMap= new HashMap<>();
-        for (JTMediaDataInfo mediaDataInfo : ids) {
-            idMap.put(mediaDataInfo.getId() + ".jpg", mediaDataInfo);
-        }
-        // 开启文件监听
-        FileAlterationObserver observer = new FileAlterationObserver(new File("mediaEvent"));
-        observer.addListener(new FileAlterationListenerAdaptor() {
-            @Override
-            public void onFileCreate(File file) {
-               if (idMap.containsKey(file.getName())) {
-                   idMap.remove(file.getName());
-                   resultList.add("mediaEvent" + File.separator + file.getName());
-                   if (idMap.isEmpty()) {
-                       deferredResult.setResult(WVPResult.success(resultList));
-                   }
-               }
-            }
-        });
-        FileAlterationMonitor monitor = new FileAlterationMonitor(5, observer);
+        log.info("[JT-单条存储多媒体数据上传] 设备编号: {}, 多媒体ID: {}", phoneNumber, mediaId );
+        Assert.notNull(mediaId, "缺少通道编号");
         try {
-            monitor.start();
-        } catch (Exception e) {
-            log.info("[JT-存储多媒体数据上传命令监听文件失败] param: {}", param );
-            deferredResult.setResult(null);
-            return deferredResult;
+            ServletOutputStream outputStream = response.getOutputStream();
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            service.uploadOneMedia(phoneNumber, mediaId, outputStream);
+        }catch (Exception e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
         }
-        taskExecutor.execute(()->{
-            if (param.getMediaId() != null) {
-                service.uploadMediaDataForSingle(param.getPhoneNumber(), param.getMediaId(), param.getDelete());
-            }else {
-                service.uploadMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
-            }
-
-        });
-        return deferredResult;
     }
+
+//    @Operation(summary = "JT-存储多媒体数据上传命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
+//    @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
+//    @PostMapping("/media-data-upload")
+//    public DeferredResult<WVPResult<List<String>>> updateMediaData(@RequestBody QueryMediaDataParam param){
+//
+//        log.info("[JT-存储多媒体数据上传命令] param: {}", param );
+//        DeferredResult<WVPResult<List<String>>> deferredResult = new DeferredResult<>(30000L);
+//        List<String> resultList = new ArrayList<>();
+//
+//        deferredResult.onTimeout(()->{
+//            log.info("[JT-存储多媒体数据上传命令超时] param: {}", param );
+//            WVPResult<List<String>> fail = WVPResult.fail(ErrorCode.ERROR100);
+//            fail.setMsg("超时");
+//            fail.setData(resultList);
+//            deferredResult.setResult(fail);
+//        });
+//        List<JTMediaDataInfo> ids;
+//        if (param.getMediaId() != null) {
+//            ids = new ArrayList<>();
+//            JTMediaDataInfo mediaDataInfo = new JTMediaDataInfo();
+//            mediaDataInfo.setId(param.getMediaId());
+//            ids.add(mediaDataInfo);
+//        }else {
+//            ids = service.queryMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
+//        }
+//        if (ids.isEmpty()) {
+//            deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100));
+//            return deferredResult;
+//        }
+//        Map<String, JTMediaDataInfo> idMap= new HashMap<>();
+//        for (JTMediaDataInfo mediaDataInfo : ids) {
+//            idMap.put(mediaDataInfo.getId() + ".jpg", mediaDataInfo);
+//        }
+//        // 开启文件监听
+//        FileAlterationObserver observer = new FileAlterationObserver(new File("mediaEvent"));
+//        observer.addListener(new FileAlterationListenerAdaptor() {
+//            @Override
+//            public void onFileCreate(File file) {
+//               if (idMap.containsKey(file.getName())) {
+//                   idMap.remove(file.getName());
+//                   resultList.add("mediaEvent" + File.separator + file.getName());
+//                   if (idMap.isEmpty()) {
+//                       deferredResult.setResult(WVPResult.success(resultList));
+//                   }
+//               }
+//            }
+//        });
+//        FileAlterationMonitor monitor = new FileAlterationMonitor(5, observer);
+//        try {
+//            monitor.start();
+//        } catch (Exception e) {
+//            log.info("[JT-存储多媒体数据上传命令监听文件失败] param: {}", param );
+//            deferredResult.setResult(null);
+//            return deferredResult;
+//        }
+//        taskExecutor.execute(()->{
+//            if (param.getMediaId() != null) {
+//                service.uploadMediaDataForSingle(param.getPhoneNumber(), param.getMediaId(), param.getDelete());
+//            }else {
+//                service.uploadMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
+//            }
+//
+//        });
+//        return deferredResult;
+//    }
 
     @Operation(summary = "JT-开始录音", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)

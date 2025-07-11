@@ -761,6 +761,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         log.info("[JT-抓图] 图片上传完成，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
         try {
             outputStream.write(mediaEventInfo.getMediaData());
+            outputStream.flush();
         } catch (IOException e) {
             log.info("[JT-抓图] 数据写入异常，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId, e);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");

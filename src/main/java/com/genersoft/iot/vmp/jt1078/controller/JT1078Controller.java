@@ -871,15 +871,15 @@ public class JT1078Controller {
     @Operation(summary = "JT-抓图", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "channelId", description = "通道编号", required = true)
-    @PostMapping("/snap")
+    @GetMapping("/snap")
     public void snap(HttpServletResponse response, String phoneNumber, Integer channelId){
 
         log.info("[JT-抓图] 设备编号: {}, 通道编号: {}", phoneNumber, channelId );
         Assert.notNull(channelId, "缺少通道编号");
         try {
             ServletOutputStream outputStream = response.getOutputStream();
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".jpg", "UTF-8"));
+            response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+//            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".jpg", "UTF-8"));
             service.snap(phoneNumber, channelId, outputStream);
         }catch (Exception e) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());

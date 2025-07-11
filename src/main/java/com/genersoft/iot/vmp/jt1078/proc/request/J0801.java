@@ -27,17 +27,9 @@ public class J0801 extends Re {
 
     private final static Logger log = LoggerFactory.getLogger(J0801.class);
 
-    private JTPositionBaseInfo positionBaseInfo;
-
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         JTMediaEventInfo mediaEventInfo = JTMediaEventInfo.decode(buf);
-        ByteBuf byteBuf = buf.readSlice(28);
-        positionBaseInfo = JTPositionBaseInfo.decode(byteBuf);
-        File mediaEventFile = new File("mediaEvent");
-        if (!mediaEventFile.exists()) {
-            mediaEventFile.mkdirs();
-        }
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0801", null, mediaEventInfo);
         return null;

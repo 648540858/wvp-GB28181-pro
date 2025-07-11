@@ -116,22 +116,19 @@
     </div>
     <devicePlayer ref="devicePlayer" />
     <channelEdit v-if="jtChannel" ref="channelEdit" :jt-channel="jtChannel" :close-edit="closeEdit" />
-    <shooting ref="shooting" />
-
   </div>
 </template>
 
 <script>
 import devicePlayer from '../jtDevicePlayer.vue'
 import channelEdit from './edit.vue'
-import shooting from './shooting.vue'
+import dayjs from 'dayjs'
 
 export default {
   name: 'ChannelList',
   components: {
     channelEdit,
-    devicePlayer,
-    shooting
+    devicePlayer
   },
   props: {
     deviceId: {
@@ -325,9 +322,35 @@ export default {
     },
     // 编辑
     shooting(row) {
-      const baseUrl = window.baseUrl
-      let dev = (process.env.NODE_ENV === 'development' ? process.env.VUE_APP_BASE_API : baseUrl)
-      window.open(`${dev}/api/jt1078/snap?phoneNumber=${this.deviceId}&channelId=${row.channelId}`)
+      // 文件下载地址
+      const baseUrl = window.baseUrl ? window.baseUrl : ''
+      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/jt1078/snap?phoneNumber=${this.device.phoneNumber}&channelId=${row.channelId}`
+
+      // 设置请求头
+      const headers = new Headers()
+      headers.append('access-token', this.$store.getters.token) // 设置授权头，替换YourAccessToken为实际的访问令牌
+      // 发起  请求
+      fetch(fileUrl, {
+        method: 'GET',
+        headers: headers
+      })
+        .then(response => response.blob())
+        .then(blob => {
+          console.log(blob)
+          // 创建一个虚拟的链接元素，模拟点击下载
+          const link = document.createElement('a')
+          link.href = window.URL.createObjectURL(blob)
+          link.download = `${this.device.phoneNumber}-${row.channelId}-${dayjs().format('YYYYMMDDHHmmss')}.jpg` // 设置下载文件名，替换filename.ext为实际的文件名和扩展名
+          document.body.appendChild(link)
+
+          // 模拟点击
+          link.click()
+
+          // 移除虚拟链接元素
+          document.body.removeChild(link)
+          this.$message.success('已申请截图', { closed: true })
+        })
+        .catch(error => console.error('下载失败：', error))
     }
   }
 }

@@ -26,6 +26,9 @@ public class JTMediaEventInfo {
     @Schema(description = "媒体数据")
     private byte[] mediaData;
 
+    @Schema(description = "位置信息汇报")
+    private JTPositionBaseInfo positionBaseInfo;
+
 
     public static JTMediaEventInfo decode(ByteBuf buf) {
         JTMediaEventInfo jtMediaEventInfo = new JTMediaEventInfo();
@@ -34,6 +37,9 @@ public class JTMediaEventInfo {
         jtMediaEventInfo.setCode(buf.readUnsignedByte());
         jtMediaEventInfo.setEventCode(buf.readUnsignedByte());
         jtMediaEventInfo.setChannelId(buf.readUnsignedByte());
+
+        ByteBuf byteBuf = buf.readSlice(28);
+        jtMediaEventInfo.setPositionBaseInfo(JTPositionBaseInfo.decode(byteBuf));
 
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);

@@ -27,15 +27,14 @@ export function queryListByData(params) {
   })
 }
 
-export function loadRecord(params) {
-  const { app, stream, date } = params
+export function loadRecord({ app, stream, fileId }) {
   return request({
     method: 'get',
     url: `/api/cloud/record/loadRecord`,
     params: {
       app: app,
       stream: stream,
-      date: date
+      fileId: fileId
     }
   })
 }

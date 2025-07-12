@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -253,22 +254,25 @@ public class CloudRecordController {
     @Operation(summary = "加载录像文件形成播放地址")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
-    @Parameter(name = "date", description = "日期， 例如 2025-04-10", required = true)
+    @Parameter(name = "fileId", description = "云端录像文件ID", required = true)
     public DeferredResult<WVPResult<StreamContent>> loadRecord(
             HttpServletRequest request,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
-            @RequestParam(required = true) String date
+            @RequestParam(required = true) Integer fileId
             ) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>();
 
         result.onTimeout(()->{
-            log.info("[加载录像文件超时] app={}, stream={}, date={}", app, stream, date);
+            log.info("[加载录像文件超时] app={}, stream={}, fileId={}", app, stream, fileId);
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("加载录像文件超时");
             result.setResult(wvpResult);
         });
+
+        CloudRecordItem cloudRecordItem = cloudRecordService.getOne(fileId);
+        Assert.notNull(cloudRecordItem, "录像不存在");
 
         ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
 
@@ -304,7 +308,7 @@ public class CloudRecordController {
             result.setResult(wvpResult);
         };
 
-        cloudRecordService.loadRecord(app, stream, date, callback);
+        cloudRecordService.loadRecord(app, stream, cloudRecordItem, callback);
         return result;
     }
 

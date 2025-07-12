@@ -330,13 +330,7 @@ export default {
     },
     chooseFile(index) {
       this.chooseFileIndex = index
-      let timeLength = 0
-      for (let i = 0; i < this.detailFiles.length; i++) {
-        if (i < index) {
-          timeLength += this.detailFiles[i].timeLen
-        }
-      }
-      this.playSeekValue = timeLength
+      this.playSeekValue = 0
       this.playRecord()
     },
     playRecord() {
@@ -346,7 +340,7 @@ export default {
       this.$store.dispatch('cloudRecord/loadRecord', {
         app: this.app,
         stream: this.stream,
-        date: this.chooseDate
+        fileId: this.detailFiles[this.chooseFileIndex].id
       })
         .then(data => {
           this.streamInfo = data
@@ -355,7 +349,6 @@ export default {
           } else {
             this.videoUrl = data['fmp4'] + '&time=' + new Date().getTime()
           }
-          this.seekRecord()
         })
         .catch((error) => {
           console.log(error)
@@ -411,6 +404,8 @@ export default {
         return
       }
       this.playTime = val
+      let chooseFile = this.detailFiles[this.chooseFileIndex]
+      console.log(chooseFile)
     },
     timelineMouseDown() {
       this.timelineControl = true

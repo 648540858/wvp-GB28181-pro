@@ -59,11 +59,13 @@ public interface ICloudRecordService {
     /**
      * 加载录像文件，形成录像流
      */
-    void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback);
+    void loadRecord(String app, String stream, CloudRecordItem cloudRecordItem, ErrorCallback<StreamInfo> callback);
 
     void seekRecord(String mediaServerId,String app, String stream, Double seek, String schema);
 
     void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed, String schema);
 
     void deleteFileByIds(Set<Integer> ids);
+
+    CloudRecordItem getOne(Integer fileId);
 }

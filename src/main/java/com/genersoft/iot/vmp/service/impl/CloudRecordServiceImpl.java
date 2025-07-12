@@ -284,21 +284,15 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback) {
-        long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
-        long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
+    public void loadRecord(String app, String stream, CloudRecordItem cloudRecordItem, ErrorCallback<StreamInfo> callback) {
 
-        List<CloudRecordItem> recordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimestamp, endTimestamp, null, null, null, false);
-        if (recordItemList.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
-        }
-        String mediaServerId = recordItemList.get(0).getMediaServerId();
+        String mediaServerId = cloudRecordItem.getMediaServerId();
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
         String buildApp = "mp4_record";
-        String buildStream = app + "_" + stream + "_" + date;
+        String buildStream = app + "_" + stream + "_" + cloudRecordItem.getStartTime();
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, buildApp, buildStream);
          if (mediaInfo != null) {
              if (callback != null) {
@@ -315,8 +309,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
         });
-        String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
-        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
+        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, cloudRecordItem.getFilePath());
     }
 
     @Override
@@ -371,5 +364,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             stringBuilder.append(" 删除失败");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), stringBuilder.toString());
         }
+    }
+
+    @Override
+    public CloudRecordItem getOne(Integer fileId) {
+        return cloudRecordServiceMapper.queryOne(fileId);
     }
 }

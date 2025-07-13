@@ -415,23 +415,23 @@ export default {
         this.timelineControl = false
         return
       }
+      this.chooseFileIndex = null
       this.timelineControl = false
-      let timeLength = 0
       for (let i = 0; i < this.detailFiles.length; i++) {
         const item = this.detailFiles[i]
-        if (this.playTime > item.endTime) {
-          timeLength += item.timeLen
-        } else if (this.playTime === item.endTime) {
-          timeLength += item.timeLen
-          this.chooseFileIndex = i
-          break
-        } else if (this.playTime > item.startTime && this.playTime < item.endTime) {
-          timeLength += (this.playTime - item.startTime)
+        if (this.playTime > item.startTime && this.playTime < item.endTime) {
           this.chooseFileIndex = i
           break
         }
       }
-      this.playSeekValue = timeLength
+      if (this.chooseFileIndex === null) {
+        this.$message({
+          showClose: true,
+          message: '此时段无录像',
+          type: 'error'
+        })
+        return;
+      }
       this.playRecord()
     },
     getTimeForFile(file) {

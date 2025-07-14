@@ -25,7 +25,7 @@ public class J0702 extends Re {
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-        driverInformation = JTDriverInformation.decode(buf);
+        driverInformation = JTDriverInformation.decode(buf, header.is2019Version());
         log.info("[JT-驾驶员身份信息采集上报]: {}", driverInformation.toString());
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0702", null, driverInformation);
         return null;

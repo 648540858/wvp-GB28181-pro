@@ -31,10 +31,10 @@ public enum MultiPacketManager {
         multiPackets.add(packet);
         packetTimeMap.put(key, System.currentTimeMillis());
         if (packet.getCount() == multiPackets.size()) {
+            logger.info("分包接受完毕： \n{}", packet.getHeader());
             // 所有分包接收完毕，排序后返回
             multiPackets.sort(Comparator.comparing(MultiPacket::getNumber));
             ByteBuf byteBuf = Unpooled.buffer();
-            System.out.println(byteBuf.maxFastWritableBytes());
             for (MultiPacket multiPacket : multiPackets) {
                 byteBuf.writeBytes(multiPacket.getByteBuf());
             }

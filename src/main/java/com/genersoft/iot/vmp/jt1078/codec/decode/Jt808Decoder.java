@@ -19,7 +19,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author QingtaiJiang
@@ -37,6 +40,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
         this.service = service;
     }
 
+    Map<String, List<String>> dumpMap = new ConcurrentHashMap<>();
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         Session session = ctx.channel().attr(Session.KEY).get();
@@ -51,11 +55,9 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             // 从消息属性中读取是否存在分包
             boolean isSubpackage = (header.getMsgPro() >>> 13 & 1) == 1;
             if (header.is2019Version()) {
-
                 header.setVersion(buf.readUnsignedByte());
                 String devId = ByteBufUtil.hexDump(buf.readSlice(10));
                 header.setPhoneNumber(devId.replaceFirst("^0*", ""));
-
             } else {
                 header.setPhoneNumber(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
             }
@@ -63,14 +65,28 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             if (isSubpackage) {
                 int packageCount = buf.readUnsignedShort();
                 int packageNumber = buf.readUnsignedShort();
+//                List<String> strings = dumpMap.get(header.getPhoneNumber());
+//                if (strings == null) {
+//                    strings = new ArrayList<>();
+//                }
+//                strings.add(dump);
+//                if (strings.size() == packageCount) {
+//                    for (int i = 0; i < strings.size(); i++) {
+//                        if (i == strings.size() - 1) {
+//                            System.out.println(strings.get(i));
+//                        }else {
+//                            System.out.print(strings.get(i));
+//                        }
+//                    }
+//                }
                 MultiPacket multiPacket = MultiPacket.getInstance(header, packageNumber, packageCount, buf);
                 ByteBuf intactBuf = MultiPacketManager.INSTANCE.add(multiPacket);
                 if (intactBuf != null) {
                     buf = intactBuf;
                 }else {
+                    in.skipBytes(in.readableBytes());
                     return;
                 }
-
             }
             Re handler = CodecFactory.getHandler(header.getMsgId());
             if (handler == null) {
@@ -88,8 +104,6 @@ public class Jt808Decoder extends ByteToMessageDecoder {
         } finally {
             in.skipBytes(in.readableBytes());
         }
-
-
     }
 
 

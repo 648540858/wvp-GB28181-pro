@@ -3,7 +3,9 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
+@Data
 @Schema(description = "拍摄命令参数")
 public class JTShootingCommand {
 
@@ -60,86 +62,6 @@ public class JTShootingCommand {
         byteBuf.writeByte(saturation);
         byteBuf.writeByte(chroma);
         return byteBuf;
-    }
-
-    public int getChanelId() {
-        return chanelId;
-    }
-
-    public void setChanelId(int chanelId) {
-        this.chanelId = chanelId;
-    }
-
-    public int getCommand() {
-        return command;
-    }
-
-    public void setCommand(int command) {
-        this.command = command;
-    }
-
-    public int getSave() {
-        return save;
-    }
-
-    public void setSave(int save) {
-        this.save = save;
-    }
-
-    public int getResolvingPower() {
-        return resolvingPower;
-    }
-
-    public void setResolvingPower(int resolvingPower) {
-        this.resolvingPower = resolvingPower;
-    }
-
-    public int getQuality() {
-        return quality;
-    }
-
-    public void setQuality(int quality) {
-        this.quality = quality;
-    }
-
-    public int getBrightness() {
-        return brightness;
-    }
-
-    public void setBrightness(int brightness) {
-        this.brightness = brightness;
-    }
-
-    public int getContrastRatio() {
-        return contrastRatio;
-    }
-
-    public void setContrastRatio(int contrastRatio) {
-        this.contrastRatio = contrastRatio;
-    }
-
-    public int getSaturation() {
-        return saturation;
-    }
-
-    public void setSaturation(int saturation) {
-        this.saturation = saturation;
-    }
-
-    public int getChroma() {
-        return chroma;
-    }
-
-    public void setChroma(int chroma) {
-        this.chroma = chroma;
-    }
-
-    public int getTime() {
-        return time;
-    }
-
-    public void setTime(int time) {
-        this.time = time;
     }
 
     @Override

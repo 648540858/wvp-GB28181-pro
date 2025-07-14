@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * JT 设备
  */
+@Data
 @Schema(description = "jt808设备")
 public class JTDevice {
 
@@ -102,160 +104,16 @@ public class JTDevice {
     @Schema(description = "状态")
     private boolean status;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getProvinceId() {
-        return provinceId;
-    }
-
-    public void setProvinceId(String provinceId) {
-        this.provinceId = provinceId;
-    }
-
-    public String getProvinceText() {
-        return provinceText;
-    }
-
-    public void setProvinceText(String provinceText) {
-        this.provinceText = provinceText;
-    }
-
-    public String getCityId() {
-        return cityId;
-    }
-
-    public void setCityId(String cityId) {
-        this.cityId = cityId;
-    }
-
-    public String getCityText() {
-        return cityText;
-    }
-
-    public void setCityText(String cityText) {
-        this.cityText = cityText;
-    }
-
-    public String getMakerId() {
-        return makerId;
-    }
-
-    public void setMakerId(String makerId) {
-        this.makerId = makerId;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getTerminalId() {
-        return terminalId;
-    }
-
-    public void setTerminalId(String deviceId) {
-        this.terminalId = deviceId;
-    }
-
-    public int getPlateColor() {
-        return plateColor;
-    }
-
-    public void setPlateColor(int plateColor) {
-        this.plateColor = plateColor;
-    }
-
-    public String getPlateNo() {
-        return plateNo;
-    }
-
-    public void setPlateNo(String plateNo) {
-        this.plateNo = plateNo;
-    }
-
-    public String getAuthenticationCode() {
-        return authenticationCode;
-    }
-
-    public void setAuthenticationCode(String authenticationCode) {
-        this.authenticationCode = authenticationCode;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public String getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(String updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-
-    public String getRegisterTime() {
-        return registerTime;
-    }
-
-    public void setRegisterTime(String registerTime) {
-        this.registerTime = registerTime;
-    }
-
     @Override
     public String toString() {
         return "JTDevice{" +
+                "  终端手机号='" + phoneNumber + '\'' +
                 ", 省域ID='" + provinceId + '\'' +
                 ", 省域文字描述='" + provinceText + '\'' +
                 ", 市县域ID='" + cityId + '\'' +
                 ", 市县域文字描述='" + cityText + '\'' +
                 ", 制造商ID='" + makerId + '\'' +
                 ", 终端型号='" + model + '\'' +
-                ", 终端手机号='" + phoneNumber + '\'' +
                 ", 设备ID='" + terminalId + '\'' +
                 ", 车牌颜色=" + plateColor +
                 ", 车牌='" + plateNo + '\'' +

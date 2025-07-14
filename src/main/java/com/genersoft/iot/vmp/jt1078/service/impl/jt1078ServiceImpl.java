@@ -734,11 +734,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
         JTShootingCommand shootingCommand = new JTShootingCommand();
         shootingCommand.setChanelId(channelId);
-        shootingCommand.setCommand(1);
+        shootingCommand.setCommand(3);
         shootingCommand.setTime(0);
         shootingCommand.setSave(0);
-        shootingCommand.setResolvingPower(0x03);
-        shootingCommand.setQuality(5);
+        shootingCommand.setResolvingPower(0x01);
+        shootingCommand.setQuality(1);
         shootingCommand.setBrightness(125);
         shootingCommand.setContrastRatio(60);
         shootingCommand.setSaturation(60);
@@ -749,6 +749,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         @SuppressWarnings("unchecked")
         List<Long> ids = (List<Long>) jt1078Template.shooting(phoneNumber, j8801, 300);
         log.info("[JT-抓图] 抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+
         log.info("[JT-抓图] 请求上传图片，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
         J8805 j8805 = new J8805();
         j8805.setMediaId(ids.get(0));

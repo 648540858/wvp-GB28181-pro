@@ -4,9 +4,13 @@ import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 
+@Data
+@Slf4j
 @Schema(description = "驾驶员身份信息")
 public class JTDriverInformation {
 
@@ -39,12 +43,18 @@ public class JTDriverInformation {
     @Schema(description = "驾驶员身份证号")
     private String driverIdNumber;
 
-    public static JTDriverInformation decode(ByteBuf buf) {
+    public static JTDriverInformation decode(ByteBuf buf, boolean is2019) {
         JTDriverInformation jtDriverInformation = new JTDriverInformation();
         jtDriverInformation.setStatus(buf.readUnsignedByte());
         byte[] bytes = new byte[6];
         buf.readBytes(bytes);
-        jtDriverInformation.setTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(BCDUtil.transform(bytes)));
+        String timeStr = BCDUtil.transform(bytes);
+        try {
+            jtDriverInformation.setTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(timeStr));
+        }catch (Exception e) {
+            log.error("[JT-驾驶员身份信息] 解码时无法格式化时间： {}", timeStr);
+        }
+
         if (jtDriverInformation.getStatus() == 1) {
             jtDriverInformation.setResult((int)buf.readUnsignedByte());
             int nameLength = buf.readUnsignedByte();
@@ -55,74 +65,17 @@ public class JTDriverInformation {
                     certificateIssuanceMechanismNameLength, Charset.forName("GBK")).toString().trim());
             byte[] bytesForExpire = new byte[4];
             buf.readBytes(bytesForExpire);
-            jtDriverInformation.setExpire(DateUtil.jt1078dateToyyyy_MM_dd(BCDUtil.transform(bytesForExpire)));
-            jtDriverInformation.setDriverIdNumber(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+            String bytesForExpireStr = BCDUtil.transform(bytesForExpire);
+            try {
+                jtDriverInformation.setExpire(DateUtil.jt1078dateToyyyy_MM_dd(bytesForExpireStr));
+            }catch (Exception e) {
+                log.error("[JT-驾驶员身份信息] 解码时无法格式化时间： {}", bytesForExpireStr);
+            }
+            if (is2019) {
+                jtDriverInformation.setDriverIdNumber(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+            }
         }
         return jtDriverInformation;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    public Integer getResult() {
-        return result;
-    }
-
-    public void setResult(Integer result) {
-        this.result = result;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getCertificateCode() {
-        return certificateCode;
-    }
-
-    public void setCertificateCode(String certificateCode) {
-        this.certificateCode = certificateCode;
-    }
-
-    public String getCertificateIssuanceMechanismName() {
-        return certificateIssuanceMechanismName;
-    }
-
-    public void setCertificateIssuanceMechanismName(String certificateIssuanceMechanismName) {
-        this.certificateIssuanceMechanismName = certificateIssuanceMechanismName;
-    }
-
-    public String getExpire() {
-        return expire;
-    }
-
-    public void setExpire(String expire) {
-        this.expire = expire;
-    }
-
-    public String getDriverIdNumber() {
-        return driverIdNumber;
-    }
-
-    public void setDriverIdNumber(String driverIdNumber) {
-        this.driverIdNumber = driverIdNumber;
     }
 
     @Override

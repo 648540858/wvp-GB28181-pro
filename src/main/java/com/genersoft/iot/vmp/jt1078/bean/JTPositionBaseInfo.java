@@ -152,6 +152,18 @@ public class JTPositionBaseInfo {
         this.videoAlarm = videoAlarm;
     }
 
+
+    public String toSimpleString() {
+        return "简略位置汇报信息： " +
+                " \n 经度：" + longitude +
+                " \n 纬度：" + latitude +
+                " \n 高程： " + altitude +
+                " \n 速度： " + speed +
+                " \n 方向： " + direction +
+                " \n 时间： " + time +
+                " \n";
+    }
+
     @Override
     public String toString() {
         return "位置汇报信息： " +

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.codec.decode;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public enum MultiPacketManager {
             // 所有分包接收完毕，排序后返回
             multiPackets.sort(Comparator.comparing(MultiPacket::getNumber));
             ByteBuf byteBuf = Unpooled.buffer();
+            System.out.println(byteBuf.maxFastWritableBytes());
             for (MultiPacket multiPacket : multiPackets) {
                 byteBuf.writeBytes(multiPacket.getByteBuf());
             }
@@ -48,7 +50,7 @@ public enum MultiPacketManager {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                long expireTime = System.currentTimeMillis() - 2 * 1000;
+                long expireTime = System.currentTimeMillis() - 20 * 1000;
                 if (!packetTimeMap.isEmpty()) {
                     for (String key : packetTimeMap.keySet()) {
                         if (packetTimeMap.get(key) < expireTime) {

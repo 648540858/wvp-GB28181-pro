@@ -737,8 +737,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         shootingCommand.setCommand(1);
         shootingCommand.setTime(0);
         shootingCommand.setSave(0);
-        shootingCommand.setResolvingPower(0xff);
-        shootingCommand.setQuality(1);
+        shootingCommand.setResolvingPower(0x03);
+        shootingCommand.setQuality(5);
         shootingCommand.setBrightness(125);
         shootingCommand.setContrastRatio(60);
         shootingCommand.setSaturation(60);
@@ -749,19 +749,24 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         @SuppressWarnings("unchecked")
         List<Long> ids = (List<Long>) jt1078Template.shooting(phoneNumber, j8801, 300);
         log.info("[JT-抓图] 抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+        log.info("[JT-抓图] 请求上传图片，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
         J8805 j8805 = new J8805();
         j8805.setMediaId(ids.get(0));
         j8805.setDelete(1);
-        log.info("[JT-抓图] 请求上传图片，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
-        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 300);
+        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 600);
         if (mediaEventInfo == null) {
             log.info("[]");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }
         log.info("[JT-抓图] 图片上传完成，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
         try {
-            outputStream.write(mediaEventInfo.getMediaData());
-            outputStream.flush();
+            if (outputStream.isReady()) {
+                outputStream.write(mediaEventInfo.getMediaData());
+                outputStream.flush();
+            }else {
+                log.info("[JT-抓图] 请求可能已经结束，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
+            }
+
         } catch (IOException e) {
             log.info("[JT-抓图] 数据写入异常，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId, e);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");

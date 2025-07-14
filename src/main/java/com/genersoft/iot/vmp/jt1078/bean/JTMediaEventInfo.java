@@ -37,14 +37,14 @@ public class JTMediaEventInfo {
         jtMediaEventInfo.setCode(buf.readUnsignedByte());
         jtMediaEventInfo.setEventCode(buf.readUnsignedByte());
         jtMediaEventInfo.setChannelId(buf.readUnsignedByte());
+        if (buf.readableBytes() > 0) {
+            ByteBuf byteBuf = buf.readSlice(28);
+            jtMediaEventInfo.setPositionBaseInfo(JTPositionBaseInfo.decode(byteBuf));
 
-        ByteBuf byteBuf = buf.readSlice(28);
-        jtMediaEventInfo.setPositionBaseInfo(JTPositionBaseInfo.decode(byteBuf));
-
-        byte[] bytes = new byte[buf.readableBytes()];
-        buf.readBytes(bytes);
-        jtMediaEventInfo.setMediaData(bytes);
-
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            jtMediaEventInfo.setMediaData(bytes);
+        }
         return jtMediaEventInfo;
     }
 
@@ -56,7 +56,7 @@ public class JTMediaEventInfo {
                 ", code=" + code +
                 ", eventCode=" + eventCode +
                 ", channelId=" + channelId +
-                ", fileSize=" + mediaData.length +
+                ", fileSize=" + (mediaData == null ? 0 : mediaData.length) +
                 '}';
     }
 }

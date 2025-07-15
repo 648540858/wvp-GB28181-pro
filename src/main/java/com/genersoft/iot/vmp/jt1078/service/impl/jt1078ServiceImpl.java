@@ -732,12 +732,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public void snap(String phoneNumber, int channelId, ServletOutputStream outputStream) {
         J8801 j8801 = new J8801();
 
+        // 设置抓图默认参数
         JTShootingCommand shootingCommand = new JTShootingCommand();
         shootingCommand.setChanelId(channelId);
-        shootingCommand.setCommand(3);
+        shootingCommand.setCommand(1);
         shootingCommand.setTime(0);
         shootingCommand.setSave(0);
-        shootingCommand.setResolvingPower(0x01);
+        shootingCommand.setResolvingPower(0xFF);
         shootingCommand.setQuality(1);
         shootingCommand.setBrightness(125);
         shootingCommand.setContrastRatio(60);
@@ -761,13 +762,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         log.info("[JT-抓图] 图片上传完成，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
         try {
-            if (outputStream.isReady()) {
-                outputStream.write(mediaEventInfo.getMediaData());
-                outputStream.flush();
-            }else {
-                log.info("[JT-抓图] 请求可能已经结束，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
-            }
-
+            outputStream.write(mediaEventInfo.getMediaData());
+            outputStream.flush();
         } catch (IOException e) {
             log.info("[JT-抓图] 数据写入异常，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId, e);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");

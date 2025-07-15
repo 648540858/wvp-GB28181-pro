@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -37,10 +38,9 @@ public class JTMediaEventInfo {
         jtMediaEventInfo.setCode(buf.readUnsignedByte());
         jtMediaEventInfo.setEventCode(buf.readUnsignedByte());
         jtMediaEventInfo.setChannelId(buf.readUnsignedByte());
-        if (buf.readableBytes() > 0) {
+        if (buf.readableBytes() > 28) {
             ByteBuf byteBuf = buf.readSlice(28);
             jtMediaEventInfo.setPositionBaseInfo(JTPositionBaseInfo.decode(byteBuf));
-
             byte[] bytes = new byte[buf.readableBytes()];
             buf.readBytes(bytes);
             jtMediaEventInfo.setMediaData(bytes);

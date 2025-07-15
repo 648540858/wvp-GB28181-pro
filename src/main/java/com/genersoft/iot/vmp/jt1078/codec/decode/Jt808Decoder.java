@@ -43,10 +43,11 @@ public class Jt808Decoder extends ByteToMessageDecoder {
     Map<String, List<String>> dumpMap = new ConcurrentHashMap<>();
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        in.retain();
         Session session = ctx.channel().attr(Session.KEY).get();
         log.info("> {} hex: 7e{}7e", session, ByteBufUtil.hexDump(in));
-
         try {
+            // 按照部标定义执行校验和转义
             ByteBuf buf = unEscapeAndCheck(in);
 
             Header header = new Header();
@@ -65,34 +66,20 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             if (isSubpackage) {
                 int packageCount = buf.readUnsignedShort();
                 int packageNumber = buf.readUnsignedShort();
-//                List<String> strings = dumpMap.get(header.getPhoneNumber());
-//                if (strings == null) {
-//                    strings = new ArrayList<>();
-//                }
-//                strings.add(dump);
-//                if (strings.size() == packageCount) {
-//                    for (int i = 0; i < strings.size(); i++) {
-//                        if (i == strings.size() - 1) {
-//                            System.out.println(strings.get(i));
-//                        }else {
-//                            System.out.print(strings.get(i));
-//                        }
-//                    }
-//                }
-                MultiPacket multiPacket = MultiPacket.getInstance(header, packageNumber, packageCount, buf);
-                ByteBuf intactBuf = MultiPacketManager.INSTANCE.add(multiPacket);
-                if (intactBuf != null) {
-                    buf = intactBuf;
-                }else {
-                    in.skipBytes(in.readableBytes());
+                log.debug("[分包消息] header: {}, 序号: {}, 总数: {}", header, packageNumber, packageCount);
+                // 缓存带合并的分包消息
+                ByteBuf intactBuf = MultiPacketManager.INSTANCE.add(header, packageCount, buf);
+                if (intactBuf == null) {
                     return;
                 }
+                buf = intactBuf;
             }
             Re handler = CodecFactory.getHandler(header.getMsgId());
             if (handler == null) {
                 log.error("get msgId is null {}", header.getMsgId());
                 return;
             }
+            buf.retain();
             Rs decode = handler.decode(buf, header, session, service);
             ApplicationEvent applicationEvent = handler.getEvent();
             if (applicationEvent != null) {
@@ -167,7 +154,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
         }
 
         if (calculationCheckSum == checkSum) {
-            if (bufList.size() == 0) {
+            if (bufList.isEmpty()) {
                 return byteBuf.slice(low, high);
             } else {
                 bufList.add(byteBuf.slice(low, high - low));

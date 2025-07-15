@@ -48,6 +48,10 @@ public class J0102 extends Re {
             j8001.setResult(J8001.FAIL);
         }else {
             j8001.setResult(J8001.SUCCESS);
+            if (!device.isStatus()) {
+                device.setStatus(true);
+                service.updateDevice(device);
+            }
         }
         return j8001;
     }

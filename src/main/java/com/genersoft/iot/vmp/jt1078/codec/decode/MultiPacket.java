@@ -2,10 +2,12 @@ package com.genersoft.iot.vmp.jt1078.codec.decode;
 
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import io.netty.buffer.ByteBuf;
+import lombok.Data;
 
 /**
  * 分包消息
  */
+@Data
 public class MultiPacket {
 
     /**
@@ -33,7 +35,15 @@ public class MultiPacket {
      */
     private ByteBuf byteBuf;
 
+    /**
+     * 消息内容
+     */
+    private String bufStr;
+
     public static MultiPacket getInstance(Header header, Integer number, Integer count, ByteBuf byteBuf) {
+        if (byteBuf == null) {
+            System.err.println("MultiPacket error byteBuf is null");
+        }
         MultiPacket multiPacket = new MultiPacket();
         multiPacket.setHeader(header);
         multiPacket.setNumber(number);
@@ -41,46 +51,6 @@ public class MultiPacket {
         multiPacket.setCreateTime(System.currentTimeMillis());
         multiPacket.setByteBuf(byteBuf);
         return multiPacket;
-    }
-
-    public Header getHeader() {
-        return header;
-    }
-
-    public void setHeader(Header header) {
-        this.header = header;
-    }
-
-    public Integer getNumber() {
-        return number;
-    }
-
-    public void setNumber(Integer number) {
-        this.number = number;
-    }
-
-    public Integer getCount() {
-        return count;
-    }
-
-    public void setCount(Integer count) {
-        this.count = count;
-    }
-
-    public Long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Long createTime) {
-        this.createTime = createTime;
-    }
-
-    public ByteBuf getByteBuf() {
-        return byteBuf;
-    }
-
-    public void setByteBuf(ByteBuf byteBuf) {
-        this.byteBuf = byteBuf;
     }
 
     @Override

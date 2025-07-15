@@ -49,7 +49,7 @@ public interface JTTerminalMapper {
             ")</if> " +
             " <if test='online == true' > AND jd.status= true</if>" +
             " <if test='online == false' > AND jd.status= false</if>" +
-            "ORDER BY jd.update_time " +
+            "ORDER BY jd.create_time " +
             " </script>"})
     List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
 

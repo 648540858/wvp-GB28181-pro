@@ -108,7 +108,6 @@ public class J8103 extends Rs {
                 }
             }
         }
-        System.out.println(ByteBufUtil.hexDump(buffer));
         return buffer;
     }
 

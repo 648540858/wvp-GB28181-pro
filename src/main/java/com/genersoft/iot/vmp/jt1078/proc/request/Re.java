@@ -37,7 +37,6 @@ public abstract class Re {
         if (rs != null) {
             rs.setHeader(header);
         }
-
         return rs;
     }
 

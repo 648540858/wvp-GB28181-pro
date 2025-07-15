@@ -100,15 +100,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
      */
     @Override
     public JTMediaStreamType checkStreamFromJt(String stream) {
-        if (!stream.startsWith("jt_")) {
-            return null;
-        }
         String[] streamParamArray = stream.split("_");
-        if (streamParamArray.length == 3) {
+        if (streamParamArray.length == 2) {
             return JTMediaStreamType.PLAY;
-        }else if (streamParamArray.length == 5) {
-            return JTMediaStreamType.PLAYBACK;
         }else if (streamParamArray.length == 4) {
+            return JTMediaStreamType.PLAYBACK;
+        }else if (streamParamArray.length == 5) {
             return JTMediaStreamType.TALK;
         }else {
             return null;

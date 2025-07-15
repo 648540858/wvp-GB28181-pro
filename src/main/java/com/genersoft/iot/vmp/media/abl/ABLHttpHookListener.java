@@ -249,7 +249,7 @@ public class ABLHttpHookListener {
     @PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
     public JSONObject onStreamNoneReader(@RequestBody ABLHookParam param) {
 
-        logger.info("[ZLM HOOK]流无人观看：{}->{}/{}", param.getMediaServerId(),
+        logger.info("[ABL HOOK]流无人观看：{}->{}/{}", param.getMediaServerId(),
                 param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
 

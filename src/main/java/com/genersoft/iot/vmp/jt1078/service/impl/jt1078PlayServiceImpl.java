@@ -234,8 +234,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             return;
         }
 
-
-
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
             log.info("[JT-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
@@ -382,7 +380,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
 
         String app = "1078";
-        String stream = phoneNumber + "_" + channelId;
+        String stream = String.format("%s_%s_%s_%s", phoneNumber, channelId,
+                DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime), DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {

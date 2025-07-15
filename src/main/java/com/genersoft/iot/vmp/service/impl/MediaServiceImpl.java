@@ -251,21 +251,21 @@ public class MediaServiceImpl implements IMediaService {
                     }
                 }
                 return result;
-            }else {
-                // 判断是否是1078点播
-                JTMediaStreamType jtMediaStreamType = ijt1078Service.checkStreamFromJt(stream);
-                if (jtMediaStreamType != null) {
-                    String[] streamParamArray = stream.split("_");
-                    if (jtMediaStreamType.equals(JTMediaStreamType.PLAY)) {
-                        jt1078PlayService.stopPlay(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
-                    }else if (jtMediaStreamType.equals(JTMediaStreamType.PLAYBACK)) {
-                        jt1078PlayService.stopPlayback(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
-                    }
-                }else {
-                    return false;
-                }
             }
-        } else if ("talk".equals(app) || "broadcast".equals(app)) {
+        }else if ("1078".equals(app)) {
+            // 判断是否是1078播放类型
+            JTMediaStreamType jtMediaStreamType = ijt1078Service.checkStreamFromJt(stream);
+            if (jtMediaStreamType != null) {
+                String[] streamParamArray = stream.split("_");
+                if (jtMediaStreamType.equals(JTMediaStreamType.PLAY)) {
+                    jt1078PlayService.stopPlay(streamParamArray[0], Integer.parseInt(streamParamArray[1]));
+                }else if (jtMediaStreamType.equals(JTMediaStreamType.PLAYBACK)) {
+                    jt1078PlayService.stopPlayback(streamParamArray[0], Integer.parseInt(streamParamArray[1]));
+                }
+            }else {
+                return false;
+            }
+        }else if ("talk".equals(app) || "broadcast".equals(app)) {
             return false;
         } else {
             // 非国标流 推流/拉流代理

@@ -75,6 +75,10 @@ public class DateUtil {
         return formatterISO8601.format(formatter.parse(formatTime));
     }
 
+	public static String yyyy_MM_dd_HH_mm_ssToUrl(@NotNull String formatTime) {
+        return urlFormatter.format(formatter.parse(formatTime));
+    }
+
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
         // 三种日期格式都尝试，为了兼容不同厂家的日期格式
         if (verification(formatTime, formatterCompatibleISO8601)) {

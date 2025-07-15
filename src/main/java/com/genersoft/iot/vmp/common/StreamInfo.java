@@ -182,7 +182,8 @@ public class StreamInfo implements Serializable, Cloneable{
         if (callIdParam != null) {
             callIdParam = Objects.equals(callIdParam, "") ? callIdParam : callIdParam.replace("?", "&");
         }
-        String file = String.format("%s/%s?type=%s%s", app, stream, isPlay?"play":"push", callIdParam);
+//        String file = String.format("%s/%s?type=%s%s", app, stream, isPlay?"play":"push", callIdParam);
+        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=%s%s", app, stream, isPlay?"play":"push", callIdParam);
         if (port > 0) {
             this.rtc = new StreamURL("http", host, port, file);
         }

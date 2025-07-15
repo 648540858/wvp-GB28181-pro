@@ -88,6 +88,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             if (decode != null) {
                 out.add(decode);
             }
+            buf.release();
         } finally {
             in.skipBytes(in.readableBytes());
         }

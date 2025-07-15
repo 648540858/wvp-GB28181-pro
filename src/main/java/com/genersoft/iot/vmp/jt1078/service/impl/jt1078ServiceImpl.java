@@ -131,6 +131,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public PageInfo<JTDevice> getDeviceList(int page, int count, String query, Boolean online) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<JTDevice> all = jtDeviceMapper.getDeviceList(query, online);
         return new PageInfo<>(all);
     }

@@ -2,14 +2,15 @@ import request from '@/utils/request'
 
 // 部标设备API
 
-export function queryDevices(params) {
-  const { page, count } = params
+export function queryDevices({ page, count, query, online }) {
   return request({
     method: 'get',
     url: `/api/jt1078/terminal/list`,
     params: {
       page: page,
-      count: count
+      count: count,
+      query: query,
+      online: online
     }
   })
 }

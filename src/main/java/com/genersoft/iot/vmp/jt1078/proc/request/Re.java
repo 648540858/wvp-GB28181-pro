@@ -28,6 +28,7 @@ public abstract class Re {
             session.register(header.getPhoneNumber(), (int) header.getVersion(), header);
         }
         Rs rs = decode0(buf, header, session);
+        buf.release();
         Rs rsHand = handler(header, session, service);
         if (rs == null && rsHand != null) {
             rs = rsHand;

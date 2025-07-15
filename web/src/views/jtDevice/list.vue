@@ -1,6 +1,29 @@
 <template>
   <div id="app" style="height: calc(100vh - 124px);">
     <el-form :inline="true" size="mini">
+      <el-form-item label="搜索">
+        <el-input
+          v-model="searchStr"
+          style="margin-right: 1rem; width: auto;"
+          placeholder="关键字"
+          prefix-icon="el-icon-search"
+          clearable
+          @input="initData"
+        />
+      </el-form-item>
+      <el-form-item label="在线状态">
+        <el-select
+          v-model="online"
+          style="width: 8rem; margin-right: 1rem;"
+          placeholder="请选择"
+          default-first-option
+          @change="initData"
+        >
+          <el-option label="全部" value="" />
+          <el-option label="在线" value="true" />
+          <el-option label="离线" value="false" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">新设备</el-button>
         <el-button icon="el-icon-info" style="margin-right: 1rem;" @click="showInfo()">接入信息</el-button>
@@ -142,6 +165,8 @@ export default {
       deviceList: [], // 设备列表
       updateLooper: 0, // 数据刷新轮训标志
       winHeight: window.innerHeight - 200,
+      searchStr: '',
+      online: '',
       currentPage: 1,
       count: 15,
       total: 0,
@@ -172,7 +197,9 @@ export default {
       this.getListLoading = true
       this.$store.dispatch('jtDevice/queryDevices', {
         page: this.currentPage,
-        count: this.count
+        count: this.count,
+        query: this.searchStr,
+        online: this.online
       })
         .then(data => {
           this.total = data.total

@@ -38,9 +38,9 @@ public interface JTTerminalMapper {
             "WHERE " +
             "1=1" +
             " <if test='query != null'> AND (" +
-            "jd.phone_number LIKE concat('%',#{query},'%') " +
-            "jd.terminal_id LIKE concat('%',#{query},'%') " +
-            "jd.province_id LIKE concat('%',#{query},'%') " +
+            "   jd.phone_number LIKE concat('%',#{query},'%') " +
+            "OR jd.terminal_id LIKE concat('%',#{query},'%') " +
+            "OR jd.province_id LIKE concat('%',#{query},'%') " +
             "OR jd.city_id LIKE concat('%',#{query},'%') " +
             "OR jd.maker_id LIKE concat('%',#{query},'%') " +
             "OR jd.model LIKE concat('%',#{query},'%') " +

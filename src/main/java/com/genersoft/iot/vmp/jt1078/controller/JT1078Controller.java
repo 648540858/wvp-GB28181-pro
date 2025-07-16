@@ -506,17 +506,10 @@ public class JT1078Controller {
     @Operation(summary = "JT-链路检测", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/link-detection")
-    public WVPResult<Integer> linkDetection(String phoneNumber){
+    public Integer linkDetection(String phoneNumber){
 
         log.info("[JT-链路检测] phoneNumber: {}", phoneNumber);
-        int result = service.linkDetection(phoneNumber);
-        if (result == 0) {
-            return WVPResult.success(result);
-        }else {
-            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
-            fail.setData(result);
-            return fail;
-        }
+        return service.linkDetection(phoneNumber);
     }
 
     @Operation(summary = "JT-文本信息下发", security = @SecurityRequirement(name = JwtUtils.HEADER))

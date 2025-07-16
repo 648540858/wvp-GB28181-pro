@@ -105,32 +105,30 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="params" :disabled="!scope.row.status">
                 终端参数</el-dropdown-item>
-              <!--              <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">-->
-              <!--                终端属性</el-dropdown-item>-->
-<!--              <el-dropdown-item command="connection" :disabled="!scope.row.status">-->
-<!--                终端连接</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >-->
-              <!--                链路检测</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >-->
-              <!--                位置信息</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="textMsg" v-bind:disabled="!scope.row.status" >-->
-              <!--                文本信息</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >-->
-              <!--                电话回拨</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >-->
-              <!--                设置电话本</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="tempPositionTracking" v-bind:disabled="!scope.row.status" >-->
-              <!--                临时跟踪</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >-->
-              <!--                终端复位</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >-->
-              <!--                恢复出厂</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >-->
-              <!--                车门控制</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >-->
-              <!--                驾驶员信息</el-dropdown-item>-->
-              <!--              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >-->
-              <!--                音视频属性</el-dropdown-item>-->
+              <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">
+                终端属性</el-dropdown-item>
+              <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >
+                链路检测</el-dropdown-item>
+              <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >
+                位置信息</el-dropdown-item>
+              <el-dropdown-item command="textMsg" v-bind:disabled="!scope.row.status" >
+                文本信息</el-dropdown-item>
+              <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >
+                电话回拨</el-dropdown-item>
+              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
+                设置电话本</el-dropdown-item>
+              <el-dropdown-item command="tempPositionTracking" v-bind:disabled="!scope.row.status" >
+                临时跟踪</el-dropdown-item>
+              <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >
+                终端复位</el-dropdown-item>
+              <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >
+                恢复出厂</el-dropdown-item>
+              <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
+                车门控制</el-dropdown-item>
+              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
+                驾驶员信息</el-dropdown-item>
+              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >
+                音视频属性</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -148,17 +146,21 @@
     />
     <deviceEdit ref="deviceEdit" />
     <configInfo ref="configInfo" />
+    <attribute ref="attribute" />
+    <position ref="position" />
   </div>
 </template>
 
 <script>
 import deviceEdit from './edit.vue'
 import configInfo from '../dialog/configInfo.vue'
+import attribute from './dialog/attribute.vue'
+import position from './dialog/position.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo
+    deviceEdit, configInfo, attribute, position
   },
   data() {
     return {
@@ -259,6 +261,12 @@ export default {
         this.showParam(itemData)
       } else if (command === 'connection') {
         // this.queryCloudRecords(itemData)
+      } else if (command === 'attribute') {
+         this.queryAttribute(itemData)
+      } else if (command === 'linkDetection') {
+         this.linkDetection(itemData)
+      } else if (command === 'position') {
+         this.queryPosition(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -269,8 +277,45 @@ export default {
           this.serverId = data.addOn.serverId
           this.$refs.configInfo.openDialog(data, 'jt1078Config')
         })
+    },
+    queryAttribute: function(itemData) {
+      this.$store.dispatch('jtDevice/queryAttribute', itemData.phoneNumber)
+        .then((data) => {
+          this.$refs.attribute.openDialog(data)
+        })
+    },
+    queryPosition: function(itemData) {
+      this.$store.dispatch('jtDevice/queryPosition', itemData.phoneNumber)
+        .then((data) => {
+          this.$refs.position.openDialog(data)
+        })
+    },
+    linkDetection: function(itemData) {
+      this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)
+        .then((data) => {
+          if (data === 0) {
+            this.$message.success({
+              showClose: true,
+              message: '成功'
+            })
+          }else if (data === 1) {
+            this.$message.error({
+              showClose: true,
+              message: '失败'
+            })
+          }else if (data === 2) {
+            this.$message.error({
+              showClose: true,
+              message: '消息有误'
+            })
+          }else if (data === 3) {
+            this.$message.error({
+              showClose: true,
+              message: '不支持此消息'
+            })
+          }
+        })
     }
-
   }
 }
 </script>

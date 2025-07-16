@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +36,8 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         } else {
             ctx.fireChannelRead(msg);
         }
+        // 读取完成后的消息释放
+        ReferenceCountUtil.release(msg);
     }
 
     @Override

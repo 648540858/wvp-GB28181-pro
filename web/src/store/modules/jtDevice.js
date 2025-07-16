@@ -1,11 +1,11 @@
 import {
   add,
   addChannel, controlPlayback, deleteDevice,
-  fillLight, getRecordTempUrl,
-  play, ptz,
+  fillLight, getRecordTempUrl, linkDetection,
+  play, ptz, queryAttribute,
   queryChannels, queryConfig,
   queryDeviceById,
-  queryDevices, queryRecordList, setConfig, startPlayback,
+  queryDevices, queryPosition, queryRecordList, setConfig, startPlayback,
   stopPlay, stopPlayback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
@@ -204,6 +204,36 @@ const actions = {
   getRecordTempUrl({ commit }, params) {
     return new Promise((resolve, reject) => {
       getRecordTempUrl(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryAttribute({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      queryAttribute(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  linkDetection({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      linkDetection(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryPosition({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      queryPosition(phoneNumber).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

@@ -49,7 +49,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
         try {
             // 按照部标定义执行校验和转义
             ByteBuf buf = unEscapeAndCheck(in);
-
+            buf.retain();
             Header header = new Header();
             header.setMsgId(ByteBufUtil.hexDump(buf.readSlice(2)));
             header.setMsgPro(buf.readUnsignedShort());
@@ -79,7 +79,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
                 log.error("get msgId is null {}", header.getMsgId());
                 return;
             }
-            buf.retain();
+
             Rs decode = handler.decode(buf, header, session, service);
             ApplicationEvent applicationEvent = handler.getEvent();
             if (applicationEvent != null) {

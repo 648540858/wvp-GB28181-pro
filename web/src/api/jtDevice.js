@@ -228,5 +228,32 @@ export function setConfig(data) {
     data: data
   })
 }
+export function queryAttribute(phoneNumber) {
+  return request({
+    method: 'get',
+    url: `/api/jt1078/attribute`,
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
+export function linkDetection(phoneNumber) {
+  return request({
+    method: 'get',
+    url: `/api/jt1078/link-detection`,
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
+export function queryPosition(phoneNumber) {
+  return request({
+    method: 'get',
+    url: `/api/jt1078/position-info`,
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
 
 

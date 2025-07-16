@@ -57,7 +57,7 @@
               <template slot-scope="scope">
                 <el-button
                   size="medium"
-                  :disabled="device == null || device.online === 0"
+                  :disabled="device == null || !device.status"
                   icon="el-icon-video-play"
                   type="text"
                   @click="sendDevicePush(scope.row)"
@@ -66,12 +66,20 @@
                 <el-button
                   v-if="!!scope.row.stream"
                   size="medium"
-                  :disabled="device == null || device.online === 0"
+                  :disabled="device == null || !device.status"
                   icon="el-icon-switch-button"
                   type="text"
                   style="color: #f56c6c"
                   @click="stopDevicePush(scope.row)"
                 >停止
+                </el-button>
+                <el-button
+                  size="medium"
+                  :disabled="device == null || !device.status"
+                  icon="el-icon-camera"
+                  type="text"
+                  @click="shooting(scope.row)"
+                >抓图
                 </el-button>
                 <el-divider direction="vertical" />
                 <el-button
@@ -88,13 +96,11 @@
                     更多功能<i class="el-icon-arrow-down el-icon--right" />
                   </el-button>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="records" :disabled="device == null || device.online === 0">
+                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
                       设备录像</el-dropdown-item>
-                    <el-dropdown-item command="cloudRecords" :disabled="device == null || device.online === 0">
+                    <el-dropdown-item command="cloudRecords" :disabled="device == null || !device.status">
                       云端录像</el-dropdown-item>
-                    <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >
-                      抓图</el-dropdown-item>
-                    <el-dropdown-item command="searchData" v-bind:disabled="device == null || device.online === 0" >
+                    <el-dropdown-item command="searchData" v-bind:disabled="device == null || !device.status" >
                       数据检索</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
@@ -242,8 +248,6 @@ export default {
         this.queryRecords(itemData)
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
-      } else if (command === 'shooting') {
-        this.shooting(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -322,6 +326,7 @@ export default {
     },
     // 编辑
     shooting(row) {
+      this.$message.success('已申请截图,完成后自动下载', { closed: true })
       // 文件下载地址
       const baseUrl = window.baseUrl ? window.baseUrl : ''
       const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/jt1078/snap?phoneNumber=${this.device.phoneNumber}&channelId=${row.channelId}`
@@ -342,13 +347,10 @@ export default {
           link.href = window.URL.createObjectURL(blob)
           link.download = `${this.device.phoneNumber}-${row.channelId}-${dayjs().format('YYYYMMDDHHmmss')}.jpg` // 设置下载文件名，替换filename.ext为实际的文件名和扩展名
           document.body.appendChild(link)
-
           // 模拟点击
           link.click()
-
           // 移除虚拟链接元素
           document.body.removeChild(link)
-          this.$message.success('已申请截图', { closed: true })
         })
         .catch(error => console.error('下载失败：', error))
     }

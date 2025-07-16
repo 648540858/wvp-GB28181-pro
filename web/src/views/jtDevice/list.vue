@@ -148,7 +148,7 @@
     <configInfo ref="configInfo" />
     <attribute ref="attribute" />
     <position ref="position" />
-    <testMsg ref="testMsg" />
+    <textMsg ref="textMsg" />
   </div>
 </template>
 
@@ -157,12 +157,12 @@ import deviceEdit from './edit.vue'
 import configInfo from '../dialog/configInfo.vue'
 import attribute from './dialog/attribute.vue'
 import position from './dialog/position.vue'
-import testMsg from './dialog/testMsg.vue'
+import textMsg from './dialog/textMsg.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, testMsg
+    deviceEdit, configInfo, attribute, position, textMsg
   },
   data() {
     return {
@@ -295,7 +295,7 @@ export default {
         })
     },
     sendTextMsg: function(itemData) {
-      this.$refs.testMsg.openDialog(itemData)
+      this.$refs.textMsg.openDialog(itemData)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

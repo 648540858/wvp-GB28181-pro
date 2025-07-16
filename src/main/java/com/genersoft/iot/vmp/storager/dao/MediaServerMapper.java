@@ -57,6 +57,7 @@ public interface MediaServerMapper {
             "#{rtmpPort}, " +
             "#{rtmpSSlPort}, " +
             "#{rtpProxyPort}, " +
+            "#{jttProxyPort}, " +
             "#{rtspPort}, " +
             "#{flvPort}, " +
             "#{flvSSLPort}, " +

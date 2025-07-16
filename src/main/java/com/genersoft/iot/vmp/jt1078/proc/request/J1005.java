@@ -10,12 +10,14 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * 终端上传乘客流量
  *
  */
+@Slf4j
 @MsgId(id = "1005")
 public class J1005 extends Re {
 
@@ -24,7 +26,7 @@ public class J1005 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         passengerNum = JTPassengerNum.decode(buf);
-        System.out.println(passengerNum);
+        log.info("[终端上传乘客流量] {}", passengerNum);
         return null;
     }
 

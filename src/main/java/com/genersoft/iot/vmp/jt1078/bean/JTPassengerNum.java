@@ -83,7 +83,7 @@ public class JTPassengerNum implements JTDeviceSubConfig {
     @Override
     public String toString() {
         return "终端上传乘客流量：" +
-                " 时间： " + startTime + '到'  + endTime +
+                " 时间： " + startTime + " 到 "  + endTime +
                 ", 上车：" + getIn +
                 ", 下车：" + getOut
                 ;

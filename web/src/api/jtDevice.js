@@ -5,7 +5,7 @@ import request from '@/utils/request'
 export function queryDevices({ page, count, query, online }) {
   return request({
     method: 'get',
-    url: `/api/jt1078/terminal/list`,
+    url: '/api/jt1078/terminal/list',
     params: {
       page: page,
       count: count,
@@ -18,7 +18,7 @@ export function queryDevices({ page, count, query, online }) {
 export function queryDeviceById(deviceId) {
   return request({
     method: 'get',
-    url: `/api/jt1078/terminal/query`,
+    url: '/api/jt1078/terminal/query',
     params: {
       deviceId: deviceId
     }
@@ -28,7 +28,7 @@ export function queryDeviceById(deviceId) {
 export function update(form) {
   return request({
     method: 'post',
-    url: `/api/jt1078/terminal/update`,
+    url: '/api/jt1078/terminal/update',
     params: form
   })
 }
@@ -36,7 +36,7 @@ export function update(form) {
 export function add(form) {
   return request({
     method: 'post',
-    url: `/api/jt1078/terminal/add`,
+    url: '/api/jt1078/terminal/add',
     params: form
   })
 }
@@ -55,7 +55,7 @@ export function queryChannels(params) {
   const { page, count, query, deviceId } = params
   return request({
     method: 'get',
-    url: `/api/jt1078/terminal/channel/list`,
+    url: '/api/jt1078/terminal/channel/list',
     params: {
       page: page,
       count: count,
@@ -91,14 +91,14 @@ export function stopPlay(params) {
 export function updateChannel(data) {
   return request({
     method: 'post',
-    url: `/api/jt1078/terminal/channel/update`,
+    url: '/api/jt1078/terminal/channel/update',
     data: data
   })
 }
 export function addChannel(data) {
   return request({
     method: 'post',
-    url: `/api/jt1078/terminal/channel/add`,
+    url: '/api/jt1078/terminal/channel/add',
     data: data
   })
 }
@@ -215,7 +215,7 @@ export function stopPlayback(params) {
 export function queryConfig(phoneNumber) {
   return request({
     method: 'get',
-    url: `/api/jt1078/config`,
+    url: '/api/jt1078/config',
     params: {
       phoneNumber: phoneNumber
     }
@@ -224,14 +224,14 @@ export function queryConfig(phoneNumber) {
 export function setConfig(data) {
   return request({
     method: 'post',
-    url: `/api/jt1078/set-config`,
+    url: '/api/jt1078/set-config',
     data: data
   })
 }
 export function queryAttribute(phoneNumber) {
   return request({
     method: 'get',
-    url: `/api/jt1078/attribute`,
+    url: '/api/jt1078/attribute',
     params: {
       phoneNumber: phoneNumber
     }
@@ -240,7 +240,7 @@ export function queryAttribute(phoneNumber) {
 export function linkDetection(phoneNumber) {
   return request({
     method: 'get',
-    url: `/api/jt1078/link-detection`,
+    url: '/api/jt1078/link-detection',
     params: {
       phoneNumber: phoneNumber
     }
@@ -249,7 +249,7 @@ export function linkDetection(phoneNumber) {
 export function queryPosition(phoneNumber) {
   return request({
     method: 'get',
-    url: `/api/jt1078/position-info`,
+    url: '/api/jt1078/position-info',
     params: {
       phoneNumber: phoneNumber
     }
@@ -258,8 +258,19 @@ export function queryPosition(phoneNumber) {
 export function sendTextMessage(data) {
   return request({
     method: 'post',
-    url: `/api/jt1078/text-msg`,
+    url: '/api/jt1078/text-msg',
     data: data
+  })
+}
+export function telephoneCallback({ phoneNumber, sign, destPhoneNumber }) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/telephone-callback',
+    params: {
+      phoneNumber: phoneNumber,
+      sign: sign,
+      destPhoneNumber: destPhoneNumber
+    }
   })
 }
 

@@ -6,7 +6,7 @@ import {
   queryChannels, queryConfig,
   queryDeviceById,
   queryDevices, queryPosition, queryRecordList, sendTextMessage, setConfig, startPlayback,
-  stopPlay, stopPlayback, update,
+  stopPlay, stopPlayback, telephoneCallback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
 
@@ -244,6 +244,16 @@ const actions = {
   sendTextMessage({ commit }, data) {
     return new Promise((resolve, reject) => {
       sendTextMessage(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  telephoneCallback({ commit }, param) {
+    return new Promise((resolve, reject) => {
+      telephoneCallback(param).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

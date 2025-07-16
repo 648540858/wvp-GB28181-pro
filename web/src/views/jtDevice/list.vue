@@ -149,6 +149,7 @@
     <attribute ref="attribute" />
     <position ref="position" />
     <textMsg ref="textMsg" />
+    <telephoneCallback ref="telephoneCallback" />
   </div>
 </template>
 
@@ -158,11 +159,12 @@ import configInfo from '../dialog/configInfo.vue'
 import attribute from './dialog/attribute.vue'
 import position from './dialog/position.vue'
 import textMsg from './dialog/textMsg.vue'
+import telephoneCallback from './dialog/telephoneCallback.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback
   },
   data() {
     return {
@@ -271,6 +273,8 @@ export default {
          this.queryPosition(itemData)
       } else if (command === 'textMsg') {
          this.sendTextMsg(itemData)
+      } else if (command === 'telephoneCallback') {
+         this.telephoneCallback(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -296,6 +300,9 @@ export default {
     },
     sendTextMsg: function(itemData) {
       this.$refs.textMsg.openDialog(itemData)
+    },
+    telephoneCallback: function(itemData) {
+      this.$refs.telephoneCallback.openDialog(itemData)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

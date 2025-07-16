@@ -110,7 +110,7 @@ export default {
             showClose: true,
             message: '发送成功'
           })
-          // this.close()
+          this.close()
         })
     }
   }

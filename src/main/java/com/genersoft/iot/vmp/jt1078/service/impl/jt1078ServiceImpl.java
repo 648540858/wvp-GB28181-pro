@@ -385,7 +385,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public int linkDetection(String phoneNumber) {
         J8204 j8204 = new J8204();
-        return (int) jt1078Template.linkDetection(phoneNumber, j8204, 6);
+        Object result = jt1078Template.linkDetection(phoneNumber, j8204, 6);
+        if (result == null) {
+            return 1;
+        }else {
+            return (int) result;
+        }
     }
 
     @Override

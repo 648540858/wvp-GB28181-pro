@@ -255,5 +255,12 @@ export function queryPosition(phoneNumber) {
     }
   })
 }
+export function sendTextMessage(data) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/text-msg`,
+    data: data
+  })
+}
 
 

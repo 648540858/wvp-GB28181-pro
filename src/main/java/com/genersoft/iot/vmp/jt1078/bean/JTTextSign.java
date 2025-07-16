@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * 文本信息标志
  */
+@Data
 @Schema(description = "文本信息标志")
 public class JTTextSign {
 
@@ -13,6 +15,9 @@ public class JTTextSign {
 
     @Schema(description = "1终端显示器显示")
     private boolean terminalDisplay;
+
+    @Schema(description = "1广告屏显示")
+    private boolean adScreen;
 
     @Schema(description = "1终端 TTS 播读")
     private boolean tts;
@@ -29,41 +34,12 @@ public class JTTextSign {
         if (tts) {
             byteSign |= (0x1 << 3);
         }
+        if (adScreen) {
+            byteSign |= (0x1 << 4);
+        }
         if (source) {
             byteSign |= (0x1 << 5);
         }
         return byteSign;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public boolean isTerminalDisplay() {
-        return terminalDisplay;
-    }
-
-    public void setTerminalDisplay(boolean terminalDisplay) {
-        this.terminalDisplay = terminalDisplay;
-    }
-
-    public boolean isTts() {
-        return tts;
-    }
-
-    public void setTts(boolean tts) {
-        this.tts = tts;
-    }
-
-    public boolean isSource() {
-        return source;
-    }
-
-    public void setSource(boolean source) {
-        this.source = source;
     }
 }

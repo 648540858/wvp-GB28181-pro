@@ -5,7 +5,7 @@ import {
   play, ptz, queryAttribute,
   queryChannels, queryConfig,
   queryDeviceById,
-  queryDevices, queryPosition, queryRecordList, setConfig, startPlayback,
+  queryDevices, queryPosition, queryRecordList, sendTextMessage, setConfig, startPlayback,
   stopPlay, stopPlayback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
@@ -234,6 +234,16 @@ const actions = {
   queryPosition({ commit }, phoneNumber) {
     return new Promise((resolve, reject) => {
       queryPosition(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  sendTextMessage({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      sendTextMessage(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

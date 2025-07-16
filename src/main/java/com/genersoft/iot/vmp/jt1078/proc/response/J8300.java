@@ -4,12 +4,16 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTTextSign;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.nio.charset.Charset;
 
 /**
  * 文本信息下发
  */
+@EqualsAndHashCode(callSuper = true)
+@Data
 @MsgId(id = "8300")
 public class J8300 extends Rs {
 
@@ -35,29 +39,5 @@ public class J8300 extends Rs {
         buffer.writeByte(textType);
         buffer.writeCharSequence(content, Charset.forName("GBK"));
         return buffer;
-    }
-
-    public JTTextSign getSign() {
-        return sign;
-    }
-
-    public void setSign(JTTextSign sign) {
-        this.sign = sign;
-    }
-
-    public int getTextType() {
-        return textType;
-    }
-
-    public void setTextType(int textType) {
-        this.textType = textType;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 }

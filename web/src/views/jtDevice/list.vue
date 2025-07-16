@@ -112,7 +112,7 @@
               <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >
                 位置信息</el-dropdown-item>
               <el-dropdown-item command="textMsg" v-bind:disabled="!scope.row.status" >
-                文本信息</el-dropdown-item>
+                文本下发</el-dropdown-item>
               <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >
                 电话回拨</el-dropdown-item>
               <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
@@ -148,6 +148,7 @@
     <configInfo ref="configInfo" />
     <attribute ref="attribute" />
     <position ref="position" />
+    <testMsg ref="testMsg" />
   </div>
 </template>
 
@@ -156,11 +157,12 @@ import deviceEdit from './edit.vue'
 import configInfo from '../dialog/configInfo.vue'
 import attribute from './dialog/attribute.vue'
 import position from './dialog/position.vue'
+import testMsg from './dialog/testMsg.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position
+    deviceEdit, configInfo, attribute, position, testMsg
   },
   data() {
     return {
@@ -267,6 +269,8 @@ export default {
          this.linkDetection(itemData)
       } else if (command === 'position') {
          this.queryPosition(itemData)
+      } else if (command === 'textMsg') {
+         this.sendTextMsg(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -289,6 +293,9 @@ export default {
         .then((data) => {
           this.$refs.position.openDialog(data)
         })
+    },
+    sendTextMsg: function(itemData) {
+      this.$refs.testMsg.openDialog(itemData)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

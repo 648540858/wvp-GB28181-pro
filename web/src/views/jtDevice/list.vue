@@ -277,6 +277,10 @@ export default {
          this.telephoneCallback(itemData)
       } else if (command === 'driverInfo') {
          this.queryDriverInfo(itemData)
+      } else if (command === 'factoryReset') {
+         this.factoryReset(itemData)
+      } else if (command === 'reset') {
+         this.reset(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -311,6 +315,42 @@ export default {
           .then(data => {
             this.$refs.driverInfo.openDialog(data)
           })
+    },
+    factoryReset: function(itemData) {
+      this.$confirm('确定恢复出厂设置', '提示', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$store.dispatch('jtDevice/factoryReset', itemData.phoneNumber)
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '消息已经下发'
+              })
+            })
+      }).catch(() => {
+
+      })
+    },
+    reset: function(itemData) {
+      this.$confirm('确定开始终端复位', '提示', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$store.dispatch('jtDevice/reset', itemData.phoneNumber)
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '消息已经下发'
+              })
+            })
+      }).catch(() => {
+
+      })
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

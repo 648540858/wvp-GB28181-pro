@@ -282,5 +282,23 @@ export function queryDriverInfo(phoneNumber) {
     }
   })
 }
+export function factoryReset(phoneNumber) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/control/factory-reset',
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
+export function reset(phoneNumber) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/control/reset',
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
 
 

@@ -1,11 +1,11 @@
 import {
   add,
-  addChannel, controlPlayback, deleteDevice,
+  addChannel, controlPlayback, deleteDevice, factoryReset,
   fillLight, getRecordTempUrl, linkDetection,
   play, ptz, queryAttribute,
   queryChannels, queryConfig,
   queryDeviceById,
-  queryDevices, queryDriverInfo, queryPosition, queryRecordList, sendTextMessage, setConfig, startPlayback,
+  queryDevices, queryDriverInfo, queryPosition, queryRecordList, reset, sendTextMessage, setConfig, startPlayback,
   stopPlay, stopPlayback, telephoneCallback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
@@ -264,6 +264,26 @@ const actions = {
   queryDriverInfo({ commit }, phoneNumber) {
     return new Promise((resolve, reject) => {
       queryDriverInfo(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  factoryReset({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      factoryReset(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  reset({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      reset(phoneNumber).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

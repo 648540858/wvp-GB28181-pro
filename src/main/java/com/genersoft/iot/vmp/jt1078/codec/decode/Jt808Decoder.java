@@ -45,7 +45,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         in.retain();
         Session session = ctx.channel().attr(Session.KEY).get();
-        log.debug("> {} hex: 7e{}7e", session, ByteBufUtil.hexDump(in));
+        log.info("> {} hex: 7e{}7e", session, ByteBufUtil.hexDump(in));
         try {
             // 按照部标定义执行校验和转义
             ByteBuf buf = unEscapeAndCheck(in);
@@ -77,6 +77,8 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             Re handler = CodecFactory.getHandler(header.getMsgId());
             if (handler == null) {
                 log.error("get msgId is null {}", header.getMsgId());
+                in.skipBytes(in.readableBytes());
+                buf.release();
                 return;
             }
 

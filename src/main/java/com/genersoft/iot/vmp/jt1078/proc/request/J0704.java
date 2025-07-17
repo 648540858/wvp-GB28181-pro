@@ -36,6 +36,7 @@ public class J0704 extends Re {
             int dateLength = buf.readUnsignedShort();
             ByteBuf byteBuf = buf.readBytes(dateLength);
             JTPositionBaseInfo positionInfo = JTPositionBaseInfo.decode(byteBuf);
+            byteBuf.release();
             positionBaseInfoList.add(positionInfo);
         }
         log.info("[JT-定位数据批量上传]: 共{}条", positionBaseInfoList.size());

@@ -5,7 +5,7 @@ import {
   play, ptz, queryAttribute,
   queryChannels, queryConfig,
   queryDeviceById,
-  queryDevices, queryPosition, queryRecordList, sendTextMessage, setConfig, startPlayback,
+  queryDevices, queryDriverInfo, queryPosition, queryRecordList, sendTextMessage, setConfig, startPlayback,
   stopPlay, stopPlayback, telephoneCallback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
@@ -254,6 +254,16 @@ const actions = {
   telephoneCallback({ commit }, param) {
     return new Promise((resolve, reject) => {
       telephoneCallback(param).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryDriverInfo({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      queryDriverInfo(phoneNumber).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

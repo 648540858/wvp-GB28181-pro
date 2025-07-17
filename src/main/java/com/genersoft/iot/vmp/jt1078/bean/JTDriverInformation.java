@@ -22,7 +22,8 @@ public class JTDriverInformation {
 
     @Schema(description = "IC卡读取结果:" +
             "0x00:IC卡读卡成功；" +
-            "0x01:读卡失败 ,原因为卡片密钥认证未通过； 0x02:读卡失败 ,原因为卡片已被锁定；" +
+            "0x01:读卡失败 ,原因为卡片密钥认证未通过；" +
+            "0x02:读卡失败 ,原因为卡片已被锁定；" +
             "0x03:读卡失败 ,原因为卡片被拔出；" +
             "0x04:读卡失败 ,原因为数据校验错误。" +
             "以下字段在 IC卡读取结果等于0x00 时才有效")
@@ -56,23 +57,27 @@ public class JTDriverInformation {
         }
 
         if (jtDriverInformation.getStatus() == 1) {
-            jtDriverInformation.setResult((int)buf.readUnsignedByte());
-            int nameLength = buf.readUnsignedByte();
-            jtDriverInformation.setName(buf.readCharSequence(nameLength, Charset.forName("GBK")).toString().trim());
-            jtDriverInformation.setCertificateCode(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
-            int certificateIssuanceMechanismNameLength = buf.readUnsignedByte();
-            jtDriverInformation.setCertificateIssuanceMechanismName(buf.readCharSequence(
-                    certificateIssuanceMechanismNameLength, Charset.forName("GBK")).toString().trim());
-            byte[] bytesForExpire = new byte[4];
-            buf.readBytes(bytesForExpire);
-            String bytesForExpireStr = BCDUtil.transform(bytesForExpire);
-            try {
-                jtDriverInformation.setExpire(DateUtil.jt1078dateToyyyy_MM_dd(bytesForExpireStr));
-            }catch (Exception e) {
-                log.error("[JT-驾驶员身份信息] 解码时无法格式化时间： {}", bytesForExpireStr);
-            }
-            if (is2019) {
-                jtDriverInformation.setDriverIdNumber(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+            int result = (int)buf.readUnsignedByte();
+            jtDriverInformation.setResult(result);
+            if (result == 0) {
+                // IC卡读卡成功
+                int nameLength = buf.readUnsignedByte();
+                jtDriverInformation.setName(buf.readCharSequence(nameLength, Charset.forName("GBK")).toString().trim());
+                jtDriverInformation.setCertificateCode(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+                int certificateIssuanceMechanismNameLength = buf.readUnsignedByte();
+                jtDriverInformation.setCertificateIssuanceMechanismName(buf.readCharSequence(
+                        certificateIssuanceMechanismNameLength, Charset.forName("GBK")).toString().trim());
+                byte[] bytesForExpire = new byte[4];
+                buf.readBytes(bytesForExpire);
+                String bytesForExpireStr = BCDUtil.transform(bytesForExpire);
+                try {
+                    jtDriverInformation.setExpire(DateUtil.jt1078dateToyyyy_MM_dd(bytesForExpireStr));
+                }catch (Exception e) {
+                    log.error("[JT-驾驶员身份信息] 解码时无法格式化时间： {}", bytesForExpireStr);
+                }
+                if (is2019) {
+                    jtDriverInformation.setDriverIdNumber(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+                }
             }
         }
         return jtDriverInformation;

@@ -273,5 +273,14 @@ export function telephoneCallback({ phoneNumber, sign, destPhoneNumber }) {
     }
   })
 }
+export function queryDriverInfo(phoneNumber) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/driver-information',
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
 
 

@@ -117,16 +117,14 @@
                 电话回拨</el-dropdown-item>
               <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
                 设置电话本</el-dropdown-item>
-              <el-dropdown-item command="tempPositionTracking" v-bind:disabled="!scope.row.status" >
-                临时跟踪</el-dropdown-item>
+              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
+                驾驶员信息</el-dropdown-item>
               <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >
                 终端复位</el-dropdown-item>
               <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >
                 恢复出厂</el-dropdown-item>
               <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
                 车门控制</el-dropdown-item>
-              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
-                驾驶员信息</el-dropdown-item>
               <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >
                 音视频属性</el-dropdown-item>
             </el-dropdown-menu>
@@ -150,6 +148,7 @@
     <position ref="position" />
     <textMsg ref="textMsg" />
     <telephoneCallback ref="telephoneCallback" />
+    <driverInfo ref="driverInfo" />
   </div>
 </template>
 
@@ -160,11 +159,12 @@ import attribute from './dialog/attribute.vue'
 import position from './dialog/position.vue'
 import textMsg from './dialog/textMsg.vue'
 import telephoneCallback from './dialog/telephoneCallback.vue'
+import driverInfo from './dialog/driverInfo.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo
   },
   data() {
     return {
@@ -275,6 +275,8 @@ export default {
          this.sendTextMsg(itemData)
       } else if (command === 'telephoneCallback') {
          this.telephoneCallback(itemData)
+      } else if (command === 'driverInfo') {
+         this.queryDriverInfo(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -303,6 +305,12 @@ export default {
     },
     telephoneCallback: function(itemData) {
       this.$refs.telephoneCallback.openDialog(itemData)
+    },
+    queryDriverInfo: function(itemData) {
+      this.$store.dispatch('jtDevice/queryDriverInfo', itemData.phoneNumber)
+          .then(data => {
+            this.$refs.driverInfo.openDialog(data)
+          })
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

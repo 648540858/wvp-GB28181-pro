@@ -307,5 +307,15 @@ export function connection(data) {
     data: data
   })
 }
+export function controlDoor({ phoneNumber, open}) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/control/door',
+    params: {
+      phoneNumber: phoneNumber,
+      open: open
+    }
+  })
+}
 
 

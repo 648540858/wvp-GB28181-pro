@@ -27,7 +27,6 @@ public class J0500 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         int respNo = buf.readUnsignedShort();
         positionInfo = JTPositionBaseInfo.decode(buf);
-        log.info("[JT-车辆控制应答]: {}", positionInfo.toString());
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0500", (long) respNo, positionInfo);
         return null;
     }

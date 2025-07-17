@@ -152,6 +152,7 @@
     <telephoneCallback ref="telephoneCallback" />
     <driverInfo ref="driverInfo" />
     <connectionServer ref="connectionServer" />
+    <controlDoor ref="controlDoor" />
   </div>
 </template>
 
@@ -164,11 +165,12 @@ import textMsg from './dialog/textMsg.vue'
 import telephoneCallback from './dialog/telephoneCallback.vue'
 import driverInfo from './dialog/driverInfo.vue'
 import connectionServer from './dialog/connectionServer.vue'
+import controlDoor from './dialog/controlDoor.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor
   },
   data() {
     return {
@@ -283,6 +285,8 @@ export default {
          this.factoryReset(itemData)
       } else if (command === 'reset') {
          this.reset(itemData)
+      } else if (command === 'door') {
+         this.controlDoor(itemData)
       } else if (command === 'connection') {
          this.connection(itemData)
       } else {
@@ -358,6 +362,9 @@ export default {
     },
     connection: function(itemData) {
       this.$refs.connectionServer.openDialog(itemData.phoneNumber)
+    },
+    controlDoor: function(itemData) {
+      this.$refs.controlDoor.openDialog(itemData.phoneNumber)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 
+@Slf4j
 @Schema(description = "位置基本信息")
 public class JTPositionBaseInfo {
 
@@ -65,6 +67,10 @@ public class JTPositionBaseInfo {
 
     public static JTPositionBaseInfo decode(ByteBuf buf) {
         JTPositionBaseInfo positionInfo = new JTPositionBaseInfo();
+        if (buf.readableBytes() < 17) {
+            log.error("[位置基本信息] 解码失败，长度不足: ｛｝", buf.readableBytes());
+            return positionInfo;
+        }
         positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
 
         positionInfo.setStatus(new JTStatus(buf.readInt()));

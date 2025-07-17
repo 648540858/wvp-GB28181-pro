@@ -570,11 +570,13 @@ public class JT1078Controller {
 
         log.info("[JT-车门控制] phoneNumber: {}, open: {},", phoneNumber, open);
         JTPositionBaseInfo positionBaseInfo = service.controlDoor(phoneNumber, open);
-
+        if (positionBaseInfo == null || positionBaseInfo.getStatus() == null) {
+            return WVPResult.fail(ErrorCode.ERROR100.getCode(), "控制失败");
+        }
         if (open == !positionBaseInfo.getStatus().isDoorLocking()) {
             return WVPResult.success(null);
         }else {
-            return WVPResult.fail(ErrorCode.ERROR100);
+            return WVPResult.fail(ErrorCode.ERROR100.getCode(), "控制失败");
         }
     }
 

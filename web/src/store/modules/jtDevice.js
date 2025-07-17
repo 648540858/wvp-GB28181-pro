@@ -1,6 +1,6 @@
 import {
   add,
-  addChannel, connection, controlPlayback, deleteDevice, factoryReset,
+  addChannel, connection, controlDoor, controlPlayback, deleteDevice, factoryReset,
   fillLight, getRecordTempUrl, linkDetection,
   play, ptz, queryAttribute,
   queryChannels, queryConfig,
@@ -294,6 +294,16 @@ const actions = {
   connection({ commit }, data) {
     return new Promise((resolve, reject) => {
       connection(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  controlDoor({ commit }, param) {
+    return new Promise((resolve, reject) => {
+      controlDoor(param).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

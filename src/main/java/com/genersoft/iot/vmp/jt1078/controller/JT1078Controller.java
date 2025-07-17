@@ -436,7 +436,7 @@ public class JT1078Controller {
         service.setConfig(config.getPhoneNumber(), config.getConfig());
     }
 
-    @Operation(summary = "终端控制-连接", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "终端控制-连接指定的服务器", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "control", description = "终端控制参数", required = true)
     @PostMapping("/control/connection")
     public void connectionControl(@RequestBody ConnectionControlParam control){

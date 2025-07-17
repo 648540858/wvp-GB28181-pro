@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * JT 终端控制
  */
+@Data
 @Schema(description = "终端控制")
 public class JTDeviceConnectionControl {
 
@@ -51,78 +53,6 @@ public class JTDeviceConnectionControl {
      * 连接到指定服务器时限
      */
     private Long timeLimit;
-
-    public Boolean getSwitchOn() {
-        return switchOn;
-    }
-
-    public void setSwitchOn(Boolean switchOn) {
-        this.switchOn = switchOn;
-    }
-
-    public String getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(String authentication) {
-        this.authentication = authentication;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Integer getTcpPort() {
-        return tcpPort;
-    }
-
-    public void setTcpPort(Integer tcpPort) {
-        this.tcpPort = tcpPort;
-    }
-
-    public Integer getUdpPort() {
-        return udpPort;
-    }
-
-    public void setUdpPort(Integer udpPort) {
-        this.udpPort = udpPort;
-    }
-
-    public Long getTimeLimit() {
-        return timeLimit;
-    }
-
-    public void setTimeLimit(Long timeLimit) {
-        this.timeLimit = timeLimit;
-    }
 
     @Override
     public String toString() {

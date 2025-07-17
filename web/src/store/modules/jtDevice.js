@@ -1,6 +1,6 @@
 import {
   add,
-  addChannel, controlPlayback, deleteDevice, factoryReset,
+  addChannel, connection, controlPlayback, deleteDevice, factoryReset,
   fillLight, getRecordTempUrl, linkDetection,
   play, ptz, queryAttribute,
   queryChannels, queryConfig,
@@ -284,6 +284,16 @@ const actions = {
   reset({ commit }, phoneNumber) {
     return new Promise((resolve, reject) => {
       reset(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  connection({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      connection(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

@@ -123,6 +123,8 @@
                 终端复位</el-dropdown-item>
               <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >
                 恢复出厂</el-dropdown-item>
+              <el-dropdown-item command="connection" v-bind:disabled="!scope.row.status" >
+                连接指定服务器</el-dropdown-item>
               <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
                 车门控制</el-dropdown-item>
               <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >
@@ -149,6 +151,7 @@
     <textMsg ref="textMsg" />
     <telephoneCallback ref="telephoneCallback" />
     <driverInfo ref="driverInfo" />
+    <connectionServer ref="connectionServer" />
   </div>
 </template>
 
@@ -160,11 +163,12 @@ import position from './dialog/position.vue'
 import textMsg from './dialog/textMsg.vue'
 import telephoneCallback from './dialog/telephoneCallback.vue'
 import driverInfo from './dialog/driverInfo.vue'
+import connectionServer from './dialog/connectionServer.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer
   },
   data() {
     return {
@@ -263,8 +267,6 @@ export default {
     moreClick: function(command, itemData) {
       if (command === 'params') {
         this.showParam(itemData)
-      } else if (command === 'connection') {
-        // this.queryCloudRecords(itemData)
       } else if (command === 'attribute') {
          this.queryAttribute(itemData)
       } else if (command === 'linkDetection') {
@@ -281,6 +283,8 @@ export default {
          this.factoryReset(itemData)
       } else if (command === 'reset') {
          this.reset(itemData)
+      } else if (command === 'connection') {
+         this.connection(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -351,6 +355,9 @@ export default {
       }).catch(() => {
 
       })
+    },
+    connection: function(itemData) {
+      this.$refs.connectionServer.openDialog(itemData.phoneNumber)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

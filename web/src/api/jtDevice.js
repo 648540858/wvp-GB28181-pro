@@ -300,5 +300,12 @@ export function reset(phoneNumber) {
     }
   })
 }
+export function connection(data) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/control/connection',
+    data: data
+  })
+}
 
 

@@ -115,8 +115,8 @@
                 文本下发</el-dropdown-item>
               <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >
                 电话回拨</el-dropdown-item>
-              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
-                设置电话本</el-dropdown-item>
+<!--              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >-->
+<!--                设置电话本</el-dropdown-item>-->
               <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
                 驾驶员信息</el-dropdown-item>
               <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >

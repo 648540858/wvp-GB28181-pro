@@ -96,11 +96,12 @@ public class J8103 extends Rs {
                         case "VideoAlarmBit":
                         case "AnalyzeAlarmParam":
                         case "AwakenParam":
+                        case "AlarmSign":
                             field.setAccessible(true);
                             JTDeviceSubConfig subConfig = (JTDeviceSubConfig)field.get(config);
-                            ByteBuf bytesForIllegalDrivingPeriods = subConfig.encode();
-                            buffer.writeByte(bytesForIllegalDrivingPeriods.readableBytes());
-                            buffer.writeBytes(bytesForIllegalDrivingPeriods);
+                            ByteBuf byteBuf = subConfig.encode();
+                            buffer.writeByte(byteBuf.readableBytes());
+                            buffer.writeBytes(byteBuf);
                             continue;
                     }
                 }catch (Exception e) {

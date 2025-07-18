@@ -9,7 +9,7 @@
 <script>
 import deviceList from './list.vue'
 import channelList from './channel/index.vue'
-import deviceParam from './jtDeviceParam.vue'
+import deviceParam from './deviceParam/index.vue'
 
 export default {
   name: 'JTDevice',

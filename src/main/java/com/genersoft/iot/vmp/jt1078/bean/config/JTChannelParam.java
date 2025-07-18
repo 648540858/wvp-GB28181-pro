@@ -29,6 +29,9 @@ public class JTChannelParam implements JTDeviceSubConfig {
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeByte(jtAloneChanelList.size());
         for (JTAloneChanel jtAloneChanel : jtAloneChanelList) {
+            if (jtAloneChanel == null) {
+                continue;
+            }
             byteBuf.writeBytes(jtAloneChanel.encode());
         }
         return byteBuf;

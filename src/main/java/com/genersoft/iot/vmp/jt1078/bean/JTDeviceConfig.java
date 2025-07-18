@@ -28,7 +28,7 @@ public class JTDeviceConfig {
     private Long udpRetransmissionCount;
 
     @ConfigAttribute(id = 0x6, type="Long", description = "SMS 消息应答超时时间,单位为秒(s)")
-        private Long smsResponseTimeout;
+    private Long smsResponseTimeout;
 
     @ConfigAttribute(id = 0x7, type="Long", description = "SMS 消息重传次数")
     private Long smsRetransmissionCount;
@@ -150,20 +150,20 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x49, type="String", description = "监管平台特权短信号码")
     private String privilegedSMSNumber;
 
-    @ConfigAttribute(id = 0x50, type="Long", description = "报警屏蔽字 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警被屏蔽")
-    private Long alarmMaskingWord;
+    @ConfigAttribute(id = 0x50, type="AlarmSign", description = "报警屏蔽字 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警被屏蔽")
+    private JTAlarmSign alarmMaskingWord;
 
-    @ConfigAttribute(id = 0x51, type="Long", description = "报警发送文本 SMS 开关 , 与位置信息汇报消息中的报警标志相对 应 ,相应位为1 则相应报警时发送文本 SMS")
-    private Long alarmSendsTextSmsSwitch;
+    @ConfigAttribute(id = 0x51, type="AlarmSign", description = "报警发送文本 SMS 开关 , 与位置信息汇报消息中的报警标志相对 应 ,相应位为1 则相应报警时发送文本 SMS")
+    private JTAlarmSign alarmSendsTextSmsSwitch;
 
-    @ConfigAttribute(id = 0x52, type="Long", description = "报警拍摄开关 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警时摄像头拍摄")
-    private Long alarmShootingSwitch;
+    @ConfigAttribute(id = 0x52, type="AlarmSign", description = "报警拍摄开关 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警时摄像头拍摄")
+    private JTAlarmSign alarmShootingSwitch;
 
-    @ConfigAttribute(id = 0x53, type="Long", description = "报警拍摄存储标志 ,与位置信息汇报消息中的报警标志相对应 ,相应 位为1 则对相应报警时拍的照片进行存储 ,否则实时上传")
-    private Long alarmShootingStorageFlags;
+    @ConfigAttribute(id = 0x53, type="AlarmSign", description = "报警拍摄存储标志 ,与位置信息汇报消息中的报警标志相对应 ,相应 位为1 则对相应报警时拍的照片进行存储 ,否则实时上传")
+    private JTAlarmSign alarmShootingStorageFlags;
 
-    @ConfigAttribute(id = 0x54, type="Long", description = "关键标志 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则 对相应报警为关键报警")
-    private Long KeySign;
+    @ConfigAttribute(id = 0x54, type="AlarmSign", description = "关键标志 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则 对相应报警为关键报警")
+    private JTAlarmSign KeySign;
 
     @ConfigAttribute(id = 0x55, type="Long", description = "最高速度 ,单位为千米每小时(km/h)")
     private Long maxSpeed;

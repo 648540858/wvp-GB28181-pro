@@ -71,9 +71,9 @@ public class JTPositionBaseInfo {
             log.error("[位置基本信息] 解码失败，长度不足: ｛｝", buf.readableBytes());
             return positionInfo;
         }
-        positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
+        positionInfo.setAlarmSign(new JTAlarmSign(buf.readUnsignedInt()));
 
-        positionInfo.setStatus(new JTStatus(buf.readInt()));
+        positionInfo.setStatus(new JTStatus(buf.readUnsignedInt()));
 
         positionInfo.setLatitude(buf.readInt() * 0.000001D);
         positionInfo.setLongitude(buf.readInt() *  0.000001D);

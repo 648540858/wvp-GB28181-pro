@@ -2,10 +2,12 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Data;
 
 /**
  * 违规行驶时段范围 ,精确到分
  */
+@Data
 public class JTVideoParam implements JTDeviceSubConfig{
     /**
      * 实时流编码模式
@@ -91,103 +93,6 @@ public class JTVideoParam implements JTDeviceSubConfig{
      * 是否启用音频输出, 0:不启用;1:启用
      */
     private int audioEnable;
-
-
-    public int getLiveStreamCodeRateType() {
-        return liveStreamCodeRateType;
-    }
-
-    public void setLiveStreamCodeRateType(int liveStreamCodeRateType) {
-        this.liveStreamCodeRateType = liveStreamCodeRateType;
-    }
-
-    public int getLiveStreamResolving() {
-        return liveStreamResolving;
-    }
-
-    public void setLiveStreamResolving(int liveStreamResolving) {
-        this.liveStreamResolving = liveStreamResolving;
-    }
-
-    public int getLiveStreamIInterval() {
-        return liveStreamIInterval;
-    }
-
-    public void setLiveStreamIInterval(int liveStreamIInterval) {
-        this.liveStreamIInterval = liveStreamIInterval;
-    }
-
-    public int getLiveStreamFrameRate() {
-        return liveStreamFrameRate;
-    }
-
-    public void setLiveStreamFrameRate(int liveStreamFrameRate) {
-        this.liveStreamFrameRate = liveStreamFrameRate;
-    }
-
-    public long getLiveStreamCodeRate() {
-        return liveStreamCodeRate;
-    }
-
-    public void setLiveStreamCodeRate(long liveStreamCodeRate) {
-        this.liveStreamCodeRate = liveStreamCodeRate;
-    }
-
-    public int getStorageStreamCodeRateType() {
-        return storageStreamCodeRateType;
-    }
-
-    public void setStorageStreamCodeRateType(int storageStreamCodeRateType) {
-        this.storageStreamCodeRateType = storageStreamCodeRateType;
-    }
-
-    public int getStorageStreamResolving() {
-        return storageStreamResolving;
-    }
-
-    public void setStorageStreamResolving(int storageStreamResolving) {
-        this.storageStreamResolving = storageStreamResolving;
-    }
-
-    public int getStorageStreamIInterval() {
-        return storageStreamIInterval;
-    }
-
-    public void setStorageStreamIInterval(int storageStreamIInterval) {
-        this.storageStreamIInterval = storageStreamIInterval;
-    }
-
-    public int getStorageStreamFrameRate() {
-        return storageStreamFrameRate;
-    }
-
-    public void setStorageStreamFrameRate(int storageStreamFrameRate) {
-        this.storageStreamFrameRate = storageStreamFrameRate;
-    }
-
-    public long getStorageStreamCodeRate() {
-        return storageStreamCodeRate;
-    }
-
-    public void setStorageStreamCodeRate(long storageStreamCodeRate) {
-        this.storageStreamCodeRate = storageStreamCodeRate;
-    }
-
-    public JTOSDConfig getOsd() {
-        return osd;
-    }
-
-    public void setOsd(JTOSDConfig osd) {
-        this.osd = osd;
-    }
-
-    public int getAudioEnable() {
-        return audioEnable;
-    }
-
-    public void setAudioEnable(int audioEnable) {
-        this.audioEnable = audioEnable;
-    }
 
     @Override
     public ByteBuf encode() {

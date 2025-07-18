@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import com.genersoft.iot.vmp.jt1078.bean.config.JTDeviceSubConfig;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -8,14 +11,12 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "报警标志")
-public class JTAlarmSign {
+public class JTAlarmSign implements JTDeviceSubConfig {
 
     @Schema(description = "紧急报警，触动报警开关后触发")
     private boolean urgent;
-
     @Schema(description = "超速报警")
     private boolean alarmSpeeding;
-
     @Schema(description = "疲劳驾驶报警")
     private boolean alarmTired;
     @Schema(description = "危险驾驶行为报警")
@@ -43,7 +44,7 @@ public class JTAlarmSign {
     @Schema(description = "疲劳驾驶预警")
     private boolean warningTired;
     @Schema(description = "违规行驶报警")
-    private boolean alarmwrong;
+    private boolean alarmWrong;
     @Schema(description = "胎压预警")
     private boolean warningTirePressure;
     @Schema(description = "右转盲区异常报警")
@@ -78,7 +79,7 @@ public class JTAlarmSign {
     public JTAlarmSign() {
     }
 
-    public JTAlarmSign(int alarmSignInt) {
+    public JTAlarmSign(long alarmSignInt) {
         if (alarmSignInt == 0) {
             return;
         }
@@ -98,7 +99,7 @@ public class JTAlarmSign {
         this.alarmIcFault = (alarmSignInt >>> 12 & 1) == 1;
         this.warningSpeeding = (alarmSignInt >>> 13 & 1) == 1;
         this.warningTired = (alarmSignInt >>> 14 & 1) == 1;
-        this.alarmwrong = (alarmSignInt >>> 15 & 1) == 1;
+        this.alarmWrong = (alarmSignInt >>> 15 & 1) == 1;
         this.warningTirePressure = (alarmSignInt >>> 16 & 1) == 1;
         this.alarmBlindZone = (alarmSignInt >>> 17 & 1) == 1;
         this.alarmDrivingTimeout = (alarmSignInt >>> 18 & 1) == 1;
@@ -114,6 +115,113 @@ public class JTAlarmSign {
         this.alarmIllegalDisplacement = (alarmSignInt >>> 28 & 1) == 1;
         this.alarmRollover = (alarmSignInt >>> 29 & 1) == 1;
         this.warningRollover = (alarmSignInt >>> 30 & 1) == 1;
+    }
+
+    public static JTAlarmSign decode(ByteBuf byteBuf) {
+        long alarmSignByte = byteBuf.readUnsignedInt();
+        return new JTAlarmSign(alarmSignByte);
+    }
+
+    @Override
+    public ByteBuf encode() {
+        // 限定容量 避免影响后续占位
+        ByteBuf byteBuf = Unpooled.buffer();
+        long alarmSignValue = 0;
+        if (urgent) {
+            alarmSignValue = alarmSignValue | 1;
+        }
+        if (alarmSpeeding) {
+            alarmSignValue = alarmSignValue | 1 << 1;
+        }
+        if (alarmTired) {
+            alarmSignValue = alarmSignValue | 1 << 2;
+        }
+        if (alarmDangerous) {
+            alarmSignValue = alarmSignValue | 1 << 3;
+        }
+        if (alarmGnssFault) {
+            alarmSignValue = alarmSignValue | 1 << 4;
+        }
+        if (alarmGnssBreak) {
+            alarmSignValue = alarmSignValue | 1 << 5;
+        }
+        if (alarmGnssShortCircuited) {
+            alarmSignValue = alarmSignValue | 1 << 6;
+        }
+        if (alarmUnderVoltage) {
+            alarmSignValue = alarmSignValue | 1 << 7;
+        }
+        if (alarmPowerOff) {
+            alarmSignValue = alarmSignValue | 1 << 8;
+        }
+        if (alarmLCD) {
+            alarmSignValue = alarmSignValue | 1 << 9;
+        }
+        if (alarmTtsFault) {
+            alarmSignValue = alarmSignValue | 1 << 10;
+        }
+        if (alarmCameraFault) {
+            alarmSignValue = alarmSignValue | 1 << 11;
+        }
+        if (alarmIcFault) {
+            alarmSignValue = alarmSignValue | 1 << 12;
+        }
+        if (warningSpeeding) {
+            alarmSignValue = alarmSignValue | 1 << 13;
+        }
+        if (warningTired) {
+            alarmSignValue = alarmSignValue | 1 << 14;
+        }
+        if (alarmWrong) {
+            alarmSignValue = alarmSignValue | 1 << 15;
+        }
+        if (warningTirePressure) {
+            alarmSignValue = alarmSignValue | 1 << 16;
+        }
+        if (alarmBlindZone) {
+            alarmSignValue = alarmSignValue | 1 << 17;
+        }
+        if (alarmDrivingTimeout) {
+            alarmSignValue = alarmSignValue | 1 << 18;
+        }
+        if (alarmParkingTimeout) {
+            alarmSignValue = alarmSignValue | 1 << 19;
+        }
+        if (alarmRegion) {
+            alarmSignValue = alarmSignValue | 1 << 20;
+        }
+        if (alarmRoute) {
+            alarmSignValue = alarmSignValue | 1 << 21;
+        }
+        if (alarmTravelTime) {
+            alarmSignValue = alarmSignValue | 1 << 22;
+        }
+        if (alarmRouteDeviation) {
+            alarmSignValue = alarmSignValue | 1 << 23;
+        }
+        if (alarmVSS) {
+            alarmSignValue = alarmSignValue | 1 << 24;
+        }
+        if (alarmOil) {
+            alarmSignValue = alarmSignValue | 1 << 25;
+        }
+        if (alarmStolen) {
+            alarmSignValue = alarmSignValue | 1 << 26;
+        }
+        if (alarmIllegalIgnition) {
+            alarmSignValue = alarmSignValue | 1 << 27;
+        }
+        if (alarmIllegalDisplacement) {
+            alarmSignValue = alarmSignValue | 1 << 28;
+        }
+        if (alarmRollover) {
+            alarmSignValue = alarmSignValue | 1 << 29;
+        }
+        if (warningRollover) {
+            alarmSignValue = alarmSignValue | 1 << 30;
+        }
+        byteBuf.writeLong(alarmSignValue);
+        return byteBuf;
     }
 
     @Override
@@ -134,7 +242,7 @@ public class JTAlarmSign {
                 "\n      道路运输证IC卡模块故障报警：" + (alarmIcFault?"开":"关") +
                 "\n      超速预警：" + (warningSpeeding?"开":"关") +
                 "\n      疲劳驾驶预警：" + (warningTired?"开":"关") +
-                "\n      违规行驶报警：" + (alarmwrong?"开":"关") +
+                "\n      违规行驶报警：" + (alarmWrong ?"开":"关") +
                 "\n      胎压预警：" + (warningTirePressure?"开":"关") +
                 "\n      右转盲区异常报警：" + (alarmBlindZone?"开":"关") +
                 "\n      当天累计驾驶超时报警：" + (alarmDrivingTimeout?"开":"关") +
@@ -152,4 +260,5 @@ public class JTAlarmSign {
                 "\n      侧翻预警：" + (warningRollover?"开":"关") +
                 "\n       ";
     }
+
 }

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
+import com.genersoft.iot.vmp.jt1078.bean.JTAlarmSign;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.config.*;
@@ -156,6 +157,11 @@ public class J0104 extends Re {
                         JTAwakenParam awakenParamParam = JTAwakenParam.decode(buf);
                         Method methodForAwakenParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAwakenParam.class);
                         methodForAwakenParam.invoke(deviceConfig, awakenParamParam);
+                        continue;
+                    case "AlarmSign":
+                        JTAlarmSign alarmSign = JTAlarmSign.decode(buf);
+                        Method methodForAlarmSign = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAlarmSign.class);
+                        methodForAlarmSign.invoke(deviceConfig, alarmSign);
                         continue;
                     default:
                         System.err.println(field.getGenericType().getTypeName());

@@ -77,7 +77,7 @@ public class JTStatus {
     public JTStatus() {
     }
 
-    public JTStatus(int statusInt) {
+    public JTStatus(long statusInt) {
         if (statusInt == 0) {
             return;
         }
@@ -89,7 +89,7 @@ public class JTStatus {
         this.positionEncryption = (statusInt >>> 5 & 1) == 1;
         this.warningFrontCrash = (statusInt >>> 6 & 1) == 1;
         this.warningShifting = (statusInt >>> 7 & 1) == 1;
-        this.load = (statusInt >>> 8 & 3);
+        this.load = (int)(statusInt >>> 8 & 3);
         this.oilWayBreak = (statusInt >>> 10 & 1) == 1;
         this.circuitBreak = (statusInt >>> 11 & 1) == 1;
         this.doorLocking = (statusInt >>> 12 & 1) == 1;

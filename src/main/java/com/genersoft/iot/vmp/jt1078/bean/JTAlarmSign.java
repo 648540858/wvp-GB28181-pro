@@ -126,7 +126,7 @@ public class JTAlarmSign implements JTDeviceSubConfig {
     public ByteBuf encode() {
         // 限定容量 避免影响后续占位
         ByteBuf byteBuf = Unpooled.buffer();
-        long alarmSignValue = 0;
+        int alarmSignValue = 0;
         if (urgent) {
             alarmSignValue = alarmSignValue | 1;
         }
@@ -220,7 +220,7 @@ public class JTAlarmSign implements JTDeviceSubConfig {
         if (warningRollover) {
             alarmSignValue = alarmSignValue | 1 << 30;
         }
-        byteBuf.writeLong(alarmSignValue);
+        byteBuf.writeInt(alarmSignValue);
         return byteBuf;
     }
 

@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.jt1078.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -18,14 +20,7 @@ public class RegisterEvent extends ApplicationEvent {
         super(source);
     }
 
-
+    @Getter
+    @Setter
     private JTDevice device;
-
-    public JTDevice getDevice() {
-        return device;
-    }
-
-    public void setDevice(JTDevice device) {
-        this.device = device;
-    }
 }

@@ -35,7 +35,7 @@ public interface Ijt1078Service {
 
     void wiper(String phoneNumber, Integer channelId, String command);
 
-    JTDeviceConfig queryConfig(String phoneNumber, String[] params, CommonCallback<WVPResult<StreamInfo>> callback);
+    JTDeviceConfig queryConfig(String phoneNumber, String[] params);
 
     void setConfig(String phoneNumber, JTDeviceConfig config);
 

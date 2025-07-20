@@ -423,7 +423,7 @@ public class JT1078Controller {
     public JTDeviceConfig config(String phoneNumber, String[] params){
 
         log.info("[JT-查询终端参数] phoneNumber：{}", phoneNumber);
-        return service.queryConfig(phoneNumber, params, null);
+        return service.queryConfig(phoneNumber, params);
     }
 
     @Operation(summary = "JT-设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))

@@ -11,9 +11,13 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.JTAloneChanel;
+import com.genersoft.iot.vmp.jt1078.bean.config.JTChannelListParam;
+import com.genersoft.iot.vmp.jt1078.bean.config.JTChannelParam;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
 import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
+import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.FtpDownloadManager;
@@ -91,6 +95,30 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
+
+    }
+
+    /**
+     * 设备注册的通知
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(RegisterEvent event) {
+        // 首次注册设备根据终端参数获取
+        JTDevice device = event.getDevice();
+        List<JTChannel> channelList = jtChannelMapper.selectAllByDevicePhoneNumber(device.getPhoneNumber());
+        if (!channelList.isEmpty()) {
+            return;
+        }
+        JTDeviceConfig jtDeviceConfig = queryConfig(device.getPhoneNumber(), null);
+        JTChannelParam channelParam = jtDeviceConfig.getChannelParam();
+        if (channelParam != null && channelParam.getJtAloneChanelList() != null && !channelParam.getJtAloneChanelList().isEmpty()) {
+           // 写入通道
+            List<JTAloneChanel> jtAloneChanelList = channelParam.getJtAloneChanelList();
+            for (JTAloneChanel jtAloneChanel : jtAloneChanelList) {
+
+            }
+        }
 
     }
 
@@ -201,7 +229,6 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public void ptzControl(String phoneNumber, Integer channelId, String command, int speed) {
         // 发送停止命令
-
         switch (command) {
             case "left":
             case "right":
@@ -297,7 +324,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public JTDeviceConfig queryConfig(String phoneNumber, String[] params, CommonCallback<WVPResult<StreamInfo>> callback) {
+    public JTDeviceConfig queryConfig(String phoneNumber, String[] params) {
         if (phoneNumber == null) {
             return null;
         }

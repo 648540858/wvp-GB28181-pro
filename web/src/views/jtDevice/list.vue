@@ -127,8 +127,6 @@
                 连接指定服务器</el-dropdown-item>
               <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
                 车门控制</el-dropdown-item>
-              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >
-                音视频属性</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>

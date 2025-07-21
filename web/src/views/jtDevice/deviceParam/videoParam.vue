@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;">
-    <div style="height: calc(100vh - 260px);">
+    <div style="height: calc(100vh - 260px); overflow: auto">
       <el-form ref="form" :model="form" label-width="240px" style="width: 60%; margin: 0 auto">
         <el-form-item label="实时流编码模式" prop="topSpeed" >
           <el-select
@@ -93,6 +93,18 @@
         <el-form-item label="特殊报警标识起始时间(分钟)" prop="startTime">
           <el-input type="number" v-model="form.videoParam.startTime" />
         </el-form-item>
+        <el-form-item label="音频输出" prop="startTime">
+          <el-checkbox label="启用" v-model="form.videoParam.audioEnable" ></el-checkbox>
+        </el-form-item>
+        <el-form-item label="OSD字幕叠加设置" prop="osd">
+          <el-checkbox label="日期和时间" v-model="form.videoParam.osd.time" ></el-checkbox>
+          <el-checkbox label="车牌号码" v-model="form.videoParam.osd.licensePlate" ></el-checkbox>
+          <el-checkbox label="逻辑通道号" v-model="form.videoParam.osd.channelId" ></el-checkbox>
+          <el-checkbox label="经纬度" v-model="form.videoParam.osd.position" ></el-checkbox>
+          <el-checkbox label="行驶记录速度" v-model="form.videoParam.osd.speed" ></el-checkbox>
+          <el-checkbox label="卫星定位速度" v-model="form.videoParam.osd.speedForGPS" ></el-checkbox>
+          <el-checkbox label="连续驾驶时间" v-model="form.videoParam.osd.drivingTime" ></el-checkbox>
+        </el-form-item>
       </el-form>
     </div>
     <p style="text-align: right">
@@ -135,7 +147,9 @@ export default {
       this.$store.dispatch('jtDevice/queryConfig', this.phoneNumber)
         .then((data) => {
           if (!data.videoParam) {
-            data.videoParam = {}
+            data.videoParam = {
+              osd: {}
+            }
           }
           if (!data.alarmRecordingParam) {
             data.alarmRecordingParam = {}

@@ -42,6 +42,9 @@
       <el-tab-pane label="卫星定位" name="gnssParam">
         <gnssParam v-if="activeTab === 'gnssParam'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></gnssParam>
       </el-tab-pane>
+      <el-tab-pane label="CAN总线" name="canCollection">
+        <canCollectionParam v-if="activeTab === 'canCollection'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></canCollectionParam>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -59,11 +62,12 @@ import videoParam from './videoParam.vue'
 import awakenParam from './awakenParam.vue'
 import carInfo from './carInfo.vue'
 import gnssParam from './gnssParam.vue'
+import canCollectionParam from './canCollectionParam.vue'
 
 export default {
   name: 'JTDeviceParam',
   components: {
-    communication, server, position, phoneNumber, alarm, driving, cameraTimer, imageConfig, videoParam, awakenParam, carInfo, gnssParam
+    communication, server, position, phoneNumber, alarm, driving, cameraTimer, imageConfig, videoParam, awakenParam, carInfo, gnssParam, canCollectionParam
   },
   props: {
     phoneNumber: {

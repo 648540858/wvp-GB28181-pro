@@ -258,7 +258,7 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x92, type="Short", description = "GNSS 模块详细定位数据输出频率,定义如下: 0: 500ms, 1:1000ms(默认值),  2：2000ms, 3:3000ms,  4:4000ms")
     private Short gnssOutputFrequency;
 
-    @ConfigAttribute(id = 0x93, type="Long", description = "GNSS 模块详细定位数据采集频率 ,单位为秒(s) ,默认为1")
+        @ConfigAttribute(id = 0x93, type="Long", description = "GNSS 模块详细定位数据采集频率 ,单位为秒(s) ,默认为1")
     private Long gnssCollectionFrequency;
 
     @ConfigAttribute(id = 0x94, type="Short", description = "GNSS 模块详细定位数据上传方式:,定义如下: " +

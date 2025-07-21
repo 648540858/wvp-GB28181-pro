@@ -91,6 +91,7 @@ export default {
 
   mounted() {
     if (this.fatherValue !== null) {
+      console.log(this.fatherValue)
       this.form.urgent = this.fatherValue.urgent || false
       this.form.alarmSpeeding = this.fatherValue.alarmSpeeding || false
       this.form.alarmTired = this.fatherValue.alarmTired || false

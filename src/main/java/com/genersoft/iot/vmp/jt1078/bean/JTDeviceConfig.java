@@ -219,7 +219,7 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x76, type="ChannelListParam", description = "音视频通道列表设置")
     private JTChannelListParam channelListParam;
 
-    @ConfigAttribute(id = 0x77, type="ChannelParam", description = "音视频通道列表设置")
+    @ConfigAttribute(id = 0x77, type="ChannelParam", description = "单独视频通道参数设置")
     private JTChannelParam channelParam;
 
     @ConfigAttribute(id = 0x79, type="AlarmRecordingParam", description = "特殊报警录像参数设置")

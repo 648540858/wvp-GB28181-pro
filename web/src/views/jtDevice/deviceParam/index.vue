@@ -5,30 +5,30 @@
         <el-page-header content="终端参数" @back="showDevice" />
       </div>
     </div>
-    <el-tabs tab-position="left" style="height: calc(100vh - 164px); padding: 20px">
-      <el-tab-pane label="通讯参数">
-        <communication :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></communication>
+    <el-tabs tab-position="left" v-model="activeTab" style="height: calc(100vh - 164px); padding: 20px">
+      <el-tab-pane label="通讯参数" name="communication">
+        <communication v-if="activeTab === 'communication'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></communication>
       </el-tab-pane>
-      <el-tab-pane label="服务器">
-        <server :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></server>
+      <el-tab-pane label="服务器" name="server">
+        <server v-if="activeTab === 'server'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></server>
       </el-tab-pane>
-      <el-tab-pane label="位置汇报">
-        <position :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></position>
+      <el-tab-pane label="位置汇报" name="position">
+        <position v-if="activeTab === 'position'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></position>
       </el-tab-pane>
-      <el-tab-pane label="电话号码">
-        <phoneNumber :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></phoneNumber>
+      <el-tab-pane label="电话号码" name="phoneNumber">
+        <phoneNumber v-if="activeTab === 'phoneNumber'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></phoneNumber>
       </el-tab-pane>
-      <el-tab-pane label="报警参数">
-        <alarm :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></alarm>
+      <el-tab-pane label="报警参数" name="alarm">
+        <alarm v-if="activeTab === 'alarm'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></alarm>
       </el-tab-pane>
-      <el-tab-pane label="行驶参数">
-        <driving :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></driving>
+      <el-tab-pane label="行驶参数" name="driving">
+        <driving v-if="activeTab === 'driving'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></driving>
       </el-tab-pane>
-      <el-tab-pane label="定时拍照">
-        <cameraTimer :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></cameraTimer>
+      <el-tab-pane label="定时拍照" name="cameraTimer">
+        <cameraTimer v-if="activeTab === 'cameraTimer'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></cameraTimer>
       </el-tab-pane>
-      <el-tab-pane label="音视频">
-        <media :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></media>
+      <el-tab-pane label="音视频" name="media">
+        <media v-if="activeTab === 'media'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></media>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -65,7 +65,8 @@ export default {
       rules: {
         deviceId: [{ required: true, message: '请输入设备编号', trigger: 'blur' }]
       },
-      isLoading: false
+      isLoading: false,
+      activeTab: 'communication'
     }
   },
 

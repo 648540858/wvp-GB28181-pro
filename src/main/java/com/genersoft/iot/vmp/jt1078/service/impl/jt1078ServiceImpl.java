@@ -105,20 +105,20 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @EventListener
     public void onApplicationEvent(RegisterEvent event) {
         // 首次注册设备根据终端参数获取
-        JTDevice device = event.getDevice();
-        List<JTChannel> channelList = jtChannelMapper.selectAllByDevicePhoneNumber(device.getPhoneNumber());
-        if (!channelList.isEmpty()) {
-            return;
-        }
-        JTDeviceConfig jtDeviceConfig = queryConfig(device.getPhoneNumber(), null);
-        JTChannelParam channelParam = jtDeviceConfig.getChannelParam();
-        if (channelParam != null && channelParam.getJtAloneChanelList() != null && !channelParam.getJtAloneChanelList().isEmpty()) {
-           // 写入通道
-            List<JTAloneChanel> jtAloneChanelList = channelParam.getJtAloneChanelList();
-            for (JTAloneChanel jtAloneChanel : jtAloneChanelList) {
-
-            }
-        }
+//        JTDevice device = event.getDevice();
+//        List<JTChannel> channelList = jtChannelMapper.selectAllByDevicePhoneNumber(device.getPhoneNumber());
+//        if (!channelList.isEmpty()) {
+//            return;
+//        }
+//        JTDeviceConfig jtDeviceConfig = queryConfig(device.getPhoneNumber(), null);
+//        JTChannelParam channelParam = jtDeviceConfig.getChannelParam();
+//        if (channelParam != null && channelParam.getJtAloneChanelList() != null && !channelParam.getJtAloneChanelList().isEmpty()) {
+//           // 写入通道
+//            List<JTAloneChanel> jtAloneChanelList = channelParam.getJtAloneChanelList();
+//            for (JTAloneChanel jtAloneChanel : jtAloneChanelList) {
+//
+//            }
+//        }
 
     }
 

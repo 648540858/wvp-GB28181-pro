@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;">
-    <div style="height: calc(100vh - 260px);">
+    <div style="height: calc(100vh - 260px); overflow: auto">
       <el-form ref="form" :model="form" label-width="240px" style="width: 50%; margin: 0 auto">
         <el-form-item label="里程表读数(1/10km)" prop="mileage">
           <el-input type="number" v-model="form.mileage" />

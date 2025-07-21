@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;">
-    <div style="height: calc(100vh - 260px);">
+    <div style="height: calc(100vh - 260px); overflow: auto">
       <el-form ref="form" :model="form" label-width="240px" style="width: 50%; margin: 0 auto">
         <el-form-item label="心跳发送间隔(秒)" prop="keepaliveInterval">
           <el-input v-model="form.keepaliveInterval" clearable />

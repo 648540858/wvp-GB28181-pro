@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;">
-    <div style="height: calc(100vh - 260px);">
+    <div style="height: calc(100vh - 260px); overflow: auto">
       <el-form ref="form" :model="form" label-width="240px" style="width: 50%; margin: 0 auto">
         <el-form-item label="监控平台电话号码" prop="platformPhoneNumber">
           <el-input v-model="form.platformPhoneNumber" clearable />

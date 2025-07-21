@@ -63,6 +63,9 @@ export default {
       this.isLoading = true
       this.$store.dispatch('jtDevice/queryConfig', this.phoneNumber)
         .then((data) => {
+          if (!data.cameraTimer) {
+            data.cameraTimer = {}
+          }
           this.form = data
         })
         .catch((e) => {

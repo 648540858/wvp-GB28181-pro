@@ -36,6 +36,12 @@
       <el-tab-pane label="休眠唤醒" name="awakenParam">
         <awakenParam v-if="activeTab === 'awakenParam'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></awakenParam>
       </el-tab-pane>
+      <el-tab-pane label="车辆信息" name="carInfo">
+        <carInfo v-if="activeTab === 'carInfo'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></carInfo>
+      </el-tab-pane>
+      <el-tab-pane label="卫星定位" name="gnssParam">
+        <gnssParam v-if="activeTab === 'gnssParam'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></gnssParam>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -51,11 +57,13 @@ import cameraTimer from './cameraTimer.vue'
 import imageConfig from './imageConfig.vue'
 import videoParam from './videoParam.vue'
 import awakenParam from './awakenParam.vue'
+import carInfo from './carInfo.vue'
+import gnssParam from './gnssParam.vue'
 
 export default {
   name: 'JTDeviceParam',
   components: {
-    communication, server, position, phoneNumber, alarm, driving, cameraTimer, imageConfig, videoParam, awakenParam
+    communication, server, position, phoneNumber, alarm, driving, cameraTimer, imageConfig, videoParam, awakenParam, carInfo, gnssParam
   },
   props: {
     phoneNumber: {

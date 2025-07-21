@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 违规行驶时段范围 ,精确到分
  */
+@Setter
+@Getter
 public class JTIllegalDrivingPeriods implements JTDeviceSubConfig{
     /**
      * 违规行驶时段-开始时间 HH:mm
@@ -16,22 +20,6 @@ public class JTIllegalDrivingPeriods implements JTDeviceSubConfig{
      * 违规行驶时段-结束时间 HH:mm
      */
     private String endTime;
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
 
     @Override
     public ByteBuf encode() {

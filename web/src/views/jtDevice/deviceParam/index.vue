@@ -27,8 +27,14 @@
       <el-tab-pane label="定时拍照" name="cameraTimer">
         <cameraTimer v-if="activeTab === 'cameraTimer'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></cameraTimer>
       </el-tab-pane>
-      <el-tab-pane label="音视频" name="media">
-        <media v-if="activeTab === 'media'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></media>
+      <el-tab-pane label="图像参数" name="imageConfig">
+        <imageConfig v-if="activeTab === 'imageConfig'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></imageConfig>
+      </el-tab-pane>
+      <el-tab-pane label="视频参数" name="videoParam">
+        <videoParam v-if="activeTab === 'videoParam'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></videoParam>
+      </el-tab-pane>
+      <el-tab-pane label="休眠唤醒" name="awakenParam">
+        <awakenParam v-if="activeTab === 'awakenParam'" :phone-number="phoneNumber" @submit="onSubmit" @show-device="showDevice"></awakenParam>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -42,12 +48,14 @@ import phoneNumber from './phoneNumber.vue'
 import alarm from './alarm.vue'
 import driving from './driving.vue'
 import cameraTimer from './cameraTimer.vue'
-import media from './media.vue'
+import imageConfig from './imageConfig.vue'
+import videoParam from './videoParam.vue'
+import awakenParam from './awakenParam.vue'
 
 export default {
   name: 'JTDeviceParam',
   components: {
-    communication, server, position, phoneNumber, alarm, driving, cameraTimer, media
+    communication, server, position, phoneNumber, alarm, driving, cameraTimer, imageConfig, videoParam, awakenParam
   },
   props: {
     phoneNumber: {
@@ -57,11 +65,7 @@ export default {
   },
   data() {
     return {
-      form: {
-        collisionAlarmParams: {},
-        illegalDrivingPeriods: {},
-        cameraTimer: {}
-      },
+      form: {},
       rules: {
         deviceId: [{ required: true, message: '请输入设备编号', trigger: 'blur' }]
       },

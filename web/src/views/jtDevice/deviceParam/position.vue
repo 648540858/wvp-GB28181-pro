@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;">
-    <div style="height: calc(100vh - 260px);">
+    <div style="height: calc(100vh - 260px); overflow: auto">
       <el-form ref="form" :model="form" label-width="240px" style="width: 50%; margin: 0 auto">
         <el-form-item label="汇报策略" prop="locationReportingStrategy">
           <el-select v-model="form.locationReportingStrategy" style="float: left; width: 100%">
@@ -16,32 +16,42 @@
           </el-select>
         </el-form-item>
         <el-form-item label="驾驶员未登录汇报时间间隔(秒)" prop="reportingIntervalOffline">
-          <el-input v-model="form.reportingIntervalOffline" clearable />
+          <el-input type="number" v-model="form.reportingIntervalOffline" placeholder="请输入驾驶员未登录汇报时间间隔" />
         </el-form-item>
         <el-form-item label="休眠时汇报时间间隔(秒)" prop="reportingIntervalDormancy">
-          <el-input v-model="form.reportingIntervalDormancy" clearable />
+          <el-input type="number" v-model="form.reportingIntervalDormancy" placeholder="请输入休眠时汇报时间间隔" />
         </el-form-item>
         <el-form-item label="紧急报警时汇报时间间隔(秒)" prop="reportingIntervalEmergencyAlarm">
-          <el-input v-model="form.reportingIntervalEmergencyAlarm" clearable />
+          <el-input type="number" v-model="form.reportingIntervalEmergencyAlarm" placeholder="请输入紧急报警时汇报时间间隔" />
         </el-form-item>
         <el-form-item label="缺省时间汇报间隔(秒)" prop="reportingIntervalDefault">
-          <el-input v-model="form.reportingIntervalDefault" clearable />
+          <el-input type="number" v-model="form.reportingIntervalDefault" placeholder="请输入缺省时间汇报间隔" />
         </el-form-item>
         <el-form-item label="缺省距离汇报间隔(米)" prop="reportingDistanceDefault">
-          <el-input v-model="form.reportingDistanceDefault" clearable />
+          <el-input type="number" v-model="form.reportingDistanceDefault" placeholder="请输入缺省距离汇报间隔" />
         </el-form-item>
         <el-form-item label="驾驶员未登录汇报距离间隔(米)" prop="reportingDistanceOffline">
-          <el-input v-model="form.reportingDistanceOffline" clearable />
+          <el-input type="number" v-model="form.reportingDistanceOffline" placeholder="请输入驾驶员未登录汇报距离间隔" />
         </el-form-item>
         <el-form-item label="休眠时汇报距离间隔(米)" prop="reportingDistanceDormancy">
-          <el-input v-model="form.reportingDistanceDormancy" clearable />
+          <el-input type="number" v-model="form.reportingDistanceDormancy" placeholder="请输入休眠时汇报距离间隔" />
         </el-form-item>
         <el-form-item label="紧急报警时汇报距离间隔(米)" prop="reportingDistanceEmergencyAlarm">
-          <el-input v-model="form.reportingDistanceEmergencyAlarm" clearable />
+          <el-input type="number" v-model="form.reportingDistanceEmergencyAlarm" placeholder="请输入紧急报警时汇报距离间隔" />
         </el-form-item>
         <el-form-item label="拐点补传角度(度，小于180)" prop="inflectionPointAngle">
-          <el-input v-model="form.inflectionPointAngle" clearable />
+          <el-input type="number" v-model="form.inflectionPointAngle" placeholder="请输入拐点补传角度" />
         </el-form-item>
+        <el-form-item label="电子围栏半径(米)" prop="fenceRadius">
+          <el-input type="number" v-model="form.fenceRadius" placeholder="请输入电子围栏半径" />
+        </el-form-item>
+        <el-form-item label="违规行驶时段-开始时间(HH:mm)" prop="illegalDrivingPeriods">
+          <el-input v-model="form.illegalDrivingPeriods.startTime" clearable />
+        </el-form-item>
+        <el-form-item label="违规行驶时段-结束时间(HH:mm)" prop="illegalDrivingPeriods">
+          <el-input v-model="form.illegalDrivingPeriods.endTime" clearable />
+        </el-form-item>
+
       </el-form>
     </div>
     <p style="text-align: right">
@@ -66,6 +76,7 @@ export default {
   },
   data() {
     return {
+      illegalDrivingPeriods: [new Date(), new Date()],
       form: {},
       isLoading: false
     }
@@ -79,6 +90,12 @@ export default {
       this.isLoading = true
       this.$store.dispatch('jtDevice/queryConfig', this.phoneNumber)
         .then((data) => {
+          if (!data.illegalDrivingPeriods) {
+            data.illegalDrivingPeriods = {
+              startTime: null,
+              endTime: null
+            }
+          }
           this.form = data
         })
         .catch((e) => {

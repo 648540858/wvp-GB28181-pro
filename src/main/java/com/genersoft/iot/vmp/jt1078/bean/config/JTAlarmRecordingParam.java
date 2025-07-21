@@ -9,7 +9,7 @@ import io.netty.buffer.Unpooled;
 public class JTAlarmRecordingParam implements  JTDeviceSubConfig{
 
     /**
-     * 特殊报警录像存储阈值, 分比,取值 特殊报警录像占用主存储器存储阈值百 1 ~ 99,默认值为 20
+     * 特殊报警录像存储阈值, 百分比,取值 特殊报警录像占用主存储器存储阈值百 1 ~ 99,默认值为 20
      */
     private int storageLimit;
 

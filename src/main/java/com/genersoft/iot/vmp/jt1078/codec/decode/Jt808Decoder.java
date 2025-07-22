@@ -83,7 +83,6 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             }
 
             Rs decode = handler.decode(buf, header, session, service);
-            buf.release();
             ApplicationEvent applicationEvent = handler.getEvent();
             if (applicationEvent != null) {
                 applicationEventPublisher.publishEvent(applicationEvent);

@@ -1,8 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -24,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -64,14 +62,39 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		sipProcessorObserver.addRequestProcessor(method, this);
 	}
 
-	/**   
-	 * 处理SUBSCRIBE请求  
-	 * 
+	/**
+	 * 处理SUBSCRIBE请求
+	 *
 	 * @param evt 事件
 	 */
 	@Override
 	public void process(RequestEvent evt) {
 		SIPRequest request = (SIPRequest) evt.getRequest();
+		// 判断是否为续订或者取消订阅请求
+		String callId = request.getCallIdHeader().getCallId();
+		if (!StringUtils.hasLength(callId)) {
+			logger.info("[订阅消息]: callID丢失: \r\n {}", request);
+			return;
+		}
+		SubscribeInfo subscribeInfo = subscribeHolder.getSubscribeByCallId(callId);
+		if (subscribeInfo != null) {
+			int expires = request.getExpires().getExpires();
+			if (expires == 0) {
+				logger.info("[取消订阅]: callID: {}", callId);
+				// 移除订阅
+			}else {
+				logger.info("[订阅续订]: callID: {}, 有效期： {}", callId, expires);
+				// 增加存活时间
+			}
+			subscribeHolder.expires(subscribeInfo, expires);
+			try {
+				// 回复200 OK
+				responseAck(request, Response.OK);
+			} catch (SipException | InvalidArgumentException | ParseException e) {
+				logger.error("[命令发送失败] 订阅消息 应答消息 200: {}", e.getMessage());
+			}
+			return;
+		}
 		try {
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
@@ -117,9 +140,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		if (platform == null) {
 			return;
 		}
-
+		subscribeInfo.setType("MobilePosition");
+		logger.info("[上级的移动位置订阅请求]: {}/{}， callID: {}, 有效期： {}", platformId, deviceId, request.getCallIdHeader().getCallId(), subscribeInfo.getExpires());
 		String sn = XmlUtil.getText(rootElement, "SN");
-		logger.info("[回复上级的移动位置订阅请求]: {}", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -165,6 +188,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		if (request == null) {
 			return;
 		}
+
 		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
@@ -172,9 +196,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			return;
 		}
 		SubscribeInfo subscribeInfo = new SubscribeInfo(request, platformId);
-
+		logger.info("[上级的目录订阅请求]: {}/{}， callID: {}, 有效期： {}", platformId, deviceId, request.getCallIdHeader().getCallId(), subscribeInfo.getExpires());
+		subscribeInfo.setType("Catalog");
 		String sn = XmlUtil.getText(rootElement, "SN");
-		logger.info("[回复上级的目录订阅请求]: {}/{}", platformId, deviceId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")

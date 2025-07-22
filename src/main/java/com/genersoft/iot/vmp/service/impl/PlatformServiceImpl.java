@@ -300,6 +300,7 @@ public class PlatformServiceImpl implements IPlatformService {
         subscribeInfo.setId(parentPlatform.getServerGBId());
         subscribeInfo.setExpires(-1);
         subscribeInfo.setEventType("Catalog");
+        subscribeInfo.setType("Catalog");
         int random = (int) Math.floor(Math.random() * 10000);
         subscribeInfo.setEventId(random + "");
         subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + parentPlatform.getServerIP());

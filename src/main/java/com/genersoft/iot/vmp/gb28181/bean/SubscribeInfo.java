@@ -27,6 +27,7 @@ public class SubscribeInfo {
     private int expires;
     private String eventId;
     private String eventType;
+    private String type;
     private SIPResponse response;
 
     /**
@@ -137,5 +138,13 @@ public class SubscribeInfo {
 
     public void setSimulatedToTag(String simulatedToTag) {
         this.simulatedToTag = simulatedToTag;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

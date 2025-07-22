@@ -1,13 +1,35 @@
 import {
   add,
-  addChannel, connection, controlDoor, controlPlayback, deleteDevice, factoryReset,
-  fillLight, getRecordTempUrl, linkDetection,
-  play, ptz, queryAttribute,
-  queryChannels, queryConfig,
+  addChannel,
+  connection,
+  controlDoor,
+  controlPlayback,
+  deleteDevice,
+  factoryReset,
+  fillLight,
+  getRecordTempUrl,
+  linkDetection,
+  play,
+  ptz,
+  queryAttribute,
+  queryChannels,
+  queryConfig,
   queryDeviceById,
-  queryDevices, queryDriverInfo, queryPosition, queryRecordList, reset, sendTextMessage, setConfig, startPlayback,
-  stopPlay, stopPlayback, telephoneCallback, update,
-  updateChannel, wiper
+  queryDevices,
+  queryDriverInfo,
+  queryMediaAttribute,
+  queryPosition,
+  queryRecordList,
+  reset,
+  sendTextMessage,
+  setConfig,
+  startPlayback,
+  stopPlay,
+  stopPlayback,
+  telephoneCallback,
+  update,
+  updateChannel,
+  wiper
 } from '@/api/jtDevice'
 
 const actions = {
@@ -304,6 +326,16 @@ const actions = {
   controlDoor({ commit }, param) {
     return new Promise((resolve, reject) => {
       controlDoor(param).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryMediaAttribute({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      queryMediaAttribute(phoneNumber).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

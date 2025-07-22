@@ -317,5 +317,14 @@ export function controlDoor({ phoneNumber, open}) {
     }
   })
 }
+export function queryMediaAttribute(phoneNumber) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/media/attribute',
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
 
 

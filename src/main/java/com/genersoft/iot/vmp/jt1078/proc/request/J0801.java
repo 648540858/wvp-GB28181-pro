@@ -33,20 +33,20 @@ public class J0801 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         JTMediaEventInfo mediaEventInfo = JTMediaEventInfo.decode(buf);
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
-        try {
-            if (mediaEventInfo.getMediaData() != null) {
-                File file = new File("/home/lin/source.jpg");
-                if (file.exists()) {
-                    file.delete();
-                }
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(mediaEventInfo.getMediaData());
-                fileOutputStream.flush();
-                fileOutputStream.close();
-            }
-        }catch (Exception e) {
-            log.error("[JT-多媒体数据上传] 写入文件异常", e);
-        }
+//        try {
+//            if (mediaEventInfo.getMediaData() != null) {
+//                File file = new File("/home/lin/source.jpg");
+//                if (file.exists()) {
+//                    file.delete();
+//                }
+//                FileOutputStream fileOutputStream = new FileOutputStream(file);
+//                fileOutputStream.write(mediaEventInfo.getMediaData());
+//                fileOutputStream.flush();
+//                fileOutputStream.close();
+//            }
+//        }catch (Exception e) {
+//            log.error("[JT-多媒体数据上传] 写入文件异常", e);
+//        }
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0801", null, mediaEventInfo);
         return null;
     }

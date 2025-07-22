@@ -107,6 +107,8 @@
                 终端参数</el-dropdown-item>
               <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">
                 终端属性</el-dropdown-item>
+              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status">
+                音视频属性</el-dropdown-item>
               <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >
                 链路检测</el-dropdown-item>
               <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >
@@ -151,6 +153,7 @@
     <driverInfo ref="driverInfo" />
     <connectionServer ref="connectionServer" />
     <controlDoor ref="controlDoor" />
+    <mediaAttribute ref="mediaAttribute" />
   </div>
 </template>
 
@@ -164,11 +167,12 @@ import telephoneCallback from './dialog/telephoneCallback.vue'
 import driverInfo from './dialog/driverInfo.vue'
 import connectionServer from './dialog/connectionServer.vue'
 import controlDoor from './dialog/controlDoor.vue'
+import mediaAttribute from './dialog/mediaAttribute.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor, mediaAttribute
   },
   data() {
     return {
@@ -287,6 +291,8 @@ export default {
          this.controlDoor(itemData)
       } else if (command === 'connection') {
          this.connection(itemData)
+      } else if (command === 'mediaAttribute') {
+         this.queryMediaAttribute(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -360,6 +366,13 @@ export default {
     },
     connection: function(itemData) {
       this.$refs.connectionServer.openDialog(itemData.phoneNumber)
+    },
+    queryMediaAttribute: function(itemData) {
+      this.$store.dispatch('jtDevice/queryMediaAttribute', itemData.phoneNumber)
+        .then((data) => {
+          this.$refs.mediaAttribute.openDialog(data)
+        })
+
     },
     controlDoor: function(itemData) {
       this.$refs.controlDoor.openDialog(itemData.phoneNumber)

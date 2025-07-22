@@ -330,14 +330,16 @@ export default {
       // 文件下载地址
       const baseUrl = window.baseUrl ? window.baseUrl : ''
       const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/jt1078/snap?phoneNumber=${this.device.phoneNumber}&channelId=${row.channelId}`
-
+      let controller = new AbortController()
+      let signal = controller.signal
       // 设置请求头
       const headers = new Headers()
       headers.append('access-token', this.$store.getters.token) // 设置授权头，替换YourAccessToken为实际的访问令牌
       // 发起  请求
       fetch(fileUrl, {
         method: 'GET',
-        headers: headers
+        headers: headers,
+        signal: signal
       })
         .then(response => response.blob())
         .then(blob => {
@@ -353,6 +355,11 @@ export default {
           document.body.removeChild(link)
         })
         .catch(error => console.error('下载失败：', error))
+
+      setTimeout(() => {
+        this.$message.error('等待截图超时', { closed: true })
+        controller.abort('timeout')
+        }, 15000)
     }
   }
 }

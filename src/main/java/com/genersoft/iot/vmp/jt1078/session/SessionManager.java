@@ -56,7 +56,7 @@ public enum SessionManager {
      * @param clientId   设备ID
      * @param newSession session
      */
-    protected void put(Object clientId, Session newSession) {
+    void put(Object clientId, Session newSession) {
         sessionMap.put(clientId, newSession);
     }
 

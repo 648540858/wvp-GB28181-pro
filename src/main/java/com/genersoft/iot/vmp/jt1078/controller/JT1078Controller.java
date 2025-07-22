@@ -1029,8 +1029,7 @@ public class JT1078Controller {
     @Operation(summary = "JT-查询终端音视频属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @GetMapping("/media/attribute")
-    public JTMediaAttribute queryMediaAttribute(HttpServletRequest request,
-                           @Parameter(required = true) String phoneNumber
+    public JTMediaAttribute queryMediaAttribute( @Parameter(required = true) String phoneNumber
     ) {
         return service.queryMediaAttribute(phoneNumber);
     }

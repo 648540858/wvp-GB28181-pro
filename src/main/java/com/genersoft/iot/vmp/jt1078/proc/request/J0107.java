@@ -23,18 +23,9 @@ import java.nio.charset.Charset;
 @MsgId(id = "0107")
 public class J0107 extends Re {
 
-    private final static Logger logger = LoggerFactory.getLogger(J0107.class);
-
-    Integer respNo;
-    Integer paramLength;
-
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-//        respNo = buf.readUnsignedShort();
-//        paramLength = (int) buf.readUnsignedByte();
-//        if (paramLength <= 0) {
-//            return null;
-//        }
+
         JTDeviceAttribute deviceAttribute = new JTDeviceAttribute();
 
         deviceAttribute.setType(JTDeviceType.getInstance(buf.readUnsignedShort()));

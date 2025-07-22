@@ -781,6 +781,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
         j8801.setCommand(shootingCommand);
         log.info("[JT-抓图] 设备编号： {}， 通道编号： {}", phoneNumber, channelId);
+        // 监听文件上传， 存在设备不回复抓图请求或者回复通用回复，导致缺少抓图编号，但是直接上传文件的，此处通过监听文件上传直接获取文件
+
         @SuppressWarnings("unchecked")
         List<Long> ids = (List<Long>) jt1078Template.shooting(phoneNumber, j8801, 300);
         log.info("[JT-抓图] 抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);

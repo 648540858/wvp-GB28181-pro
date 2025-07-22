@@ -59,6 +59,8 @@ public class JT1078TerminalController {
     @PostMapping("/add")
     public void addDevice(JTDevice device){
         assert device.getPhoneNumber() != null;
+        String phoneNumber = device.getPhoneNumber().replaceFirst("^0*", "");
+        device.setPhoneNumber(phoneNumber);
         service.addDevice(device);
     }
     @Operation(summary = "删除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

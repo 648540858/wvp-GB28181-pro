@@ -322,7 +322,7 @@ public class ABLRESTfulUtils {
             // 3 XHB (一家公司的打包格式) 只支持视频，音频不能加入打包
             // 4 、Jt1078（2016版本）码流接入
             param.put("RtpPayloadDataType", 4);
-            param.put("jtt1078_version", "2016");
+            param.put("jtt1078_version", "2019");
         }
         if (port != null) {
             param.put("port", port);

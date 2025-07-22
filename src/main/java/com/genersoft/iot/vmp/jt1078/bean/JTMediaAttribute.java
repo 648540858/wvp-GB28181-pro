@@ -20,20 +20,20 @@ public class JTMediaAttribute implements JTDeviceSubConfig {
      * 7 G. 711U
      * 8 G. 726
      * 9 G. 729A
-     * 10 DVI4 3
-     * 11 DVI4 4
-     * 12 DVI4 8K
-     * 13 DVI4 16K
+     * 10 DVI4_3
+     * 11 DVI4_4
+     * 12 DVI4_8K
+     * 13 DVI4_16K
      * 14 LPC
-     * 15 S16BE STEREO
-     * 16 S16BE MONO
+     * 15 S16BE_STEREO
+     * 16 S16BE_MONO
      * 17 MPEGAUDIO
      * 18 LPCM
      * 19 AAC
      * 20 WMA9STD
      * 21 HEAAC
-     * 22 PCM VOICE
-     * 23 PCM AUDIO
+     * 22 PCM_VOICE
+     * 23 PCM_AUDIO
      * 24 AACLC
      * 25 MP3
      * 26 ADPCMA

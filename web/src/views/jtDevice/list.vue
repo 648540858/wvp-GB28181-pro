@@ -117,8 +117,8 @@
                 文本下发</el-dropdown-item>
               <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >
                 电话回拨</el-dropdown-item>
-<!--              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >-->
-<!--                设置电话本</el-dropdown-item>-->
+              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
+                设置电话本</el-dropdown-item>
               <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
                 驾驶员信息</el-dropdown-item>
               <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >
@@ -154,6 +154,7 @@
     <connectionServer ref="connectionServer" />
     <controlDoor ref="controlDoor" />
     <mediaAttribute ref="mediaAttribute" />
+    <phoneBook ref="phoneBook" />
   </div>
 </template>
 
@@ -168,11 +169,13 @@ import driverInfo from './dialog/driverInfo.vue'
 import connectionServer from './dialog/connectionServer.vue'
 import controlDoor from './dialog/controlDoor.vue'
 import mediaAttribute from './dialog/mediaAttribute.vue'
+import phoneBook from './dialog/phoneBook.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor, mediaAttribute
+    deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor
+    , mediaAttribute, phoneBook
   },
   data() {
     return {
@@ -293,6 +296,8 @@ export default {
          this.connection(itemData)
       } else if (command === 'mediaAttribute') {
          this.queryMediaAttribute(itemData)
+      } else if (command === 'setPhoneBook') {
+         this.setPhoneBook(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -367,12 +372,14 @@ export default {
     connection: function(itemData) {
       this.$refs.connectionServer.openDialog(itemData.phoneNumber)
     },
+    setPhoneBook: function(itemData) {
+      this.$refs.phoneBook.openDialog(itemData.phoneNumber)
+    },
     queryMediaAttribute: function(itemData) {
       this.$store.dispatch('jtDevice/queryMediaAttribute', itemData.phoneNumber)
         .then((data) => {
           this.$refs.mediaAttribute.openDialog(data)
         })
-
     },
     controlDoor: function(itemData) {
       this.$refs.controlDoor.openDialog(itemData.phoneNumber)

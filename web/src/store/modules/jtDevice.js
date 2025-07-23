@@ -22,7 +22,7 @@ import {
   queryRecordList,
   reset,
   sendTextMessage,
-  setConfig,
+  setConfig, setPhoneBook,
   startPlayback,
   stopPlay,
   stopPlayback,
@@ -336,6 +336,16 @@ const actions = {
   queryMediaAttribute({ commit }, phoneNumber) {
     return new Promise((resolve, reject) => {
       queryMediaAttribute(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  setPhoneBook({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      setPhoneBook(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

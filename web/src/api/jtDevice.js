@@ -326,5 +326,12 @@ export function queryMediaAttribute(phoneNumber) {
     }
   })
 }
+export function setPhoneBook(data) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/set-phone-book',
+    data: data
+  })
+}
 
 

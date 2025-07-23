@@ -36,7 +36,8 @@
     "vue-contextmenujs": "^1.4.11",
     "vue-router": "3.0.6",
     "vue-ztree-2.0": "^1.0.4",
-    "vuex": "3.1.0"
+    "vuex": "3.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.4",

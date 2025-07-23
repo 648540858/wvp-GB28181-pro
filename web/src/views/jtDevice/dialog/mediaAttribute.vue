@@ -18,7 +18,7 @@
           <el-descriptions-item label="采样位数">{{ audioSamplingBitsEnum[attributeData.audioSamplingBits] }}</el-descriptions-item>
           <el-descriptions-item label="帧长度">{{ attributeData.audioFrameLength }}</el-descriptions-item>
           <el-descriptions-item label="音频输出">{{ attributeData.audioOutputEnable === 0 ? '不支持':'支持' }}</el-descriptions-item>
-          <el-descriptions-item label="最大物理通道数量">{{ attributeData.audioChannelMax === 0 ? '不支持':'支持' }}</el-descriptions-item>
+          <el-descriptions-item label="最大物理通道数量">{{ attributeData.audioChannelMax }}</el-descriptions-item>
         </el-descriptions>
         <el-descriptions title="视频" :column="2" style="margin-bottom: 1rem;">
           <el-descriptions-item label="编码方式">{{ videoEncoderEnum[attributeData.videoEncoder] }}</el-descriptions-item>

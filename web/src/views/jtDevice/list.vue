@@ -129,6 +129,8 @@
                 连接指定服务器</el-dropdown-item>
               <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
                 车门控制</el-dropdown-item>
+              <el-dropdown-item command="queryMediaList" v-bind:disabled="!scope.row.status" >
+                多媒体检索</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -155,6 +157,7 @@
     <controlDoor ref="controlDoor" />
     <mediaAttribute ref="mediaAttribute" />
     <phoneBook ref="phoneBook" />
+    <queryMediaList ref="queryMediaList" />
   </div>
 </template>
 
@@ -170,12 +173,13 @@ import connectionServer from './dialog/connectionServer.vue'
 import controlDoor from './dialog/controlDoor.vue'
 import mediaAttribute from './dialog/mediaAttribute.vue'
 import phoneBook from './dialog/phoneBook.vue'
+import queryMediaList from './dialog/queryMediaList.vue'
 
 export default {
   name: 'App',
   components: {
     deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor
-    , mediaAttribute, phoneBook
+    , mediaAttribute, phoneBook, queryMediaList
   },
   data() {
     return {
@@ -298,6 +302,8 @@ export default {
          this.queryMediaAttribute(itemData)
       } else if (command === 'setPhoneBook') {
          this.setPhoneBook(itemData)
+      } else if (command === 'queryMediaList') {
+         this.queryMediaList(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -374,6 +380,9 @@ export default {
     },
     setPhoneBook: function(itemData) {
       this.$refs.phoneBook.openDialog(itemData.phoneNumber)
+    },
+    queryMediaList: function(itemData) {
+      this.$refs.queryMediaList.openDialog(itemData.phoneNumber, itemData.id)
     },
     queryMediaAttribute: function(itemData) {
       this.$store.dispatch('jtDevice/queryMediaAttribute', itemData.phoneNumber)

@@ -98,9 +98,12 @@ export default {
     openDialog: function(phoneNumber) {
       this.showDialog = true
       this.phoneNumber = phoneNumber
+      this.phoneBookList = []
     },
     close: function() {
       this.showDialog = false
+      this.showUpload = false
+      this.phoneBookList = []
     },
     signLabel: function(sign) {
       switch (sign){

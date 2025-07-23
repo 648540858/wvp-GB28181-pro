@@ -49,9 +49,9 @@ public class JTVideoParam implements JTDeviceSubConfig{
 
     /**
      * 存储流编码模式
-     * 0:CBR( 固定码率) ;
-     * 1:VBR( 可变码率) ;
-     * 2:ABR( 平均码率) ;
+     * 0:CBR( 固定码率)
+     * 1:VBR( 可变码率)
+     * 2:ABR( 平均码率)
      * 100 ~ 127:自定义
      */
     private int storageStreamCodeRateType;

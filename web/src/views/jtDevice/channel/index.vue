@@ -100,8 +100,6 @@
                       设备录像</el-dropdown-item>
                     <el-dropdown-item command="cloudRecords" :disabled="device == null || !device.status">
                       云端录像</el-dropdown-item>
-                    <el-dropdown-item command="searchData" v-bind:disabled="device == null || !device.status" >
-                      数据检索</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
               </template>

@@ -23,7 +23,7 @@ public class Jt808Encoder extends MessageToByteEncoder<Rs> {
     protected void encode(ChannelHandlerContext ctx, Rs msg, ByteBuf out) throws Exception {
         Session session = ctx.channel().attr(Session.KEY).get();
 
-        List<ByteBuf> encodeList =  Jt808EncoderCmd.encode(msg, session, session.nextSerialNo());
+        List<ByteBuf> encodeList = Jt808EncoderCmd.encode(msg, session, session.nextSerialNo());
         if(encodeList!=null && !encodeList.isEmpty()){
             for (ByteBuf byteBuf : encodeList) {
                 log.debug("< {} hex:{}", session, ByteBufUtil.hexDump(byteBuf));

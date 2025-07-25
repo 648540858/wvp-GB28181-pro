@@ -22,10 +22,10 @@
             <el-option label="QCIF( 164×144 )" :value="0" />
             <el-option label="CIF( 360×288 )" :value="1" />
             <el-option label="WCIF( 480×288 )" :value="2" />
-            <el-option label="D1( 720x576 )" :value="2" />
-            <el-option label="WD1( 960×576 )" :value="2" />
-            <el-option label="720P( 1280×720 )" :value="2" />
-            <el-option label="1080P( 1920×1080 )" :value="2" />
+            <el-option label="D1( 720x576 )" :value="3" />
+            <el-option label="WD1( 960×576 )" :value="4" />
+            <el-option label="720P( 1280×720 )" :value="5" />
+            <el-option label="1080P( 1920×1080 )" :value="6" />
           </el-select>
         </el-form-item>
         <el-form-item label="实时流关键帧间隔" prop="chroma">

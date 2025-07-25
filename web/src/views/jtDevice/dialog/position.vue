@@ -10,7 +10,7 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <div id="shared">
+      <div id="shared" style="height: 45rem; overflow: auto">
         <el-descriptions title="基本信息" :column="3" v-if="positionData" style="margin-bottom: 1rem;">
           <el-descriptions-item label="经度">{{ positionData.longitude }}</el-descriptions-item>
           <el-descriptions-item label="纬度">{{ positionData.latitude }}</el-descriptions-item>

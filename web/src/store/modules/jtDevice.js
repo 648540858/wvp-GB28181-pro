@@ -17,12 +17,12 @@ import {
   queryDeviceById,
   queryDevices,
   queryDriverInfo,
-  queryMediaAttribute,
+  queryMediaAttribute, queryMediaData,
   queryPosition,
   queryRecordList,
   reset,
   sendTextMessage,
-  setConfig, setPhoneBook,
+  setConfig, setPhoneBook, shooting,
   startPlayback,
   stopPlay,
   stopPlayback,
@@ -346,6 +346,26 @@ const actions = {
   setPhoneBook({ commit }, data) {
     return new Promise((resolve, reject) => {
       setPhoneBook(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryMediaData({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      queryMediaData(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  shooting({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      shooting(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

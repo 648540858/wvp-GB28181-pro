@@ -33,8 +33,16 @@ public class JTQueryMediaDataCommand {
         byteBuf.writeByte(type);
         byteBuf.writeByte(chanelId);
         byteBuf.writeByte(event);
-        byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime)));
-        byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime)));
+        if (startTime == null) {
+            byteBuf.writeBytes(BCDUtil.strToBcd("000000000000"));
+        }else {
+            byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime)));
+        }
+        if (endTime == null) {
+            byteBuf.writeBytes(BCDUtil.strToBcd("000000000000"));
+        }else {
+            byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime)));
+        }
         if (delete != null) {
             byteBuf.writeByte(delete);
         }

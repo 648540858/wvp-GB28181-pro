@@ -91,5 +91,5 @@ export default {
     margin-top: 6px;
     font-size: 12px;
     width: 2rem !important;
-}
+  }
 </style>

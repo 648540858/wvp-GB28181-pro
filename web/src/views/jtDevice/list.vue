@@ -46,8 +46,16 @@
     >
       <el-table-column prop="phoneNumber" label="终端手机号" min-width="120" />
       <el-table-column prop="terminalId" label="终端ID" min-width="120" />
-      <el-table-column prop="provinceText" label="省域" min-width="120" />
-      <el-table-column prop="cityText" label="市县域" min-width="120" />
+      <el-table-column label="省域" min-width="120" >
+        <template slot-scope="scope">
+          {{scope.row.provinceText || scope.row.provinceId}}
+        </template>
+      </el-table-column>
+      <el-table-column label="市县域" min-width="120" >
+        <template slot-scope="scope">
+          {{scope.row.cityText || scope.row.cityId}}
+        </template>
+      </el-table-column>
       <el-table-column prop="makerId" label="制造商" min-width="120" />
       <el-table-column prop="model" label="型号" min-width="120" />
       <el-table-column label="车牌颜色" min-width="120">
@@ -129,6 +137,8 @@
                 连接指定服务器</el-dropdown-item>
               <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
                 车门控制</el-dropdown-item>
+              <el-dropdown-item command="shooting" v-bind:disabled="!scope.row.status" >
+                立即拍摄</el-dropdown-item>
               <el-dropdown-item command="queryMediaList" v-bind:disabled="!scope.row.status" >
                 多媒体检索</el-dropdown-item>
             </el-dropdown-menu>
@@ -158,6 +168,7 @@
     <mediaAttribute ref="mediaAttribute" />
     <phoneBook ref="phoneBook" />
     <queryMediaList ref="queryMediaList" />
+    <shootingNow ref="shootingNow" />
   </div>
 </template>
 
@@ -173,13 +184,14 @@ import connectionServer from './dialog/connectionServer.vue'
 import controlDoor from './dialog/controlDoor.vue'
 import mediaAttribute from './dialog/mediaAttribute.vue'
 import phoneBook from './dialog/phoneBook.vue'
-import queryMediaList from './dialog/queryMediaList.vue'
+import queryMediaList from './dialog/queryMediaListDialog.vue'
+import shootingNow from './dialog/shootingNow.vue'
 
 export default {
   name: 'App',
   components: {
     deviceEdit, configInfo, attribute, position, textMsg, telephoneCallback, driverInfo, connectionServer, controlDoor
-    , mediaAttribute, phoneBook, queryMediaList
+    , mediaAttribute, phoneBook, queryMediaList, shootingNow
   },
   data() {
     return {
@@ -304,6 +316,8 @@ export default {
          this.setPhoneBook(itemData)
       } else if (command === 'queryMediaList') {
          this.queryMediaList(itemData)
+      } else if (command === 'shooting') {
+         this.shootingNow(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -392,6 +406,9 @@ export default {
     },
     controlDoor: function(itemData) {
       this.$refs.controlDoor.openDialog(itemData.phoneNumber)
+    },
+    shootingNow: function(itemData) {
+      this.$refs.shootingNow.openDialog(itemData.phoneNumber, itemData.id)
     },
     linkDetection: function(itemData) {
       this.$store.dispatch('jtDevice/linkDetection', itemData.phoneNumber)

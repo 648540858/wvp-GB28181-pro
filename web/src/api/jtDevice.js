@@ -326,10 +326,17 @@ export function queryMediaAttribute(phoneNumber) {
     }
   })
 }
-export function setPhoneBook(data) {
+export function queryMediaData(data) {
   return request({
     method: 'post',
-    url: '/api/jt1078/set-phone-book',
+    url: '/api/jt1078/media/list',
+    data: data
+  })
+}
+export function shooting(data) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/shooting',
     data: data
   })
 }

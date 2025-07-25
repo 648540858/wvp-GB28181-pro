@@ -812,8 +812,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8805 j8805 = new J8805();
         j8805.setMediaId(mediaId);
         j8805.setDelete(1);
-        log.info("[JT-单条存储多媒体数据上传] 请求上传图片，媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
-        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 300);
+        log.info("[JT-单条存储多媒体数据上传] 请求上传，媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
+        JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 600);
         if (mediaEventInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }

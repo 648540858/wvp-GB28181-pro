@@ -98,6 +98,12 @@
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item command="records" :disabled="device == null || !device.status">
                       设备录像</el-dropdown-item>
+                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
+                      双向对讲</el-dropdown-item>
+                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
+                      监听</el-dropdown-item>
+                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
+                      中心广播</el-dropdown-item>
                     <el-dropdown-item command="cloudRecords" :disabled="device == null || !device.status">
                       云端录像</el-dropdown-item>
                   </el-dropdown-menu>

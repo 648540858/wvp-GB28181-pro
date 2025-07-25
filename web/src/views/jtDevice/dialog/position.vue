@@ -8,6 +8,7 @@
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       :destroy-on-close="true"
+      :append-to-body="true"
       @close="close()"
     >
       <div id="shared" style="height: 45rem; overflow: auto">

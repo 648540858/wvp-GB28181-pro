@@ -3,7 +3,11 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 import com.genersoft.iot.vmp.jt1078.bean.JTQueryMediaDataCommand;
 import com.genersoft.iot.vmp.jt1078.bean.JTShootingCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "存储多媒体数据参数")
 public class QueryMediaDataParam {
 
@@ -18,38 +22,6 @@ public class QueryMediaDataParam {
 
     @Schema(description = "存储多媒体数据参数")
     private JTQueryMediaDataCommand queryMediaDataCommand;
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public JTQueryMediaDataCommand getQueryMediaDataCommand() {
-        return queryMediaDataCommand;
-    }
-
-    public void setQueryMediaDataCommand(JTQueryMediaDataCommand queryMediaDataCommand) {
-        this.queryMediaDataCommand = queryMediaDataCommand;
-    }
-
-    public int getDelete() {
-        return delete;
-    }
-
-    public void setDelete(int delete) {
-        this.delete = delete;
-    }
-
-    public Long getMediaId() {
-        return mediaId;
-    }
-
-    public void setMediaId(Long mediaId) {
-        this.mediaId = mediaId;
-    }
 
     @Override
     public String toString() {

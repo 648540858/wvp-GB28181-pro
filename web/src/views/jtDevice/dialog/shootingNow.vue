@@ -3,7 +3,7 @@
     <el-dialog
       v-el-drag-dialog
       title="立即拍摄"
-      width="60%"
+      width="65%"
       top="2rem"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
@@ -73,8 +73,14 @@
               <el-checkbox v-model="showImageConfig">高级配置</el-checkbox>
             </el-form-item>
             <el-form-item style="margin-left: 2rem; text-align: right" >
-              <el-button type="primary" :loading="queryLoading" icon="el-icon-search" @click="shooting()" >
-                执行
+              <el-button v-if="!commandType" type="danger" icon="el-icon-video-camera" @click="stopRecord()" >
+                停止录像
+              </el-button>
+              <el-button v-if="!commandType" type="primary" icon="el-icon-video-camera" @click="shooting()" >
+                开始录像
+              </el-button>
+              <el-button v-if="commandType" type="primary" icon="el-icon-camera" @click="shooting()" >
+                拍照
               </el-button>
             </el-form-item>
           </el-form>
@@ -178,6 +184,29 @@ export default {
           contrastRatio: this.contrastRatio,
           saturation: this.saturation,
           chroma: this.chroma
+        }
+      })
+        .then( data => {
+          this.$message.success({
+            showClose: true,
+            message: '消息已经下发'
+          })
+        })
+    },
+    stopRecord: function() {
+      this.$store.dispatch('jtDevice/shooting', {
+        phoneNumber: this.phoneNumber,
+        shootingCommand: {
+          chanelId: this.chanelId,
+          command: 0,
+          time: 0,
+          save: 1,
+          resolvingPower: 0xff,
+          quality: 0,
+          brightness: 0,
+          contrastRatio: 0,
+          saturation: 0,
+          chroma: 0
         }
       })
         .then( data => {

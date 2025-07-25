@@ -200,7 +200,6 @@ export default {
     search: function() {
       this.mediaDataInfoList = []
       this.queryLoading = true
-      console.log(this.timeRange)
       this.$store.dispatch('jtDevice/queryMediaData', {
         phoneNumber: this.phoneNumber,
         queryMediaDataCommand: {
@@ -226,10 +225,10 @@ export default {
       this.$refs.position.openDialog(row.positionBaseInfo)
     },
     download: function(row) {
-      this.$message.success('已申请截图,完成后自动下载', { closed: true })
+      this.$message.success('下载请求已发送', { closed: true })
       // 文件下载地址
       const baseUrl = window.baseUrl ? window.baseUrl : ''
-      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/jt1078/media/upload/one?phoneNumber=${this.phoneNumber}&mediaId=${row.id}`
+      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/jt1078/media/upload/one/upload?phoneNumber=${this.phoneNumber}&mediaId=${row.id}`
       let controller = new AbortController()
       let signal = controller.signal
       // 设置请求头
@@ -247,7 +246,19 @@ export default {
           // 创建一个虚拟的链接元素，模拟点击下载
           const link = document.createElement('a')
           link.href = window.URL.createObjectURL(blob)
-          link.download = `${this.device.phoneNumber}-${row.channelId}-${dayjs().format('YYYYMMDDHHmmss')}.jpg` // 设置下载文件名，替换filename.ext为实际的文件名和扩展名
+          let suffix = 'jpg'
+          switch (row.type){
+            case 0:
+              suffix = 'jpg'
+              break
+            case 1:
+              suffix = 'mp3'
+              break
+            case 2:
+              suffix = 'mp4'
+              break
+          }
+          link.download = `${row.id}.${suffix}` // 设置下载文件名，替换filename.ext为实际的文件名和扩展名
           document.body.appendChild(link)
           // 模拟点击
           link.click()

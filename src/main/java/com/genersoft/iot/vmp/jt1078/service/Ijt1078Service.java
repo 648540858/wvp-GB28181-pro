@@ -125,7 +125,7 @@ public interface Ijt1078Service {
 
     void snap(String phoneNumber, int channelId, ServletOutputStream outputStream);
 
-    void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream);
+    void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream, boolean delete);
 
 
 }

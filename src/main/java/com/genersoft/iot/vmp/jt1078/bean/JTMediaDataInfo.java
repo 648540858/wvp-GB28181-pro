@@ -2,7 +2,11 @@ package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "多媒体检索项数据")
 public class JTMediaDataInfo {
 
@@ -29,46 +33,6 @@ public class JTMediaDataInfo {
         jtMediaEventInfo.setEventCode(buf.readUnsignedByte());
         jtMediaEventInfo.setPositionBaseInfo(JTPositionBaseInfo.decode(buf));
         return jtMediaEventInfo;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public int getEventCode() {
-        return eventCode;
-    }
-
-    public void setEventCode(int eventCode) {
-        this.eventCode = eventCode;
-    }
-
-    public int getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(int channelId) {
-        this.channelId = channelId;
-    }
-
-    public JTPositionBaseInfo getPositionBaseInfo() {
-        return positionBaseInfo;
-    }
-
-    public void setPositionBaseInfo(JTPositionBaseInfo positionBaseInfo) {
-        this.positionBaseInfo = positionBaseInfo;
     }
 
     @Override

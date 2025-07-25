@@ -5,7 +5,11 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "存储多媒体数据")
 public class JTQueryMediaDataCommand {
 
@@ -47,54 +51,6 @@ public class JTQueryMediaDataCommand {
             byteBuf.writeByte(delete);
         }
         return byteBuf;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public int getChanelId() {
-        return chanelId;
-    }
-
-    public void setChanelId(int chanelId) {
-        this.chanelId = chanelId;
-    }
-
-    public int getEvent() {
-        return event;
-    }
-
-    public void setEvent(int event) {
-        this.event = event;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public Integer getDelete() {
-        return delete;
-    }
-
-    public void setDelete(Integer delete) {
-        this.delete = delete;
     }
 
     @Override

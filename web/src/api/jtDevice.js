@@ -215,7 +215,7 @@ export function stopPlayback(params) {
 export function queryConfig(phoneNumber) {
   return request({
     method: 'get',
-    url: '/api/jt1078/config',
+    url: '/api/jt1078/config/get',
     params: {
       phoneNumber: phoneNumber
     }
@@ -224,7 +224,7 @@ export function queryConfig(phoneNumber) {
 export function setConfig(data) {
   return request({
     method: 'post',
-    url: '/api/jt1078/set-config',
+    url: '/api/jt1078/config/set',
     data: data
   })
 }

@@ -807,11 +807,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream) {
+    public void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream, boolean delete) {
         log.info("[JT-单条存储多媒体数据上传] 媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
         J8805 j8805 = new J8805();
         j8805.setMediaId(mediaId);
-        j8805.setDelete(1);
+        j8805.setDelete(delete ? 1 : 0);
         log.info("[JT-单条存储多媒体数据上传] 请求上传，媒体编号： {}， 设备编号： {}", mediaId, phoneNumber);
         JTMediaEventInfo mediaEventInfo = (JTMediaEventInfo)jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 600);
         if (mediaEventInfo == null) {

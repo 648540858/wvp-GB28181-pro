@@ -419,7 +419,7 @@ public class JT1078Controller {
 
     @Operation(summary = "JT-查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
-    @GetMapping("/config")
+    @GetMapping("/config/get")
     public JTDeviceConfig config(String phoneNumber, String[] params){
 
         log.info("[JT-查询终端参数] phoneNumber：{}", phoneNumber);
@@ -429,7 +429,7 @@ public class JT1078Controller {
     @Operation(summary = "JT-设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "config", description = "终端参数", required = true)
-    @PostMapping("/set-config")
+    @PostMapping("/config/set")
     public void setConfig(@RequestBody SetConfigParam config){
 
         log.info("[JT-设置终端参数] 参数: {}", config.toString());
@@ -898,7 +898,7 @@ public class JT1078Controller {
     @Operation(summary = "JT-单条存储多媒体数据上传", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "mediaId", description = "多媒体ID", required = true)
-    @GetMapping("/media/upload/one")
+    @GetMapping("/media/upload/one/upload")
     public void uploadOneMedia(HttpServletResponse response, String phoneNumber, Long mediaId){
 
         log.info("[JT-单条存储多媒体数据上传] 设备编号: {}, 多媒体ID: {}", phoneNumber, mediaId );
@@ -906,7 +906,24 @@ public class JT1078Controller {
         try {
             ServletOutputStream outputStream = response.getOutputStream();
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            service.uploadOneMedia(phoneNumber, mediaId, outputStream);
+            service.uploadOneMedia(phoneNumber, mediaId, outputStream, false);
+        }catch (Exception e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
+        }
+    }
+
+    @Operation(summary = "JT-单条存储多媒体数据删除", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
+    @Parameter(name = "mediaId", description = "多媒体ID", required = true)
+    @GetMapping("/media/upload/one/delete")
+    public void deleteOneMedia(HttpServletResponse response, String phoneNumber, Long mediaId){
+
+        log.info("[JT-单条存储多媒体数据上传] 设备编号: {}, 多媒体ID: {}", phoneNumber, mediaId );
+        Assert.notNull(mediaId, "缺少通道编号");
+        try {
+            ServletOutputStream outputStream = response.getOutputStream();
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            service.uploadOneMedia(phoneNumber, mediaId, outputStream, true);
         }catch (Exception e) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
         }

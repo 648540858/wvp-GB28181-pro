@@ -262,7 +262,7 @@ public class SIPRequestHeaderProvider {
 				toHeader, viaHeaders, maxForwards);
 
 
-		Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(SipFactory.getInstance().createAddressFactory().createSipURI(sipConfig.getId(), IpPortUtil.concatenateIpAndPort(sipLayer.getLocalIp(device.getLocalIp()), String.valueOf(sipConfig.getPort())))));
+		Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(SipFactory.getInstance().createAddressFactory().createSipURI(sipConfig.getId(), IpPortUtil.concatenateIpAndPort(sipLayer.getLocalIp(device.getLocalIp()), String.valueOf(sipConfig.getPort()))));
 		request.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader(concatAddress));
 
 		// Expires

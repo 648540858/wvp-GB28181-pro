@@ -61,7 +61,9 @@ public interface ICloudRecordService {
      */
     void loadRecord(String app, String stream, CloudRecordItem cloudRecordItem, ErrorCallback<StreamInfo> callback);
 
-    void seekRecord(String mediaServerId,String app, String stream, Double seek, String schema);
+    void loadRecordDay(String app, String stream, String day, ErrorCallback<StreamInfo> callback);
+
+    void seekRecord(String mediaServerId, String app, String stream, Double seek, String schema);
 
     void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed, String schema);
 

@@ -137,7 +137,7 @@ public class ZLMHttpHookListener {
         }
         if (param.getSchema().equalsIgnoreCase("rtsp")) {
             if (param.isRegist()) {
-                log.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                log.info("[ZLM HOOK]流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
                 String queryParams = param.getParams();
                 if (queryParams == null) {
                     try {

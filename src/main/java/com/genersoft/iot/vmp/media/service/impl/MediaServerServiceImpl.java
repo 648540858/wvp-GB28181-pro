@@ -972,14 +972,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public StreamInfo loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+    public long loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[loadMP4File] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        mediaNodeServerService.loadMP4File(mediaServer, app, stream, datePath);
-        return getStreamInfoByAppAndStream(mediaServer, app, stream, null, null);
+        return mediaNodeServerService.loadMP4File(mediaServer, app, stream, datePath);
     }
 
     @Override

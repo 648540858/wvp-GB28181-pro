@@ -250,6 +250,66 @@ public class CloudRecordController {
     }
 
     @ResponseBody
+    @GetMapping("/loadRecordDay")
+    @Operation(summary = "加载录像日期形成播放地址")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "day", description = "日期，例如2025-10-03", required = true)
+    public DeferredResult<WVPResult<StreamContent>> loadRecordDay(
+            HttpServletRequest request,
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = true) String day
+    ) {
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>();
+
+        result.onTimeout(()->{
+            log.info("[加载录像日期超时] app={}, stream={}, fileId={}", app, stream, day);
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("加载录像日期超时");
+            result.setResult(wvpResult);
+        });
+
+        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
+
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.changeStreamIp(host);
+                    }
+                    if (!org.springframework.util.ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix()) && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+            }else {
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+            }
+            result.setResult(wvpResult);
+        };
+
+        cloudRecordService.loadRecordDay(app, stream, day, callback);
+        return result;
+    }
+
+    @ResponseBody
     @GetMapping("/loadRecord")
     @Operation(summary = "加载录像文件形成播放地址")
     @Parameter(name = "app", description = "应用名", required = true)

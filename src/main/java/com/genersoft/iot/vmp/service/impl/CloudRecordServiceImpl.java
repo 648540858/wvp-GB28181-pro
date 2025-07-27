@@ -301,15 +301,54 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
              }
              return;
          }
-
+        long duration = mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, cloudRecordItem.getFilePath());
         Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServerId);
         subscribe.addSubscribe(hook, (hookData) -> {
             StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null);
+            streamInfo.setDuration(duration);
             if (callback != null) {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
         });
-        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, cloudRecordItem.getFilePath());
+    }
+
+    @Override
+    public void loadRecordDay(String app, String stream, String day, ErrorCallback<StreamInfo> callback) {
+
+        long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(day + " 00:00:00");
+        long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
+
+        List<CloudRecordItem> recordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimestamp, endTimestamp, null, null, null, false);
+        if (recordItemList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
+        }
+        String mediaServerId = recordItemList.get(0).getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        String buildApp = "mp4_record";
+        String buildStream = app + "_" + stream + "_" + day;
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, buildApp, buildStream);
+        if (mediaInfo != null) {
+            if (callback != null) {
+                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null);
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+            return;
+        }
+
+
+        String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
+        long duration =  mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServerId);
+        subscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null);
+            streamInfo.setDuration(duration);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+        });
     }
 
     @Override

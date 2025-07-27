@@ -103,6 +103,9 @@ public class StreamContent {
 
     private double progress;
 
+    private Long duration;
+
+
     public StreamContent(StreamInfo streamInfo) {
         if (streamInfo == null) {
             return;
@@ -186,6 +189,9 @@ public class StreamContent {
         }
         if (streamInfo.getTranscodeStream() != null) {
             this.transcodeStream = new StreamContent(streamInfo.getTranscodeStream());
+        }
+        if (streamInfo.getDuration() != null) {
+            this.duration = streamInfo.getDuration();
         }
     }
 

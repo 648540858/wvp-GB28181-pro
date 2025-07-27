@@ -101,6 +101,9 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "使用的WVP ID")
     private String serverId;
 
+    @Schema(description = "加载录像文件的时长")
+    private Long duration;
+
     public void setRtmp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s%s", app, stream, callIdParam);
         if (port > 0) {

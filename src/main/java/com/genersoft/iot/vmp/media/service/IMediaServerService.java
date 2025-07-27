@@ -160,7 +160,7 @@ public interface IMediaServerService {
 
     List<String> listRtpServer(MediaServer mediaServer);
 
-    StreamInfo loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
+    long loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
 
     void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema);
 

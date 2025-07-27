@@ -141,6 +141,8 @@ export default {
       currentPage: 1,
       count: 1000000, // TODO 分页导致滑轨视频有效值无法获取完全
       total: 0,
+      totalDuration: 0, // 实际总时长
+      totalFileDuration: 0, // 实际文件时长
       playLoading: false,
       showTime: true,
       isFullScreen: false,
@@ -289,6 +291,7 @@ export default {
     },
     queryRecordDetails: function(callback) {
       this.timeSegments = []
+      this.totalDuration = 0
       this.$store.dispatch('cloudRecord/queryList', {
         app: this.app,
         stream: this.stream,
@@ -314,6 +317,7 @@ export default {
               endRatio: 0.85,
               index: i
             })
+            this.totalDuration += (this.detailFiles[i].endTime - this.detailFiles[i].startTime);
           }
           this.mediaServerList = Array.from(temp)
           if (this.mediaServerList.length === 1) {
@@ -330,39 +334,53 @@ export default {
     },
     chooseFile(index) {
       this.chooseFileIndex = index
-      this.playSeekValue = 0
+      let timeLength = 0
+      for (let i = 0; i < this.detailFiles.length; i++) {
+        if (i < index) {
+          timeLength += (this.detailFiles[i].endTime - this.detailFiles[i].startTime)
+        }
+      }
+      this.playSeekValue = timeLength
       this.playRecord()
     },
     playRecord() {
       if (!this.$refs.recordVideoPlayer.playing) {
         this.$refs.recordVideoPlayer.destroy()
       }
-      this.$store.dispatch('cloudRecord/loadRecord', {
-        app: this.app,
-        stream: this.stream,
-        fileId: this.detailFiles[this.chooseFileIndex].id
-      })
-        .then(data => {
-          this.streamInfo = data
-          if (location.protocol === 'https:') {
-            this.videoUrl = data['https_fmp4'] + '&time=' + new Date().getTime()
-          } else {
-            this.videoUrl = data['fmp4'] + '&time=' + new Date().getTime()
-          }
+      if (this.streamInfo === null) {
+        this.totalFileDuration = 0
+        this.$store.dispatch('cloudRecord/loadRecord', {
+          app: this.app,
+          stream: this.stream,
+          day: this.chooseDate
         })
-        .catch((error) => {
-          console.log(error)
-        })
-        .finally(() => {
-          this.playLoading = false
-        })
+          .then(data => {
+            this.streamInfo = data
+            this.totalFileDuration = data.duration
+            if (location.protocol === 'https:') {
+              this.videoUrl = data['https_fmp4'] + '&time=' + new Date().getTime()
+            } else {
+              this.videoUrl = data['fmp4'] + '&time=' + new Date().getTime()
+            }
+            this.seekRecord()
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+          .finally(() => {
+            this.playLoading = false
+          })
+      }else {
+        this.seekRecord()
+      }
+
     },
     seekRecord() {
       this.$store.dispatch('cloudRecord/seek', {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
         stream: this.streamInfo.stream,
-        seek: this.playSeekValue,
+        seek: this.playSeekValue * (this.totalFileDuration / this.totalDuration),
         schema: 'fmp4'
       })
         .catch((error) => {
@@ -404,8 +422,6 @@ export default {
         return
       }
       this.playTime = val
-      let chooseFile = this.detailFiles[this.chooseFileIndex]
-      console.log(chooseFile)
     },
     timelineMouseDown() {
       this.timelineControl = true
@@ -415,23 +431,23 @@ export default {
         this.timelineControl = false
         return
       }
-      this.chooseFileIndex = null
       this.timelineControl = false
+      let timeLength = 0
       for (let i = 0; i < this.detailFiles.length; i++) {
         const item = this.detailFiles[i]
-        if (this.playTime > item.startTime && this.playTime < item.endTime) {
+        if (this.playTime > item.endTime) {
+          timeLength += (item.endTime - item.startTime)
+        } else if (this.playTime === item.endTime) {
+          timeLength += (item.endTime - item.startTime)
+          this.chooseFileIndex = i
+          break
+        } else if (this.playTime > item.startTime && this.playTime < item.endTime) {
+          timeLength += (this.playTime - item.startTime)
           this.chooseFileIndex = i
           break
         }
       }
-      if (this.chooseFileIndex === null) {
-        this.$message({
-          showClose: true,
-          message: '此时段无录像',
-          type: 'error'
-        })
-        return;
-      }
+      this.playSeekValue = timeLength
       this.playRecord()
     },
     getTimeForFile(file) {

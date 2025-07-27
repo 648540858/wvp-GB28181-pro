@@ -538,7 +538,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+    public long loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
         JSONObject jsonObject =  zlmresTfulUtils.loadMP4File(mediaServer, app, stream, datePath);
         if (jsonObject == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
@@ -546,6 +546,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (jsonObject.getInteger("code") != 0) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
+        JSONObject data = jsonObject.getJSONObject("data");
+        if (data == null || data.isEmpty()) {
+            return 0;
+        }
+        return data.getLong("duration_ms");
     }
 
     @Override

@@ -136,7 +136,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 List<Preset> data = messageResponseTask.getData();
                 data.addAll(presetQuerySipReqList);
                 if (data.size() == sumNum) {
-                    responseMessageHandler.handMessageEvent(rootElement, presetQuerySipReqList);
+                    responseMessageHandler.handMessageEvent(rootElement, data);
                     mesageMap.remove(key);
                     boolean remove = delayQueue.remove(messageResponseTask);
                     if (!remove) {

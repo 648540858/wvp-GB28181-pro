@@ -4,10 +4,14 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTQueryMediaDataCommand;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 录音开始/停止命令
  */
+@Setter
+@Getter
 @MsgId(id = "8804")
 public class J8804 extends Rs {
 
@@ -41,35 +45,4 @@ public class J8804 extends Rs {
         return byteBuf;
     }
 
-    public int getCommond() {
-        return commond;
-    }
-
-    public void setCommond(int commond) {
-        this.commond = commond;
-    }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
-    public int getSave() {
-        return save;
-    }
-
-    public void setSave(int save) {
-        this.save = save;
-    }
-
-    public int getSamplingRate() {
-        return samplingRate;
-    }
-
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
-    }
 }

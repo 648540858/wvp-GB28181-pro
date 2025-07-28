@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import java.util.List;
 
 public interface Ijt1078PlayService {
+
     JTMediaStreamType checkStreamFromJt(String stream);
 
     void play(String phoneNumber, Integer channelId, int type, CommonCallback<WVPResult<StreamInfo>> callback);

@@ -1,7 +1,11 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "人工确认报警类型")
 public class JTConfirmationAlarmMessageType {
     @Schema(description = "确认紧急报警")
@@ -45,62 +49,6 @@ public class JTConfirmationAlarmMessageType {
         return result;
     }
 
-
-    public boolean isUrgent() {
-        return urgent;
-    }
-
-    public void setUrgent(boolean urgent) {
-        this.urgent = urgent;
-    }
-
-    public boolean isAlarmDangerous() {
-        return alarmDangerous;
-    }
-
-    public void setAlarmDangerous(boolean alarmDangerous) {
-        this.alarmDangerous = alarmDangerous;
-    }
-
-    public boolean isAlarmRegion() {
-        return alarmRegion;
-    }
-
-    public void setAlarmRegion(boolean alarmRegion) {
-        this.alarmRegion = alarmRegion;
-    }
-
-    public boolean isAlarmRoute() {
-        return alarmRoute;
-    }
-
-    public void setAlarmRoute(boolean alarmRoute) {
-        this.alarmRoute = alarmRoute;
-    }
-
-    public boolean isAlarmTravelTime() {
-        return alarmTravelTime;
-    }
-
-    public void setAlarmTravelTime(boolean alarmTravelTime) {
-        this.alarmTravelTime = alarmTravelTime;
-    }
-
-    public boolean isAlarmIllegalIgnition() {
-        return alarmIllegalIgnition;
-    }
-
-    public void setAlarmIllegalIgnition(boolean alarmIllegalIgnition) {
-        this.alarmIllegalIgnition = alarmIllegalIgnition;
-    }
-
-    public boolean isAlarmIllegalDisplacement() {
-        return alarmIllegalDisplacement;
-    }
-
-    public void setAlarmIllegalDisplacement(boolean alarmIllegalDisplacement) {
-        this.alarmIllegalDisplacement = alarmIllegalDisplacement;
-    }
 
     @Override
     public String toString() {

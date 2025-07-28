@@ -3,11 +3,15 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 云台控制指令-云台雨刷控制
  *
  */
+@Setter
+@Getter
 @MsgId(id = "9304")
 public class J9304 extends Rs {
     // 逻辑通道号
@@ -22,22 +26,6 @@ public class J9304 extends Rs {
         buffer.writeByte(channel);
         buffer.writeByte(on);
         return buffer;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getOn() {
-        return on;
-    }
-
-    public void setOn(int on) {
-        this.on = on;
     }
 
     @Override

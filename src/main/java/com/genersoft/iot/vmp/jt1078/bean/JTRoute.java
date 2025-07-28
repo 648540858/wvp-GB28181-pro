@@ -5,11 +5,15 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @Schema(description = "路线")
 public class JTRoute implements JTAreaOrRoute{
 
@@ -70,54 +74,6 @@ public class JTRoute implements JTAreaOrRoute{
         int nameLength = buf.readUnsignedShort();
         route.setName(buf.readCharSequence(nameLength, Charset.forName("GBK")).toString().trim());
         return route;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public JTRouteAttribute getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(JTRouteAttribute attribute) {
-        this.attribute = attribute;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public List<JTRoutePoint> getRoutePointList() {
-        return routePointList;
-    }
-
-    public void setRoutePointList(List<JTRoutePoint> routePointList) {
-        this.routePointList = routePointList;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     @Override

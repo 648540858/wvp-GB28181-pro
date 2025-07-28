@@ -5,10 +5,14 @@ import com.genersoft.iot.vmp.jt1078.bean.JTQueryMediaDataCommand;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 单条存储多媒体数据检索上传命令
  */
+@Setter
+@Getter
 @MsgId(id = "8805")
 public class J8805 extends Rs {
 
@@ -30,19 +34,4 @@ public class J8805 extends Rs {
         return byteBuf;
     }
 
-    public Long getMediaId() {
-        return mediaId;
-    }
-
-    public void setMediaId(Long mediaId) {
-        this.mediaId = mediaId;
-    }
-
-    public Integer getDelete() {
-        return delete;
-    }
-
-    public void setDelete(Integer delete) {
-        this.delete = delete;
-    }
 }

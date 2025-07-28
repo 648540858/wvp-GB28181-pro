@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 平台下发远程录像回放控制
@@ -12,6 +14,8 @@ import io.netty.buffer.Unpooled;
  * @date 2023/4/28 10:37
  * @email qingtaij@163.com
  */
+@Setter
+@Getter
 @MsgId(id = "9202")
 public class J9202 extends Rs {
     // 逻辑通道号
@@ -37,38 +41,6 @@ public class J9202 extends Rs {
         }
 
         return buffer;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getPlaybackType() {
-        return playbackType;
-    }
-
-    public void setPlaybackType(int playbackType) {
-        this.playbackType = playbackType;
-    }
-
-    public int getPlaybackSpeed() {
-        return playbackSpeed;
-    }
-
-    public void setPlaybackSpeed(int playbackSpeed) {
-        this.playbackSpeed = playbackSpeed;
-    }
-
-    public String getPlaybackTime() {
-        return playbackTime;
-    }
-
-    public void setPlaybackTime(String playbackTime) {
-        this.playbackTime = playbackTime;
     }
 
     @Override

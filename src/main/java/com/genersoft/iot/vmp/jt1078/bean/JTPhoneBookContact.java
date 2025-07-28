@@ -3,9 +3,13 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 
+@Setter
+@Getter
 @Schema(description = "电话本联系人")
 public class JTPhoneBookContact {
 
@@ -26,30 +30,6 @@ public class JTPhoneBookContact {
         buffer.writeByte(contactName.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(contactName, Charset.forName("GBK"));
         return buffer;
-    }
-
-    public int getSign() {
-        return sign;
-    }
-
-    public void setSign(int sign) {
-        this.sign = sign;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getContactName() {
-        return contactName;
-    }
-
-    public void setContactName(String contactName) {
-        this.contactName = contactName;
     }
 
     @Override

@@ -338,9 +338,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                     Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
                     if (field.isAnnotationPresent(ConfigAttribute.class)) {
                         ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
-                        long id = configAttribute.id();
-                        String description = configAttribute.description();
-                        System.out.println(description + ":  " + id);
+                        if (configAttribute == null) {
+                            log.warn("[查询设备配置] 获取 ConfigAttribute 失败");
+                            continue;
+                        }
                         paramBytes[i] = configAttribute.id();
                     }
                 } catch (NoSuchFieldException e) {
@@ -608,7 +609,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         log.info("[JT-切换码流类型] phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
         // 发送暂停命令
         J9102 j9102 = new J9102();
-        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setChannel(channelId);
         j9102.setCommand(1);
         j9102.setCloseType(0);
         j9102.setStreamType(streamType);

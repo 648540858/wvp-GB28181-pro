@@ -1,7 +1,11 @@
 package com.genersoft.iot.vmp.jt1078.event;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
+@Setter
+@Getter
 public class FtpUploadEvent extends ApplicationEvent {
 
     public FtpUploadEvent(Object source) {
@@ -10,11 +14,4 @@ public class FtpUploadEvent extends ApplicationEvent {
 
     private String fileName;
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
 }

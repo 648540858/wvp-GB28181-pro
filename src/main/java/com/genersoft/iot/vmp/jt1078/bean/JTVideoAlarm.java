@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @Schema(description = "视频报警上报")
 public class JTVideoAlarm {
 
@@ -85,75 +89,4 @@ public class JTVideoAlarm {
         return jtVideoAlarm;
     }
 
-    public List<Integer> getVideoLossChannels() {
-        return videoLossChannels;
-    }
-
-    public void setVideoLossChannels(List<Integer> videoLossChannels) {
-        this.videoLossChannels = videoLossChannels;
-    }
-
-    public List<Integer> getVideoOcclusionChannels() {
-        return videoOcclusionChannels;
-    }
-
-    public void setVideoOcclusionChannels(List<Integer> videoOcclusionChannels) {
-        this.videoOcclusionChannels = videoOcclusionChannels;
-    }
-
-    public List<Integer> getStorageFaultAlarm() {
-        return storageFaultAlarm;
-    }
-
-    public void setStorageFaultAlarm(List<Integer> storageFaultAlarm) {
-        this.storageFaultAlarm = storageFaultAlarm;
-    }
-
-    public boolean isDrivingForFatigue() {
-        return drivingForFatigue;
-    }
-
-    public void setDrivingForFatigue(boolean drivingForFatigue) {
-        this.drivingForFatigue = drivingForFatigue;
-    }
-
-    public boolean isDrivingForCall() {
-        return drivingForCall;
-    }
-
-    public void setDrivingForCall(boolean drivingForCall) {
-        this.drivingForCall = drivingForCall;
-    }
-
-    public boolean isDrivingSmoking() {
-        return drivingSmoking;
-    }
-
-    public void setDrivingSmoking(boolean drivingSmoking) {
-        this.drivingSmoking = drivingSmoking;
-    }
-
-    public boolean isOtherDeviceFailure() {
-        return otherDeviceFailure;
-    }
-
-    public void setOtherDeviceFailure(boolean otherDeviceFailure) {
-        this.otherDeviceFailure = otherDeviceFailure;
-    }
-
-    public boolean isOvercrowding() {
-        return overcrowding;
-    }
-
-    public void setOvercrowding(boolean overcrowding) {
-        this.overcrowding = overcrowding;
-    }
-
-    public boolean isSpecialRecordFull() {
-        return specialRecordFull;
-    }
-
-    public void setSpecialRecordFull(boolean specialRecordFull) {
-        this.specialRecordFull = specialRecordFull;
-    }
 }

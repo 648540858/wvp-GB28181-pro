@@ -1,13 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.util;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import org.springframework.security.crypto.codec.Hex;
-
-import java.time.Instant;
-import java.util.Calendar;
-import java.util.Date;
-
 /**
  * BCD码转换
  */

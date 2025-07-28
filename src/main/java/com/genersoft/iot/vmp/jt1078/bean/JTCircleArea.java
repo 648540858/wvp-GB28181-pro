@@ -5,10 +5,14 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 import java.util.Date;
 
+@Setter
+@Getter
 @Schema(description = "圆形区域")
 public class JTCircleArea implements JTAreaOrRoute{
 
@@ -87,91 +91,4 @@ public class JTCircleArea implements JTAreaOrRoute{
         return area;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public JTAreaAttribute getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(JTAreaAttribute attribute) {
-        this.attribute = attribute;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public long getRadius() {
-        return radius;
-    }
-
-    public void setRadius(long radius) {
-        this.radius = radius;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getMaxSpeed() {
-        return maxSpeed;
-    }
-
-    public void setMaxSpeed(int maxSpeed) {
-        this.maxSpeed = maxSpeed;
-    }
-
-    public int getOverSpeedDuration() {
-        return overSpeedDuration;
-    }
-
-    public void setOverSpeedDuration(int overSpeedDuration) {
-        this.overSpeedDuration = overSpeedDuration;
-    }
-
-    public int getNighttimeMaxSpeed() {
-        return nighttimeMaxSpeed;
-    }
-
-    public void setNighttimeMaxSpeed(int nighttimeMaxSpeed) {
-        this.nighttimeMaxSpeed = nighttimeMaxSpeed;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

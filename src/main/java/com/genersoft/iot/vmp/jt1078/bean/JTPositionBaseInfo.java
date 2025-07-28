@@ -3,10 +3,14 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 
+@Setter
+@Getter
 @Slf4j
 @Schema(description = "位置基本信息")
 public class JTPositionBaseInfo {
@@ -68,7 +72,7 @@ public class JTPositionBaseInfo {
     public static JTPositionBaseInfo decode(ByteBuf buf) {
         JTPositionBaseInfo positionInfo = new JTPositionBaseInfo();
         if (buf.readableBytes() < 17) {
-            log.error("[位置基本信息] 解码失败，长度不足: ｛｝", buf.readableBytes());
+            log.error("[位置基本信息] 解码失败，长度不足: {}", buf.readableBytes());
             return positionInfo;
         }
         positionInfo.setAlarmSign(new JTAlarmSign(buf.readUnsignedInt()));
@@ -84,78 +88,6 @@ public class JTPositionBaseInfo {
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
         return positionInfo;
-    }
-
-    public JTAlarmSign getAlarmSign() {
-        return alarmSign;
-    }
-
-    public void setAlarmSign(JTAlarmSign alarmSign) {
-        this.alarmSign = alarmSign;
-    }
-
-    public JTStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(JTStatus status) {
-        this.status = status;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Integer getAltitude() {
-        return altitude;
-    }
-
-    public void setAltitude(Integer altitude) {
-        this.altitude = altitude;
-    }
-
-    public Integer getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(Integer speed) {
-        this.speed = speed;
-    }
-
-    public Integer getDirection() {
-        return direction;
-    }
-
-    public void setDirection(Integer direction) {
-        this.direction = direction;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    public JTVideoAlarm getVideoAlarm() {
-        return videoAlarm;
-    }
-
-    public void setVideoAlarm(JTVideoAlarm videoAlarm) {
-        this.videoAlarm = videoAlarm;
     }
 
 

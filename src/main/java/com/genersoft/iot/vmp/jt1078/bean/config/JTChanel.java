@@ -2,12 +2,16 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Stack;
 
 /**
  * 音视频通道
  */
+@Setter
+@Getter
 public class JTChanel implements JTDeviceSubConfig{
 
     /**
@@ -32,38 +36,6 @@ public class JTChanel implements JTDeviceSubConfig{
      * 0:未连接;1:连接
      */
     private int ptzEnable;
-
-    public int getPhysicalChannelId() {
-        return physicalChannelId;
-    }
-
-    public void setPhysicalChannelId(int physicalChannelId) {
-        this.physicalChannelId = physicalChannelId;
-    }
-
-    public int getLogicChannelId() {
-        return logicChannelId;
-    }
-
-    public void setLogicChannelId(int logicChannelId) {
-        this.logicChannelId = logicChannelId;
-    }
-
-    public int getChannelType() {
-        return channelType;
-    }
-
-    public void setChannelType(int channelType) {
-        this.channelType = channelType;
-    }
-
-    public int getPtzEnable() {
-        return ptzEnable;
-    }
-
-    public void setPtzEnable(int ptzEnable) {
-        this.ptzEnable = ptzEnable;
-    }
 
     @Override
     public ByteBuf encode() {

@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 碰撞报警参数设置
  */
+@Setter
+@Getter
 public class JTCollisionAlarmParams implements JTDeviceSubConfig{
 
     /**
@@ -17,22 +21,6 @@ public class JTCollisionAlarmParams implements JTDeviceSubConfig{
      * 碰撞加速度 单位为0.1g,设置范围为0~79,默认为10
      */
     private int collisionAcceleration;
-
-    public int getCollisionAlarmTime() {
-        return collisionAlarmTime;
-    }
-
-    public void setCollisionAlarmTime(int collisionAlarmTime) {
-        this.collisionAlarmTime = collisionAlarmTime;
-    }
-
-    public int getCollisionAcceleration() {
-        return collisionAcceleration;
-    }
-
-    public void setCollisionAcceleration(int collisionAcceleration) {
-        this.collisionAcceleration = collisionAcceleration;
-    }
 
     @Override
     public ByteBuf encode() {

@@ -8,17 +8,18 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * 终端注销
  */
+@Slf4j
+@Getter
 @MsgId(id = "0003")
 public class J0003 extends Re {
 
-    private final static Logger log = LoggerFactory.getLogger(J0003.class);
     int respNo;
     String respId;
     int result;
@@ -36,18 +37,6 @@ public class J0003 extends Re {
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0001", (long) respNo, result);
         return null;
-    }
-
-    public int getRespNo() {
-        return respNo;
-    }
-
-    public String getRespId() {
-        return respId;
-    }
-
-    public int getResult() {
-        return result;
     }
 
     @Override

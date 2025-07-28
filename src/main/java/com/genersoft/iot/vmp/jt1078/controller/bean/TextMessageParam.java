@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTTextSign;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 文本信息下发参数
  */
+@Setter
+@Getter
 @Schema(description = "人工确认报警消息参数")
 public class TextMessageParam {
 
@@ -17,38 +21,6 @@ public class TextMessageParam {
     private int textType;
     @Schema(description = "消息内容，最长为1024字节")
     private String content;
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public int getTextType() {
-        return textType;
-    }
-
-    public void setTextType(int textType) {
-        this.textType = textType;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public JTTextSign getSign() {
-        return sign;
-    }
-
-    public void setSign(JTTextSign sign) {
-        this.sign = sign;
-    }
 
     @Override
     public String toString() {

@@ -3,10 +3,14 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import com.genersoft.iot.vmp.jt1078.bean.config.JTDeviceSubConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 终端上传音视频属性
  */
+@Setter
+@Getter
 public class JTMediaAttribute implements JTDeviceSubConfig {
 
     /**
@@ -93,78 +97,6 @@ public class JTMediaAttribute implements JTDeviceSubConfig {
      * 终端支持的最大视频物理通道数量:
      */
     private int videoChannelMax;
-
-    public int getAudioEncoder() {
-        return audioEncoder;
-    }
-
-    public void setAudioEncoder(int audioEncoder) {
-        this.audioEncoder = audioEncoder;
-    }
-
-    public int getAudioChannels() {
-        return audioChannels;
-    }
-
-    public void setAudioChannels(int audioChannels) {
-        this.audioChannels = audioChannels;
-    }
-
-    public int getAudioSamplingRate() {
-        return audioSamplingRate;
-    }
-
-    public void setAudioSamplingRate(int audioSamplingRate) {
-        this.audioSamplingRate = audioSamplingRate;
-    }
-
-    public int getAudioFrameLength() {
-        return audioFrameLength;
-    }
-
-    public void setAudioFrameLength(int audioFrameLength) {
-        this.audioFrameLength = audioFrameLength;
-    }
-
-    public int getAudioOutputEnable() {
-        return audioOutputEnable;
-    }
-
-    public void setAudioOutputEnable(int audioOutputEnable) {
-        this.audioOutputEnable = audioOutputEnable;
-    }
-
-    public int getVideoEncoder() {
-        return videoEncoder;
-    }
-
-    public void setVideoEncoder(int videoEncoder) {
-        this.videoEncoder = videoEncoder;
-    }
-
-    public int getAudioChannelMax() {
-        return audioChannelMax;
-    }
-
-    public void setAudioChannelMax(int audioChannelMax) {
-        this.audioChannelMax = audioChannelMax;
-    }
-
-    public int getVideoChannelMax() {
-        return videoChannelMax;
-    }
-
-    public void setVideoChannelMax(int videoChannelMax) {
-        this.videoChannelMax = videoChannelMax;
-    }
-
-    public int getAudioSamplingBits() {
-        return audioSamplingBits;
-    }
-
-    public void setAudioSamplingBits(int audioSamplingBits) {
-        this.audioSamplingBits = audioSamplingBits;
-    }
 
     @Override
     public ByteBuf encode() {

@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -19,19 +20,17 @@ import java.util.List;
 
 /**
  * 定位数据批量上传
- *
  */
+@Slf4j
 @MsgId(id = "0704")
 public class J0704 extends Re {
 
-    private final static Logger log = LoggerFactory.getLogger(J0704.class);
-    private List<JTPositionBaseInfo> positionBaseInfoList = new ArrayList<>();
-    private int type;
+    private final List<JTPositionBaseInfo> positionBaseInfoList = new ArrayList<>();
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         int length = buf.readUnsignedShort();
-        type = buf.readUnsignedByte();
+        int type = buf.readUnsignedByte();
         for (int i = 0; i < length; i++) {
             int dateLength = buf.readUnsignedShort();
             ByteBuf byteBuf = buf.readBytes(dateLength);

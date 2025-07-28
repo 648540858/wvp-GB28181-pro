@@ -5,11 +5,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 文件上传控制
  *
  */
+@Setter
+@Getter
 @MsgId(id = "9207")
 public class J9207 extends Rs {
 
@@ -27,22 +31,6 @@ public class J9207 extends Rs {
         return buffer;
     }
 
-
-    public Integer getRespNo() {
-        return respNo;
-    }
-
-    public void setRespNo(Integer respNo) {
-        this.respNo = respNo;
-    }
-
-    public int getControl() {
-        return control;
-    }
-
-    public void setControl(int control) {
-        this.control = control;
-    }
 
     @Override
     public String toString() {

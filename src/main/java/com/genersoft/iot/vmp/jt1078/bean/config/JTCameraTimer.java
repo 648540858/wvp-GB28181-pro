@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 定时拍照控制
  */
+@Setter
+@Getter
 public class JTCameraTimer implements JTDeviceSubConfig{
     /**
      * 摄像通道1 定时拍照开关标志
@@ -62,102 +66,6 @@ public class JTCameraTimer implements JTDeviceSubConfig{
      * 定时时间间隔
      */
     private Integer timeInterval;
-
-    public boolean isSwitchForChannel1() {
-        return switchForChannel1;
-    }
-
-    public void setSwitchForChannel1(boolean switchForChannel1) {
-        this.switchForChannel1 = switchForChannel1;
-    }
-
-    public boolean isSwitchForChannel2() {
-        return switchForChannel2;
-    }
-
-    public void setSwitchForChannel2(boolean switchForChannel2) {
-        this.switchForChannel2 = switchForChannel2;
-    }
-
-    public boolean isSwitchForChannel3() {
-        return switchForChannel3;
-    }
-
-    public void setSwitchForChannel3(boolean switchForChannel3) {
-        this.switchForChannel3 = switchForChannel3;
-    }
-
-    public boolean isSwitchForChannel4() {
-        return switchForChannel4;
-    }
-
-    public void setSwitchForChannel4(boolean switchForChannel4) {
-        this.switchForChannel4 = switchForChannel4;
-    }
-
-    public boolean isSwitchForChannel5() {
-        return switchForChannel5;
-    }
-
-    public void setSwitchForChannel5(boolean switchForChannel5) {
-        this.switchForChannel5 = switchForChannel5;
-    }
-
-    public boolean isStorageFlagsForChannel1() {
-        return storageFlagsForChannel1;
-    }
-
-    public void setStorageFlagsForChannel1(boolean storageFlagsForChannel1) {
-        this.storageFlagsForChannel1 = storageFlagsForChannel1;
-    }
-
-    public boolean isStorageFlagsForChannel2() {
-        return storageFlagsForChannel2;
-    }
-
-    public void setStorageFlagsForChannel2(boolean storageFlagsForChannel2) {
-        this.storageFlagsForChannel2 = storageFlagsForChannel2;
-    }
-
-    public boolean isStorageFlagsForChannel3() {
-        return storageFlagsForChannel3;
-    }
-
-    public void setStorageFlagsForChannel3(boolean storageFlagsForChannel3) {
-        this.storageFlagsForChannel3 = storageFlagsForChannel3;
-    }
-
-    public boolean isStorageFlagsForChannel4() {
-        return storageFlagsForChannel4;
-    }
-
-    public void setStorageFlagsForChannel4(boolean storageFlagsForChannel4) {
-        this.storageFlagsForChannel4 = storageFlagsForChannel4;
-    }
-
-    public boolean isStorageFlagsForChannel5() {
-        return storageFlagsForChannel5;
-    }
-
-    public void setStorageFlagsForChannel5(boolean storageFlagsForChannel5) {
-        this.storageFlagsForChannel5 = storageFlagsForChannel5;
-    }
-
-    public boolean isTimeUnit() {
-        return timeUnit;
-    }
-
-    public void setTimeUnit(boolean timeUnit) {
-        this.timeUnit = timeUnit;
-    }
-
-    public Integer getTimeInterval() {
-        return timeInterval;
-    }
-
-    public void setTimeInterval(Integer timeInterval) {
-        this.timeInterval = timeInterval;
-    }
 
     @Override
     public ByteBuf encode() {

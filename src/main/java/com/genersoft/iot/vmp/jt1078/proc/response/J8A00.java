@@ -3,10 +3,14 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 平台 RSA公钥
  */
+@Setter
+@Getter
 @MsgId(id = "8A00")
 public class J8A00 extends Rs {
 
@@ -28,19 +32,4 @@ public class J8A00 extends Rs {
         return byteBuf;
     }
 
-    public Long getE() {
-        return e;
-    }
-
-    public void setE(Long e) {
-        this.e = e;
-    }
-
-    public byte[] getN() {
-        return n;
-    }
-
-    public void setN(byte[] n) {
-        this.n = n;
-    }
 }

@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 视频分析报警参数
  */
+@Setter
+@Getter
 public class JTAnalyzeAlarmParam implements JTDeviceSubConfig{
 
     /**
@@ -19,22 +23,6 @@ public class JTAnalyzeAlarmParam implements JTDeviceSubConfig{
      */
     private int fatigueThreshold;
 
-
-    public int getNumberForPeople() {
-        return numberForPeople;
-    }
-
-    public void setNumberForPeople(int numberForPeople) {
-        this.numberForPeople = numberForPeople;
-    }
-
-    public int getFatigueThreshold() {
-        return fatigueThreshold;
-    }
-
-    public void setFatigueThreshold(int fatigueThreshold) {
-        this.fatigueThreshold = fatigueThreshold;
-    }
 
     @Override
     public ByteBuf encode() {

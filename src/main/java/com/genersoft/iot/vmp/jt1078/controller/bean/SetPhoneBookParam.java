@@ -3,9 +3,13 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 import com.genersoft.iot.vmp.jt1078.bean.JTPhoneBookContact;
 import com.genersoft.iot.vmp.jt1078.bean.JTTextSign;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@Setter
+@Getter
 @Schema(description = "设置电话本")
 public class SetPhoneBookParam {
 
@@ -21,30 +25,6 @@ public class SetPhoneBookParam {
 
     @Schema(description = "联系人")
     private List<JTPhoneBookContact> phoneBookContactList;
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public List<JTPhoneBookContact> getPhoneBookContactList() {
-        return phoneBookContactList;
-    }
-
-    public void setPhoneBookContactList(List<JTPhoneBookContact> phoneBookContactList) {
-        this.phoneBookContactList = phoneBookContactList;
-    }
 
     @Override
     public String toString() {

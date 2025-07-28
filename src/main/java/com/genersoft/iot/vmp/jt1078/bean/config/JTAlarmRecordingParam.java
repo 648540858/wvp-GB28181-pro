@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 特殊报警录像参数
  */
+@Setter
+@Getter
 public class JTAlarmRecordingParam implements  JTDeviceSubConfig{
 
     /**
@@ -22,30 +26,6 @@ public class JTAlarmRecordingParam implements  JTDeviceSubConfig{
      * 特殊报警标识起始时间, 特殊报警发生前进行标记的录像时间, 单位为分钟( min) ,默认值为 1
      */
     private int startTime;
-
-    public int getStorageLimit() {
-        return storageLimit;
-    }
-
-    public void setStorageLimit(int storageLimit) {
-        this.storageLimit = storageLimit;
-    }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
-    public int getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(int startTime) {
-        this.startTime = startTime;
-    }
 
     @Override
     public ByteBuf encode() {

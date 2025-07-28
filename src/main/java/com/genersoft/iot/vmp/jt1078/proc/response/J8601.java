@@ -4,12 +4,16 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTCircleArea;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 /**
  * 删除圆形区域
  */
+@Setter
+@Getter
 @MsgId(id = "8601")
 public class J8601 extends Rs {
 
@@ -35,11 +39,4 @@ public class J8601 extends Rs {
         return buffer;
     }
 
-    public List<Long> getIdList() {
-        return idList;
-    }
-
-    public void setIdList(List<Long> idList) {
-        this.idList = idList;
-    }
 }

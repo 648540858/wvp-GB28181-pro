@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 音视频实时传输控制
@@ -11,6 +13,8 @@ import io.netty.buffer.Unpooled;
  * @date 2023/4/27 18:49
  * @email qingtaij@163.com
  */
+@Setter
+@Getter
 @MsgId(id = "9102")
 public class J9102 extends Rs {
 
@@ -54,38 +58,6 @@ public class J9102 extends Rs {
         return buffer;
     }
 
-
-    public Integer getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Integer channel) {
-        this.channel = channel;
-    }
-
-    public Integer getCommand() {
-        return command;
-    }
-
-    public void setCommand(Integer command) {
-        this.command = command;
-    }
-
-    public Integer getCloseType() {
-        return closeType;
-    }
-
-    public void setCloseType(Integer closeType) {
-        this.closeType = closeType;
-    }
-
-    public Integer getStreamType() {
-        return streamType;
-    }
-
-    public void setStreamType(Integer streamType) {
-        this.streamType = streamType;
-    }
 
     @Override
     public String toString() {

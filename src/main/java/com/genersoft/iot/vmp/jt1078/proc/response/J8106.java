@@ -4,12 +4,14 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.Getter;
 
 import java.util.Arrays;
 
 /**
  * 查询指定终端参数
  */
+@Getter
 @MsgId(id = "8106")
 public class J8106 extends Rs {
 
@@ -23,10 +25,6 @@ public class J8106 extends Rs {
             buffer.writeInt((int) param);
         }
         return buffer;
-    }
-
-    public long[] getParams() {
-        return params;
     }
 
     public void setParams(long[] params) {

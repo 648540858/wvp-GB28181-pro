@@ -10,6 +10,8 @@ import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
@@ -22,11 +24,14 @@ import java.util.List;
  * @date 2023/4/28 10:36
  * @email qingtaij@163.com
  */
+@Setter
+@Getter
 @MsgId(id = "1205")
 public class J1205 extends Re {
+
     Integer respNo;
 
-    private List<JRecordItem> recordList = new ArrayList<JRecordItem>();
+    private List<JRecordItem> recordList = new ArrayList<>();
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
@@ -61,22 +66,8 @@ public class J1205 extends Re {
     }
 
 
-    public Integer getRespNo() {
-        return respNo;
-    }
-
-    public void setRespNo(Integer respNo) {
-        this.respNo = respNo;
-    }
-
-    public List<JRecordItem> getRecordList() {
-        return recordList;
-    }
-
-    public void setRecordList(List<JRecordItem> recordList) {
-        this.recordList = recordList;
-    }
-
+    @Setter
+    @Getter
     public static class JRecordItem {
 
         // 逻辑通道号
@@ -102,70 +93,6 @@ public class J1205 extends Re {
 
         // 文件大小
         private long size;
-
-        public int getChannelId() {
-            return channelId;
-        }
-
-        public void setChannelId(int channelId) {
-            this.channelId = channelId;
-        }
-
-        public String getStartTime() {
-            return startTime;
-        }
-
-        public void setStartTime(String startTime) {
-            this.startTime = startTime;
-        }
-
-        public String getEndTime() {
-            return endTime;
-        }
-
-        public void setEndTime(String endTime) {
-            this.endTime = endTime;
-        }
-
-        public long getAlarmSign() {
-            return alarmSign;
-        }
-
-        public void setAlarmSign(long alarmSign) {
-            this.alarmSign = alarmSign;
-        }
-
-        public int getMediaType() {
-            return mediaType;
-        }
-
-        public void setMediaType(int mediaType) {
-            this.mediaType = mediaType;
-        }
-
-        public int getStreamType() {
-            return streamType;
-        }
-
-        public void setStreamType(int streamType) {
-            this.streamType = streamType;
-        }
-
-        public int getStorageType() {
-            return storageType;
-        }
-
-        public void setStorageType(int storageType) {
-            this.storageType = storageType;
-        }
-
-        public long getSize() {
-            return size;
-        }
-
-        public void setSize(long size) {
-            this.size = size;
-        }
 
         @Override
         public String toString() {

@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.jt1078.bean.config.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.util.Map;
 /**
  * 设置终端参数
  */
+@Getter
 @MsgId(id = "8103")
 public class J8103 extends Rs {
 
@@ -110,10 +112,6 @@ public class J8103 extends Rs {
             }
         }
         return buffer;
-    }
-
-    public JTDeviceConfig getConfig() {
-        return config;
     }
 
     public void setConfig(JTDeviceConfig config) {

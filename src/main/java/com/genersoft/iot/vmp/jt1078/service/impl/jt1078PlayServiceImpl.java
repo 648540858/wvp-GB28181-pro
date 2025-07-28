@@ -75,12 +75,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     @Autowired
     private UserSetting userSetting;
 
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private FtpSetting ftpSetting;
-
     /**
      * 流到来的处理
      */
@@ -279,7 +273,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         // 发送停止命令
         J9102 j9102 = new J9102();
-        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setChannel(channelId);
         j9102.setCommand(0);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
@@ -305,7 +299,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         log.info("[JT-暂停点播] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 发送暂停命令
         J9102 j9102 = new J9102();
-        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setChannel(channelId);
         j9102.setCommand(2);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
@@ -323,7 +317,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         log.info("[JT-继续点播] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 发送暂停命令
         J9102 j9102 = new J9102();
-        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setChannel(channelId);
         j9102.setCommand(2);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
@@ -489,7 +483,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         playbackControl(phoneNumber, channelId, 2, null, null);
     }
 
-    private Map<String, CommonCallback<WVPResult<String>>> fileUploadMap = new ConcurrentHashMap<>();
+    private final Map<String, CommonCallback<WVPResult<String>>> fileUploadMap = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(FtpUploadEvent event) {

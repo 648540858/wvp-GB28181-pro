@@ -3,7 +3,11 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "路段属性")
 public class JTRouteSectionAttribute {
 
@@ -45,35 +49,4 @@ public class JTRouteSectionAttribute {
         return attribute;
     }
 
-    public boolean isRuleForTimeLimit() {
-        return ruleForTimeLimit;
-    }
-
-    public void setRuleForTimeLimit(boolean ruleForTimeLimit) {
-        this.ruleForTimeLimit = ruleForTimeLimit;
-    }
-
-    public boolean isRuleForSpeedLimit() {
-        return ruleForSpeedLimit;
-    }
-
-    public void setRuleForSpeedLimit(boolean ruleForSpeedLimit) {
-        this.ruleForSpeedLimit = ruleForSpeedLimit;
-    }
-
-    public boolean isSouthLatitude() {
-        return southLatitude;
-    }
-
-    public void setSouthLatitude(boolean southLatitude) {
-        this.southLatitude = southLatitude;
-    }
-
-    public boolean isWestLongitude() {
-        return westLongitude;
-    }
-
-    public void setWestLongitude(boolean westLongitude) {
-        this.westLongitude = westLongitude;
-    }
 }

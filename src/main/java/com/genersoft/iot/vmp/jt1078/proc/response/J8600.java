@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.jt1078.bean.JTVehicleControl;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.List;
 /**
  * 设置圆形区域
  */
+@Setter
+@Getter
 @MsgId(id = "8600")
 public class J8600 extends Rs {
 
@@ -41,19 +45,4 @@ public class J8600 extends Rs {
         return buffer;
     }
 
-    public int getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(int attribute) {
-        this.attribute = attribute;
-    }
-
-    public List<JTCircleArea> getCircleAreaList() {
-        return circleAreaList;
-    }
-
-    public void setCircleAreaList(List<JTCircleArea> circleAreaList) {
-        this.circleAreaList = circleAreaList;
-    }
 }

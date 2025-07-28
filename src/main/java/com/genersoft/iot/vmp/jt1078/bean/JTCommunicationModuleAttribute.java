@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * JT 通信模块属性
  */
+@Setter
+@Getter
 @Schema(description = "JT通信模块属性")
 public class JTCommunicationModuleAttribute {
 
@@ -35,62 +39,6 @@ public class JTCommunicationModuleAttribute {
         this.wcdma = wcdma;
         this.cdma2000 = cdma2000;
         this.tdLte = tdLte;
-        this.other = other;
-    }
-
-    public boolean isGprs() {
-        return gprs;
-    }
-
-    public void setGprs(boolean gprs) {
-        this.gprs = gprs;
-    }
-
-    public boolean isCdma() {
-        return cdma;
-    }
-
-    public void setCdma(boolean cdma) {
-        this.cdma = cdma;
-    }
-
-    public boolean isTdScdma() {
-        return tdScdma;
-    }
-
-    public void setTdScdma(boolean tdScdma) {
-        this.tdScdma = tdScdma;
-    }
-
-    public boolean isWcdma() {
-        return wcdma;
-    }
-
-    public void setWcdma(boolean wcdma) {
-        this.wcdma = wcdma;
-    }
-
-    public boolean isCdma2000() {
-        return cdma2000;
-    }
-
-    public void setCdma2000(boolean cdma2000) {
-        this.cdma2000 = cdma2000;
-    }
-
-    public boolean isTdLte() {
-        return tdLte;
-    }
-
-    public void setTdLte(boolean tdLte) {
-        this.tdLte = tdLte;
-    }
-
-    public boolean isOther() {
-        return other;
-    }
-
-    public void setOther(boolean other) {
         this.other = other;
     }
 

@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * JT 终端类型
  */
+@Setter
+@Getter
 @Schema(description = "JT终端参数设置")
 public class JTDeviceType {
 
@@ -61,62 +65,6 @@ public class JTDeviceType {
         this.rentalVehicles = rentalVehicles;
         this.hardDiskRecording = hardDiskRecording;
         this.splittingMachine = splittingMachine;
-        this.trailer = trailer;
-    }
-
-    public boolean isPassengerVehicles() {
-        return passengerVehicles;
-    }
-
-    public void setPassengerVehicles(boolean passengerVehicles) {
-        this.passengerVehicles = passengerVehicles;
-    }
-
-    public boolean isDangerousGoodsVehicles() {
-        return dangerousGoodsVehicles;
-    }
-
-    public void setDangerousGoodsVehicles(boolean dangerousGoodsVehicles) {
-        this.dangerousGoodsVehicles = dangerousGoodsVehicles;
-    }
-
-    public boolean isFreightVehicles() {
-        return freightVehicles;
-    }
-
-    public void setFreightVehicles(boolean freightVehicles) {
-        this.freightVehicles = freightVehicles;
-    }
-
-    public boolean isRentalVehicles() {
-        return rentalVehicles;
-    }
-
-    public void setRentalVehicles(boolean rentalVehicles) {
-        this.rentalVehicles = rentalVehicles;
-    }
-
-    public boolean isHardDiskRecording() {
-        return hardDiskRecording;
-    }
-
-    public void setHardDiskRecording(boolean hardDiskRecording) {
-        this.hardDiskRecording = hardDiskRecording;
-    }
-
-    public boolean isSplittingMachine() {
-        return splittingMachine;
-    }
-
-    public void setSplittingMachine(boolean splittingMachine) {
-        this.splittingMachine = splittingMachine;
-    }
-
-    public boolean isTrailer() {
-        return trailer;
-    }
-
-    public void setTrailer(boolean trailer) {
         this.trailer = trailer;
     }
 

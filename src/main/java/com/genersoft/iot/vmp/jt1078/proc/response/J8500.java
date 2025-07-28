@@ -7,6 +7,8 @@ import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.config.JTDeviceSubConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
@@ -17,6 +19,8 @@ import java.util.Map;
 /**
  * 车辆控制
  */
+@Setter
+@Getter
 @MsgId(id = "8500")
 public class J8500 extends Rs {
 
@@ -60,11 +64,4 @@ public class J8500 extends Rs {
         return buffer;
     }
 
-    public JTVehicleControl getVehicleControl() {
-        return vehicleControl;
-    }
-
-    public void setVehicleControl(JTVehicleControl vehicleControl) {
-        this.vehicleControl = vehicleControl;
-    }
 }

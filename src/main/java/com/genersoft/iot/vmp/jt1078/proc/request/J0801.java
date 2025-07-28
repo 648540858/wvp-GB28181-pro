@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -22,31 +23,29 @@ import java.io.IOException;
 
 /**
  * 多媒体数据上传
- *
  */
+@Slf4j
 @MsgId(id = "0801")
 public class J0801 extends Re {
-
-    private final static Logger log = LoggerFactory.getLogger(J0801.class);
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         JTMediaEventInfo mediaEventInfo = JTMediaEventInfo.decode(buf);
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
-        try {
-            if (mediaEventInfo.getMediaData() != null) {
-                File file = new File("/home/lin/source.jpg");
-                if (file.exists()) {
-                    file.delete();
-                }
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(mediaEventInfo.getMediaData());
-                fileOutputStream.flush();
-                fileOutputStream.close();
-            }
-        }catch (Exception e) {
-            log.error("[JT-多媒体数据上传] 写入文件异常", e);
-        }
+//        try {
+//            if (mediaEventInfo.getMediaData() != null) {
+//                File file = new File("/home/lin/source.jpg");
+//                if (file.exists()) {
+//                    file.delete();
+//                }
+//                FileOutputStream fileOutputStream = new FileOutputStream(file);
+//                fileOutputStream.write(mediaEventInfo.getMediaData());
+//                fileOutputStream.flush();
+//                fileOutputStream.close();
+//            }
+//        }catch (Exception e) {
+//            log.error("[JT-多媒体数据上传] 写入文件异常", e);
+//        }
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0801", null, mediaEventInfo);
         return null;
     }

@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTPhoneBookContact;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.List;
 /**
  * 设置电话本
  */
+@Setter
+@Getter
 @MsgId(id = "8401")
 public class J8401 extends Rs {
 
@@ -43,19 +47,4 @@ public class J8401 extends Rs {
         return buffer;
     }
 
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public List<JTPhoneBookContact> getPhoneBookContactList() {
-        return phoneBookContactList;
-    }
-
-    public void setPhoneBookContactList(List<JTPhoneBookContact> phoneBookContactList) {
-        this.phoneBookContactList = phoneBookContactList;
-    }
 }

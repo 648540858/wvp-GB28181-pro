@@ -5,12 +5,16 @@ import com.genersoft.iot.vmp.jt1078.bean.JTPolygonArea;
 import com.genersoft.iot.vmp.jt1078.bean.JTRectangleArea;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 /**
  * 设置多边形区域
  */
+@Setter
+@Getter
 @MsgId(id = "8604")
 public class J8604 extends Rs {
 
@@ -27,11 +31,4 @@ public class J8604 extends Rs {
         return buffer;
     }
 
-    public JTPolygonArea getPolygonArea() {
-        return polygonArea;
-    }
-
-    public void setPolygonArea(JTPolygonArea polygonArea) {
-        this.polygonArea = polygonArea;
-    }
 }

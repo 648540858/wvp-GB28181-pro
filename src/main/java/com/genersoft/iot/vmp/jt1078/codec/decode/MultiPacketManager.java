@@ -2,16 +2,16 @@ package com.genersoft.iot.vmp.jt1078.codec.decode;
 
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import io.netty.buffer.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public enum MultiPacketManager {
     INSTANCE;
-    private final static Logger logger = LoggerFactory.getLogger(MultiPacketManager.class);
-
     // 用与消息的缓存
     private final Map<String, CompositeByteBuf> packetMap = new ConcurrentHashMap<>();
     private final Map<String, Long> packetTimeMap = new ConcurrentHashMap<>();
@@ -47,7 +47,7 @@ public enum MultiPacketManager {
                 if (!packetTimeMap.isEmpty()) {
                     for (String key : packetTimeMap.keySet()) {
                         if (packetTimeMap.get(key) < expireTime) {
-                            logger.info("分包消息超时 key: {}", key);
+                            log.info("分包消息超时 key: {}", key);
                             packetTimeMap.remove(key);
                             packetMap.remove(key);
                         }

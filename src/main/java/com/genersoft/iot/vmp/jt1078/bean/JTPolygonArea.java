@@ -5,11 +5,15 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @Schema(description = "多边形区域")
 public class JTPolygonArea implements JTAreaOrRoute{
 
@@ -90,75 +94,4 @@ public class JTPolygonArea implements JTAreaOrRoute{
         return area;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public JTAreaAttribute getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(JTAreaAttribute attribute) {
-        this.attribute = attribute;
-    }
-
-    public List<JTPolygonPoint> getPolygonPoints() {
-        return polygonPoints;
-    }
-
-    public void setPolygonPoints(List<JTPolygonPoint> polygonPoints) {
-        this.polygonPoints = polygonPoints;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getMaxSpeed() {
-        return maxSpeed;
-    }
-
-    public void setMaxSpeed(int maxSpeed) {
-        this.maxSpeed = maxSpeed;
-    }
-
-    public int getOverSpeedDuration() {
-        return overSpeedDuration;
-    }
-
-    public void setOverSpeedDuration(int overSpeedDuration) {
-        this.overSpeedDuration = overSpeedDuration;
-    }
-
-    public int getNighttimeMaxSpeed() {
-        return nighttimeMaxSpeed;
-    }
-
-    public void setNighttimeMaxSpeed(int nighttimeMaxSpeed) {
-        this.nighttimeMaxSpeed = nighttimeMaxSpeed;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

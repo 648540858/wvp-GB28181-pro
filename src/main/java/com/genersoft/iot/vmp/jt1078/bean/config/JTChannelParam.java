@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,20 +11,14 @@ import java.util.List;
 /**
  * 单独视频通道参数设置
  */
+@Setter
+@Getter
 public class JTChannelParam implements JTDeviceSubConfig {
 
     /**
      * 单独通道视频参数设置列表
      */
     private List<JTAloneChanel> jtAloneChanelList;
-
-    public List<JTAloneChanel> getJtAloneChanelList() {
-        return jtAloneChanelList;
-    }
-
-    public void setJtAloneChanelList(List<JTAloneChanel> jtAloneChanelList) {
-        this.jtAloneChanelList = jtAloneChanelList;
-    }
 
     @Override
     public ByteBuf encode() {

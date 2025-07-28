@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * GNSS 定位模式
  */
+@Setter
+@Getter
 public class JTGnssPositioningMode implements JTDeviceSubConfig{
 
     /**
@@ -24,38 +28,6 @@ public class JTGnssPositioningMode implements JTDeviceSubConfig{
      * GaLiLeo定位 true: 开启， false： 关闭
      */
     private boolean gaLiLeo;
-
-    public boolean isGps() {
-        return gps;
-    }
-
-    public void setGps(boolean gps) {
-        this.gps = gps;
-    }
-
-    public boolean isBeidou() {
-        return beidou;
-    }
-
-    public void setBeidou(boolean beidou) {
-        this.beidou = beidou;
-    }
-
-    public boolean isGlonass() {
-        return glonass;
-    }
-
-    public void setGlonass(boolean glonass) {
-        this.glonass = glonass;
-    }
-
-    public boolean isGaLiLeo() {
-        return gaLiLeo;
-    }
-
-    public void setGaLiLeo(boolean gaLiLeo) {
-        this.gaLiLeo = gaLiLeo;
-    }
 
     @Override
     public ByteBuf encode() {

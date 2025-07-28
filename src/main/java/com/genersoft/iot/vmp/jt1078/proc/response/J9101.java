@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 
@@ -14,6 +16,8 @@ import java.nio.charset.Charset;
  * @date 2023/4/27 18:25
  * @email qingtaij@163.com
  */
+@Setter
+@Getter
 @MsgId(id = "9101")
 public class J9101 extends Rs {
     String ip;
@@ -50,54 +54,6 @@ public class J9101 extends Rs {
         buffer.writeByte(type);
         buffer.writeByte(rate);
         return buffer;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public Integer getTcpPort() {
-        return tcpPort;
-    }
-
-    public void setTcpPort(Integer tcpPort) {
-        this.tcpPort = tcpPort;
-    }
-
-    public Integer getUdpPort() {
-        return udpPort;
-    }
-
-    public void setUdpPort(Integer udpPort) {
-        this.udpPort = udpPort;
-    }
-
-    public Integer getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Integer channel) {
-        this.channel = channel;
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
-    public Integer getRate() {
-        return rate;
-    }
-
-    public void setRate(Integer rate) {
-        this.rate = rate;
     }
 
     @Override

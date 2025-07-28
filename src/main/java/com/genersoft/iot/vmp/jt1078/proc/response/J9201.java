@@ -5,6 +5,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 
@@ -15,6 +17,8 @@ import java.nio.charset.Charset;
  * @date 2023/4/28 10:37
  * @email qingtaij@163.com
  */
+@Setter
+@Getter
 @MsgId(id = "9201")
 public class J9201 extends Rs {
     // 服务器IP地址
@@ -66,94 +70,6 @@ public class J9201 extends Rs {
         buffer.writeBytes(ByteBufUtil.decodeHexDump(startTime));
         buffer.writeBytes(ByteBufUtil.decodeHexDump(endTime));
         return buffer;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public int getTcpPort() {
-        return tcpPort;
-    }
-
-    public void setTcpPort(int tcpPort) {
-        this.tcpPort = tcpPort;
-    }
-
-    public int getUdpPort() {
-        return udpPort;
-    }
-
-    public void setUdpPort(int udpPort) {
-        this.udpPort = udpPort;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public int getRate() {
-        return rate;
-    }
-
-    public void setRate(int rate) {
-        this.rate = rate;
-    }
-
-    public int getStorageType() {
-        return storageType;
-    }
-
-    public void setStorageType(int storageType) {
-        this.storageType = storageType;
-    }
-
-    public int getPlaybackType() {
-        return playbackType;
-    }
-
-    public void setPlaybackType(int playbackType) {
-        this.playbackType = playbackType;
-    }
-
-    public int getPlaybackSpeed() {
-        return playbackSpeed;
-    }
-
-    public void setPlaybackSpeed(int playbackSpeed) {
-        this.playbackSpeed = playbackSpeed;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
     }
 
     @Override

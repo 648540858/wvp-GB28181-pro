@@ -5,10 +5,14 @@ import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 终端上传乘客流量
  */
+@Setter
+@Getter
 public class JTPassengerNum implements JTDeviceSubConfig {
 
     /**
@@ -30,38 +34,6 @@ public class JTPassengerNum implements JTDeviceSubConfig {
      * 下车人数
      */
     private int getOut;
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getGetIn() {
-        return getIn;
-    }
-
-    public void setGetIn(int getIn) {
-        this.getIn = getIn;
-    }
-
-    public int getGetOut() {
-        return getOut;
-    }
-
-    public void setGetOut(int getOut) {
-        this.getOut = getOut;
-    }
 
     @Override
     public ByteBuf encode() {

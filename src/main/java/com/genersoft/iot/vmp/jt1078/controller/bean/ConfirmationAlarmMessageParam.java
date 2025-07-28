@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTConfirmationAlarmMessageType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 人工确认报警消息参数
  */
+@Setter
+@Getter
 @Schema(description = "人工确认报警消息参数")
 public class ConfirmationAlarmMessageParam {
 
@@ -15,30 +19,6 @@ public class ConfirmationAlarmMessageParam {
     private int alarmPackageNo;
     @Schema(description = "人工确认报警类型")
     private JTConfirmationAlarmMessageType alarmMessageType;
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String PhoneNumber) {
-        this.phoneNumber = PhoneNumber;
-    }
-
-    public JTConfirmationAlarmMessageType getAlarmMessageType() {
-        return alarmMessageType;
-    }
-
-    public void setAlarmMessageType(JTConfirmationAlarmMessageType alarmMessageType) {
-        this.alarmMessageType = alarmMessageType;
-    }
-
-    public int getAlarmPackageNo() {
-        return alarmPackageNo;
-    }
-
-    public void setAlarmPackageNo(int alarmPackageNo) {
-        this.alarmPackageNo = alarmPackageNo;
-    }
 
     @Override
     public String toString() {

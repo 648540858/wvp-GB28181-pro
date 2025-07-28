@@ -4,12 +4,14 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import lombok.Setter;
 
 /**
  * @author QingtaiJiang
  * @date 2023/4/27 18:40
  * @email qingtaij@163.com
  */
+@Setter
 @MsgId(id = "8100")
 public class J8100 extends Rs {
     /**
@@ -35,15 +37,4 @@ public class J8100 extends Rs {
         return buffer;
     }
 
-    public void setRespNo(Integer respNo) {
-        this.respNo = respNo;
-    }
-
-    public void setResult(Integer result) {
-        this.result = result;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
 }

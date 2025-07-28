@@ -5,12 +5,16 @@ import com.genersoft.iot.vmp.jt1078.bean.JTCircleArea;
 import com.genersoft.iot.vmp.jt1078.bean.JTRectangleArea;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 /**
  * 设置矩形区域
  */
+@Setter
+@Getter
 @MsgId(id = "8602")
 public class J8602 extends Rs {
 
@@ -39,19 +43,4 @@ public class J8602 extends Rs {
         return buffer;
     }
 
-    public int getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(int attribute) {
-        this.attribute = attribute;
-    }
-
-    public List<JTRectangleArea> getRectangleAreas() {
-        return rectangleAreas;
-    }
-
-    public void setRectangleAreas(List<JTRectangleArea> rectangleAreas) {
-        this.rectangleAreas = rectangleAreas;
-    }
 }

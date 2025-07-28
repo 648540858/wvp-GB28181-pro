@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
@@ -9,29 +8,22 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 
+@Slf4j
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 @RestController
 @Tag(name  = "部标终端以及通道管理")
 @RequestMapping("/api/jt1078/terminal")
 public class JT1078TerminalController {
 
-    private final static Logger logger = LoggerFactory.getLogger(JT1078TerminalController.class);
-
     @Resource
     Ijt1078Service service;
-
-    @Autowired
-    UserSetting userSetting;
 
     @Operation(summary = "JT-分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)

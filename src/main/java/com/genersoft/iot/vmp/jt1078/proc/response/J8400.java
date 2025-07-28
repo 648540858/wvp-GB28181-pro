@@ -4,12 +4,16 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTTextSign;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 
 /**
  * 电话回拨
  */
+@Setter
+@Getter
 @MsgId(id = "8400")
 public class J8400 extends Rs {
 
@@ -31,19 +35,4 @@ public class J8400 extends Rs {
         return buffer;
     }
 
-    public int getSign() {
-        return sign;
-    }
-
-    public void setSign(int sign) {
-        this.sign = sign;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
 }

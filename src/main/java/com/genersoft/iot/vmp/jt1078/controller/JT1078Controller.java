@@ -71,10 +71,6 @@ public class JT1078Controller {
     @Autowired
     private FtpSetting ftpSetting;
 
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-
     @Operation(summary = "JT-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道编号, 一般为从1开始的数字", required = true)

@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * JT GNSS 模块属性
  */
+@Setter
+@Getter
 @Schema(description = "JTGNSS 模块属性")
 public class JTGnssAttribute {
 
@@ -28,38 +32,6 @@ public class JTGnssAttribute {
         this.gps = gps;
         this.beidou = beidou;
         this.glonass = glonass;
-        this.gaLiLeo = gaLiLeo;
-    }
-
-    public boolean isGps() {
-        return gps;
-    }
-
-    public void setGps(boolean gps) {
-        this.gps = gps;
-    }
-
-    public boolean isBeidou() {
-        return beidou;
-    }
-
-    public void setBeidou(boolean beidou) {
-        this.beidou = beidou;
-    }
-
-    public boolean isGlonass() {
-        return glonass;
-    }
-
-    public void setGlonass(boolean glonass) {
-        this.glonass = glonass;
-    }
-
-    public boolean isGaLiLeo() {
-        return gaLiLeo;
-    }
-
-    public void setGaLiLeo(boolean gaLiLeo) {
         this.gaLiLeo = gaLiLeo;
     }
 

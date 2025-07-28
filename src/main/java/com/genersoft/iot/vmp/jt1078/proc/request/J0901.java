@@ -7,11 +7,15 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * 数据压缩上报
  */
+@Setter
+@Getter
 @MsgId(id = "0901")
 public class J0901 extends Re {
 
@@ -46,19 +50,4 @@ public class J0901 extends Re {
         return null;
     }
 
-    public Long getE() {
-        return e;
-    }
-
-    public void setE(Long e) {
-        this.e = e;
-    }
-
-    public byte[] getN() {
-        return n;
-    }
-
-    public void setN(byte[] n) {
-        this.n = n;
-    }
 }

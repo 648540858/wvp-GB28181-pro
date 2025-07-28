@@ -321,6 +321,12 @@
             <mediaInfo ref="mediaInfo" :app="app" :stream="streamId" :media-server-id="mediaServerId" />
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
+<!--            <div style="padding: 0 10px">-->
+<!--              <el-radio-group v-model="broadcastMode" :disabled="broadcastStatus !== -1">-->
+<!--                <el-radio :label="2">双向对讲</el-radio>-->
+<!--                <el-radio :label="4">中心广播</el-radio>-->
+<!--              </el-radio-group>-->
+<!--            </div>-->
             <div class="trank" style="text-align: center;">
               <el-button
                 :type="getBroadcastStatus()"
@@ -347,11 +353,11 @@
 </template>
 
 <script>
-import rtcPlayer from '../common/rtcPlayer.vue'
+import rtcPlayer from '../../common/rtcPlayer.vue'
 import crypto from 'crypto'
-import jessibucaPlayer from '../common/jessibuca.vue'
-import mediaInfo from '../common/mediaInfo.vue'
-import H265web from '../common/h265web.vue'
+import jessibucaPlayer from '../../common/jessibuca.vue'
+import mediaInfo from '../../common/mediaInfo.vue'
+import H265web from '../../common/h265web.vue'
 
 export default {
   name: 'DevicePlayer',
@@ -410,7 +416,7 @@ export default {
     getPlayerShared: function() {
       return {
         sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
-        sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
+        sharedIframe: '' + window.location.origin + '<iframe src="/public#/play/wasm/"></iframe>' + encodeURIComponent(this.videoUrl) + '',
         sharedRtmp: this.videoUrl
       }
     }

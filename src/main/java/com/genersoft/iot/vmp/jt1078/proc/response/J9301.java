@@ -4,11 +4,15 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 云台控制指令-云台旋转
  *
  */
+@Setter
+@Getter
 @MsgId(id = "9301")
 public class J9301 extends Rs {
     // 逻辑通道号
@@ -27,30 +31,6 @@ public class J9301 extends Rs {
         buffer.writeByte(direction);
         buffer.writeByte(speed);
         return buffer;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getDirection() {
-        return direction;
-    }
-
-    public void setDirection(int direction) {
-        this.direction = direction;
-    }
-
-    public int getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(int speed) {
-        this.speed = speed;
     }
 
     @Override

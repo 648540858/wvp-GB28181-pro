@@ -40,7 +40,6 @@ public class Jt808Decoder extends ByteToMessageDecoder {
         this.service = service;
     }
 
-    Map<String, List<String>> dumpMap = new ConcurrentHashMap<>();
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         in.retain();

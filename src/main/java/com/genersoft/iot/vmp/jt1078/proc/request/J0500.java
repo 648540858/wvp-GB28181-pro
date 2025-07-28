@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -17,16 +18,17 @@ import org.springframework.context.ApplicationEvent;
  * 车辆控制应答
  *
  */
+@Slf4j
 @MsgId(id = "0500")
 public class J0500 extends Re {
 
-    private final static Logger log = LoggerFactory.getLogger(J0100.class);
     private JTPositionBaseInfo positionInfo;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         int respNo = buf.readUnsignedShort();
         positionInfo = JTPositionBaseInfo.decode(buf);
+        log.info("[车辆控制应答] {}", header.getPhoneNumber());
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0500", (long) respNo, positionInfo);
         return null;
     }

@@ -98,12 +98,8 @@
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item command="records" :disabled="device == null || !device.status">
                       设备录像</el-dropdown-item>
-                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
-                      双向对讲</el-dropdown-item>
-                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
-                      监听</el-dropdown-item>
-                    <el-dropdown-item command="records" :disabled="device == null || !device.status">
-                      中心广播</el-dropdown-item>
+                    <el-dropdown-item command="talk" :disabled="device == null || !device.status">
+                      对讲</el-dropdown-item>
                     <el-dropdown-item command="cloudRecords" :disabled="device == null || !device.status">
                       云端录像</el-dropdown-item>
                   </el-dropdown-menu>
@@ -130,7 +126,7 @@
 </template>
 
 <script>
-import devicePlayer from '../jtDevicePlayer.vue'
+import devicePlayer from '../dialog/jtDevicePlayer.vue'
 import channelEdit from './edit.vue'
 import dayjs from 'dayjs'
 
@@ -252,6 +248,8 @@ export default {
         this.queryRecords(itemData)
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
+      } else if (command === 'talk') {
+        this.talk(itemData)
       } else {
         this.$message.info('尚不支持')
       }
@@ -263,6 +261,11 @@ export default {
       const deviceId = this.device.phoneNumber
       const channelId = itemData.channelId
       this.$router.push(`/cloudRecord/detail/rtp/jt_${deviceId}_${channelId}`)
+    },
+    talk: function(itemData) {
+      const deviceId = this.device.phoneNumber
+      const channelId = itemData.channelId
+
     },
     stopDevicePush: function(itemData) {
       this.$store.dispatch('jtDevice/stopPlay', {

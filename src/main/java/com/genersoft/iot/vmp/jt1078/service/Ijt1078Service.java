@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 public interface Ijt1078Service {
+
     JTMediaStreamType checkStreamFromJt(String stream);
 
     JTDevice getDevice(String phoneNumber);

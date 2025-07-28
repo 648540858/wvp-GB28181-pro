@@ -3,10 +3,14 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 临时位置跟踪控制
  */
+@Setter
+@Getter
 @MsgId(id = "8202")
 public class J8202 extends Rs {
 
@@ -30,19 +34,4 @@ public class J8202 extends Rs {
         return buffer;
     }
 
-    public int getTimeInterval() {
-        return timeInterval;
-    }
-
-    public void setTimeInterval(int timeInterval) {
-        this.timeInterval = timeInterval;
-    }
-
-    public long getValidityPeriod() {
-        return validityPeriod;
-    }
-
-    public void setValidityPeriod(long validityPeriod) {
-        this.validityPeriod = validityPeriod;
-    }
 }

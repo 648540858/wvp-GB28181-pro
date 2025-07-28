@@ -10,6 +10,8 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
@@ -19,8 +21,11 @@ import java.util.List;
  * 文件上传完成通知
  *
  */
+@Setter
+@Getter
 @MsgId(id = "1206")
 public class J1206 extends Re {
+
     Integer respNo;
 
     // 0：成功； 1：失败
@@ -40,23 +45,6 @@ public class J1206 extends Re {
         j8001.setRespId(header.getMsgId());
         j8001.setResult(J8001.SUCCESS);
         return j8001;
-    }
-
-
-    public Integer getRespNo() {
-        return respNo;
-    }
-
-    public void setRespNo(Integer respNo) {
-        this.respNo = respNo;
-    }
-
-    public int getResult() {
-        return result;
-    }
-
-    public void setResult(int result) {
-        this.result = result;
     }
 
 

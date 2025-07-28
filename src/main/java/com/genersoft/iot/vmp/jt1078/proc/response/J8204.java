@@ -12,8 +12,7 @@ public class J8204 extends Rs {
 
     @Override
     public ByteBuf encode() {
-        ByteBuf buffer = Unpooled.buffer();
-        return buffer;
+        return Unpooled.buffer();
     }
 
 }

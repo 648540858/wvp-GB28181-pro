@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.nio.charset.Charset;
 
@@ -11,6 +13,8 @@ import java.nio.charset.Charset;
  * 文件上传指令
  *
  */
+@Setter
+@Getter
 @MsgId(id = "9206")
 public class J9206 extends Rs {
 
@@ -79,110 +83,6 @@ public class J9206 extends Rs {
         return buffer;
     }
 
-
-    public String getServerIp() {
-        return serverIp;
-    }
-
-    public void setServerIp(String serverIp) {
-        this.serverIp = serverIp;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public int getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(int channelId) {
-        this.channelId = channelId;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getAlarmSign() {
-        return alarmSign;
-    }
-
-    public int getMediaType() {
-        return mediaType;
-    }
-
-    public void setMediaType(int mediaType) {
-        this.mediaType = mediaType;
-    }
-
-    public int getStreamType() {
-        return streamType;
-    }
-
-    public void setStreamType(int streamType) {
-        this.streamType = streamType;
-    }
-
-    public int getStorageType() {
-        return storageType;
-    }
-
-    public void setStorageType(int storageType) {
-        this.storageType = storageType;
-    }
-
-    public int getTaskConditions() {
-        return taskConditions;
-    }
-
-    public void setTaskConditions(int taskConditions) {
-        this.taskConditions = taskConditions;
-    }
-
-    public void setAlarmSign(int alarmSign) {
-        this.alarmSign = alarmSign;
-    }
 
     @Override
     public String toString() {

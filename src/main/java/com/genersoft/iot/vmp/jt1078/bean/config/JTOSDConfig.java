@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * OSD字幕叠加设置
  */
+@Setter
+@Getter
 public class JTOSDConfig {
 
     /**
@@ -42,62 +46,6 @@ public class JTOSDConfig {
      * 连续驾驶时间
      */
     private boolean drivingTime;
-
-    public boolean isTime() {
-        return time;
-    }
-
-    public void setTime(boolean time) {
-        this.time = time;
-    }
-
-    public boolean isLicensePlate() {
-        return licensePlate;
-    }
-
-    public void setLicensePlate(boolean licensePlate) {
-        this.licensePlate = licensePlate;
-    }
-
-    public boolean isChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(boolean channelId) {
-        this.channelId = channelId;
-    }
-
-    public boolean isPosition() {
-        return position;
-    }
-
-    public void setPosition(boolean position) {
-        this.position = position;
-    }
-
-    public boolean isSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(boolean speed) {
-        this.speed = speed;
-    }
-
-    public boolean isSpeedForGPS() {
-        return speedForGPS;
-    }
-
-    public void setSpeedForGPS(boolean speedForGPS) {
-        this.speedForGPS = speedForGPS;
-    }
-
-    public boolean isDrivingTime() {
-        return drivingTime;
-    }
-
-    public void setDrivingTime(boolean drivingTime) {
-        this.drivingTime = drivingTime;
-    }
 
     public ByteBuf encode(){
         ByteBuf byteBuf = Unpooled.buffer();

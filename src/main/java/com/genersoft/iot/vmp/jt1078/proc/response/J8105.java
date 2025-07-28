@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 /**
  * 终端控制
  */
+@Getter
 @MsgId(id = "8105")
 public class J8105 extends Rs {
 
@@ -56,24 +58,12 @@ public class J8105 extends Rs {
         return byteBuf;
     }
 
-    public JTDeviceConnectionControl getConnectionControl() {
-        return connectionControl;
-    }
-
     public void setConnectionControl(JTDeviceConnectionControl connectionControl) {
         this.connectionControl = connectionControl;
     }
 
-    public Boolean getReset() {
-        return reset;
-    }
-
     public void setReset(Boolean reset) {
         this.reset = reset;
-    }
-
-    public Boolean getFactoryReset() {
-        return factoryReset;
     }
 
     public void setFactoryReset(Boolean factoryReset) {

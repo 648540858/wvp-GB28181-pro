@@ -3,10 +3,14 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 数据下行透传
  */
+@Setter
+@Getter
 @MsgId(id = "8900")
 public class J8900 extends Rs {
 
@@ -28,19 +32,4 @@ public class J8900 extends Rs {
         return byteBuf;
     }
 
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
-    public byte[] getContent() {
-        return content;
-    }
-
-    public void setContent(byte[] content) {
-        this.content = content;
-    }
 }

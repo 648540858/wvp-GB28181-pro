@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -20,6 +21,7 @@ import java.nio.charset.Charset;
  * 查询终端属性应答
  *
  */
+@Slf4j
 @MsgId(id = "0107")
 public class J0107 extends Re {
 
@@ -54,7 +56,7 @@ public class J0107 extends Re {
 
         deviceAttribute.setGnssAttribute(JTGnssAttribute.getInstance(buf.readUnsignedByte()));
         deviceAttribute.setCommunicationModuleAttribute(JTCommunicationModuleAttribute.getInstance(buf.readUnsignedByte()));
-
+        log.info("[查询终端属性应答] {}， {}", header.getPhoneNumber(), deviceAttribute);
         SessionManager.INSTANCE.response(header.getPhoneNumber(), "0107", null, deviceAttribute);
         return null;
     }

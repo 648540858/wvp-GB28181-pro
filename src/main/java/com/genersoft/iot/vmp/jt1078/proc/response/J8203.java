@@ -4,10 +4,14 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTConfirmationAlarmMessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 人工确认报警消息
  */
+@Setter
+@Getter
 @MsgId(id = "8203")
 public class J8203 extends Rs {
 
@@ -30,19 +34,4 @@ public class J8203 extends Rs {
         return buffer;
     }
 
-    public int getAlarmPackageNo() {
-        return alarmPackageNo;
-    }
-
-    public void setAlarmPackageNo(int alarmPackageNo) {
-        this.alarmPackageNo = alarmPackageNo;
-    }
-
-    public JTConfirmationAlarmMessageType getAlarmMessageType() {
-        return alarmMessageType;
-    }
-
-    public void setAlarmMessageType(JTConfirmationAlarmMessageType alarmMessageType) {
-        this.alarmMessageType = alarmMessageType;
-    }
 }

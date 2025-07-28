@@ -3,11 +3,15 @@ package com.genersoft.iot.vmp.jt1078.proc.response;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 云台控制指令-云台变倍控制
  *
  */
+@Setter
+@Getter
 @MsgId(id = "9306")
 public class J9306 extends Rs {
     // 逻辑通道号
@@ -22,22 +26,6 @@ public class J9306 extends Rs {
         buffer.writeByte(channel);
         buffer.writeByte(zoom);
         return buffer;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getZoom() {
-        return zoom;
-    }
-
-    public void setZoom(int zoom) {
-        this.zoom = zoom;
     }
 
     @Override

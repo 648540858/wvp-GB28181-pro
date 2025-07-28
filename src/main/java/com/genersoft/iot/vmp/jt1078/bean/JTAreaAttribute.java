@@ -3,7 +3,11 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "区域属性")
 public class JTAreaAttribute {
 
@@ -96,91 +100,4 @@ public class JTAreaAttribute {
         return attribute;
     }
 
-    public boolean isRuleForTimeLimit() {
-        return ruleForTimeLimit;
-    }
-
-    public void setRuleForTimeLimit(boolean ruleForTimeLimit) {
-        this.ruleForTimeLimit = ruleForTimeLimit;
-    }
-
-    public boolean isRuleForSpeedLimit() {
-        return ruleForSpeedLimit;
-    }
-
-    public void setRuleForSpeedLimit(boolean ruleForSpeedLimit) {
-        this.ruleForSpeedLimit = ruleForSpeedLimit;
-    }
-
-    public boolean isRuleForAlarmToDriverWhenEnter() {
-        return ruleForAlarmToDriverWhenEnter;
-    }
-
-    public void setRuleForAlarmToDriverWhenEnter(boolean ruleForAlarmToDriverWhenEnter) {
-        this.ruleForAlarmToDriverWhenEnter = ruleForAlarmToDriverWhenEnter;
-    }
-
-    public boolean isRuleForAlarmToPlatformWhenEnter() {
-        return ruleForAlarmToPlatformWhenEnter;
-    }
-
-    public void setRuleForAlarmToPlatformWhenEnter(boolean ruleForAlarmToPlatformWhenEnter) {
-        this.ruleForAlarmToPlatformWhenEnter = ruleForAlarmToPlatformWhenEnter;
-    }
-
-    public boolean isRuleForAlarmToDriverWhenExit() {
-        return ruleForAlarmToDriverWhenExit;
-    }
-
-    public void setRuleForAlarmToDriverWhenExit(boolean ruleForAlarmToDriverWhenExit) {
-        this.ruleForAlarmToDriverWhenExit = ruleForAlarmToDriverWhenExit;
-    }
-
-    public boolean isRuleForAlarmToPlatformWhenExit() {
-        return ruleForAlarmToPlatformWhenExit;
-    }
-
-    public void setRuleForAlarmToPlatformWhenExit(boolean ruleForAlarmToPlatformWhenExit) {
-        this.ruleForAlarmToPlatformWhenExit = ruleForAlarmToPlatformWhenExit;
-    }
-
-    public boolean isSouthLatitude() {
-        return southLatitude;
-    }
-
-    public void setSouthLatitude(boolean southLatitude) {
-        this.southLatitude = southLatitude;
-    }
-
-    public boolean isWestLongitude() {
-        return westLongitude;
-    }
-
-    public void setWestLongitude(boolean westLongitude) {
-        this.westLongitude = westLongitude;
-    }
-
-    public boolean isProhibitOpeningDoors() {
-        return prohibitOpeningDoors;
-    }
-
-    public void setProhibitOpeningDoors(boolean prohibitOpeningDoors) {
-        this.prohibitOpeningDoors = prohibitOpeningDoors;
-    }
-
-    public boolean isRuleForTurnOffCommunicationWhenEnter() {
-        return ruleForTurnOffCommunicationWhenEnter;
-    }
-
-    public void setRuleForTurnOffCommunicationWhenEnter(boolean ruleForTurnOffCommunicationWhenEnter) {
-        this.ruleForTurnOffCommunicationWhenEnter = ruleForTurnOffCommunicationWhenEnter;
-    }
-
-    public boolean isRuleForGnssWhenEnter() {
-        return ruleForGnssWhenEnter;
-    }
-
-    public void setRuleForGnssWhenEnter(boolean ruleForGnssWhenEnter) {
-        this.ruleForGnssWhenEnter = ruleForGnssWhenEnter;
-    }
 }

@@ -3,7 +3,11 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "路线属性")
 public class JTRouteAttribute {
 
@@ -52,46 +56,6 @@ public class JTRouteAttribute {
         attribute.setRuleForAlarmToDriverWhenExit((attributeInt >> 4 & 1) == 1);
         attribute.setRuleForAlarmToPlatformWhenExit((attributeInt >> 5 & 1) == 1);
         return attribute;
-    }
-
-    public boolean isRuleForTimeLimit() {
-        return ruleForTimeLimit;
-    }
-
-    public void setRuleForTimeLimit(boolean ruleForTimeLimit) {
-        this.ruleForTimeLimit = ruleForTimeLimit;
-    }
-
-    public boolean isRuleForAlarmToDriverWhenEnter() {
-        return ruleForAlarmToDriverWhenEnter;
-    }
-
-    public void setRuleForAlarmToDriverWhenEnter(boolean ruleForAlarmToDriverWhenEnter) {
-        this.ruleForAlarmToDriverWhenEnter = ruleForAlarmToDriverWhenEnter;
-    }
-
-    public boolean isRuleForAlarmToPlatformWhenEnter() {
-        return ruleForAlarmToPlatformWhenEnter;
-    }
-
-    public void setRuleForAlarmToPlatformWhenEnter(boolean ruleForAlarmToPlatformWhenEnter) {
-        this.ruleForAlarmToPlatformWhenEnter = ruleForAlarmToPlatformWhenEnter;
-    }
-
-    public boolean isRuleForAlarmToDriverWhenExit() {
-        return ruleForAlarmToDriverWhenExit;
-    }
-
-    public void setRuleForAlarmToDriverWhenExit(boolean ruleForAlarmToDriverWhenExit) {
-        this.ruleForAlarmToDriverWhenExit = ruleForAlarmToDriverWhenExit;
-    }
-
-    public boolean isRuleForAlarmToPlatformWhenExit() {
-        return ruleForAlarmToPlatformWhenExit;
-    }
-
-    public void setRuleForAlarmToPlatformWhenExit(boolean ruleForAlarmToPlatformWhenExit) {
-        this.ruleForAlarmToPlatformWhenExit = ruleForAlarmToPlatformWhenExit;
     }
 
     @Override

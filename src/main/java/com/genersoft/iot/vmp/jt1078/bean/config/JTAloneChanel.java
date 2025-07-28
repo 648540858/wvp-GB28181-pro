@@ -2,10 +2,14 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 单独通道视频
  */
+@Setter
+@Getter
 public class JTAloneChanel implements JTDeviceSubConfig{
 
     /**
@@ -92,102 +96,6 @@ public class JTAloneChanel implements JTDeviceSubConfig{
      * 字幕叠加设置
      */
     private JTOSDConfig osd;
-
-    public int getLogicChannelId() {
-        return logicChannelId;
-    }
-
-    public void setLogicChannelId(int logicChannelId) {
-        this.logicChannelId = logicChannelId;
-    }
-
-    public int getLiveStreamCodeRateType() {
-        return liveStreamCodeRateType;
-    }
-
-    public void setLiveStreamCodeRateType(int liveStreamCodeRateType) {
-        this.liveStreamCodeRateType = liveStreamCodeRateType;
-    }
-
-    public int getLiveStreamResolving() {
-        return liveStreamResolving;
-    }
-
-    public void setLiveStreamResolving(int liveStreamResolving) {
-        this.liveStreamResolving = liveStreamResolving;
-    }
-
-    public int getLiveStreamIInterval() {
-        return liveStreamIInterval;
-    }
-
-    public void setLiveStreamIInterval(int liveStreamIInterval) {
-        this.liveStreamIInterval = liveStreamIInterval;
-    }
-
-    public int getLiveStreamFrameRate() {
-        return liveStreamFrameRate;
-    }
-
-    public void setLiveStreamFrameRate(int liveStreamFrameRate) {
-        this.liveStreamFrameRate = liveStreamFrameRate;
-    }
-
-    public long getLiveStreamCodeRate() {
-        return liveStreamCodeRate;
-    }
-
-    public void setLiveStreamCodeRate(long liveStreamCodeRate) {
-        this.liveStreamCodeRate = liveStreamCodeRate;
-    }
-
-    public int getStorageStreamCodeRateType() {
-        return storageStreamCodeRateType;
-    }
-
-    public void setStorageStreamCodeRateType(int storageStreamCodeRateType) {
-        this.storageStreamCodeRateType = storageStreamCodeRateType;
-    }
-
-    public int getStorageStreamResolving() {
-        return storageStreamResolving;
-    }
-
-    public void setStorageStreamResolving(int storageStreamResolving) {
-        this.storageStreamResolving = storageStreamResolving;
-    }
-
-    public int getStorageStreamIInterval() {
-        return storageStreamIInterval;
-    }
-
-    public void setStorageStreamIInterval(int storageStreamIInterval) {
-        this.storageStreamIInterval = storageStreamIInterval;
-    }
-
-    public int getStorageStreamFrameRate() {
-        return storageStreamFrameRate;
-    }
-
-    public void setStorageStreamFrameRate(int storageStreamFrameRate) {
-        this.storageStreamFrameRate = storageStreamFrameRate;
-    }
-
-    public long getStorageStreamCodeRate() {
-        return storageStreamCodeRate;
-    }
-
-    public void setStorageStreamCodeRate(long storageStreamCodeRate) {
-        this.storageStreamCodeRate = storageStreamCodeRate;
-    }
-
-    public JTOSDConfig getOsd() {
-        return osd;
-    }
-
-    public void setOsd(JTOSDConfig osd) {
-        this.osd = osd;
-    }
 
     @Override
     public ByteBuf encode() {

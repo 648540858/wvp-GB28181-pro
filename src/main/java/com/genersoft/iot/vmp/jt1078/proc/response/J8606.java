@@ -5,10 +5,14 @@ import com.genersoft.iot.vmp.jt1078.bean.JTPolygonArea;
 import com.genersoft.iot.vmp.jt1078.bean.JTRoute;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 设置路线
  */
+@Setter
+@Getter
 @MsgId(id = "8606")
 public class J8606 extends Rs {
 
@@ -25,11 +29,4 @@ public class J8606 extends Rs {
         return buffer;
     }
 
-    public JTRoute getRoute() {
-        return route;
-    }
-
-    public void setRoute(JTRoute route) {
-        this.route = route;
-    }
 }

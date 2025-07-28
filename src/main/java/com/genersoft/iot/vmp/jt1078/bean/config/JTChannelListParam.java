@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.jt1078.bean.config;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * 音视频通道列表设置
  */
+@Setter
+@Getter
 public class JTChannelListParam implements JTDeviceSubConfig{
 
     /**
@@ -28,38 +32,6 @@ public class JTChannelListParam implements JTDeviceSubConfig{
 
     private List<JTChanel> chanelList;
 
-
-    public int getVideoAndAudioCount() {
-        return videoAndAudioCount;
-    }
-
-    public void setVideoAndAudioCount(int videoAndAudioCount) {
-        this.videoAndAudioCount = videoAndAudioCount;
-    }
-
-    public int getAudioCount() {
-        return audioCount;
-    }
-
-    public void setAudioCount(int audioCount) {
-        this.audioCount = audioCount;
-    }
-
-    public int getVideoCount() {
-        return videoCount;
-    }
-
-    public void setVideoCount(int videoCount) {
-        this.videoCount = videoCount;
-    }
-
-    public List<JTChanel> getChanelList() {
-        return chanelList;
-    }
-
-    public void setChanelList(List<JTChanel> chanelList) {
-        this.chanelList = chanelList;
-    }
 
     @Override
     public ByteBuf encode() {

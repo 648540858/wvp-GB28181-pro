@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -27,10 +28,10 @@ import java.util.UUID;
  * @date 2023/4/27 18:06
  * @email qingtaij@163.com
  */
+@Slf4j
 @MsgId(id = "0100")
 public class J0100 extends Re {
 
-    private final static Logger log = LoggerFactory.getLogger(J0100.class);
     private JTDevice device;
 
     @Override

@@ -12,8 +12,7 @@ public class J9003 extends Rs {
 
     @Override
     public ByteBuf encode() {
-        ByteBuf buffer = Unpooled.buffer();
-        return buffer;
+        return Unpooled.buffer();
     }
 
 }

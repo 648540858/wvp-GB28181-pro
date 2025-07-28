@@ -426,6 +426,29 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
+    public Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost","__defaultVhost__");
+        param.put("app", sendRtpItem.getApp());
+        param.put("stream", sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("type", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        param.put("recv_stream_id", sendRtpItem.getReceiveStream());
+
+        JSONObject jsonObject = zlmServerFactory.startSendRtpTalk(mediaServer, param, null);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            log.error("启动监听TCP被动推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+        log.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
+        log.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
+                jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+        return jsonObject.getInteger("local_port");
+    }
+
+    @Override
     public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
         MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
         if (mediaInfo == null) {

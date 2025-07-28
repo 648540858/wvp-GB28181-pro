@@ -340,5 +340,25 @@ export function shooting(data) {
     data: data
   })
 }
+export function startTalk({ phoneNumber, channelId }) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/talk/start',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId
+    }
+  })
+}
+export function stopTalk({ phoneNumber, channelId }) {
+  return request({
+    method: 'get',
+    url: '/api/jt1078/talk/stop',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId
+    }
+  })
+}
 
 

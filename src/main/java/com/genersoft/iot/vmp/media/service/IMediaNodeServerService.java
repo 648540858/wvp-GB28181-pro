@@ -66,6 +66,8 @@ public interface IMediaNodeServerService {
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
+    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 
     void startProxy(MediaServer mediaServer, StreamProxy streamProxy);

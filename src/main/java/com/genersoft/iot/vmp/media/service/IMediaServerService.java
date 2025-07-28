@@ -148,6 +148,8 @@ public interface IMediaServerService {
 
     Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
+    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+
     void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
     MediaServer getMediaServerByAppAndStream(String app, String stream);

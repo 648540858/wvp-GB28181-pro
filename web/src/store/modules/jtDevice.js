@@ -23,9 +23,9 @@ import {
   reset,
   sendTextMessage,
   setConfig, setPhoneBook, shooting,
-  startPlayback,
+  startPlayback, startTalk,
   stopPlay,
-  stopPlayback,
+  stopPlayback, stopTalk,
   telephoneCallback,
   update,
   updateChannel,
@@ -366,6 +366,26 @@ const actions = {
   shooting({ commit }, data) {
     return new Promise((resolve, reject) => {
       shooting(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  startTalk({ commit }, param) {
+    return new Promise((resolve, reject) => {
+      startTalk(param).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  stopTalk({ commit }, param) {
+    return new Promise((resolve, reject) => {
+      stopTalk(param).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

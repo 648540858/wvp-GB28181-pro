@@ -327,7 +327,7 @@
 <!--                <el-radio :label="4">中心广播</el-radio>-->
 <!--              </el-radio-group>-->
 <!--            </div>-->
-            <div class="trank" style="text-align: center;">
+            <div class="trank" style="text-align: center; width: 100%;">
               <el-button
                 :type="getBroadcastStatus()"
                 :disabled="broadcastStatus === -2"
@@ -580,25 +580,20 @@ export default {
         // 默认状态， 开始
         this.broadcastStatus = 0
         // 发起语音对讲
-        this.$axios({
-          method: 'get',
-          url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + '?timeout=30&broadcastMode=' + this.broadcastMode
-        }).then((res) => {
-          if (res.data.code === 0) {
-            const streamInfo = res.data.data.streamInfo
+        this.$store.dispatch('jtDevice/startTalk', {
+          phoneNumber: this.deviceId,
+          channelId: this.channelId
+        }).then(data => {
+            const streamInfo = data
             if (document.location.protocol.includes('https')) {
               this.startBroadcast(streamInfo.rtcs)
             } else {
               this.startBroadcast(streamInfo.rtc)
             }
-          } else {
-            this.$message({
-              showClose: true,
-              message: res.data.msg,
-              type: 'error'
-            })
-          }
-        })
+          }).catch(error => {
+            this.$message.error(error)
+            this.broadcastStatus = -1
+          })
       } else if (this.broadcastStatus === 1) {
         this.broadcastStatus = -1
         this.broadcastRtc.close()
@@ -608,7 +603,7 @@ export default {
       // 获取推流鉴权Key
       this.$store.dispatch('user/getUserInfo')
         .then((data) => {
-          if (data == null) {
+          if (data === null) {
             this.broadcastStatus = -1
             return
           }
@@ -686,7 +681,10 @@ export default {
     stopBroadcast() {
       this.broadcastRtc.close()
       this.broadcastStatus = -1
-      this.$store.dispatch('play/broadcastStop', [this.deviceId, this.channelId])
+      this.$store.dispatch('jtDevice/stopTalk', {
+        phoneNumber: this.deviceId,
+        channelId: this.channelId
+      })
     }
   }
 }

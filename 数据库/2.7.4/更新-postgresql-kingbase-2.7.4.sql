@@ -18,6 +18,9 @@ create table IF NOT EXISTS wvp_jt_terminal (
                                  register_time character varying(50) default null,
                                  update_time character varying(50) not null,
                                  create_time character varying(50) not null,
+                                 geo_coord_sys character varying(50),
+                                 media_server_id character varying(50) default 'auto',
+                                 sdp_ip character varying(50),
                                  constraint uk_jt_device_id_device_id unique (id, phone_number)
 );
 drop table IF EXISTS wvp_jt_channel;

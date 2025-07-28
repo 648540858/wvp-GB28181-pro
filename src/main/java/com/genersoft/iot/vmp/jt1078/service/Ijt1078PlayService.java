@@ -27,7 +27,7 @@ public interface Ijt1078PlayService {
 
     void stopPlayback(String phoneNumber, Integer channelId);
 
-    void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend, CommonCallback<WVPResult<StreamInfo>> callback);
+    StreamInfo startTalk(String phoneNumber, Integer channelId);
 
     void stopTalk(String phoneNumber, Integer channelId);
 

@@ -135,55 +135,24 @@ public class JT1078Controller {
     @Operation(summary = "JT-语音对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
-    @Parameter(name = "app", description = "推流应用名", required = true)
-    @Parameter(name = "stream", description = "推流ID", required = true)
-    @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
-    @Parameter(name = "onlySend", description = "是否只发送", required = false)
     @GetMapping("/talk/start")
-    public DeferredResult<WVPResult<StreamContent>> startTalk(HttpServletRequest request,
+    public StreamContent startTalk(HttpServletRequest request,
                          @Parameter(required = true) String phoneNumber,
-                         @Parameter(required = true) Integer channelId,
-                         @Parameter(required = true) String app,
-                         @Parameter(required = true) String stream,
-                         @Parameter(required = true) String mediaServerId,
-                         @Parameter(required = false) Boolean onlySend) {
-        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        result.onTimeout(()->{
-            log.info("[JT-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
-            // 释放rtpserver
-            WVPResult<StreamContent> wvpResult = new WVPResult<>();
-            wvpResult.setCode(ErrorCode.ERROR100.getCode());
-            wvpResult.setMsg("超时");
-            result.setResult(wvpResult);
-            jt1078PlayService.stopPlay(phoneNumber, channelId);
-        });
+                         @Parameter(required = true) Integer channelId) {
 
-        jt1078PlayService.startTalk(phoneNumber, channelId, app, stream, mediaServerId, onlySend, wvpResult -> {
-            WVPResult<StreamContent> wvpResultForFinish = new WVPResult<>();
-            wvpResultForFinish.setCode(wvpResult.getCode());
-            wvpResultForFinish.setMsg(wvpResult.getMsg());
-            if (wvpResult.getCode() == InviteErrorCode.SUCCESS.getCode()) {
-
-                if (wvpResult.getData() != null) {
-                    StreamInfo streamInfo = wvpResult.getData();
-                    if (userSetting.getUseSourceIpAsStreamIp()) {
-                        streamInfo = wvpResult.getData().clone();//深拷贝
-                        String host;
-                        try {
-                            URL url=new URL(request.getRequestURL().toString());
-                            host=url.getHost();
-                        } catch (MalformedURLException e) {
-                            host=request.getLocalAddr();
-                        }
-                        streamInfo.changeStreamIp(host);
-                    }
-                    wvpResultForFinish.setData(new StreamContent(streamInfo));
-                }
+        StreamInfo streamInfo = jt1078PlayService.startTalk(phoneNumber, channelId);
+        if (userSetting.getUseSourceIpAsStreamIp()) {
+            String host;
+            try {
+                URL url=new URL(request.getRequestURL().toString());
+                host=url.getHost();
+            } catch (MalformedURLException e) {
+                host=request.getLocalAddr();
             }
-            result.setResult(wvpResultForFinish);
-        });
-
-        return result;
+            streamInfo.changeStreamIp(host);
+        }
+        streamInfo.setIp("localhost");
+        return new StreamContent(streamInfo);
     }
 
     @Operation(summary = "JT-结束对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))

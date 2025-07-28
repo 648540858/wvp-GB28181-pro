@@ -162,8 +162,12 @@ public class ZLMServerFactory {
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param);
     }
 
-    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object>param, ZLMRESTfulUtils.RequestCallback callback) {
+    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object> param, ZLMRESTfulUtils.RequestCallback callback) {
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param, callback);
+    }
+
+    public JSONObject startSendRtpTalk(MediaServer mediaServer, Map<String, Object> param, ZLMRESTfulUtils.RequestCallback callback) {
+        return zlmresTfulUtils.startSendRtpTalk(mediaServer, param, callback);
     }
 
     /**
@@ -268,4 +272,6 @@ public class ZLMServerFactory {
         param.put("ssrc", sendRtpItem.getSsrc());
         return zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
     }
+
+
 }

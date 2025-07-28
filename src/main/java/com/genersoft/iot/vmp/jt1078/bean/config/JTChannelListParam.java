@@ -30,7 +30,7 @@ public class JTChannelListParam implements JTDeviceSubConfig{
      */
     private int videoCount;
 
-    private List<JTChanel> chanelList;
+    private List<JTChanelConfig> chanelList;
 
 
     @Override
@@ -39,7 +39,7 @@ public class JTChannelListParam implements JTDeviceSubConfig{
         byteBuf.writeByte(videoAndAudioCount);
         byteBuf.writeByte(audioCount);
         byteBuf.writeByte(videoCount);
-        for (JTChanel jtChanel : chanelList) {
+        for (JTChanelConfig jtChanel : chanelList) {
             byteBuf.writeBytes(jtChanel.encode());
         }
         return byteBuf;
@@ -51,9 +51,9 @@ public class JTChannelListParam implements JTDeviceSubConfig{
         channelListParam.setAudioCount(byteBuf.readUnsignedByte());
         channelListParam.setVideoCount(byteBuf.readUnsignedByte());
         int total = channelListParam.getVideoAndAudioCount() + channelListParam.getVideoCount() + channelListParam.getAudioCount();
-        List<JTChanel> chanelList = new ArrayList<>(total);
+        List<JTChanelConfig> chanelList = new ArrayList<>(total);
         for (int i = 0; i < total; i++) {
-            chanelList.add(JTChanel.decode(byteBuf));
+            chanelList.add(JTChanelConfig.decode(byteBuf));
         }
         channelListParam.setChanelList(chanelList);
         return channelListParam;

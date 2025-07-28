@@ -363,6 +363,12 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
+    public Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+        logger.warn("[abl-startSendRtpTalk] 未实现");
+        return 0;
+    }
+
+    @Override
     public void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem) {
         logger.warn("[abl-startSendRtpStream] 未实现");
     }

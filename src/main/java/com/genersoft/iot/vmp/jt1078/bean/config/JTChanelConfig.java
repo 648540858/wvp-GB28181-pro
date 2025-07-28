@@ -5,14 +5,12 @@ import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Stack;
-
 /**
  * 音视频通道
  */
 @Setter
 @Getter
-public class JTChanel implements JTDeviceSubConfig{
+public class JTChanelConfig implements JTDeviceSubConfig{
 
     /**
      * 物理通道号 单独
@@ -47,8 +45,8 @@ public class JTChanel implements JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static JTChanel decode(ByteBuf byteBuf) {
-        JTChanel jtChanel = new JTChanel();
+    public static JTChanelConfig decode(ByteBuf byteBuf) {
+        JTChanelConfig jtChanel = new JTChanelConfig();
         jtChanel.setPhysicalChannelId(byteBuf.readUnsignedByte());
         jtChanel.setLogicChannelId(byteBuf.readUnsignedByte());
         jtChanel.setChannelType(byteBuf.readUnsignedByte());

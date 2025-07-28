@@ -619,7 +619,7 @@ export default {
       // 获取推流鉴权Key
       this.$store.dispatch('user/getUserInfo')
         .then((data) => {
-          if (data == null) {
+          if (data === null) {
             this.broadcastStatus = -1
             return
           }

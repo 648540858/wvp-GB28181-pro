@@ -23,6 +23,7 @@ public class UserManager implements org.apache.ftpserver.ftplet.UserManager {
 
     @Override
     public User getUserByName(String username) throws FtpException {
+        System.out.println("getUserByName");
         if (!username.equals(this.username)) {
             return null;
         }

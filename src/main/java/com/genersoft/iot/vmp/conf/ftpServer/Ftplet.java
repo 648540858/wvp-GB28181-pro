@@ -25,6 +25,7 @@ public class Ftplet extends DefaultFtplet {
 
     @Override
     public FtpletResult beforeCommand(FtpSession session, FtpRequest request) throws FtpException, IOException {
+        System.out.println("beforeCommand");
         if (request.getCommand().equalsIgnoreCase("USER") && !username.equals(request.getArgument())) {
             return FtpletResult.DISCONNECT;
         }

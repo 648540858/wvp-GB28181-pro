@@ -7,6 +7,8 @@ import io.netty.util.AttributeKey;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -95,5 +97,9 @@ public class Session {
     public void unregister() {
         channel.close();
         SessionManager.INSTANCE.remove(this.phoneNumber);
+    }
+
+    public InetSocketAddress getLoadAddress() {
+        return (InetSocketAddress)channel.localAddress();
     }
 }

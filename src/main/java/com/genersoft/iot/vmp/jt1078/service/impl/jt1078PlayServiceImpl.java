@@ -196,7 +196,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
     private void play(JTDevice device, JTChannel channel, int type, CommonCallback<WVPResult<StreamInfo>> callback) {
         String phoneNumber = device.getPhoneNumber();
-        int channelId = channel.getId();
+        int channelId = channel.getChannelId();
         String app = "1078";
         String stream = phoneNumber + "_" + channelId;
         // 检查流是否已经存在，存在则返回

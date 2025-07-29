@@ -21,6 +21,8 @@ import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.FtpDownloadManager;
+import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -43,6 +45,7 @@ import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 
@@ -198,14 +201,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         dynamicTask.startDelay(filePath, ()->{
             fileSystemFactory.removeOutputStream(filePath);
         }, 2*60*60*1000);
-        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
-                phoneNumber, channelId, startTime, endTime, filePath);
+        Session session = SessionManager.INSTANCE.get(phoneNumber);
+        Assert.notNull(session, "连接不存在");
+        InetSocketAddress socketAddress = session.getLoadAddress();
+        String hostName = socketAddress.getHostName();
+        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {} 上传IP： {} 等待上传文件路径： {} ",
+                phoneNumber, channelId, startTime, endTime, hostName, filePath);
         // 发送停止命令
         J9206 j92026 = new J9206();
         j92026.setChannelId(channelId);
         j92026.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j92026.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
-        j92026.setServerIp(ftpSetting.getIp());
+        j92026.setServerIp(hostName);
         j92026.setPort(ftpSetting.getPort());
         j92026.setUsername(ftpSetting.getUsername());
         j92026.setPassword(ftpSetting.getPassword());
@@ -721,14 +728,19 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public String getRecordTempUrl(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType) {
         String filePath = UUID.randomUUID().toString();
 
-        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
-                phoneNumber, channelId, startTime, endTime, filePath);
+        Session session = SessionManager.INSTANCE.get(phoneNumber);
+        Assert.notNull(session, "连接不存在");
+        InetSocketAddress socketAddress = session.getLoadAddress();
+        String hostName = socketAddress.getHostName();
+
+        log.info("[JT-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {} 上传IP： {} 等待上传文件路径： {} ",
+                phoneNumber, channelId, startTime, endTime, hostName, filePath);
         // 文件上传指令
         J9206 j9206 = new J9206();
         j9206.setChannelId(channelId);
         j9206.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9206.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
-        j9206.setServerIp(ftpSetting.getIp());
+        j9206.setServerIp(hostName);
         j9206.setPort(ftpSetting.getPort());
         j9206.setUsername(ftpSetting.getUsername());
         j9206.setPassword(ftpSetting.getPassword());

@@ -17,7 +17,5 @@ public class FtpSetting {
     private Boolean enable = Boolean.FALSE;
 
     private int port = 21;
-    private String username = "admin";
-    private String password = "admin";
     private String passivePorts = "10000-10500";
 }

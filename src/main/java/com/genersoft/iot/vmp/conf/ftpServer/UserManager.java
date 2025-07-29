@@ -1,90 +1,86 @@
 package com.genersoft.iot.vmp.conf.ftpServer;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ftpserver.ftplet.*;
 import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class UserManager implements org.apache.ftpserver.ftplet.UserManager {
 
-    @Value("${ftp.username}")
-    private String username;
+    private static final String PREFIX = "VMP_FTP_USER_";
 
-    @Value("${ftp.password}")
-    private String password;
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
 
     @Override
     public User getUserByName(String username) throws FtpException {
-        System.out.println("getUserByName");
-        if (!username.equals(this.username)) {
-            return null;
-        }
-        return getUser();
+        return (BaseUser)redisTemplate.opsForValue().get(PREFIX + username);
     }
 
     @Override
     public String[] getAllUserNames() throws FtpException {
-        String[] strings = new String[1];
-        strings[0] = this.username;
-        return strings;
+        return new String[0];
     }
 
     @Override
-    public void delete(String username) throws FtpException {}
+    public void delete(String username) throws FtpException {
+
+    }
 
     @Override
     public void save(User user) throws FtpException {}
 
     @Override
     public boolean doesExist(String username) throws FtpException {
-        return this.username.equals(username);
+        return redisTemplate.opsForValue().get(PREFIX + username) != null;
     }
 
     @Override
     public User authenticate(Authentication authentication) throws AuthenticationFailedException {
         UsernamePasswordAuthentication usernamePasswordAuthentication = (UsernamePasswordAuthentication) authentication;
-        if (usernamePasswordAuthentication.getUsername().equals(this.username)
-                && usernamePasswordAuthentication.getPassword().equals(this.password)) {
-            return getUser();
+        BaseUser user = (BaseUser)redisTemplate.opsForValue().get(PREFIX + usernamePasswordAuthentication.getUsername());
+        if (user != null && usernamePasswordAuthentication.getPassword().equals(user.getPassword())) {
+            return user;
         }
         return null;
     }
 
-    @NotNull
-    private User getUser() {
-        BaseUser use = new BaseUser();
-        use.setName(this.username);
-        use.setPassword(this.password);
-        use.setEnabled(true);
-        File file = new File("ftp");
-        if (!file.exists()) {
-            file.mkdirs();
-        }else if (file.isFile()) {
-            file.delete();
-            file.mkdirs();
-        }
-        use.setHomeDirectory(file.getAbsolutePath());
-        List<Authority> authorities = new ArrayList<>();
-        authorities.add(new FtpAuthority());
-        use.setAuthorities(authorities);
-        return use;
-    }
-
     @Override
     public String getAdminName() throws FtpException {
-        return this.username;
+        return null;
     }
 
     @Override
     public boolean isAdmin(String username) throws FtpException {
-        return username.equals(this.username);
+        return false;
+    }
+
+    public BaseUser getRandomUser(){
+        BaseUser use = new BaseUser();
+        use.setName(RandomStringUtils.randomAlphabetic(6).toLowerCase());
+        use.setPassword(RandomStringUtils.randomAlphabetic(6).toLowerCase());
+        use.setEnabled(true);
+        use.setHomeDirectory("/");
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(new FtpAuthority());
+        use.setAuthorities(authorities);
+        String key = PREFIX + use.getName();
+
+        // 随机用户信息十分钟自动失效
+        Duration duration = Duration.ofMinutes(10);
+        redisTemplate.opsForValue().set(key, use, duration);
+        return use;
     }
 }

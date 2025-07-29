@@ -17,21 +17,8 @@ public class Ftplet extends DefaultFtplet {
 
     private final Logger logger = LoggerFactory.getLogger(Ftplet.class);
 
-    @Value("${ftp.username}")
-    private String username;
-
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-
-    @Override
-    public FtpletResult beforeCommand(FtpSession session, FtpRequest request) throws FtpException, IOException {
-        System.out.println("beforeCommand");
-        if (request.getCommand().equalsIgnoreCase("USER") && !username.equals(request.getArgument())) {
-            return FtpletResult.DISCONNECT;
-        }
-        super.beforeCommand(session, request);
-        return FtpletResult.DEFAULT;
-    }
 
     @Override
     public FtpletResult onUploadEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
@@ -42,8 +29,6 @@ public class Ftplet extends DefaultFtplet {
         sendEvent(file.getAbsolutePath());
         return super.onUploadUniqueEnd(session, request);
     }
-
-
 
     @Override
     public FtpletResult onAppendEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {

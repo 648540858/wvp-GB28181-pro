@@ -21,11 +21,15 @@ public interface IGbChannelPlayService {
 
     void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
+    void playJt1078(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
+
     void stopPlayProxy(CommonGBChannel channel);
 
     void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
 
     void  stopPlayPush(CommonGBChannel channel);
+
+    void stopPlayJt1078(CommonGBChannel channel);
 
     void pauseRtp(String streamId);
 

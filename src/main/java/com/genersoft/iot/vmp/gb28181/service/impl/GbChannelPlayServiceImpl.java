@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
@@ -35,6 +36,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     private IStreamProxyPlayService streamProxyPlayService;
 
     @Autowired
+    private Ijt1078PlayService jt1078PlayService;
+
+    @Autowired
     private IStreamPushPlayService streamPushPlayService;
 
     @Autowired
@@ -54,6 +58,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             if (channel.getDataType() == ChannelDataType.GB28181.value) {
                 // 国标通道
                 playbackGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), callback);
+            } else if (channel.getDataType() == ChannelDataType.JT_1078.value) {
+                // 部标通道
+                playbackJtDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), callback);
             } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
                 // 拉流代理
                 log.warn("[回放通用通道] 不支持回放拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
@@ -78,6 +85,10 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
                 // 国标通道
                 downloadGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), downloadSpeed, callback);
+            } else if (channel.getDataType() == ChannelDataType.JT_1078.value) {
+                // 部标录像下载
+                log.warn("[下载通用通道录像] 不支持下载部标的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
+                throw new PlayException(Response.FORBIDDEN, "forbidden");
             } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
                 // 拉流代理
                 log.warn("[下载通用通道录像] 不支持下载拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
@@ -109,12 +120,17 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
             // 推流
             stopPlayPush(channel);
+        } else if (channel.getDataType() == ChannelDataType.JT_1078.value) {
+            // 推流
+            stopPlayJt1078(channel);
         } else {
             // 通道数据异常
             log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
     }
+
+
 
     @Override
     public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
@@ -133,6 +149,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
                 // 推流
                 playPush(channel, null, null, callback);
             }
+        } else if (channel.getDataType() == ChannelDataType.JT_1078.value) {
+            // 部标设备
+            playJt1078(channel, record, callback);
         } else {
             // 通道数据异常
             log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
@@ -172,6 +191,18 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         try {
             streamProxyPlayService.start(channel.getDataDeviceId(), record, callback);
         }catch (Exception e) {
+            log.info("[通用通道] 拉流代理点播异常 {}", e.getMessage());
+            callback.run(Response.BUSY_HERE, "busy here", null);
+        }
+    }
+
+    @Override
+    public void playJt1078(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
+        // 部标设备通道
+        try {
+            jt1078PlayService.start(channel.getDataDeviceId(), record, callback);
+        }catch (Exception e) {
+            log.info("[通用通道] 部标设备点播异常 {}", e.getMessage());
             callback.run(Response.BUSY_HERE, "busy here", null);
         }
     }
@@ -209,9 +240,29 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
     }
 
+    @Override
+    public void stopPlayJt1078(CommonGBChannel channel) {
+        // 推流
+        try {
+            jt1078PlayService.stop(channel.getDataDeviceId());
+        }catch (Exception e) {
+            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+        }
+    }
+
     private void playbackGbDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback){
         try {
             deviceChannelPlayService.playBack(channel, startTime, stopTime, callback);
+        } catch (PlayException e) {
+            callback.run(e.getCode(), e.getMsg(), null);
+        } catch (Exception e) {
+            callback.run(Response.BUSY_HERE, "busy here", null);
+        }
+    }
+
+    private void playbackJtDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback){
+        try {
+            jt1078PlayService.playBack(channel.getDataDeviceId(), startTime, stopTime, callback);
         } catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
         } catch (Exception e) {
@@ -243,6 +294,4 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             callback.run(Response.BUSY_HERE, "busy here", null);
         }
     }
-
-
 }

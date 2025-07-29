@@ -7,9 +7,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
@@ -29,6 +27,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -45,6 +44,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import javax.sip.message.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +191,12 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         if (channel == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
+        play(device, channel, type, callback);
+    }
 
+    private void play(JTDevice device, JTChannel channel, int type, CommonCallback<WVPResult<StreamInfo>> callback) {
+        String phoneNumber = device.getPhoneNumber();
+        int channelId = channel.getId();
         String app = "1078";
         String stream = phoneNumber + "_" + channelId;
         // 检查流是否已经存在，存在则返回
@@ -375,6 +380,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         return JRecordItemList;
     }
 
+
+
     @Override
     public void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
                          Integer rate, Integer playbackType, Integer playbackSpeed, CommonCallback<WVPResult<StreamInfo>> callback) {
@@ -387,7 +394,27 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         if (channel == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
+        playback(device, channel, startTime, endTime, type, rate, playbackType, playbackSpeed, callback);
 
+    }
+
+    /**
+     * 回放
+     * @param device  设备
+     * @param channel 通道
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @param type 音视频资源类型：0.音视频 1.音频 2.视频 3.视频或音视频
+     * @param rate 码流类型：0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)
+     * @param playbackType 回放方式：0.正常回放 1.快进回放 2.关键帧快退回放 3.关键帧播放 4.单帧上传
+     * @param playbackSpeed 快进或快退倍数：0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)
+     * @param callback 结束回调
+     */
+    private void playback(JTDevice device, JTChannel channel, String startTime, String endTime, Integer type,
+                         Integer rate, Integer playbackType, Integer playbackSpeed, CommonCallback<WVPResult<StreamInfo>> callback) {
+
+        String phoneNumber = device.getPhoneNumber();
+        Integer channelId = channel.getChannelId();
         log.info("[JT-回放] 回放，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， " +
                 "回放方式： {}， 快进或快退倍数： {}", phoneNumber, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
         // 检查流是否已经存在，存在则返回
@@ -645,5 +672,41 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 callback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null));
             }
         }
+    }
+
+    @Override
+    public void start(Integer channelId, Boolean record, ErrorCallback<StreamInfo> callback) {
+        JTChannel channel = jt1078Service.getChannelByDbId(channelId);
+        Assert.notNull(channel, "通道不存在");
+        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        Assert.notNull(device, "设备不存在");
+        jt1078Template.checkTerminalStatus(device.getPhoneNumber());
+        play(device, channel, 0,
+                result -> callback.run(result.getCode(), result.getMsg(), result.getData()));
+    }
+
+    @Override
+    public void stop(Integer channelId) {
+        JTChannel channel = jt1078Service.getChannelByDbId(channelId);
+        Assert.notNull(channel, "通道不存在");
+        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        Assert.notNull(device, "设备不存在");
+        stopPlay(device.getPhoneNumber(), channel.getChannelId());
+    }
+
+    @Override
+    public void playBack(Integer channelId, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
+        if (startTime == null || stopTime == null) {
+            throw new PlayException(Response.BAD_REQUEST, "bad request");
+        }
+        JTChannel channel = jt1078Service.getChannelByDbId(channelId);
+        Assert.notNull(channel, "通道不存在");
+        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        Assert.notNull(device, "设备不存在");
+        jt1078Template.checkTerminalStatus(device.getPhoneNumber());
+        String startTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime);
+        String stopTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(stopTime);
+        playback(device, channel, startTimeStr, stopTimeStr, 0, 1, 0, 0,
+                result -> callback.run(result.getCode(), result.getMsg(), result.getData()));
     }
 }

@@ -26,7 +26,7 @@ public class J0200 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         positionInfo = JTPositionBaseInfo.decode(buf);
-        log.info("[JT-位置汇报]: phoneNumber={}  {}", header.getPhoneNumber(), positionInfo.toSimpleString());
+        log.debug("[JT-位置汇报]: phoneNumber={}  {}", header.getPhoneNumber(), positionInfo.toSimpleString());
         // 读取附加信息
 //        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
 //        Map<Integer, byte[]> additionalMsg = new HashMap<>();

@@ -307,7 +307,6 @@ public class CommonChannelController {
                     wvpResult.setCode(code);
                     wvpResult.setMsg(msg);
                 }
-
                 result.setResult(wvpResult);
             }else {
                 result.setResult(WVPResult.fail(code, msg));

@@ -25,7 +25,7 @@ public interface IGbChannelPlayService {
 
     void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
 
-    void  stopPlayPush(CommonGBChannel channel);
+    void stopPlayPush(CommonGBChannel channel);
 
     void pauseRtp(String streamId);
 

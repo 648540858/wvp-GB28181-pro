@@ -2,16 +2,17 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.ServiceException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.ISourcePlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
@@ -23,6 +24,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,6 +42,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private Map<String, ISourcePlayService> sourcePlayServiceMap;
+
 
     @Override
     public void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
@@ -48,6 +53,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
+
         if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
             play(channel, platform, userSetting.getRecordSip(), callback);
         }else if ("Playback".equals(inviteInfo.getSessionName())) {
@@ -119,6 +125,17 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     @Override
     public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
         log.info("[通用通道] 播放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get("SourceChannelPlayService" + dataType);
+        if (sourceChannelPlayService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持实时流预览", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        sourceChannelPlayService.play(channel, record, callback);
+
+
+
         if (channel.getDataType() == ChannelDataType.GB28181.value) {
             // 国标通道
             playGbDeviceChannel(channel, record, callback);

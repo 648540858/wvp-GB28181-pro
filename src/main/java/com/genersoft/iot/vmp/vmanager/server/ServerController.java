@@ -339,10 +339,11 @@ public class ServerController {
     @Operation(summary = "获取系统接入的数据类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<Map<String, Object>> getDataType() {
         List<Map<String, Object>> result = new LinkedList<>();
-        for (ChannelDataType item : ChannelDataType.values()) {
+        Map<String, Integer> descMap = ChannelDataType.getDescMap();
+        for (String key : descMap.keySet()) {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("key", item.desc);
-            map.put("value", item.value);
+            map.put("key", key);
+            map.put("value", descMap.get(key));
             result.add(map);
         }
         return result;

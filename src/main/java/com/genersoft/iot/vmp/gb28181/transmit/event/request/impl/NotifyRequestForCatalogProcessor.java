@@ -14,7 +14,6 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -25,14 +24,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sip.RequestEvent;
-import javax.sip.header.CSeqHeader;
 import javax.sip.header.FromHeader;
-import javax.sip.message.Request;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * SIP命令类型： NOTIFY请求中的目录请求处理
@@ -142,6 +138,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
                             channel.setParentId(null);
                         }
                         channel.setDeviceId(device.getDeviceId());
+                        channel.setUpdateTime(DateUtil.getNow());
                         if (logger.isDebugEnabled()) {
                             logger.debug("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
                         }

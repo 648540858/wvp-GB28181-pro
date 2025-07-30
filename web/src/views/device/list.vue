@@ -362,7 +362,7 @@ export default {
         })
     },
     resetGuard: function(itemData) {
-      this.$store.dispatch('device/ResetGuard', itemData.deviceId)
+      this.$store.dispatch('device/resetGuard', itemData.deviceId)
         .then((data) => {
           this.$message.success({
             showClose: true,

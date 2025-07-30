@@ -47,14 +47,22 @@ export function updateDeviceTransport(deviceId, streamMode) {
 export function setGuard(deviceId) {
   return request({
     method: 'get',
-    url: `/api/device/control/guard/${deviceId}/SetGuard`
+    url: `/api/device/control/guard`,
+    params: {
+      deviceId: deviceId,
+      guardCmd: 'SetGuard'
+    }
   })
 }
 
 export function resetGuard(deviceId) {
   return request({
     method: 'get',
-    url: `/api/device/control/guard/${deviceId}/ResetGuard`
+    url: `/api/device/control/guard`,
+    params: {
+      deviceId: deviceId,
+      guardCmd: 'ResetGuard'
+    }
   })
 }
 
@@ -185,12 +193,13 @@ export function changeChannelAudio(params) {
 }
 
 export function updateChannelStreamIdentification(params) {
-  const { deviceDbId, streamIdentification } = params
+  const { deviceDbId, streamIdentification, id } = params
   return request({
     method: 'post',
     url: `/api/device/query/channel/stream/identification/update/`,
     params: {
       deviceDbId: deviceDbId,
+      id: id,
       streamIdentification: streamIdentification
     }
   })

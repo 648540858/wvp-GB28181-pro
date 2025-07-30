@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.IpPortUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.SIPDateHeader;
@@ -103,7 +104,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     device.setExpires(request.getExpires().getExpires());
                     device.setIp(remoteAddressInfo.getIp());
                     device.setPort(remoteAddressInfo.getPort());
-                    device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+                    device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
 
                     device.setLocalIp(request.getLocalAddress().getHostAddress());
                     Response registerOkResponse = getRegisterOkResponse(request);
@@ -186,7 +187,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setServerId(userSetting.getServerId());
             device.setIp(remoteAddressInfo.getIp());
             device.setPort(remoteAddressInfo.getPort());
-            device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+            device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
             device.setLocalIp(request.getLocalAddress().getHostAddress());
             if (request.getExpires().getExpires() == 0) {
                 // 注销成功

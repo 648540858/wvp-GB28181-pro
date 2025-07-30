@@ -47,14 +47,22 @@ export function updateDeviceTransport(deviceId, streamMode) {
 export function setGuard(deviceId) {
   return request({
     method: 'get',
-    url: `/api/device/control/guard/${deviceId}/SetGuard`
+    url: `/api/device/control/guard`,
+    params: {
+      deviceId: deviceId,
+      guardCmd: 'SetGuard'
+    }
   })
 }
 
 export function resetGuard(deviceId) {
   return request({
     method: 'get',
-    url: `/api/device/control/guard/${deviceId}/ResetGuard`
+    url: `/api/device/control/guard`,
+    params: {
+      deviceId: deviceId,
+      guardCmd: 'ResetGuard'
+    }
   })
 }
 

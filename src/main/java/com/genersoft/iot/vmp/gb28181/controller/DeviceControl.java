@@ -1,6 +1,6 @@
 /**
  * 设备控制命令API接口
- * 
+ *
  * @author lawrencehj
  * @date 2021年2月1日
  */
@@ -70,16 +70,16 @@ public class DeviceControl {
 
 	@Operation(summary = "布防/撤防", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "guardCmdStr", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
+	@Parameter(name = "guardCmd", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
 	@GetMapping("/guard")
-	public DeferredResult<WVPResult<String>> guardApi(String deviceId, String guardCmdStr) {
+	public DeferredResult<WVPResult<String>> guardApi(String deviceId, String guardCmd) {
 		if (log.isDebugEnabled()) {
 			log.debug("布防/撤防API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
 		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
-		deviceService.guard(device, guardCmdStr, (code, msg, data) -> {
+		deviceService.guard(device, guardCmd, (code, msg, data) -> {
 			result.setResult(new WVPResult<>(code, msg, data));
 		});
 		result.onTimeout(() -> {

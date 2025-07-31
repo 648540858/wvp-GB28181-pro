@@ -16,13 +16,13 @@ public interface IRedisRpcPlayService {
 
     void playback(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
 
-    void download(String serverId, Integer channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
-
-    void queryRecordInfo(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<RecordInfo> callback);
-
     void playbackPause(String serverId, String streamId);
 
     void playbackResume(String serverId, String streamId);
+
+    void download(String serverId, Integer channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
+
+    void queryRecordInfo(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<RecordInfo> callback);
 
     String frontEndCommand(String serverId, Integer channelId, int cmdCode, int parameter1, int parameter2, int combindCode2);
 
@@ -33,7 +33,6 @@ public interface IRedisRpcPlayService {
     void stopProxy(String serverId, int id);
 
     DownloadFileInfo getRecordPlayUrl(String serverId, Integer recordId);
-
 
     AudioBroadcastResult audioBroadcast(String serverId, String deviceId, String channelDeviceId, Boolean broadcastMode);
 }

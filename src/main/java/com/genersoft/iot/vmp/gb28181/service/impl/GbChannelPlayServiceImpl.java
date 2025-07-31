@@ -124,17 +124,6 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void playJt1078(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
-        // 部标设备通道
-        try {
-            jt1078PlayService.start(channel.getDataDeviceId(), record, callback);
-        }catch (Exception e) {
-            log.info("[通用通道] 部标设备点播异常 {}", e.getMessage());
-            callback.run(Response.BUSY_HERE, "busy here", null);
-        }
-    }
-
-    @Override
     public void stopPlay(CommonGBChannel channel, String stream) {
         Integer dataType = channel.getDataType();
         ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
@@ -170,36 +159,6 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         downloadService.stopDownload(channel, stream);
-    }
-
-    @Override
-    public void stopPlayJt1078(CommonGBChannel channel) {
-        // 推流
-        try {
-            jt1078PlayService.stop(channel.getDataDeviceId());
-        }catch (Exception e) {
-            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
-        }
-    }
-
-    private void playbackGbDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback){
-        try {
-            deviceChannelPlayService.playBack(channel, startTime, stopTime, callback);
-        } catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        } catch (Exception e) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
-        }
-    }
-
-    private void playbackJtDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback){
-        try {
-            jt1078PlayService.playBack(channel.getDataDeviceId(), startTime, stopTime, callback);
-        } catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        } catch (Exception e) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
-        }
     }
 
     @Override

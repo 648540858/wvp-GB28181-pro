@@ -39,7 +39,7 @@ public class JTChannel extends CommonGBChannel {
     @Schema(description = "流信息")
     private String stream;
 
-    private Integer dataType = ChannelDataType.JT_1078.value;
+    private Integer dataType = ChannelDataType.JT_1078;
 
     @Override
     public String toString() {

@@ -332,72 +332,74 @@ export function queryPreset(channelId) {
   })
 }
 
-export function addPointForCruise({ channelId, cruiseId, presetId }) {
+export function addPointForCruise({ channelId, tourId, presetId }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/point/add',
+    url: '/api/common/channel/front-end/tour/point/add',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId,
+      tourId: tourId,
       presetId: presetId
     }
   })
 }
 
-export function deletePointForCruise({ channelId, cruiseId, presetId }) {
+export function deletePointForCruise({ channelId, tourId, presetId }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/point/delete',
+    url: '/api/common/channel/front-end/tour/point/delete',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId,
+      tourId: tourId,
       presetId: presetId
     }
   })
 }
 
-export function setCruiseSpeed({ channelId, cruiseId, cruiseSpeed }) {
+export function setCruiseSpeed({ channelId, tourId, presetId , speed }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/speed',
+    url: '/api/common/channel/front-end/tour/speed',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId,
-      speed: cruiseSpeed
+      tourId: tourId,
+      presetId: presetId,
+      speed: speed
     }
   })
 }
 
-export function setCruiseTime({ channelId, cruiseId, cruiseTime }) {
+export function setCruiseTime({ channelId, tourId, presetId, time }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/time',
+    url: '/api/common/channel/front-end/tour/time',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId,
-      time: cruiseTime
+      tourId: tourId,
+      presetId: presetId,
+      time: time
     }
   })
 }
 
-export function startCruise({ channelId, cruiseId }) {
+export function startCruise({ channelId, tourId }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/start',
+    url: '/api/common/channel/front-end/tour/start',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId
+      tourId: tourId
     }
   })
 }
 
-export function stopCruise({ channelId, cruiseId }) {
+export function stopCruise({ channelId, tourId }) {
   return request({
     method: 'get',
-    url: '/api/common/channel/front-end/cruise/stop',
+    url: '/api/common/channel/front-end/tour/stop',
     params: {
       channelId: channelId,
-      cruiseId: cruiseId
+      tourId: tourId
     }
   })
 }

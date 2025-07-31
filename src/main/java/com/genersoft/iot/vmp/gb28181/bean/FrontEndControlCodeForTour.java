@@ -14,7 +14,7 @@ public class FrontEndControlCodeForTour implements  IFrontEndControlCode {
     }
 
     /**
-     * 巡航指令： 1为加入巡航点， 2为删除一个巡航点， 3为设置巡航速度， 4为设置巡航停留时间， 5为开始巡航， 6为开始巡航
+     * 巡航指令： 1为加入巡航点， 2为删除一个巡航点， 3为设置巡航速度， 4为设置巡航停留时间， 5为开始巡航， 6为停止巡航
      */
     @Getter
     @Setter

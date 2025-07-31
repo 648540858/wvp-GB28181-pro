@@ -43,7 +43,12 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/auxiliary', [this.channelId, command, this.switchId])
+      this.$store.dispatch('commonChanel/auxiliary',
+        {
+          channelId: this.channelId,
+          command: command,
+          switchId: this.switchId
+        })
         .then(data => {
           this.$message({
             showClose: true,
@@ -64,13 +69,4 @@ export default {
   }
 }
 </script>
-<style>
-.channel-form {
-  display: grid;
-  background-color: #FFFFFF;
-  padding: 1rem 2rem 0 2rem;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-}
 
-</style>

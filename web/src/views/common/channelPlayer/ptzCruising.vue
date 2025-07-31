@@ -3,7 +3,7 @@
     <div style="display: grid; grid-template-columns: 80px auto; line-height: 28px">
       <span>巡航组号: </span>
       <el-input
-        v-model="cruiseId"
+        v-model="tourId"
         min="1"
         max="255"
         placeholder="巡航组号"
@@ -93,7 +93,7 @@ export default {
   props: ['channelId'],
   data() {
     return {
-      cruiseId: 1,
+      tourId: 1,
       presetList: [],
       allPresetList: [],
       selectPreset: '',
@@ -110,7 +110,7 @@ export default {
   },
   methods: {
     getPresetList: function() {
-      this.$store.dispatch('commonChanel/queryPreset', [this.channelId])
+      this.$store.dispatch('commonChanel/queryPreset', this.channelId)
         .then((data) => {
           this.allPresetList = data
         })
@@ -124,7 +124,11 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/addPointForCruise',
-        [this.channelId, this.cruiseId, this.selectPreset.presetId])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId,
+          presetId: this.selectPreset.presetId
+        })
         .then((data) => {
           this.presetList.push(this.selectPreset)
         }).catch((error) => {
@@ -152,7 +156,11 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/deletePointForCruise',
-        [this.channelId, this.cruiseId, preset.presetId])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId,
+          presetId: preset.presetId
+        })
         .then((data) => {
           this.presetList.splice(index, 1)
         }).catch((error) => {
@@ -180,7 +188,11 @@ export default {
           background: 'rgba(0, 0, 0, 0.7)'
         })
         this.$store.dispatch('commonChanel/deletePointForCruise',
-          [this.channelId, this.cruiseId, 0])
+          {
+            channelId: this.channelId,
+            tourId: this.tourId,
+            presetId: 0
+          })
           .then((data) => {
             this.presetList = []
           }).catch((error) => {
@@ -195,6 +207,14 @@ export default {
       })
     },
     setCruiseSpeed: function() {
+      if (this.presetList.length === 0) {
+        this.$message({
+          showClose: true,
+          message: '请添加巡航点',
+          type: 'warning'
+        })
+        return
+      }
       const loading = this.$loading({
         lock: true,
         fullscreen: true,
@@ -203,7 +223,12 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/setCruiseSpeed',
-        [this.channelId, this.cruiseId, this.cruiseSpeed])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId,
+          presetId: this.presetList.at(-1).presetId,
+          speed: this.cruiseSpeed
+        })
         .then((data) => {
           this.$message({
             showClose: true,
@@ -227,6 +252,14 @@ export default {
       this.setSpeedVisible = false
     },
     setCruiseTime: function() {
+      if (this.presetList.length === 0) {
+        this.$message({
+          showClose: true,
+          message: '请添加巡航点',
+          type: 'warning'
+        })
+        return
+      }
       const loading = this.$loading({
         lock: true,
         fullscreen: true,
@@ -235,7 +268,12 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/setCruiseTime',
-        [this.channelId, this.cruiseId, this.cruiseTime])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId,
+          time: this.cruiseTime,
+          presetId: this.presetList.at(-1).presetId
+        })
         .then((data) => {
           this.$message({
             showClose: true,
@@ -267,7 +305,10 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/startCruise',
-        [this.channelId, this.cruiseId])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId
+        })
         .then((data) => {
           this.$message({
             showClose: true,
@@ -295,7 +336,10 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.$store.dispatch('commonChanel/stopCruise',
-        [this.channelId, this.cruiseId])
+        {
+          channelId: this.channelId,
+          tourId: this.tourId
+        })
         .then((data) => {
           this.$message({
             showClose: true,
@@ -317,12 +361,3 @@ export default {
   }
 }
 </script>
-<style>
-.channel-form {
-  display: grid;
-  background-color: #FFFFFF;
-  padding: 1rem 2rem 0 2rem;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-}
-</style>

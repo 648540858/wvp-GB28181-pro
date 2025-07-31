@@ -385,12 +385,14 @@ public class ChannelFrontEndController {
     @Parameter(name = "channelId", description = "通道国标编号", required = true)
     @Parameter(name = "tourId", description = "巡航组号(0-100)", required = true)
     @Parameter(name = "speed", description = "巡航速度(1-4095)", required = true)
+    @Parameter(name = "presetId", description = "预置位编号", required = true)
     @GetMapping("/tour/speed")
-    public DeferredResult<WVPResult<String>> setCruiseSpeed(Integer channelId, Integer tourId, Integer speed) {
+    public DeferredResult<WVPResult<String>> setCruiseSpeed(Integer channelId, Integer tourId, Integer speed, Integer presetId) {
         FrontEndControlCodeForTour controlCode = new FrontEndControlCodeForTour();
         controlCode.setCode(3);
         controlCode.setTourSpeed(speed);
         controlCode.setTourId(tourId);
+        controlCode.setPresetId(presetId);
         return tourControl(channelId, controlCode);
     }
 
@@ -398,12 +400,14 @@ public class ChannelFrontEndController {
     @Parameter(name = "channelId", description = "通道国标编号", required = true)
     @Parameter(name = "tourId", description = "巡航组号", required = true)
     @Parameter(name = "time", description = "巡航停留时间(1-4095)", required = true)
+    @Parameter(name = "presetId", description = "预置位编号", required = true)
     @GetMapping("/tour/time")
-    public DeferredResult<WVPResult<String>> setCruiseTime(Integer channelId, Integer tourId, Integer time) {
+    public DeferredResult<WVPResult<String>> setCruiseTime(Integer channelId, Integer tourId, Integer time, Integer presetId) {
         FrontEndControlCodeForTour controlCode = new FrontEndControlCodeForTour();
         controlCode.setCode(4);
         controlCode.setTourTime(time);
         controlCode.setTourId(tourId);
+        controlCode.setPresetId(presetId);
         return tourControl(channelId, controlCode);
     }
 

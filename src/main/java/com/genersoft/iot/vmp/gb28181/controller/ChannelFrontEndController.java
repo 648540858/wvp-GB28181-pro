@@ -184,7 +184,6 @@ public class ChannelFrontEndController {
     }
 
     @Operation(summary = "聚焦控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
-
     @Parameter(name = "channelId", description = "通道国标编号", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: near, far, stop", required = true)
     @Parameter(name = "speed", description = "聚焦速度(0-100)", required = true)
@@ -237,7 +236,6 @@ public class ChannelFrontEndController {
     }
 
     @Operation(summary = "查询预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
-
     @Parameter(name = "channelId", description = "通道国标编号", required = true)
     @GetMapping("/preset/query")
     public DeferredResult<WVPResult<List<Preset>>> queryPreset(Integer channelId) {
@@ -298,7 +296,6 @@ public class ChannelFrontEndController {
     @Parameter(name = "presetName", description = "预置位名称", required = true)
     @GetMapping("/preset/add")
     public DeferredResult<WVPResult<String>> addPreset(Integer channelId, Integer presetId, String presetName) {
-
         FrontEndControlCodeForPreset controlCode = new FrontEndControlCodeForPreset();
         controlCode.setCode(1);
         controlCode.setPresetId(presetId);
@@ -308,7 +305,6 @@ public class ChannelFrontEndController {
     }
 
     @Operation(summary = "预置位指令-调用预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
-
     @Parameter(name = "channelId", description = "通道国标编号", required = true)
     @Parameter(name = "presetId", description = "预置位编号(1-100)", required = true)
     @GetMapping("/preset/call")

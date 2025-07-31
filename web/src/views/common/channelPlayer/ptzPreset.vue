@@ -50,7 +50,7 @@ export default {
   },
   methods: {
     getPresetList: function() {
-      this.$store.dispatch('commonChanel/queryPreset', [this.channelId])
+      this.$store.dispatch('commonChanel/queryPreset', this.channelId)
         .then(data => {
           this.presetList = data
           // 防止出现表格错位
@@ -73,7 +73,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/addPreset', [this.channelId, this.ptzPresetId])
+      this.$store.dispatch('commonChanel/addPreset', {
+        channelId: this.channelId,
+        presetId: this.ptzPresetId,
+        presetName: this.ptzPresetId
+      })
         .then(data => {
           setTimeout(() => {
             this.inputVisible = false
@@ -99,7 +103,10 @@ export default {
     },
     gotoPreset: function(preset) {
       console.log(preset)
-      this.$store.dispatch('commonChanel/callPreset', [this.channelId, preset.presetId])
+      this.$store.dispatch('commonChanel/callPreset', {
+        channelId: this.channelId,
+        presetId: preset.presetId
+      })
         .then(data => {
           this.$message({
             showClose: true,
@@ -128,7 +135,10 @@ export default {
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
-        this.$store.dispatch('commonChanel/deletePreset', [this.channelId, preset.presetId])
+        this.$store.dispatch('commonChanel/deletePreset', {
+          channelId: this.channelId,
+          presetId: preset.presetId
+        })
           .then(data => {
             setTimeout(() => {
               this.getPresetList()

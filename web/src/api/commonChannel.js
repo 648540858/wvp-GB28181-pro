@@ -402,13 +402,14 @@ export function stopCruise({ channelId, cruiseId }) {
   })
 }
 
-export function addPreset({ channelId, presetId }) {
+export function addPreset({ channelId, presetId, presetName }) {
   return request({
     method: 'get',
     url: '/api/common/channel/front-end/preset/add',
     params: {
       channelId: channelId,
-      presetId: presetId
+      presetId: presetId,
+      presetName: presetName
     }
   })
 }

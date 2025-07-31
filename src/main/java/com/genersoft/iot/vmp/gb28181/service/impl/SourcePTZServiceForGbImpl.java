@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePTZService;
@@ -19,26 +18,6 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
 
     @Autowired
     private IPTZService ptzService;
-
-    public void frontEndCommand(CommonGBChannel channel, Integer cmdCode, Integer parameter1, Integer parameter2, Integer combindCode2){
-
-        if (parameter1 == null || parameter1 < 0 || parameter1 > 100) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 0-255的数字");
-        }
-        // 返回转换为国标定义的范围
-        parameter1 =  (int)(parameter1/100D* 255);
-        if (parameter2 == null || parameter2 < 0 || parameter2 > 100) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter2 为 0-255的数字");
-        }
-        // 返回转换为国标定义的范围
-        parameter2 = (int)(parameter2/100D* 255);
-        if (combindCode2 == null || combindCode2 < 0 || combindCode2 > 100) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "combindCode2 为 0-15的数字");
-        }
-        combindCode2 = (int)(combindCode2/100D* 16);
-        ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, combindCode2);
-    }
-
 
     @Override
     public void ptz(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
@@ -70,11 +49,11 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                         cmdCode = cmdCode | 1 << 4;
                     }
                 }
-                panSpeed = frontEndControlCode.getPanSpeed();
-                titleSpeed = frontEndControlCode.getTiltSpeed();
-                zoomSpeed = frontEndControlCode.getZoomSpeed();
+                panSpeed = (int)(frontEndControlCode.getPanSpeed()/100D* 255);
+                titleSpeed = (int)(frontEndControlCode.getTiltSpeed()/100D* 255);;
+                zoomSpeed = (int)(frontEndControlCode.getZoomSpeed()/100D* 16);
             }
-            frontEndCommand(channel, cmdCode, panSpeed, titleSpeed, zoomSpeed);
+            ptzService.frontEndCommand(channel, cmdCode, panSpeed, titleSpeed, zoomSpeed);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[云台控制失败] ", e);
@@ -102,9 +81,8 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                 if (frontEndControlCode.getPresetId() != null) {
                     parameter2 = frontEndControlCode.getPresetId();
                 }
-
             }
-            frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[预置位控制失败] ", e);
@@ -147,7 +125,7 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                     irisSpeed = frontEndControlCode.getIrisSpeed();
                 }
             }
-            frontEndCommand(channel, cmdCode, focusSpeed, irisSpeed, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, focusSpeed, irisSpeed, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[云台控制失败] ", e);
@@ -187,7 +165,7 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                 }
 
             }
-            frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[巡航控制失败] ", e);
@@ -226,7 +204,7 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                     }
                 }
             }
-            frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[巡航控制失败] ", e);
@@ -255,7 +233,7 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                     }
                 }
             }
-            frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[辅助开关失败] ", e);
@@ -282,7 +260,7 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                     }
                 }
             }
-            frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
+            ptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
         }catch (Exception e) {
             log.error("[雨刷开关失败] ", e);

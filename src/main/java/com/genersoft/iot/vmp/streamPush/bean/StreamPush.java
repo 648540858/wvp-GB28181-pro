@@ -105,7 +105,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
 
     private String uniqueKey;
 
-    private Integer dataType = ChannelDataType.STREAM_PUSH.value;
+    private Integer dataType = ChannelDataType.STREAM_PUSH;
 
 
     @Override
@@ -145,7 +145,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName( app+ "-" +stream);
         }
-        this.setDataType(ChannelDataType.STREAM_PUSH.value);
+        this.setDataType(ChannelDataType.STREAM_PUSH);
         this.setDataDeviceId(this.getId());
         return this;
     }

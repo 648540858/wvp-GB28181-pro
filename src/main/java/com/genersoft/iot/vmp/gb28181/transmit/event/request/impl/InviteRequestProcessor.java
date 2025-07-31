@@ -161,7 +161,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     log.error("[命令发送失败] 上级Invite TRYING: {}", e.getMessage());
                 }
 
-                channelPlayService.start(channel, inviteInfo, platform, ((code, msg, streamInfo) -> {
+                channelPlayService.startInvite(channel, inviteInfo, platform, ((code, msg, streamInfo) -> {
                     if (code != InviteErrorCode.SUCCESS.getCode()) {
                         try {
                             responseAck(request, Response.BUSY_HERE , msg);
@@ -244,6 +244,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }catch (PlayException e) {
             try {
                 responseAck(request, e.getCode(), e.getMsg());
+            } catch (SipException | InvalidArgumentException | ParseException sendException) {
+                log.error("[命令发送失败] invite 点播失败: {}", sendException.getMessage());
+            }
+        }catch (Exception e) {
+            log.error("[Invite处理异常] ", e);
+            try {
+                responseAck(request, Response.SERVER_INTERNAL_ERROR, "");
             } catch (SipException | InvalidArgumentException | ParseException sendException) {
                 log.error("[命令发送失败] invite 点播失败: {}", sendException.getMessage());
             }

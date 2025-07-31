@@ -1392,7 +1392,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
+    public void playbackPause(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
 
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
         if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
@@ -1403,7 +1403,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
         }
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcPlayService.pauseRtp(device.getServerId(), streamId);
+            redisRpcPlayService.playbackPause(device.getServerId(), streamId);
             return;
         }
 
@@ -1430,7 +1430,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
+    public void playbackResume(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
         if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "streamId不存在");
@@ -1440,7 +1440,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
         }
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcPlayService.resumeRtp(device.getServerId(), streamId);
+            redisRpcPlayService.playbackResume(device.getServerId(), streamId);
             return;
         }
 

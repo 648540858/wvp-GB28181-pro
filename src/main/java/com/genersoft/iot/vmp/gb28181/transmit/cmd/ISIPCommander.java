@@ -16,6 +16,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.List;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -256,7 +257,7 @@ public interface ISIPCommander {
 	 *
 	 * @param device 视频设备
 	 */
-	void presetQuery(Device device, String channelId, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
+	void presetQuery(Device device, String channelId, ErrorCallback<List<Preset>> callback) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 查询移动设备位置数据

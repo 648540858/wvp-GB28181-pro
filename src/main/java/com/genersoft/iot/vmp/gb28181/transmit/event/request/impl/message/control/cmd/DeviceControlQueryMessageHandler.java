@@ -140,7 +140,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理云台指令
      */
     private void handlePtzCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() == ChannelDataType.GB28181.value) {
+        if (channel.getDataType() == ChannelDataType.GB28181) {
 
             deviceChannelService.handlePtzCmd(channel.getDataDeviceId(), channel.getGbId(), rootElement, type, ((code, msg, data) -> {
                 try {
@@ -166,7 +166,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 case PTZ:
                     channelControlService.ptz(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
                             log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
                         }
@@ -175,45 +179,65 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 case FI:
                     channelControlService.fi(channel, (FrontEndControlCodeForFI) frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
-                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            log.error("[命令发送失败] FI指令: {}", exception.getMessage());
                         }
                     }));
                     break;
                 case PRESET:
                     channelControlService.preset(channel, (FrontEndControlCodeForPreset) frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
-                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            log.error("[命令发送失败] 预置位指令: {}", exception.getMessage());
                         }
                     }));
                     break;
                 case TOUR:
                     channelControlService.tour(channel, (FrontEndControlCodeForTour) frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
-                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            log.error("[命令发送失败] 巡航指令: {}", exception.getMessage());
                         }
                     }));
                     break;
                 case SCAN:
                     channelControlService.scan(channel, (FrontEndControlCodeForScan) frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
-                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            log.error("[命令发送失败] 扫描指令: {}", exception.getMessage());
                         }
                     }));
                     break;
                 case AUXILIARY:
                     channelControlService.auxiliary(channel, (FrontEndControlCodeForAuxiliary) frontEndControlCode, ((code, msg, data) -> {
                         try {
-                            responseAck(request, code, msg);
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
                         }  catch (InvalidArgumentException | SipException | ParseException exception) {
-                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            log.error("[命令发送失败] 辅助开关指令: {}", exception.getMessage());
                         }
                     }));
                     break;
@@ -232,7 +256,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理强制关键帧
      */
     private void handleIFameCmd(CommonGBChannel channel, SIPRequest request) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的处理强制关键帧， 通道ID： {}", channel.getGbId());
             try {
@@ -280,7 +304,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理重启命令
      */
     private void handleTeleBootCmd(CommonGBChannel channel, SIPRequest request) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的重启命令， 通道ID： {}", channel.getGbId());
             try {
@@ -315,7 +339,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理拉框控制
      */
     private void handleDragZoom(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[deviceControl-DragZoom] 只支持国标的拉框控制， 通道ID： {}", channel.getGbId());
             try {
@@ -380,7 +404,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理看守位命令
      */
     private void handleHomePositionCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的看守位命令， 通道ID： {}", channel.getGbId());
             try {
@@ -436,7 +460,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理告警消息
      */
     private void handleAlarmCmd(CommonGBChannel channel, Element rootElement, SIPRequest request) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的告警消息， 通道ID： {}", channel.getGbId());
             try {
@@ -486,7 +510,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理录像控制
      */
     private void handleRecordCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的息录像控制， 通道ID： {}", channel.getGbId());
             try {
@@ -542,7 +566,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理报警布防/撤防命令
      */
     private void handleGuardCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的报警布防/撤防命令， 通道ID： {}", channel.getGbId());
             try {

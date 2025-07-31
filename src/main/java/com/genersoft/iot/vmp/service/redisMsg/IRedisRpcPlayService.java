@@ -20,9 +20,9 @@ public interface IRedisRpcPlayService {
 
     void queryRecordInfo(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<RecordInfo> callback);
 
-    void pauseRtp(String serverId, String streamId);
+    void playbackPause(String serverId, String streamId);
 
-    void resumeRtp(String serverId, String streamId);
+    void playbackResume(String serverId, String streamId);
 
     String frontEndCommand(String serverId, Integer channelId, int cmdCode, int parameter1, int parameter2, int combindCode2);
 

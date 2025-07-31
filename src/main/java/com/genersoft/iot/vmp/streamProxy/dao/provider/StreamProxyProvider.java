@@ -9,7 +9,7 @@ public class StreamProxyProvider {
     public String getBaseSelectSql(){
         return "SELECT " +
                 " st.*, " +
-                ChannelDataType.STREAM_PROXY.value +  " as data_type, " +
+                ChannelDataType.STREAM_PROXY +  " as data_type, " +
                 " st.id as data_device_id, " +
                 " wdc.*, " +
                 " wdc.id as gb_id" +

@@ -40,6 +40,7 @@ import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.List;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -1118,7 +1119,7 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void presetQuery(Device device, String channelId, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
+    public void presetQuery(Device device, String channelId, ErrorCallback<List<Preset>> callback) throws InvalidArgumentException, SipException, ParseException {
 
         String cmdType = "PresetQuery";
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
@@ -1136,7 +1137,7 @@ public class SIPCommander implements ISIPCommander {
         }
         cmdXml.append("</Query>\r\n");
 
-        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 4000L, callback);
+        MessageEvent<List<Preset>> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 4000L, callback);
         messageSubscribe.addSubscribe(messageEvent);
         log.info("[预置位查询] 设备编号： {}， 通道编号： {}， SN： {}", device.getDeviceId(), channelId, sn);
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));

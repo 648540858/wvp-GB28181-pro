@@ -105,7 +105,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             log.info("[平台查询录像记录] 只支持查询国标28181的录像数据 {}/{}", platform.getName(), channelId );
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现

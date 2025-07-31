@@ -64,7 +64,7 @@ public class DeviceChannelProvider {
     public String queryChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value);
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181);
         if (params.get("dataDeviceId") != null) {
             sqlBuild.append(" AND dc.data_device_id = #{dataDeviceId} ");
         }
@@ -122,14 +122,14 @@ public class DeviceChannelProvider {
     public String queryChannelsByDeviceDbId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181 + " and dc.data_device_id = #{dataDeviceId}");
         return sqlBuild.toString();
     }
 
     public String queryAllChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181 + " and dc.data_device_id = #{dataDeviceId}");
         return sqlBuild.toString();
     }
 
@@ -143,25 +143,25 @@ public class DeviceChannelProvider {
     public String getOneByDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id=#{dataDeviceId} and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181 + " and dc.data_device_id=#{dataDeviceId} and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}");
         return sqlBuild.toString();
     }
 
 
 
     public String queryByDeviceId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181.value + " and channel_type = 0 and coalesce(gb_device_id, device_id) = #{gbDeviceId}";
+        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181 + " and channel_type = 0 and coalesce(gb_device_id, device_id) = #{gbDeviceId}";
     }
 
     public String queryById(Map<String, Object> params ){
-        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181.value + " and channel_type = 0 and id = #{gbId}";
+        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181 + " and channel_type = 0 and id = #{gbId}";
     }
 
 
     public String queryList(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where channel_type = 0 and data_type = " + ChannelDataType.GB28181.value);
+        sqlBuild.append(" where channel_type = 0 and data_type = " + ChannelDataType.GB28181);
         if (params.get("query") != null) {
             sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
                     " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")

@@ -463,15 +463,15 @@ export function wiper({ channelId, command }) {
   })
 }
 
-export function ptz({ channelId, command, horizonSpeed, verticalSpeed, zoomSpeed }) {
+export function ptz({ channelId, command, panSpeed, tiltSpeed, zoomSpeed }) {
   return request({
     method: 'get',
     url: '/api/common/channel/front-end/ptz',
     params: {
       channelId: channelId,
       command: command,
-      horizonSpeed: horizonSpeed,
-      verticalSpeed: verticalSpeed,
+      panSpeed: panSpeed,
+      tiltSpeed: tiltSpeed,
       zoomSpeed: zoomSpeed
     }
   })

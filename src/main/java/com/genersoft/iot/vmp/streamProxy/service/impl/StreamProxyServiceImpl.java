@@ -179,7 +179,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setCreateTime(DateUtil.getNow());
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.add(streamProxy);
-        streamProxy.setDataType(ChannelDataType.STREAM_PROXY.value);
+        streamProxy.setDataType(ChannelDataType.STREAM_PROXY);
         streamProxy.setDataDeviceId(streamProxy.getId());
     }
 

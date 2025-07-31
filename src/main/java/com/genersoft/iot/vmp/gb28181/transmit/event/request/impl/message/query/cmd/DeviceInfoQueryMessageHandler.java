@@ -94,7 +94,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         // 判断通道类型
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 非国标通道不支持录像回放控制
             log.warn("[DeviceInfo] 非国标通道不支持录像回放控制： 通道ID： {}", channel.getGbId());
             try {

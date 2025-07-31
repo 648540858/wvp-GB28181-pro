@@ -4,7 +4,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import lombok.Getter;
 import lombok.Setter;
 
-public class FrontEndControlCodeForAuxiliary implements  IFrontEndControlCode {
+public class FrontEndControlCodeForWiper implements  IFrontEndControlCode {
 
     private final FrontEndControlType type =  FrontEndControlType.AUXILIARY;
 
@@ -19,13 +19,6 @@ public class FrontEndControlCodeForAuxiliary implements  IFrontEndControlCode {
     @Getter
     @Setter
     private Integer code;
-
-    /**
-     * 辅助开关编号
-     */
-    @Getter
-    @Setter
-    private Integer auxiliaryId;
 
     @Override
     public String encode() {

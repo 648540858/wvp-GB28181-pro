@@ -218,7 +218,7 @@ public class StreamPushController {
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        stream.setDataType(ChannelDataType.STREAM_PUSH.value);
+        stream.setDataType(ChannelDataType.STREAM_PUSH);
         stream.setDataDeviceId(stream.getId());
         return stream;
     }

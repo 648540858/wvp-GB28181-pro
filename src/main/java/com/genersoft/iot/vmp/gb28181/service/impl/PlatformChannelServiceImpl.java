@@ -296,14 +296,14 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     @Transactional
     public void addChannelByDevice(Integer platformId, List<Integer> deviceIds) {
-        List<Integer> channelList = commonGBChannelMapper.queryByGbDeviceIdsForIds(ChannelDataType.GB28181.value, deviceIds);
+        List<Integer> channelList = commonGBChannelMapper.queryByGbDeviceIdsForIds(ChannelDataType.GB28181, deviceIds);
         addChannels(platformId, channelList);
     }
 
     @Override
     @Transactional
     public void removeChannelByDevice(Integer platformId, List<Integer> deviceIds) {
-        List<Integer> channelList = commonGBChannelMapper.queryByGbDeviceIdsForIds(ChannelDataType.GB28181.value, deviceIds);
+        List<Integer> channelList = commonGBChannelMapper.queryByGbDeviceIdsForIds(ChannelDataType.GB28181, deviceIds);
         removeChannels(platformId, channelList);
     }
 

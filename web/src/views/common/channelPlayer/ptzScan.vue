@@ -65,7 +65,12 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/setSpeedForScan', [this.channelId, this.scanId, this.speed])
+      this.$store.dispatch('commonChanel/setSpeedForScan',
+        {
+          channelId: this.channelId,
+          scanId: this.scanId,
+          speed: this.speed
+        })
         .then(data => {
           this.$message({
             showClose: true,
@@ -97,7 +102,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/setLeftForScan', [this.channelId, this.scanId])
+      this.$store.dispatch('commonChanel/setLeftForScan',
+        {
+          channelId: this.channelId,
+          scanId: this.scanId
+        })
         .then(data => {
           this.$message({
             showClose: true,
@@ -125,7 +134,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/setRightForScan', [this.channelId, this.scanId])
+      this.$store.dispatch('commonChanel/setRightForScan',
+        {
+          channelId: this.channelId,
+          scanId: this.scanId
+        })
         .then(data => {
           this.$message({
             showClose: true,
@@ -153,7 +166,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/startScan', [this.channelId, this.scanId])
+      this.$store.dispatch('commonChanel/startScan',
+        {
+          channelId: this.channelId,
+          scanId: this.scanId
+        })
         .then(data => {
           this.$message({
             showClose: true,
@@ -179,7 +196,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/stopScan', [this.channelId, this.scanId])
+      this.$store.dispatch('commonChanel/stopScan',
+        {
+          channelId: this.channelId,
+          scanId: this.scanId
+        })
         .then(data => {
           this.$message({
             showClose: true,

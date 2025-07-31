@@ -200,5 +200,6 @@ public interface IDeviceService {
 
     void deviceInfo(Device device, ErrorCallback<Object> callback);
 
-    void queryPreset(Device device, String channelId, ErrorCallback<Object> callback);
+    void queryPreset(Device device, String channelId, ErrorCallback<List<Preset>> callback);
+
 }

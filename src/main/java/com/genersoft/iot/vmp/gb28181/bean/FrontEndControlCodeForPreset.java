@@ -27,6 +27,13 @@ public class FrontEndControlCodeForPreset implements  IFrontEndControlCode {
     @Setter
     private Integer presetId;
 
+    /**
+     * 预置位名称
+     */
+    @Getter
+    @Setter
+    private String presetName;
+
 
     @Override
     public String encode() {

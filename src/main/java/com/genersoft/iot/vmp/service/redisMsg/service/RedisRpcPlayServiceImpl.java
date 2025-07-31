@@ -121,8 +121,8 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     }
 
     @Override
-    public void pauseRtp(String serverId, String streamId) {
-        RedisRpcRequest request = buildRequest("channel/pauseRtp", streamId);
+    public void playbackPause(String serverId, String streamId) {
+        RedisRpcRequest request = buildRequest("channel/playbackPause", streamId);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 5, TimeUnit.SECONDS);
         if (response == null) {
@@ -135,8 +135,8 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     }
 
     @Override
-    public void resumeRtp(String serverId, String streamId) {
-        RedisRpcRequest request = buildRequest("channel/resumeRtp", streamId);
+    public void playbackResume(String serverId, String streamId) {
+        RedisRpcRequest request = buildRequest("channel/playbackResume", streamId);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 5, TimeUnit.SECONDS);
         if (response == null) {

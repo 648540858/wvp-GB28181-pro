@@ -165,10 +165,10 @@ public class PlaybackController {
 	@Operation(summary = "回放暂停", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
-	public void playPause(@PathVariable String streamId) {
+	public void playbackPause(@PathVariable String streamId) {
 		log.info("[回放暂停] streamId: {}", streamId);
 		try {
-			playService.pauseRtp(streamId);
+			playService.playbackPause(streamId);
 		} catch (ServiceException e) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), e.getMessage());
 		} catch (InvalidArgumentException | ParseException | SipException e) {
@@ -183,7 +183,7 @@ public class PlaybackController {
 	public void playResume(@PathVariable String streamId) {
 		log.info("playResume: "+streamId);
 		try {
-			playService.resumeRtp(streamId);
+			playService.playbackResume(streamId);
 		} catch (ServiceException e) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), e.getMessage());
 		} catch (InvalidArgumentException | ParseException | SipException e) {

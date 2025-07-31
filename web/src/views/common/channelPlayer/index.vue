@@ -535,29 +535,29 @@ export default {
     ptzCamera: function(command) {
       console.log('云台控制：' + command)
       this.$store.dispatch('commonChanel/ptz',
-        [
-          this.channelId,
-          command,
-          parseInt(this.controSpeed * 255 / 100),
-          parseInt(this.controSpeed * 255 / 100),
-          parseInt(this.controSpeed * 16 / 100)
-        ])
+        {
+          channelId: this.channelId,
+          command: command,
+          panSpeed: this.controSpeed,
+          tiltSpeed: this.controSpeed,
+          zoomSpeed: this.controSpeed
+        })
     },
     irisCamera: function(command) {
       this.$store.dispatch('commonChanel/iris',
-        [
-          this.channelId,
-          command,
-          parseInt(this.controSpeed * 255 / 100)
-        ])
+        {
+            channelId: this.channelId,
+            command: command,
+            speed: this.controSpeed
+          })
     },
     focusCamera: function(command) {
       this.$store.dispatch('commonChanel/focus',
-        [
-          this.channelId,
-          command,
-          parseInt(this.controSpeed * 255 / 100)
-        ])
+        {
+          channelId: this.channelId,
+          command: command,
+          speed: this.controSpeed
+        })
     },
     // ////////////////////播放器事件处理//////////////////////////
     videoError: function(e) {

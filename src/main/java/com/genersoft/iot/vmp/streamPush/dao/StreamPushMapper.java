@@ -14,7 +14,7 @@ import java.util.Set;
 @Repository
 public interface StreamPushMapper {
 
-    Integer dataType = ChannelDataType.GB28181.value;
+    Integer dataType = ChannelDataType.GB28181;
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing, start_offline_push) VALUES" +
             "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing}, #{startOfflinePush})")

@@ -195,7 +195,7 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
 	private int channelType;
 
-	private Integer dataType = ChannelDataType.GB28181.value;
+	private Integer dataType = ChannelDataType.GB28181;
 
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
@@ -255,7 +255,7 @@ public class DeviceChannel extends CommonGBChannel {
 		commonGBChannel.setGbId(id);
 		commonGBChannel.setGbDeviceId(deviceId);
 		commonGBChannel.setGbName(name);
-		commonGBChannel.setDataType(ChannelDataType.GB28181.value);
+		commonGBChannel.setDataType(ChannelDataType.GB28181);
 		commonGBChannel.setDataDeviceId(getDataDeviceId());
 		return commonGBChannel;
 	}

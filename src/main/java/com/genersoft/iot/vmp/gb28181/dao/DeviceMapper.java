@@ -252,6 +252,7 @@ public interface DeviceMapper {
             "mobile_position_submission_interval,"+
             "subscribe_cycle_for_alarm,"+
             "ssrc_check,"+
+            "media_server_id,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
             "geo_coord_sys,"+

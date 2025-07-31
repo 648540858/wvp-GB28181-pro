@@ -4,20 +4,18 @@ package com.genersoft.iot.vmp.common.enums;
  * 支持的通道数据类型
  */
 
-public enum ChannelDataType {
+public class ChannelDataType {
 
-    GB28181(1,"国标28181"),
-    STREAM_PUSH(2,"推流设备"),
-    STREAM_PROXY(3,"拉流代理"),
-    JT_1078(200,"部标设备"),
-    ;
+    public final static int GB28181 = 1;
+    public final static int STREAM_PUSH = 2;
+    public final static int STREAM_PROXY = 3;
+    public final static int JT_1078 = 200;
 
-    public final int value;
+    public final static String PLAY_SERVICE = "sourceChannelPlayService";
+    public final static String PLAYBACK_SERVICE = "sourceChannelPlaybackService";
+    public final static String DOWNLOAD_SERVICE = "sourceChannelDownloadService";
+    public final static String PTZ_SERVICE = "sourceChannelPTZService";
 
-    public final String desc;
 
-    ChannelDataType(Integer value, String desc) {
-        this.value = value;
-        this.desc = desc;
-    }
+
 }

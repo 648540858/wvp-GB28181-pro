@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -10,9 +9,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPTZService;
@@ -81,7 +78,7 @@ public class RedisRpcChannelPlayController extends RpcController {
 
         InviteMessageInfo inviteInfo = new InviteMessageInfo();
         inviteInfo.setSessionName("Play");
-        channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
+        channelPlayService.startInvite(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);
@@ -118,7 +115,7 @@ public class RedisRpcChannelPlayController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        
+
         try {
             channelService.queryRecordInfo(channel, startTime, endTime, (code, msg, data) ->{
                 if (code == InviteErrorCode.SUCCESS.getCode()) {
@@ -134,15 +131,15 @@ public class RedisRpcChannelPlayController extends RpcController {
             response.setStatusCode(ErrorCode.ERROR100.getCode());
             response.setBody(e.getMessage());
         }
-        
+
         return null;
     }
 
     /**
      * 暂停录像回放
      */
-    @RedisRpcMapping("pauseRtp")
-    public RedisRpcResponse pauseRtp(RedisRpcRequest request) {
+    @RedisRpcMapping("playbackPause")
+    public RedisRpcResponse playbackPause(RedisRpcRequest request) {
         String streamId = request.getParam().toString();
         RedisRpcResponse response = request.getResponse();
 
@@ -153,7 +150,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         }
 
         try {
-            channelPlayService.pauseRtp(streamId);
+//            channelPlayService.playbackPause(streamId);
             response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }catch (ControllerException e) {
             response.setStatusCode(ErrorCode.ERROR100.getCode());
@@ -166,8 +163,8 @@ public class RedisRpcChannelPlayController extends RpcController {
     /**
      * 恢复录像回放
      */
-    @RedisRpcMapping("resumeRtp")
-    public RedisRpcResponse resumeRtp(RedisRpcRequest request) {
+    @RedisRpcMapping("playbackResume")
+    public RedisRpcResponse playbackResume(RedisRpcRequest request) {
         String streamId = request.getParam().toString();
         RedisRpcResponse response = request.getResponse();
 
@@ -178,7 +175,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         }
 
         try {
-            channelPlayService.resumeRtp(streamId);
+//            channelPlayService.playbackResume(streamId);
             response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }catch (ControllerException e) {
             response.setStatusCode(ErrorCode.ERROR100.getCode());
@@ -216,7 +213,7 @@ public class RedisRpcChannelPlayController extends RpcController {
             return response;
         }
         try {
-            channelPlayService.stopPlay(type, channel, stream);
+            channelPlayService.stopInvite(type, channel, stream);
             response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }catch (Exception e){
             response.setStatusCode(Response.SERVER_INTERNAL_ERROR);
@@ -253,7 +250,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         inviteInfo.setSessionName("Playback");
         inviteInfo.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime));
         inviteInfo.setStopTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime));
-        channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
+        channelPlayService.startInvite(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);
@@ -296,7 +293,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         inviteInfo.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime));
         inviteInfo.setStopTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime));
         inviteInfo.setDownloadSpeed(downloadSpeed + "");
-        channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
+        channelPlayService.startInvite(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);

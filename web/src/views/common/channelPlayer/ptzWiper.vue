@@ -25,7 +25,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
-      this.$store.dispatch('commonChanel/wiper', [this.channelId, command])
+      this.$store.dispatch('commonChanel/wiper',
+        {
+          channelId: this.channelId,
+          command: command
+        })
         .then(data => {
           this.$message({
             showClose: true,

@@ -780,7 +780,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void addChannel(DeviceChannel channel) {
-        channel.setDataType(ChannelDataType.GB28181.value);
+        channel.setDataType(ChannelDataType.GB28181);
         channel.setDataDeviceId(channel.getDataDeviceId());
         channelMapper.add(channel);
     }
@@ -826,7 +826,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value){
+        if (channel.getDataType() != ChannelDataType.GB28181){
             // 只支持国标的语音喊话
             log.warn("[INFO 消息] 非国标设备， 通道ID： {}", channel.getGbId());
             callback.run(ErrorCode.ERROR100.getCode(), "非国标设备", null);

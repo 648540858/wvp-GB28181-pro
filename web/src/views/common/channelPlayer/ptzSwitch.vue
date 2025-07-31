@@ -3,7 +3,7 @@
     <el-form size="mini" :inline="true">
       <el-form-item>
         <el-input
-          v-model="switchId"
+          v-model="auxiliaryId"
           min="1"
           max="4095"
           placeholder="开关编号"
@@ -29,7 +29,7 @@ export default {
   props: ['channelId'],
   data() {
     return {
-      switchId: 1
+      auxiliaryId: 1
     }
   },
   created() {
@@ -47,7 +47,7 @@ export default {
         {
           channelId: this.channelId,
           command: command,
-          switchId: this.switchId
+          auxiliaryId: this.auxiliaryId
         })
         .then(data => {
           this.$message({

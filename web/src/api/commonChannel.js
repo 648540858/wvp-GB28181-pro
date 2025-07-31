@@ -441,14 +441,14 @@ export function deletePreset({ channelId, presetId }) {
 /**
  * command: on 开启， off 关闭
  */
-export function auxiliary({ channelId, command, switchId }) {
+export function auxiliary({ channelId, command, auxiliaryId }) {
   return request({
     method: 'get',
     url: '/api/common/channel/front-end/auxiliary',
     params: {
       channelId: channelId,
       command: command,
-      switchId: switchId
+      auxiliaryId: auxiliaryId
     }
   })
 }

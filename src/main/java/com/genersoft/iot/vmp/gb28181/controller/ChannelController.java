@@ -276,7 +276,7 @@ public class ChannelController {
 
     @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/play")
-    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(HttpServletRequest request,  Integer channelId){
+    public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request,  Integer channelId){
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
@@ -315,5 +315,14 @@ public class ChannelController {
         };
         channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
         return result;
+    }
+
+    @Operation(summary = "停止播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/play/stop")
+    public void stopPlay(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopPlay(channel, channel.getStreamId());
     }
 }

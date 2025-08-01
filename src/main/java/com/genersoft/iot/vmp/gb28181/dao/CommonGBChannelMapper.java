@@ -580,4 +580,7 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceId")
     List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
+
+    @Update("UPDATE wvp_device_channel SET stream_id = #{stream} where id = #{gbId}")
+    void updateStream(int gbId, String stream);
 }

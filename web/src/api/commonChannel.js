@@ -260,6 +260,15 @@ export function playChannel(channelId) {
     }
   })
 }
+export function stopPlayChannel(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/play/stop',
+    params: {
+      channelId: channelId
+    }
+  })
+}
 
 
 // 前端控制

@@ -30,7 +30,7 @@ import {
   startCruise,
   startScan,
   stopCruise,
-  stopScan, wiper, getAllForMap
+  stopScan, wiper, getAllForMap, stopPlayChannel
 } from '@/api/commonChannel'
 
 const actions = {
@@ -247,6 +247,16 @@ const actions = {
   playChannel({ commit }, channelId) {
     return new Promise((resolve, reject) => {
       playChannel(channelId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  stopPlayChannel({ commit }, channelId) {
+    return new Promise((resolve, reject) => {
+      stopPlayChannel(channelId).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

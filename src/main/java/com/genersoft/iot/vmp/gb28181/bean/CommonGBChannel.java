@@ -150,6 +150,9 @@ public class CommonGBChannel {
     @Schema(description = "更新时间")
     private String updateTime;
 
+    @Schema(description = "流唯一编号，存在表示正在直播")
+    private String  streamId;
+
     public String encode(String serverDeviceId) {
         return encode(null, serverDeviceId);
     }

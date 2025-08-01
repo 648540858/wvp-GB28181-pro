@@ -8,8 +8,10 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
+import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private CommonGBChannelMapper channelMapper;
 
     @Autowired
     private Map<String, ISourcePlayService> sourcePlayServiceMap;
@@ -86,7 +91,15 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             log.error("[点播通用通道] 类型编号： {} 不支持实时流预览", dataType);
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
-        sourceChannelPlayService.play(channel, platform, record, callback);
+        sourceChannelPlayService.play(channel, platform, record, (code, msg, data) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                // 将流ID记录到数据库
+                if (channel.getDataType() != ChannelDataType.GB28181) {
+                    channelMapper.updateStream(channel.getGbId(), data.getStream());
+                }
+            }
+            callback.run(code, msg, data);
+        });
     }
     @Override
     public void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {

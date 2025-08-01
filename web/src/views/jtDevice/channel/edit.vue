@@ -21,8 +21,8 @@
         </el-form>
 
       </el-tab-pane>
-      <el-tab-pane :disabled="!jtChannel.id" label="国标通道配置">
-        <CommonChannelEdit ref="commonChannelEdit" :data-form="jtChannel" :cancel="close" />
+      <el-tab-pane :disabled="!jtChannel.gbId" label="国标通道配置">
+        <CommonChannelEdit :id="jtChannel.gbId" ref="commonChannelEdit" :cancel="close" />
       </el-tab-pane>
     </el-tabs>
   </div>

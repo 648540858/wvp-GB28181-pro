@@ -678,7 +678,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     public void start(Integer channelId, Boolean record, ErrorCallback<StreamInfo> callback) {
         JTChannel channel = jt1078Service.getChannelByDbId(channelId);
         Assert.notNull(channel, "通道不存在");
-        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        JTDevice device = jt1078Service.getDeviceById(channel.getTerminalDbId());
         Assert.notNull(device, "设备不存在");
         jt1078Template.checkTerminalStatus(device.getPhoneNumber());
         play(device, channel, 0,
@@ -689,7 +689,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     public void stop(Integer channelId) {
         JTChannel channel = jt1078Service.getChannelByDbId(channelId);
         Assert.notNull(channel, "通道不存在");
-        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        JTDevice device = jt1078Service.getDeviceById(channel.getTerminalDbId());
         Assert.notNull(device, "设备不存在");
         stopPlay(device.getPhoneNumber(), channel.getChannelId());
     }
@@ -701,7 +701,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
         JTChannel channel = jt1078Service.getChannelByDbId(channelId);
         Assert.notNull(channel, "通道不存在");
-        JTDevice device = jt1078Service.getDeviceById(channel.getDataDeviceId());
+        JTDevice device = jt1078Service.getDeviceById(channel.getTerminalDbId());
         Assert.notNull(device, "设备不存在");
         jt1078Template.checkTerminalStatus(device.getPhoneNumber());
         String startTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime);

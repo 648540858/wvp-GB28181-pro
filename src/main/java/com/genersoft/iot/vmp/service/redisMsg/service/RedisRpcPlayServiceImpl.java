@@ -134,7 +134,6 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         }
     }
 
-
     @Override
     public void playbackResume(String serverId, String streamId) {
         RedisRpcRequest request = buildRequest("channel/playbackResume", streamId);

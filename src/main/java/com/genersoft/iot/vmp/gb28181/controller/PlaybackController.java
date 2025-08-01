@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -26,6 +25,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -191,23 +191,14 @@ public class PlaybackController {
 		}
 	}
 
-
 	@Operation(summary = "回放拖动播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@Parameter(name = "seekTime", description = "拖动偏移量，单位s", required = true)
 	@GetMapping("/seek/{streamId}/{seekTime}")
-	public void playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
+	public void playbackSeek(@PathVariable String streamId, @PathVariable long seekTime) {
 		log.info("playSeek: "+streamId+", "+seekTime);
-		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
-
-		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-			log.warn("streamId不存在!");
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
-		}
-		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-		DeviceChannel channel = channelService.getOneById(inviteInfo.getChannelId());
 		try {
-			cmder.playSeekCmd(device, channel, inviteInfo.getStreamInfo(), seekTime);
+			playService.playbackSeek(streamId, seekTime);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
@@ -218,17 +209,10 @@ public class PlaybackController {
 	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4、8", required = true)
 	@GetMapping("/speed/{streamId}/{speed}")
 	public void playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
+		Assert.notNull(speed, "倍速不存在");
 		log.info("playSpeed: "+streamId+", "+speed);
-		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
-
-		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-			log.warn("streamId不存在!");
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
-		}
-		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-		DeviceChannel channel = channelService.getOneById(inviteInfo.getChannelId());
 		try {
-			cmder.playSpeedCmd(device, channel, inviteInfo.getStreamInfo(), speed);
+			playService.playbackSpeed(streamId, speed);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}

@@ -4,10 +4,7 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.PlayException;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -17,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.sip.message.Response;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -189,6 +187,45 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
-        playbackService.playbackPause(channel, stream);
+        playbackService.playbackResume(channel, stream);
+    }
+
+    @Override
+    public void playbackSeek(CommonGBChannel channel, String stream, long seekTime) {
+        log.info("[通用通道] 回放拖动播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.playbackSeek(channel, stream, seekTime);
+    }
+
+    @Override
+    public void playbackSpeed(CommonGBChannel channel, String stream, Double speed) {
+        log.info("[通用通道] 回放倍速播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.playbackSpeed(channel, stream, speed);
+    }
+
+    @Override
+    public void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback) {
+        log.info("[通用通道] 录像查询， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.queryRecord(channel, startTime, endTime, callback);
     }
 }

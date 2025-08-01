@@ -75,12 +75,13 @@ export const constantRoutes = [
       path: '/channel',
       name: 'Channel',
       component: () => import('@/views/channel/index'),
-      meta: {title: '通道列表', icon: 'channelManger'}
+      meta: { title: '通道列表', icon: 'channelManger'}
     },
     {
       path: '/channel/record/:channelId',
       name: 'CommonRecord',
-      component: () => import('@/views/channel/record')
+      component: () => import('@/views/channel/record'),
+      meta: { title: '设备录像' }
     }
     ]
   },

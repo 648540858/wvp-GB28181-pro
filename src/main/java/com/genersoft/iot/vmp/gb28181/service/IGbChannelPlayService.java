@@ -3,9 +3,12 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.CommonRecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+
+import java.util.List;
 
 public interface IGbChannelPlayService {
 
@@ -29,4 +32,10 @@ public interface IGbChannelPlayService {
     void playbackPause(CommonGBChannel channel, String streamId);
 
     void playbackResume(CommonGBChannel channel, String streamId);
+
+    void playbackSeek(CommonGBChannel channel, String stream, long seekTime);
+
+    void playbackSpeed(CommonGBChannel channel, String stream, Double speed);
+
+    void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback);
 }

@@ -37,12 +37,12 @@
                   <i class="el-icon-video-camera" />
                   {{ getFileShowName(item) }}
                 </el-tag>
-                <a
-                  class="el-icon-download"
-                  style="color: #409EFF;font-weight: 600;margin-left: 10px;"
-                  target="_blank"
-                  @click="downloadFile(item)"
-                />
+<!--                <a-->
+<!--                  class="el-icon-download"-->
+<!--                  style="color: #409EFF;font-weight: 600;margin-left: 10px;"-->
+<!--                  target="_blank"-->
+<!--                  @click="downloadFile(item)"-->
+<!--                />-->
               </li>
             </ul>
             <div v-if="detailFiles.length === 0" class="record-list-no-val">暂无数据</div>
@@ -95,12 +95,12 @@
                 title="截图"
                 @click="snap()"
               />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-xiazai1"
-                title="下载录像"
-                @click="chooseTimeForRecord()"
-              />
+<!--              <a-->
+<!--                target="_blank"-->
+<!--                class="record-play-control-item iconfont icon-xiazai1"-->
+<!--                title="下载录像"-->
+<!--                @click="chooseTimeForRecord()"-->
+<!--              />-->
               <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
             </div>
           </div>
@@ -291,7 +291,6 @@ export default {
     // 查询当年有视频的日期
     this.chooseDate = moment().format('YYYY-MM-DD')
     this.dateChange()
-    this.getDownloadSpeedArray()
     window.addEventListener('beforeunload', this.stopPlayRecord)
   },
   destroyed() {
@@ -312,8 +311,6 @@ export default {
         startTime = this.detailFiles[0].startTime
         endTime = this.detailFiles[this.detailFiles.length - 1].endTime
       }
-      console.log(startTime)
-      console.log(endTime)
       this.$refs.chooseTimeRange.openDialog([new Date(startTime), new Date(endTime)], (time) => {
         console.log(time)
         const startTime = moment(time[0]).format('YYYY-MM-DD HH:mm:ss')
@@ -343,7 +340,12 @@ export default {
       console.log(speed)
       // 倍速播放
       this.playSpeed = speed
-      this.$store.dispatch('playback/setSpeed', [this.streamInfo.stream, speed])
+      this.$store.dispatch('commonChanel/speedPlayback',
+        {
+          channelId: this.channelId,
+          stream: this.streamInfo.stream,
+          speed: speed
+        })
         .then(data => {
           this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
         })
@@ -394,15 +396,19 @@ export default {
     },
     dateChange() {
       this.detailFiles = []
-      this.$store.dispatch('gbRecord/query', [this.deviceId, this.channelId, this.startTime, this.endTime])
+      this.$store.dispatch('commonChanel/queryRecord',
+        {
+          channelId: this.channelId,
+          startTime: this.startTime,
+          endTime: this.endTime
+        })
         .then(data => {
           // 处理时间信息
-          if (data.recordList.length === 0) {
+          if (data.length === 0) {
             return
           }
-          this.detailFiles = data.recordList
+          this.detailFiles = data
           this.initTime = new Date(this.detailFiles[0].startTime).getTime()
-          console.log(this.initTime)
           for (let i = 0; i < this.detailFiles.length; i++) {
             this.timeSegments.push({
               beginTime: new Date(this.detailFiles[i].startTime).getTime(),
@@ -418,29 +424,16 @@ export default {
           this.recordsLoading = false
         })
     },
-    getDownloadSpeedArray() {
-      this.$store.dispatch('device/queryChannelOne', {
-        deviceId: this.deviceId,
-        channelDeviceId: this.channelId
-      })
-        .then(data => {
-          if (data.downloadSpeed) {
-            const speedArray = data.downloadSpeed.split('/')
-
-            speedArray.forEach(item => {
-              if (parseInt(item) > 4) {
-                this.playSpeedRange.push(parseInt(item))
-              }
-            })
-          }
-        })
-    },
     stopPlayRecord(callback) {
       console.log('停止录像回放')
       if (this.streamInfo !== null) {
         this.$refs['recordVideoPlayer'].pause()
         this.videoUrl = ''
-        this.$store.dispatch('playback/stop', [this.deviceId, this.channelId, this.streamInfo.stream])
+        this.$store.dispatch('commonChanel/stopPlayback',
+          {
+            channelId: this.channelId,
+            stream: this.streamInfo.stream
+          })
           .then((data) => {
             this.streamInfo = null
             if (callback) callback()
@@ -462,7 +455,12 @@ export default {
         })
       } else {
         this.playerTime = 0
-        this.$store.dispatch('playback/play', [this.deviceId, this.channelId, startTime, endTime])
+        this.$store.dispatch('commonChanel/playback',
+          {
+            channelId: this.channelId,
+            startTime: startTime,
+            endTime: endTime
+          })
           .then(data => {
             this.streamInfo = data
             this.videoUrl = this.getUrlByStreamInfo()

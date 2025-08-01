@@ -268,7 +268,7 @@ export default {
         })
     },
     queryRecords: function(itemData) {
-      const channelId = itemData.deviceId
+      const channelId = itemData.gbId
       this.$router.push(`/channel/record/${channelId}`)
     },
     queryCloudRecords: function(itemData) {

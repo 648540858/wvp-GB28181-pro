@@ -1459,6 +1459,32 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
+    public void playbackSeek(String streamId, long seekTime) throws InvalidArgumentException, ParseException, SipException {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+
+        if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
+            log.warn("streamId不存在!");
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
+        }
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+        cmder.playSeekCmd(device, channel, inviteInfo.getStreamInfo(), seekTime);
+    }
+
+    @Override
+    public void playbackSpeed(String streamId, double speed) throws InvalidArgumentException, ParseException, SipException {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+
+        if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
+            log.warn("streamId不存在!");
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
+        }
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+        cmder.playSpeedCmd(device, channel, inviteInfo.getStreamInfo(), speed);
+    }
+
+    @Override
     public void startPushStream(SendRtpInfo sendRtpInfo, DeviceChannel channel, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader) {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpInfo.getMediaServerId());

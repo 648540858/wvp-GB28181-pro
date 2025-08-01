@@ -92,7 +92,6 @@
             <el-button
               v-if="!!scope.row.streamId"
               size="medium"
-              :disabled="device == null || device.online === 0"
               icon="el-icon-switch-button"
               type="text"
               style="color: #f56c6c"
@@ -109,6 +108,19 @@
             >
               编辑
             </el-button>
+            <el-divider direction="vertical" />
+            <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+              <el-button size="medium" type="text">
+                更多<i class="el-icon-arrow-down el-icon--right" />
+              </el-button>
+              <el-dropdown-menu>
+                <el-dropdown-item command="records" :disabled="scope.row.gbStatus !== 'ON'">
+                  设备录像</el-dropdown-item>
+                <el-dropdown-item command="cloudRecords" :disabled="scope.row.gbStatus !== 'ON'">
+                  云端录像</el-dropdown-item>
+              </el-dropdown-menu>
+
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -184,14 +196,14 @@ export default {
       updateLooper: 0, // 数据刷新轮训标志
       searchStr: '',
       channelType: '',
-      online: '',
+      online: 'true',
       subStream: '',
       winHeight: window.innerHeight - 200,
       currentPage: this.defaultPage | 1,
       count: this.defaultCount | 15,
       total: 0,
       beforeUrl: '/device',
-      editId: null,
+      editId: null
     }
   },
   mounted() {
@@ -257,10 +269,8 @@ export default {
         })
     },
     queryRecords: function(itemData) {
-      const deviceId = this.deviceId
-      const channelId = itemData.deviceId
-
-      this.$router.push(`/device/record/${deviceId}/${channelId}`)
+      const channelId = itemData.gbId
+      this.$router.push(`/channel/record/${channelId}`)
     },
     queryCloudRecords: function(itemData) {
       const deviceId = this.deviceId
@@ -268,42 +278,8 @@ export default {
 
       this.$router.push(`/cloudRecord/detail/rtp/${deviceId}_${channelId}`)
     },
-    startRecord: function(itemData) {
-      this.$store.dispatch('device/deviceRecord', {
-        deviceId: this.deviceId,
-        channelId: itemData.deviceId,
-        recordCmdStr: 'Record'
-      }).then(data => {
-        this.$message.success({
-          showClose: true,
-          message: '开始录像成功'
-        })
-      }).catch((error) => {
-        this.$message.error({
-          showClose: true,
-          message: error.message
-        })
-      })
-    },
-    stopRecord: function(itemData) {
-      this.$store.dispatch('device/deviceRecord', {
-        deviceId: this.deviceId,
-        channelId: itemData.deviceId,
-        recordCmdStr: 'StopRecord'
-      }).then(data => {
-        this.$message.success({
-          showClose: true,
-          message: '停止录像成功'
-        })
-      }).catch((error) => {
-        this.$message.error({
-          showClose: true,
-          message: error.message
-        })
-      })
-    },
     stopDevicePush: function(itemData) {
-      this.$store.dispatch('play/stop', [itemData.deviceId]).then(data => {
+      this.$store.dispatch('commonChanel/stopPlayChannel', itemData.gbId).then(data => {
         this.initData()
       }).catch((error) => {
         if (error.response.status === 402) { // 已经停止过
@@ -334,92 +310,10 @@ export default {
         }, 1000)
       }
     },
-    showDevice: function() {
-      // this.$router.push(this.beforeUrl).then(() => {
-      //   this.initParam()
-      //   this.initData()
-      // })
-      this.$emit('show-device')
-    },
-    changeSubchannel(itemData) {
-      this.beforeUrl = this.$router.currentRoute.path
-
-      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.deviceId}`
-      this.$router.push(url).then(() => {
-        this.searchStr = ''
-        this.channelType = ''
-        this.online = ''
-        this.initParam()
-        this.initData()
-      })
-    },
-    showSubChannels: function() {
-      this.$store.dispatch('device/querySubChannels', [
-        {
-          page: this.currentPage,
-          count: this.count,
-          query: this.searchStr,
-          online: this.online,
-          channelType: this.channelType
-        },
-        this.deviceId,
-        this.parentChannelId
-      ])
-        .then(data => {
-          this.total = data.total
-          this.channelList = data.list
-          this.channelList.forEach(e => {
-            e.ptzType = e.ptzType + ''
-          })
-          // 防止出现表格错位
-          this.$nextTick(() => {
-            this.$refs.channelListTable.doLayout()
-          })
-        })
-    },
     search: function() {
       this.currentPage = 1
       this.total = 0
       this.initData()
-    },
-    updateChannel: function(row) {
-      this.$store.dispatch('device/changeChannelAudio', {
-        channelId: row.gbId,
-        audio: row.hasAudio
-      })
-    },
-    subStreamChange: function() {
-      this.$confirm('确定重置所有通道的码流类型?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$store.dispatch('device/updateChannelStreamIdentification', {
-          deviceDbId: this.device.id,
-          streamIdentification: this.subStream
-        })
-          .then(data => {
-            this.initData()
-          })
-          .finally(() => {
-            this.subStream = ''
-          })
-      }).catch(() => {
-        this.subStream = ''
-      })
-    },
-    channelSubStreamChange: function(row) {
-      this.$store.dispatch('device/updateChannelStreamIdentification', {
-        deviceDbId: row.deviceDbId,
-        id: row.id,
-        streamIdentification: row.streamIdentification
-      })
-        .then(data => {
-          this.initData()
-        })
-        .finally(() => {
-          this.subStream = ''
-        })
     },
     refresh: function() {
       this.initData()
@@ -433,8 +327,14 @@ export default {
     closeEdit: function() {
       this.editId = null
       this.getChannelList()
+    },
+    moreClick: function(command, itemData) {
+      if (command === 'records') {
+        this.queryRecords(itemData)
+      } else if (command === 'cloudRecords') {
+        this.queryCloudRecords(itemData)
+      }
     }
-
   }
 }
 </script>

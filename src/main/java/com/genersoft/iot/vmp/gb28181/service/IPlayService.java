@@ -52,6 +52,10 @@ public interface IPlayService {
 
     void playbackResume(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
+    void playbackSeek(String streamId, long seekTime) throws InvalidArgumentException, ParseException, SipException;
+
+    void playbackSpeed(String streamId, double speed) throws InvalidArgumentException, ParseException, SipException;
+
     void startPushStream(SendRtpInfo sendRtpItem, DeviceChannel channel, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
 
     void startSendRtpStreamFailHand(SendRtpInfo sendRtpItem, Platform platform, CallIdHeader callIdHeader);

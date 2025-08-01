@@ -70,12 +70,20 @@ export const constantRoutes = [
     path: '/channel',
     component: Layout,
     redirect: '/channel',
+    onlyIndex: 0,
     children: [{
-      path: '',
+      path: '/channel',
       name: 'Channel',
       component: () => import('@/views/channel/index'),
-      meta: {title: '通道列表', icon: 'channelManger'}
-    }]
+      meta: { title: '通道列表', icon: 'channelManger'}
+    },
+    {
+      path: '/channel/record/:channelId',
+      name: 'CommonRecord',
+      component: () => import('@/views/channel/record'),
+      meta: { title: '设备录像' }
+    }
+    ]
   },
   {
     path: '/device',

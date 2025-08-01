@@ -2,11 +2,9 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
-import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
-import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupByGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionByGbDeviceParam;
@@ -17,6 +15,8 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Tag(name  = "全局通道管理")
@@ -276,7 +277,7 @@ public class ChannelController {
 
     @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/play")
-    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(HttpServletRequest request,  Integer channelId){
+    public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request,  Integer channelId){
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
@@ -314,5 +315,153 @@ public class ChannelController {
         };
         channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
         return result;
+    }
+
+    @Operation(summary = "停止播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/play/stop")
+    public void stopPlay(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopPlay(channel, channel.getStreamId());
+    }
+
+    @Operation(summary = "录像查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "startTime", description = "开始时间", required = true)
+    @Parameter(name = "endTime", description = "结束时间", required = true)
+    @GetMapping("/playback/query")
+    public DeferredResult<WVPResult<List<CommonRecordInfo>>> queryRecord(Integer channelId, String startTime, String endTime){
+
+        DeferredResult<WVPResult<List<CommonRecordInfo>>> result = new DeferredResult<>(Long.valueOf(userSetting.getRecordInfoTimeout()), TimeUnit.MILLISECONDS);
+        if (!DateUtil.verification(startTime, DateUtil.formatter)){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "startTime格式为" + DateUtil.PATTERN);
+        }
+        if (!DateUtil.verification(endTime, DateUtil.formatter)){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "endTime格式为" + DateUtil.PATTERN);
+        }
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        channelPlayService.queryRecord(channel, startTime, endTime, (code, msg, data) -> {
+            WVPResult<List<CommonRecordInfo>> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            wvpResult.setData(data);
+            result.setResult(wvpResult);
+        });
+        result.onTimeout(()->{
+            WVPResult<List<CommonRecordInfo>> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("timeout");
+            result.setResult(wvpResult);
+        });
+        return result;
+    }
+
+    @Operation(summary = "录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "startTime", description = "开始时间", required = true)
+    @Parameter(name = "endTime", description = "结束时间", required = true)
+    @GetMapping("/playback")
+    public DeferredResult<WVPResult<StreamContent>> playback(HttpServletRequest request, Integer channelId, String startTime, String endTime){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                WVPResult<StreamContent> wvpResult = WVPResult.success();
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.changeStreamIp(host);
+                    }
+                    if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
+                            && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+
+                result.setResult(wvpResult);
+            }else {
+                result.setResult(WVPResult.fail(code, msg));
+            }
+        };
+        channelPlayService.playback(channel, DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime),
+                DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime), callback);
+        return result;
+    }
+
+    @Operation(summary = "停止录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @GetMapping("/playback/stop")
+    public void stopPlayback(Integer channelId, String stream){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopPlayback(channel, stream);
+    }
+
+    @Operation(summary = "暂停录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @GetMapping("/playback/pause")
+    public void pausePlayback(Integer channelId, String stream){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.playbackPause(channel, stream);
+    }
+
+    @Operation(summary = "恢复录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @GetMapping("/playback/resume")
+    public void resumePlayback(Integer channelId, String stream){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.playbackResume(channel, stream);
+    }
+
+    @Operation(summary = "拖动录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "seekTime", description = "将要播放的时间", required = true)
+    @GetMapping("/playback/seek")
+    public void seekPlayback(Integer channelId, String stream, Long seekTime){
+        Assert.notNull(channelId,"参数异常");
+        Assert.notNull(seekTime,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.playbackSeek(channel, stream, seekTime);
+    }
+
+    @Operation(summary = "拖动录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "speed", description = "倍速", required = true)
+    @GetMapping("/playback/speed")
+    public void seekPlayback(Integer channelId, String stream, Double speed){
+        Assert.notNull(channelId,"参数异常");
+        Assert.notNull(speed,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.playbackSpeed(channel, stream, speed);
     }
 }

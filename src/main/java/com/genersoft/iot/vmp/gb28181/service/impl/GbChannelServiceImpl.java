@@ -718,25 +718,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
-        if (channel.getDataType() == ChannelDataType.GB28181) {
-            deviceChannelService.queryRecordInfo(channel, startTime, endTime, callback);
-        } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY) {
-            // 拉流代理
-            log.warn("[下载通用通道录像] 不支持下载拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.FORBIDDEN, "forbidden");
-        } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH) {
-            // 推流
-            log.warn("[下载通用通道录像] 不支持下载推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.FORBIDDEN, "forbidden");
-        } else {
-            // 通道数据异常
-            log.error("[回放通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
-    }
-
-    @Override
     public PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType) {
         PageHelper.startPage(page, count);
         if (query != null) {

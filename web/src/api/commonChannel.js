@@ -260,6 +260,15 @@ export function playChannel(channelId) {
     }
   })
 }
+export function stopPlayChannel(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/play/stop',
+    params: {
+      channelId: channelId
+    }
+  })
+}
 
 
 // 前端控制
@@ -499,6 +508,80 @@ export function focus({ channelId, command, speed }) {
     params: {
       channelId: channelId,
       command: command,
+      speed: speed
+    }
+  })
+}
+export function queryRecord({ channelId, startTime, endTime }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/query',
+    params: {
+      channelId: channelId,
+      startTime: startTime,
+      endTime: endTime
+    }
+  })
+}
+export function playback({ channelId, startTime, endTime }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback',
+    params: {
+      channelId: channelId,
+      startTime: startTime,
+      endTime: endTime
+    }
+  })
+}
+export function stopPlayback({ channelId, stream }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/stop',
+    params: {
+      channelId: channelId,
+      stream: stream
+    }
+  })
+}
+export function pausePlayback({ channelId, stream}) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/pause',
+    params: {
+      channelId: channelId,
+      stream: stream
+    }
+  })
+}
+export function resumePlayback({ channelId, stream}) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/resume',
+    params: {
+      channelId: channelId,
+      stream: stream
+    }
+  })
+}
+export function seekPlayback({ channelId, stream, seekTime}) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/seek',
+    params: {
+      channelId: channelId,
+      stream: stream,
+      seekTime: seekTime
+    }
+  })
+}
+export function speedPlayback({ channelId, stream, speed}) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/playback/speed',
+    params: {
+      channelId: channelId,
+      stream: stream,
       speed: speed
     }
   })

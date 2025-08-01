@@ -179,9 +179,6 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "子设备数")
 	private int subCount;
 
-	@Schema(description = "流唯一编号，存在表示正在直播")
-	private String  streamId;
-
 	@Schema(description = "是否含有音频")
 	private boolean hasAudio;
 

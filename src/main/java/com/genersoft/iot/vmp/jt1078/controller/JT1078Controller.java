@@ -290,7 +290,7 @@ public class JT1078Controller {
                               @Parameter(required = false) Integer playbackSpeed
 
     ) {
-        jt1078PlayService.playbackControl(phoneNumber, channelId, command, playbackSpeed,time);
+        jt1078PlayService.playbackControl(phoneNumber, channelId, command, playbackSpeed, time);
     }
 
     @Operation(summary = "JT-录像-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))

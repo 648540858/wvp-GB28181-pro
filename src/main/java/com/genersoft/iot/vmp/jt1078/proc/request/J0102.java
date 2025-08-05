@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.event.DeviceUpdateEvent;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -25,6 +26,7 @@ import java.nio.charset.Charset;
 public class J0102 extends Re {
 
     private String authenticationCode;
+    private JTDevice deviceForUpdate;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
@@ -49,7 +51,8 @@ public class J0102 extends Re {
         }else {
             j8001.setResult(J8001.SUCCESS);
             if (!device.isStatus()) {
-                device.setStatus(true);
+                deviceForUpdate = device;
+                deviceForUpdate.setStatus(true);
                 service.updateDevice(device);
             }
         }
@@ -58,7 +61,9 @@ public class J0102 extends Re {
 
     @Override
     public ApplicationEvent getEvent() {
-        return null;
+        DeviceUpdateEvent registerEvent = new DeviceUpdateEvent(this);
+        registerEvent.setDevice(deviceForUpdate);
+        return registerEvent;
     }
 
 }

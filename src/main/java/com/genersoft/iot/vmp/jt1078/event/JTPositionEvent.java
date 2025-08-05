@@ -1,22 +1,27 @@
 package com.genersoft.iot.vmp.jt1078.event;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * 注册事件
+ * 设备更新事件
  */
-public class RegisterEvent extends ApplicationEvent {
+public class JTPositionEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 1L;
 
-    public RegisterEvent(Object source) {
+    public JTPositionEvent(Object source) {
         super(source);
     }
 
     @Getter
     @Setter
-    private JTDevice device;
+    private String phoneNumber;
+
+    @Getter
+    @Setter
+    private JTPositionBaseInfo positionInfo;
 }

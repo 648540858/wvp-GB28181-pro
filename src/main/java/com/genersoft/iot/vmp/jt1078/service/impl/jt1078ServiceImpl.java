@@ -9,16 +9,15 @@ import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.ftpServer.UserManager;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.JTAloneChanel;
-import com.genersoft.iot.vmp.jt1078.bean.config.JTChannelListParam;
-import com.genersoft.iot.vmp.jt1078.bean.config.JTChannelParam;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
 import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
-import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
+import com.genersoft.iot.vmp.jt1078.event.DeviceUpdateEvent;
+import com.genersoft.iot.vmp.jt1078.event.JTPositionEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.FtpDownloadManager;
@@ -43,13 +42,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.concurrent.SynchronousQueue;
 
 @Service
 @Slf4j
@@ -88,6 +87,33 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Autowired
     private FtpDownloadManager downloadManager;
 
+    // 服务启动后五分钟内没有尽量连接的设备设置为离线
+    @PostConstruct
+    public void init(){
+        // 检查session与在线终端是是否对应 不对应则设置终端离线
+        List<JTDevice> deviceList = jtDeviceMapper.getDeviceList(null, true);
+        if (deviceList.isEmpty()) {
+            return;
+        }
+        for (JTDevice device : deviceList) {
+            Session session = SessionManager.INSTANCE.get(device.getPhoneNumber());
+            if (session == null) {
+                device.setStatus(false);
+                // 通道发送状态变化通知
+                List<JTChannel> jtChannels = jtChannelMapper.selectAll(device.getId(), null);
+                List<CommonGBChannel> channelList = new ArrayList<>();
+                for (JTChannel jtChannel : jtChannels) {
+                    if (jtChannel.getGbId() > 0) {
+                        jtChannel.setGbStatus("OFF");
+                        channelList.add(jtChannel);
+                    }
+                }
+                channelService.updateStatus(channelList);
+                updateDevice(device);
+            }
+        }
+    }
+
     /**
      * 流到来的处理
      */
@@ -107,26 +133,37 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     /**
-     * 设备注册的通知
+     * 设备更新的通知
      */
     @Async("taskExecutor")
     @EventListener
-    public void onApplicationEvent(RegisterEvent event) {
-        // 首次注册设备根据终端参数获取
-//        JTDevice device = event.getDevice();
-//        List<JTChannel> channelList = jtChannelMapper.selectAllByDevicePhoneNumber(device.getPhoneNumber());
-//        if (!channelList.isEmpty()) {
-//            return;
-//        }
-//        JTDeviceConfig jtDeviceConfig = queryConfig(device.getPhoneNumber(), null);
-//        JTChannelParam channelParam = jtDeviceConfig.getChannelParam();
-//        if (channelParam != null && channelParam.getJtAloneChanelList() != null && !channelParam.getJtAloneChanelList().isEmpty()) {
-//           // 写入通道
-//            List<JTAloneChanel> jtAloneChanelList = channelParam.getJtAloneChanelList();
-//            for (JTAloneChanel jtAloneChanel : jtAloneChanelList) {
-//
-//            }
-//        }
+    public void onApplicationEvent(DeviceUpdateEvent event) {
+        JTDevice device = event.getDevice();
+        if (device == null || device.getPhoneNumber() == null) {
+            return;
+        }
+        JTDevice deviceInDb = getDevice(event.getDevice().getPhoneNumber());
+        if (deviceInDb.isStatus() != device.isStatus()) {
+            // 通道发送状态变化通知
+            List<JTChannel> jtChannels = jtChannelMapper.selectAll(deviceInDb.getId(), null);
+            List<CommonGBChannel> channelList = new ArrayList<>();
+            for (JTChannel jtChannel : jtChannels) {
+                if (jtChannel.getGbId() > 0) {
+                    jtChannel.setGbStatus("OFF");
+                    channelList.add(jtChannel);
+                }
+            }
+            channelService.updateStatus(channelList);
+        }
+        updateDevice(event.getDevice());
+    }
+
+    /**
+     * 位置更新的通知
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(JTPositionEvent event) {
 
     }
 

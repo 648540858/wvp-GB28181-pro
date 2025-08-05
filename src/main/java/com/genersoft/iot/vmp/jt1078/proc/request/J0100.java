@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
+import com.genersoft.iot.vmp.jt1078.event.DeviceUpdateEvent;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8100;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -13,8 +13,6 @@ import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.UnsupportedEncodingException;
@@ -33,6 +31,7 @@ import java.util.UUID;
 public class J0100 extends Re {
 
     private JTDevice device;
+    private JTDevice deviceForUpdate;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
@@ -87,33 +86,32 @@ public class J0100 extends Re {
         J8100 j8100 = new J8100();
         j8100.setRespNo(header.getSn());
         // 从数据库判断这个设备是否合法
-        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
-        if (deviceInDb != null) {
+        deviceForUpdate = service.getDevice(header.getPhoneNumber());
+        if (deviceForUpdate != null) {
             j8100.setResult(J8100.SUCCESS);
             String authenticationCode = UUID.randomUUID().toString();
             j8100.setCode(authenticationCode);
-            deviceInDb.setAuthenticationCode(authenticationCode);
-            deviceInDb.setStatus(true);
-            deviceInDb.setProvinceId(device.getProvinceId());
-            deviceInDb.setRegisterTime(DateUtil.getNow());
+            deviceForUpdate.setAuthenticationCode(authenticationCode);
+            deviceForUpdate.setStatus(true);
+            deviceForUpdate.setProvinceId(device.getProvinceId());
+            deviceForUpdate.setRegisterTime(DateUtil.getNow());
             CivilCodePo provinceCivilCodePo = CivilCodeUtil.INSTANCE.get(device.getProvinceId());
             if (provinceCivilCodePo != null) {
-                deviceInDb.setProvinceText(provinceCivilCodePo.getName());
+                deviceForUpdate.setProvinceText(provinceCivilCodePo.getName());
             }
-            deviceInDb.setCityId(device.getCityId());
+            deviceForUpdate.setCityId(device.getCityId());
             CivilCodePo cityCivilCodePo = CivilCodeUtil.INSTANCE.get(device.getProvinceId() +
                     String.format("%04d", Integer.parseInt(device.getCityId())));
             if (cityCivilCodePo != null) {
-                deviceInDb.setCityText(cityCivilCodePo.getName());
+                deviceForUpdate.setCityText(cityCivilCodePo.getName());
             }
-            deviceInDb.setModel(device.getModel());
-            deviceInDb.setMakerId(device.getMakerId());
-            deviceInDb.setTerminalId(device.getTerminalId());
+            deviceForUpdate.setModel(device.getModel());
+            deviceForUpdate.setMakerId(device.getMakerId());
+            deviceForUpdate.setTerminalId(device.getTerminalId());
             // TODO 支持直接展示车牌颜色的描述
-            deviceInDb.setPlateColor(device.getPlateColor());
-            deviceInDb.setPlateNo(device.getPlateNo());
-            service.updateDevice(deviceInDb);
-            log.info("[JT-注册成功] 设备： {}", deviceInDb);
+            deviceForUpdate.setPlateColor(device.getPlateColor());
+            deviceForUpdate.setPlateNo(device.getPlateNo());
+            log.info("[JT-注册成功] 设备： {}", deviceForUpdate);
         }else {
             log.info("[JT-注册失败] 未授权设备： {}", header.getPhoneNumber());
             j8100.setResult(J8100.FAIL);
@@ -127,8 +125,8 @@ public class J0100 extends Re {
 
     @Override
     public ApplicationEvent getEvent() {
-        RegisterEvent registerEvent = new RegisterEvent(this);
-        registerEvent.setDevice(device);
+        DeviceUpdateEvent registerEvent = new DeviceUpdateEvent(this);
+        registerEvent.setDevice(deviceForUpdate);
         return registerEvent;
     }
 }

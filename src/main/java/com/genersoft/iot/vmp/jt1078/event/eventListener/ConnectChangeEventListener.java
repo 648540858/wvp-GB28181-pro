@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.jt1078.event.eventListener;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.event.ConnectChangeEvent;
-import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
-import com.genersoft.iot.vmp.jt1078.proc.request.J0003;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import org.slf4j.Logger;

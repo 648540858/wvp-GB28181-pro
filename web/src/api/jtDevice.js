@@ -333,6 +333,13 @@ export function queryMediaData(data) {
     data: data
   })
 }
+export function setPhoneBook(data) {
+  return request({
+    method: 'post',
+    url: '/api/jt1078/set-phone-book',
+    data: data
+  })
+}
 export function shooting(data) {
   return request({
     method: 'post',

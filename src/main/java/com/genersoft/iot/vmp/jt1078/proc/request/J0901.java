@@ -42,7 +42,7 @@ public class J0901 extends Re {
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
-        return null;
+        return j8001;
     }
 
     @Override

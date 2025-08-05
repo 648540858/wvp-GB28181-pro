@@ -583,4 +583,18 @@ public interface CommonGBChannelMapper {
 
     @Update("UPDATE wvp_device_channel SET stream_id = #{stream} where id = #{gbId}")
     void updateStream(int gbId, String stream);
+
+    @Update("<script> " +
+            "<foreach collection='commonGBChannels' index='index' item='item' separator=';'> " +
+            "UPDATE wvp_device_channel " +
+            " SET gb_longitude=#{item.gbLongitude}" +
+            ", gb_latitude=#{item.gbLatitude} " +
+            ", gps_speed=#{item.gpsSpeed} " +
+            ", gps_altitude=#{item.gpsAltitude} " +
+            ", gps_direction=#{item.gpsDirection} " +
+            ", gps_time=#{item.gpsTime} " +
+            "WHERE id = #{item.gbId}" +
+            "</foreach> " +
+            "</script>")
+    void updateGps(List<CommonGBChannel> commonGBChannels);
 }

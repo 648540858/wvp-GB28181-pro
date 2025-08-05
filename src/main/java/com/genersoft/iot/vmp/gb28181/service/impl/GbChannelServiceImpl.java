@@ -771,4 +771,21 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         commonGBChannelMapper.updateGpsByDeviceId(gpsMsgInfoList);
     }
+
+    @Transactional
+    @Override
+    public void updateGPS(List<CommonGBChannel> commonGBChannels) {
+        int limitCount = 1000;
+        if (commonGBChannels.size() > limitCount) {
+            for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > commonGBChannels.size()) {
+                    toIndex = commonGBChannels.size();
+                }
+                commonGBChannelMapper.updateGps(commonGBChannels.subList(i, toIndex));
+            }
+        } else {
+            commonGBChannelMapper.updateGps(commonGBChannels);
+        }
+    }
 }

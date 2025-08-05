@@ -96,4 +96,5 @@ public interface IGbChannelService {
 
     void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList);
 
+    void updateGPS(List<CommonGBChannel> channelList);
 }

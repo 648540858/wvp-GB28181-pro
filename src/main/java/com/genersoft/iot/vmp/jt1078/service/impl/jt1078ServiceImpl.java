@@ -164,7 +164,44 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(JTPositionEvent event) {
+        if (event.getPhoneNumber() == null || event.getPositionInfo() == null
+                || event.getPositionInfo().getLongitude() == null || event.getPositionInfo().getLatitude() == null) {
+            return;
+        }
+        JTDevice device = getDevice(event.getPhoneNumber());
+        if (device == null) {
+            return;
+        }
+        device.setLongitude(event.getPositionInfo().getLongitude());
+        device.setLatitude(event.getPositionInfo().getLatitude());
+        updateDevice(device);
 
+        // 通道发送状态变化通知
+        List<JTChannel> jtChannels = jtChannelMapper.selectAll(device.getId(), null);
+        List<CommonGBChannel> channelList = new ArrayList<>();
+        for (JTChannel jtChannel : jtChannels) {
+            if (jtChannel.getGbId() > 0) {
+                jtChannel.setGbLongitude(event.getPositionInfo().getLongitude());
+                jtChannel.setGbLatitude(event.getPositionInfo().getLatitude());
+                if (event.getPositionInfo().getAltitude() != null) {
+                    jtChannel.setGpsAltitude((double) event.getPositionInfo().getAltitude());
+                }else {
+                    jtChannel.setGpsAltitude(0d);
+                }
+                if (event.getPositionInfo().getDirection() != null) {
+                    jtChannel.setGpsDirection((double) event.getPositionInfo().getDirection());
+                }else {
+                    jtChannel.setGpsDirection(0d);
+                }
+                if (event.getPositionInfo().getTime() != null) {
+                    jtChannel.setGpsTime(event.getPositionInfo().getTime());
+                }else {
+                    jtChannel.setGpsTime(DateUtil.getNow());
+                }
+                channelList.add(jtChannel);
+            }
+        }
+        channelService.updateGPS(channelList);
     }
 
 

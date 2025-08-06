@@ -132,7 +132,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         // 获取当前时间在一周内的序号, 数据库存储的从第几个30分钟开始, 0-47, 包括首尾
         LocalDateTime now = LocalDateTime.now();
         int week = now.getDayOfWeek().getValue();
-        int index = now.getHour() * 60 + now.getMinute();
+        int index = (now.getHour() * 60 + now.getMinute()) / 30;
 
         // 查询现在需要录像的通道Id
         return recordPlanMapper.queryRecordIng(week, index);

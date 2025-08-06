@@ -544,7 +544,7 @@ const actions = {
   },
   seekPlayback({ commit }, params) {
     return new Promise((resolve, reject) => {
-      resumePlayback(params).then(response => {
+      seekPlayback(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

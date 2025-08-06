@@ -478,7 +478,6 @@ create table IF NOT EXISTS wvp_jt_terminal (
                                  model character varying(50),
                                  plate_color character varying(50),
                                  plate_no character varying(50),
-                                 authentication_code character varying(255),
                                  longitude double precision,
                                  latitude double precision,
                                  status bool default false,

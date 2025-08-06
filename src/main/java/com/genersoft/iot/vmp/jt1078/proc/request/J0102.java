@@ -42,15 +42,16 @@ public class J0102 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice device = service.getDevice(header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
-        if (device == null || !device.getAuthenticationCode().equals(authenticationCode)) {
+        if (session.getAuthenticationCode() == null ||
+                !session.getAuthenticationCode().equals(authenticationCode)) {
             j8001.setResult(J8001.FAIL);
         }else {
             j8001.setResult(J8001.SUCCESS);
-            if (!device.isStatus()) {
+            JTDevice device = service.getDevice(header.getPhoneNumber());
+            if (device != null && !device.isStatus()) {
                 deviceForUpdate = device;
                 deviceForUpdate.setStatus(true);
                 service.updateDevice(device);

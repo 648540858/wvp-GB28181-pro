@@ -257,7 +257,6 @@ public class ZLMMediaServerStatusManager {
         String hookPrefix = String.format("%s://%s:%s%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort, (serverServletContextPath == null || "/".equals(serverServletContextPath)) ? "" : serverServletContextPath);
 
         Map<String, Object> param = new HashMap<>();
-        param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         if (mediaServerItem.getRtspPort() != 0) {
             param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -frames:v 1 %s");
         }

@@ -86,7 +86,6 @@ public class JTDevice {
                 ", 车牌颜色=" + plateColor +
                 ", 车牌='" + plateNo + '\'' +
                 ", 注册时间='" + registerTime + '\'' +
-                ", 鉴权码='" + authenticationCode + '\'' +
                 ", status=" + status +
                 '}';
     }

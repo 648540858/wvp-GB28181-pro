@@ -44,7 +44,7 @@ public class RecordItem  implements Comparable<RecordItem>{
 	@Schema(description = "保密属性(必选)缺省为0;0:不涉密,1:涉密")
 	private int secrecy;
 
-	@Schema(description = "录像产生类型(可选)time或alarm 或 manua")
+	@Schema(description = "录像产生类型(可选)time或alarm 或 manual")
 	private String type;
 
 	@Schema(description = "录像触发者ID(可选)")

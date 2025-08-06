@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -34,6 +35,11 @@ public class Session {
     // 设备手机号
     @Getter
     private String phoneNumber;
+
+    // 设备手机号
+    @Setter
+    @Getter
+    private String authenticationCode;
 
     // 创建时间
     @Getter

@@ -461,12 +461,9 @@ export default {
         }
       }
       if (this.streamInfo !== null) {
-        this.stopPlayRecord(() => {
-          this.downloadFile(row)
-        })
-      } else {
-        this.downloadRecord(row)
+        this.stopPlayRecord()
       }
+      this.downloadRecord(row)
     },
     downloadRecord: function(row) {
       const loading = this.$loading({

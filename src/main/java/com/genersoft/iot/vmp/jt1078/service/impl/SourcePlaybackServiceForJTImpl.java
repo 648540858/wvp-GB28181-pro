@@ -49,8 +49,8 @@ public class SourcePlaybackServiceForJTImpl implements ISourcePlaybackService {
         Assert.notNull(device, "设备不存在");
         jt1078Template.checkTerminalStatus(device.getPhoneNumber());
 
-        playService.playback(device.getPhoneNumber(), jtChannel.getChannelId(), DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(startTime),
-                DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(stopTime), 0, 0, 0, 0, result -> {
+        playService.playback(device.getPhoneNumber(), jtChannel.getChannelId(), DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime),
+                DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(stopTime), 0, 0, 0, 0, result -> {
                     callback.run(result.getCode(), result.getMsg(), result.getData());
                 });
     }
@@ -123,6 +123,7 @@ public class SourcePlaybackServiceForJTImpl implements ISourcePlaybackService {
             CommonRecordInfo commonRecordInfo = new CommonRecordInfo();
             commonRecordInfo.setStartTime(jRecordItem.getStartTime());
             commonRecordInfo.setEndTime(jRecordItem.getEndTime());
+            commonRecordInfo.setFileSize(jRecordItem.getSize() + "");
             recordInfoList.add(commonRecordInfo);
         }
         callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), recordInfoList);

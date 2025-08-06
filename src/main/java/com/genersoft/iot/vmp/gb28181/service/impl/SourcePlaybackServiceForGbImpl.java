@@ -101,6 +101,7 @@ public class SourcePlaybackServiceForGbImpl implements ISourcePlaybackService {
                     CommonRecordInfo recordInfo = new CommonRecordInfo();
                     recordInfo.setStartTime(recordItem.getStartTime());
                     recordInfo.setEndTime(recordItem.getEndTime());
+                    recordInfo.setFileSize(recordItem.getFileSize());
                     recordInfoList.add(recordInfo);
                 }
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), recordInfoList);

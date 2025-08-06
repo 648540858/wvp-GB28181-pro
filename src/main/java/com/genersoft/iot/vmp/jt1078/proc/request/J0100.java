@@ -91,7 +91,7 @@ public class J0100 extends Re {
             j8100.setResult(J8100.SUCCESS);
             String authenticationCode = UUID.randomUUID().toString();
             j8100.setCode(authenticationCode);
-            deviceForUpdate.setAuthenticationCode(authenticationCode);
+            session.setAuthenticationCode(authenticationCode);
             deviceForUpdate.setStatus(true);
             deviceForUpdate.setProvinceId(device.getProvinceId());
             deviceForUpdate.setRegisterTime(DateUtil.getNow());

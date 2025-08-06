@@ -11,4 +11,7 @@ public class CommonRecordInfo {
     // 结束时间
     private String endTime;
 
+    // 文件大小 单位byte
+    private String fileSize;
+
 }

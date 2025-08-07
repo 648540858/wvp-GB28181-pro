@@ -1,5 +1,5 @@
 ![logo](doc/_media/logo.png)
-# 开箱即用的28181协议视频平台
+# 开箱即用的国标28181和部标808+1078协议视频平台
 
 [![Build Status](https://travis-ci.org/xia-chu/ZLMediaKit.svg?branch=master)](https://travis-ci.org/xia-chu/ZLMediaKit)
 [![license](http://img.shields.io/badge/license-MIT-green.svg)](https://github.com/xia-chu/ZLMediaKit/blob/master/LICENSE)
@@ -8,7 +8,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-yellow.svg)](https://github.com/xia-chu/ZLMediaKit/pulls)
 
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。
+WEB VIDEO PLATFORM是一个基于GB28181-2016、部标808、部标1078标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。
 
 流媒体服务基于@夏楚 ZLMediaKit [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)   
 播放器使用@dexter jessibuca [https://github.com/langhuihui/jessibuca/tree/v3](https://github.com/langhuihui/jessibuca/tree/v3)  
@@ -120,20 +120,22 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 支持Mysql，Postgresql，金仓等数据库
 - [X] 支持录制计划, 根据设定的时间对通道进行录制. 暂不支持将录制的内容转发到国标上级
 - [X] 支持国标信令集群
+- [X] 新增支持部标808和部标1078，大量新特性不一一列表了。支持作为网关被国标上级调用部标设备
 
 
 # 闭源内容
-- [X] 支持ONVIF协议，设备检索，支持点播，云台控制，国标级联点播，自动点播等。
-- [X] 支持部标1078+808协议，支持点播，云台控制，录像回放，位置上报，自动点播等。
-- [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
-- [X] 支持国网B接口协议。支持注册，获取资源，预览, 云台控制，预置位控制等，可免费定制支持语音对讲、录像回放和抓拍图像。
-- [X] 功能加强版本
+- [X] 国标增强版: 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
+- [X] 全功能版： 
+  - [X] 支持开源所有功能
+  - [X] 支持ONVIF协议，设备检索，支持点播，云台控制，国标级联点播，自动点播等。
+  - [X] 支持国网B接口协议。支持注册，获取资源，预览, 云台控制，预置位控制等，可免费定制支持语音对讲、录像回放和抓拍图像。
   - [X] 支持按权限分配可以使用的通道
   - [X] 支持电子地图。支持展示通道位置，支持在地图上修改通道位置。可扩展接入高德地图API，支持搜索位置，附近设备。
   - [X] 支持表格导出
   - [X] 拉流代理支持按照品牌拼接url。
   - [X] 播放鉴权，更加安全。
-  - [X] 功能持续扩展，可根据用户需要增加支持。
+  - [X] 此版本后续开发功能支持直接更新提供，无需二次付费。
+  - [X] 提供源码不限制部署次数和支持路数。
 
 
 # 授权协议

@@ -42,9 +42,6 @@ public class JTDevice {
     @Schema(description = "车牌")
     private String plateNo;
 
-    @Schema(description = "鉴权码")
-    private String authenticationCode;
-
     @Schema(description = "经度")
     private Double longitude;
 

@@ -121,6 +121,13 @@ sip:
     timeout: 1000
 
 # 做为JT1078服务器的配置
+ftp:
+  #[必须修改] 是否开启1078的服务
+  enable: true
+  port: 2121
+  passive-ports: 10000-10500
+
+# 做为JT1078服务器的配置
 jt1078:
     #[必须修改] 是否开启1078的服务
     enable: true
@@ -128,6 +135,7 @@ jt1078:
     port: 21078
     #[可选] 设备鉴权的密码
     password: admin123
+
 
 #zlm 默认服务器配置
 media:

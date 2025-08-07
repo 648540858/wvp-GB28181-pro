@@ -23,7 +23,6 @@ public interface JTTerminalMapper {
             "<if test=\"model != null\">, model=#{model}</if>" +
             "<if test=\"plateColor != null\">, plate_color=#{plateColor}</if>" +
             "<if test=\"plateNo != null\">, plate_no=#{plateNo}</if>" +
-            "<if test=\"authenticationCode != null\">, authentication_code=#{authenticationCode}</if>" +
             "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
             "<if test=\"latitude != null\">, latitude=#{latitude}</if>" +
             "<if test=\"registerTime != null\">, register_time=#{registerTime}</if>" +
@@ -64,7 +63,6 @@ public interface JTTerminalMapper {
             "model,"+
             "plate_color,"+
             "plate_no,"+
-            "authentication_code,"+
             "longitude,"+
             "latitude,"+
             "create_time,"+
@@ -81,7 +79,6 @@ public interface JTTerminalMapper {
             "#{model}," +
             "#{plateColor}," +
             "#{plateNo}," +
-            "#{authenticationCode}," +
             "#{longitude}," +
             "#{latitude}," +
             "#{createTime}," +

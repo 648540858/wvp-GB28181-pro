@@ -183,6 +183,7 @@ create table IF NOT EXISTS wvp_media_server
     flv_ssl_port        integer,
     ws_flv_port         integer,
     ws_flv_ssl_port     integer,
+    jtt_proxy_port      integer,
     auto_config         bool                  default false,
     secret              character varying(50),
     type                character varying(50) default 'zlm',

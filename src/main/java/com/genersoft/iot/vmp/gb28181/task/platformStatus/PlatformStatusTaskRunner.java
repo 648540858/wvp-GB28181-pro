@@ -179,7 +179,7 @@ public class PlatformStatusTaskRunner {
             if (taskInfo == null) {
                 continue;
             }
-            Long expire = redisTemplate.getExpire(redisKey);
+            Long expire = redisTemplate.getExpire(redisKey, TimeUnit.MILLISECONDS);
             taskInfo.setExpireTime(expire);
             result.add(taskInfo);
         }

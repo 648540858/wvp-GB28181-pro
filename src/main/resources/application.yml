@@ -2,4 +2,4 @@ spring:
   application:
     name: wvp
   profiles:
-    active: 1078
+    active: 274-dev

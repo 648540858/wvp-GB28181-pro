@@ -118,7 +118,7 @@ public class SubscribeTaskRunner{
             if (taskInfo == null) {
                 continue;
             }
-            Long expire = redisTemplate.getExpire(redisKey);
+            Long expire = redisTemplate.getExpire(redisKey, TimeUnit.SECONDS);
             taskInfo.setExpireTime(expire);
             result.add(taskInfo);
         }

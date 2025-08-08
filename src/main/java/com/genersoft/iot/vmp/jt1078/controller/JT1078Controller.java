@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.controller.bean.*;
@@ -19,17 +19,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -39,17 +31,11 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @Slf4j
@@ -840,7 +826,9 @@ public class JT1078Controller {
             ServletOutputStream outputStream = response.getOutputStream();
             response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 //            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".jpg", "UTF-8"));
-            service.snap(phoneNumber, channelId, outputStream);
+            byte[] data = service.snap(phoneNumber, channelId);
+            outputStream.write(data);
+            outputStream.flush();
         }catch (Exception e) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
         }

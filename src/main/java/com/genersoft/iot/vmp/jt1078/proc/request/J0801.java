@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTMediaEventInfo;
-import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -11,15 +10,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * 多媒体数据上传
@@ -34,7 +25,7 @@ public class J0801 extends Re {
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
 //        try {
 //            if (mediaEventInfo.getMediaData() != null) {
-//                File file = new File("/home/lin/source.jpg");
+//                File file = new File("./source.jpg");
 //                if (file.exists()) {
 //                    file.delete();
 //                }

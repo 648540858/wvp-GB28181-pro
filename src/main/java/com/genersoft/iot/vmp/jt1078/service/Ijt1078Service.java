@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.*;
-import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
@@ -124,7 +122,7 @@ public interface Ijt1078Service {
 
     void recordDownload(String filePath, ServletOutputStream outputStream);
 
-    void snap(String phoneNumber, int channelId, ServletOutputStream outputStream);
+    byte[] snap(String phoneNumber, int channelId);
 
     void uploadOneMedia(String phoneNumber, Long mediaId, ServletOutputStream outputStream, boolean delete);
 

@@ -860,7 +860,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
 
     @Override
-    public void snap(String phoneNumber, int channelId, ServletOutputStream outputStream) {
+    public byte[] snap(String phoneNumber, int channelId) {
         J8801 j8801 = new J8801();
 
         // 设置抓图默认参数
@@ -894,13 +894,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }
         log.info("[JT-抓图] 图片上传完成，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId);
-        try {
-            outputStream.write(mediaEventInfo.getMediaData());
-            outputStream.flush();
-        } catch (IOException e) {
-            log.info("[JT-抓图] 数据写入异常，抓图编号： {}， 设备编号： {}， 通道编号： {}", ids.get(0), phoneNumber, channelId, e);
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "数据写入异常");
-        }
+        return mediaEventInfo.getMediaData();
     }
 
     @Override

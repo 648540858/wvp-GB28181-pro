@@ -333,6 +333,12 @@ export default {
       // 设置请求头
       const headers = new Headers()
       headers.append('access-token', this.$store.getters.token) // 设置授权头，替换YourAccessToken为实际的访问令牌
+
+      let timer = setTimeout(() => {
+        this.$message.error('等待截图超时', { closed: true })
+        controller.abort('timeout')
+      }, 15000)
+
       // 发起  请求
       fetch(fileUrl, {
         method: 'GET',
@@ -341,7 +347,7 @@ export default {
       })
         .then(response => response.blob())
         .then(blob => {
-          console.log(blob)
+          window.clearTimeout(timer)
           // 创建一个虚拟的链接元素，模拟点击下载
           const link = document.createElement('a')
           link.href = window.URL.createObjectURL(blob)
@@ -352,12 +358,10 @@ export default {
           // 移除虚拟链接元素
           document.body.removeChild(link)
         })
-        .catch(error => console.error('下载失败：', error))
-
-      setTimeout(() => {
-        this.$message.error('等待截图超时', { closed: true })
-        controller.abort('timeout')
-        }, 15000)
+        .catch(error => {
+          window.clearTimeout(timer)
+          console.error('下载失败：', error)
+        })
     }
   }
 }

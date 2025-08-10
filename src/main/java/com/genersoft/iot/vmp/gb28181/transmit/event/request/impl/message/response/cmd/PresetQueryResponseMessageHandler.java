@@ -81,9 +81,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 }
                 return;
             }
-            int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
+            Element sumNumElement = rootElement.element("SumNum");
+            int sumNum = Integer.parseInt(sumNumElement.getText());
+            int num = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<Preset> presetQuerySipReqList = new ArrayList<>();
-            if (sumNum > 0) {
+            if (num > 0) {
                 for (Iterator<Element> presetIterator = presetListNumElement.elementIterator(); presetIterator.hasNext(); ) {
                     Element itemListElement = presetIterator.next();
                     Preset presetQuerySipReq = new Preset();

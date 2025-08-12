@@ -499,6 +499,6 @@ create table IF NOT EXISTS wvp_jt_channel (
                                name character varying(255),
                                update_time character varying(50) not null,
                                create_time character varying(50) not null,
-                               constraint uk_jt_device_id_device_id unique (terminal_db_id, channel_id)
+                               constraint uk_jt_channel_id_device_id unique (terminal_db_id, channel_id)
 );
 

@@ -81,8 +81,6 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 }
                 return;
             }
-            Element sumNumElement = rootElement.element("SumNum");
-            int sumNum = Integer.parseInt(sumNumElement.getText());
             int num = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<Preset> presetQuerySipReqList = new ArrayList<>();
             if (num > 0) {
@@ -103,14 +101,8 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-//            if (presetQuerySipReqList.size() == sumNum) {
-//                responseMessageHandler.handMessageEvent(rootElement, presetQuerySipReqList);
-//            }else {
-//                String sn = getText(element, "SN");
-//                addCatch(cmdType + "_" + sn, rootElement, presetQuerySipReqList);
-//            }
             String sn = getText(element, "SN");
-            addCatch(cmdType + "_" + sn, sumNum,  rootElement, presetQuerySipReqList);
+            addCatch(cmdType + "_" + sn, num,  rootElement, presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

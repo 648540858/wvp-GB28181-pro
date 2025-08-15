@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.streamPush.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
+import com.alibaba.excel.exception.ExcelDataConvertException;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -183,12 +184,21 @@ public class StreamPushController {
             ReadSheet readSheet = EasyExcel.readSheet(0).build();
             excelReader.read(readSheet);
             excelReader.finish();
+        }catch (ExcelDataConvertException e) {
+            log.error("通道导入失败：行： {}， 列： {}, 内容： {}", e.getRowIndex(), e.getColumnIndex(), e.getCellData().getStringValue());
+            RequestMessage msg = new RequestMessage();
+            msg.setKey(key);
+            WVPResult<Object> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("数据异常: " + e.getRowIndex() +"行" + e.getColumnIndex() + "列, 内容：" + e.getCellData().getStringValue() );
+            msg.setData(wvpResult);
+            resultHolder.invokeAllResult(msg);
         }catch (Exception e) {
             log.warn("通道导入失败：", e);
             RequestMessage msg = new RequestMessage();
             msg.setKey(key);
             WVPResult<Object> wvpResult = new WVPResult<>();
-            wvpResult.setCode(-1);
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("通道导入失败: " + e.getMessage() );
             msg.setData(wvpResult);
             resultHolder.invokeAllResult(msg);

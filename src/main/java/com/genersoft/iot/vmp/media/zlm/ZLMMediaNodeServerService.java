@@ -375,6 +375,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
         param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
         param.put("recv_stream_id", sendRtpItem.getReceiveStream());
+        param.put("enable_origin_recv_limit", "1");
         if (timeout  != null) {
             param.put("close_delay_ms", timeout);
         }
@@ -410,6 +411,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
         param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
         param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
+        param.put("enable_origin_recv_limit", "1");
         if (!sendRtpItem.isTcp()) {
             // udp模式下开启rtcp保活
             param.put("udp_rtcp_timeout", sendRtpItem.isRtcp() ? "500" : "0");
@@ -436,7 +438,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         param.put("type", sendRtpItem.isUsePs() ? "1" : "0");
         param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
         param.put("recv_stream_id", sendRtpItem.getReceiveStream());
-
+        param.put("enable_origin_recv_limit", "1");
         JSONObject jsonObject = zlmServerFactory.startSendRtpTalk(mediaServer, param, null);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
             log.error("启动监听TCP被动推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));

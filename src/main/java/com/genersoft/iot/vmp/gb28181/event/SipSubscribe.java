@@ -50,14 +50,6 @@ public class SipSubscribe {
         }
     }
 
-    public void updateTimeout(String callId) {
-        SipEvent sipEvent = subscribes.get(callId);
-        if (sipEvent != null) {
-            delayQueue.remove(sipEvent);
-            delayQueue.offer(sipEvent);
-        }
-    }
-
     public interface Event { void response(EventResult eventResult);
     }
 

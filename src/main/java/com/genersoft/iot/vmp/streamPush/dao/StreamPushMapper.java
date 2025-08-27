@@ -53,8 +53,8 @@ public interface StreamPushMapper {
             " 1=1 " +
             " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') escape '/' OR st.stream LIKE concat('%',#{query},'%') escape '/' " +
             " OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/' OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')</if> " +
-            " <if test='pushing == true' > AND st.pushing=1</if>" +
-            " <if test='pushing == false' > AND st.pushing=0 </if>" +
+            " <if test='pushing == true' > AND st.pushing=true</if>" +
+            " <if test='pushing == false' > AND st.pushing=false </if>" +
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
             " order by st.create_time desc" +
             " </script>"})

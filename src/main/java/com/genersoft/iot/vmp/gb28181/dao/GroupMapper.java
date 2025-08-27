@@ -156,7 +156,8 @@ public interface GroupMapper {
             " wcg.name as gb_name," +
             " wcg.business_group as gb_business_group_id," +
             " 1 as gb_parental," +
-            " wcg.parent_device_id as gb_parent_id" +
+            " wcg.parent_device_id as gb_parent_id," +
+            " wcg.civil_code as gb_civil_code" +
             " from wvp_common_group wcg" +
             " left join wvp_platform_group wpg on wpg.group_id = wcg.id" +
             " where wpg.platform_id = #{platformId} " +

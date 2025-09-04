@@ -1,19 +1,28 @@
+FROM ubuntu:24.04 AS builder
+
+
+RUN apt-get update && \
+    apt-get install -y nodejs npm  && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY ./web /build
+WORKDIR /build
+
+RUN npm --registry=https://registry.npmmirror.com install
+RUN npm run build:prod
+
+WORKDIR /src/main/resources
+RUN ls
+
+WORKDIR /src/main/resources/static
+RUN ls
+
 FROM nginx:alpine
 
-RUN apk add --no-cache bash
-
 ARG TZ=Asia/Shanghai
-RUN \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    apk update && \
-    apk add tzdata
-RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
-  echo '${TZ}' > /etc/timezone
 
-RUN rm -rf /etc/nginx/conf.d/*  
-RUN mkdir /opt/dist
-COPY ./dist /opt/dist
-COPY ./conf/nginx.conf /etc/nginx/conf.d
+
+COPY --from=builder /src/main/resources/static /opt/dist
 
 CMD ["nginx","-g","daemon off;"]
 

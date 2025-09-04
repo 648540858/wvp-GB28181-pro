@@ -889,6 +889,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
         subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
         subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
+        if (callback != null) {
+            callback.run(true);
+        }
     }
 
     @Override

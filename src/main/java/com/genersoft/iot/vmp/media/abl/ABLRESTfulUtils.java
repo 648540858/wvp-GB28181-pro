@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import okhttp3.*;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +47,6 @@ public class ABLRESTfulUtils {
             httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
-            if (logger.isDebugEnabled()) {
-                HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
-                    logger.debug("http请求参数：" + message);
-                });
-                logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
-                // OkHttp進行添加攔截器loggingInterceptor
-                httpClientBuilder.addInterceptor(logging);
-            }
             client = httpClientBuilder.build();
         }
         return client;
@@ -376,7 +367,9 @@ public class ABLRESTfulUtils {
     public JSONObject getMediaList(MediaServer mediaServer, String app, String stream) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
-        param.put("stream", stream);
+        if (stream != null) {
+            param.put("stream", stream);
+        }
         return sendPost(mediaServer,"getMediaList", param, null);
     }
 
@@ -402,6 +395,40 @@ public class ABLRESTfulUtils {
 //        }
         sendGetForImg(mediaServer, "getSnap", param, path, fileName);
 
+    }
+
+    public JSONObject addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("url", url);
+        param.put("disableAudio", disableAudio? "1" : "0");
+        param.put("enable_mp4", enableMp4 ? "1" : "0");
+        // TODO rtpType timeout 尚不支持
+        return sendPost(mediaServer,"addStreamProxy", param, null);
+    }
+
+    public JSONObject addFFmpegProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("url", url);
+        param.put("disableAudio", disableAudio);
+        param.put("enable_mp4", enableMp4);
+        // TODO rtpType timeout 尚不支持
+        return sendPost(mediaServer,"addFFmpegProxy", param, null);
+    }
+
+    public JSONObject delStreamProxy(MediaServer mediaServer, String streamKey) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", streamKey);
+        return sendPost(mediaServer,"delStreamProxy", param, null);
+    }
+
+    public JSONObject delFFmpegProxy(MediaServer mediaServer, String streamKey) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", streamKey);
+        return sendPost(mediaServer,"delFFmpegProxy", param, null);
     }
 
 }

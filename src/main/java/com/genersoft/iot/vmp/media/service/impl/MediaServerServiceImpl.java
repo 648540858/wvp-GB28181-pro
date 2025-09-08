@@ -761,16 +761,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
-        if (mediaNodeServerService == null) {
-            log.info("[addFFmpegSource] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-            return WVPResult.fail(ErrorCode.ERROR400);
-        }
-        return mediaNodeServerService.addFFmpegSource(mediaServer, srcUrl, dstUrl, timeoutMs, enableAudio, enableMp4, ffmpegCmdKey);
-    }
-
-    @Override
     public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url,
                                             boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
@@ -998,23 +988,23 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+    public String startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startProxy] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        mediaNodeServerService.startProxy(mediaServer, streamProxy);
+        return mediaNodeServerService.startProxy(mediaServer, streamProxy);
     }
 
     @Override
-    public void stopProxy(MediaServer mediaServer, String streamKey) {
+    public void stopProxy(MediaServer mediaServer, String streamKey, String type) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[stopProxy] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        mediaNodeServerService.stopProxy(mediaServer, streamKey);
+        mediaNodeServerService.stopProxy(mediaServer, streamKey, type);
     }
 
     @Override

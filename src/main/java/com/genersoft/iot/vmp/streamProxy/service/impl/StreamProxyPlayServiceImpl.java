@@ -117,13 +117,14 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
             // hook响应
             callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             subscribe.removeSubscribe(rtpHook);
+            streamProxy.setPulling(true);
+            streamProxyMapper.updateStream(streamProxy);
         });
 
-        mediaServerService.startProxy(mediaServer, streamProxy);
-        if (mediaServerId == null || !mediaServerId.equals(mediaServer.getId())) {
-            streamProxy.setMediaServerId(mediaServer.getId());
-            streamProxyMapper.updateStream(streamProxy);
-        }
+        String key = mediaServerService.startProxy(mediaServer, streamProxy);
+        streamProxy.setStreamKey(key);
+        streamProxy.setMediaServerId(mediaServer.getId());
+        streamProxyMapper.updateStream(streamProxy);
     }
 
     @Override
@@ -152,7 +153,7 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (ObjectUtils.isEmpty(streamProxy.getStreamKey())) {
             mediaServerService.closeStreams(mediaServer, streamProxy.getApp(), streamProxy.getStream());
         }else {
-            mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
+            mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey(), streamProxy.getType());
         }
         streamProxyMapper.removeStream(streamProxy.getId());
     }

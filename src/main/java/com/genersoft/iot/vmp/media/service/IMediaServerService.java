@@ -101,8 +101,6 @@ public interface IMediaServerService {
 
     void closeStreams(MediaServer mediaServerItem, String app, String stream);
 
-    WVPResult<String> addFFmpegSource(MediaServer mediaServerItem, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
-
     WVPResult<String> addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout);
 
     Boolean delFFmpegSource(MediaServer mediaServerItem, String streamKey);
@@ -156,9 +154,9 @@ public interface IMediaServerService {
 
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
 
-    void startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+    String startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
-    void stopProxy(MediaServer mediaServer, String streamKey);
+    void stopProxy(MediaServer mediaServer, String streamKey, String type);
 
     StreamInfo getMediaByAppAndStream(String app, String stream);
 

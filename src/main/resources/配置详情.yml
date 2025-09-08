@@ -88,6 +88,9 @@ server:
         certificate: xx.pem
         #   私钥文件
         certificate-private-key: xx.key
+        # protocols: TLSv1.2
+        # ciphers: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+
 
 # 作为28181服务器的配置
 sip:

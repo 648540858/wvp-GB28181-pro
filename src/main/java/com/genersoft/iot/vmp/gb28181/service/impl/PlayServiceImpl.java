@@ -1010,7 +1010,7 @@ public class PlayServiceImpl implements IPlayService {
                     return;
                 }
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                log.info("[录像下载] 调用成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channel, startTime, endTime);
+                log.info("[录像下载] 调用成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channel.getDeviceId(), startTime, endTime);
             }else {
                 if (callback != null) {
                     callback.run(code, msg, null);

@@ -52,8 +52,6 @@ public interface IMediaNodeServerService {
 
     String getFfmpegCmd(MediaServer mediaServer, String cmdKey);
 
-    WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
-
     WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout);
 
     Boolean delFFmpegSource(MediaServer mediaServer, String streamKey);
@@ -70,9 +68,9 @@ public interface IMediaNodeServerService {
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 
-    void startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+    String startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
-    void stopProxy(MediaServer mediaServer, String streamKey);
+    void stopProxy(MediaServer mediaServer, String streamKey, String type);
 
     List<String> listRtpServer(MediaServer mediaServer);
 

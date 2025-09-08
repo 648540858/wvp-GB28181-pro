@@ -302,22 +302,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey) {
-        JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaServer, srcUrl, dstUrl, timeoutMs, enableAudio, enableMp4, ffmpegCmdKey);
-        if (jsonObject.getInteger("code") != 0) {
-            log.warn("[getFfmpegCmd] 添加FFMPEG代理失败");
-            return WVPResult.fail(ErrorCode.ERROR100.getCode(), "添加FFMPEG代理失败");
-        }else {
-            JSONObject data = jsonObject.getJSONObject("data");
-            if (data == null) {
-                return WVPResult.fail(ErrorCode.ERROR100.getCode(), "代理结果异常： " + jsonObject);
-            }else {
-                return WVPResult.success(data.getString("key"));
-            }
-        }
-    }
-
-    @Override
     public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url,
                                             boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout) {
         JSONObject jsonObject = zlmresTfulUtils.addStreamProxy(mediaServer, app, stream, url, enableAudio, enableMp4, rtpType, timeout);
@@ -461,7 +445,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+    public String startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
         String dstUrl;
         if ("ffmpeg".equalsIgnoreCase(streamProxy.getType())) {
 
@@ -522,6 +506,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             JSONObject data = jsonObject.getJSONObject("data");
             if (data == null) {
                 throw new ControllerException(jsonObject.getInteger("code"), "代理结果异常： " + jsonObject);
+            }else {
+                return data.getString("key");
             }
         }
     }
@@ -546,7 +532,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void stopProxy(MediaServer mediaServer, String streamKey) {
+    public void stopProxy(MediaServer mediaServer, String streamKey, String type) {
         JSONObject jsonObject = zlmresTfulUtils.delStreamProxy(mediaServer, streamKey);
         if (jsonObject == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");

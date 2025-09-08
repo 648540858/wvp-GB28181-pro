@@ -113,7 +113,7 @@ media:
     # [可选] 
     send-port-range: 50502,50506 
 
-  record-path: /opt/media/www/record/
+  record-path: /opt/media/bin/www/record/
   record-day: 7
   record-assist-port: 0
 user-settings:

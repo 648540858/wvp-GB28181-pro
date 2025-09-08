@@ -68,7 +68,7 @@ services:
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   
     volumes:
-      - ./volumes/video:/opt/media/www/record/
+      - ./volumes/video:/opt/media/bin/www/record/
       - ./logs/media:/opt/media/log/
       - ./media/config.ini:/conf/config.ini
     command: [
@@ -140,8 +140,11 @@ services:
     depends_on:
       - polaris-wvp
     volumes:
-      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/templates/:/etc/nginx/templates
       - ./logs/nginx:/var/log/nginx
+    environment:
+      # 流链接的IP
+      Stream_IP: ${Stream_IP}
     networks:
       - media-net
       

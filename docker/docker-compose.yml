@@ -59,9 +59,14 @@ services:
     networks:
       - media-net
     ports:
-      - "10935:10935"
-      - "5540:5540"
-      - "6080:6080"
+     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
+     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
+      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
+     #- "41935:41935/tcp"   # [收流]RTMPS 无效
+      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/tcp"     # [收流]RTSP  
+     #- "45540:45540/tcp"   # [收流]RTSPS 无效
+      - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
+      - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   
     volumes:
       - ./volumes/video:/opt/media/www/record/
       - ./logs/media:/opt/media/log/
@@ -82,13 +87,9 @@ services:
       - media-net
     ports:
       - "18978:18978"
-      - "8116:8116/udp"
-      - "8116:8116/tcp"
+      - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
+      - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
     depends_on:
-      - polaris-redis
-      - polaris-mysql
-      - polaris-media
-    links:
       - polaris-redis
       - polaris-mysql
       - polaris-media
@@ -97,20 +98,37 @@ services:
       - ./logs/wvp:/opt/wvp/logs/
     environment:
       TZ: "Asia/Shanghai"
-      # 本机的IP
-      SIP_HOST: 127.0.0.1
-      STREAM_HOST: 127.0.0.1
+      # 流链接的IP
+      Stream_IP: ${Stream_IP}
+      # SDP里的IP
+      SDP_IP: ${SDP_IP}
+      # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
+      ZLM_HOOK_HOST: polaris-wvp
       ZLM_HOST: polaris-media
-      ZLM_PORT: 6080
       ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
+
+      MediaHttp: ${WebHttp:-8080}
+      #MediaHttps: ${WebHttps:-8081}
+      MediaRtmp: ${MediaRtmp:-10935}
+      MediaRtsp: ${MediaRtsp:-5540}
+      MediaRtp: ${MediaRtp:-10000}
+
       REDIS_HOST: polaris-redis
       REDIS_PORT: 6379
+
       DATABASE_HOST: polaris-mysql
       DATABASE_PORT: 3306
       DATABASE_USER: wvp_user
       DATABASE_PASSWORD: wvp_password
-      # 前端跨域配置，nginx容器所在物理机IP
-      NGINX_HOST: http://127.0.0.1:8080
+
+      SIP_ShowIP: ${SIP_ShowIP}
+      SIP_Port: ${SIP_Port:-8116}
+      SIP_Domain: ${SIP_Domain}
+      SIP_Id: ${SIP_Id}
+      SIP_Password: ${SIP_Password}
+
+      RecordSip: ${RecordSip}
+      RecordPushLive: ${RecordPushLive}
 
   polaris-nginx:
     # 显式指定构建上下文和Dockerfile路径
@@ -118,14 +136,9 @@ services:
       context: ..  # 构建上下文的根路径
       dockerfile: ./docker/nginx/Dockerfile  # 相对于上下文路径的Dockerfile位置
     ports:
-      - "8080:8080"
+      - "${WebHttp:-8080}:8080"
     depends_on:
       - polaris-wvp
-    links:
-      - polaris-wvp
-    environment:
-      WVP_HOST: polaris-wvp
-      WVP_PORT: 18978
     volumes:
       - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
       - ./logs/nginx:/var/log/nginx

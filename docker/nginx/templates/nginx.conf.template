@@ -21,11 +21,11 @@ server {
         proxy_pass http://polaris-wvp:18978;
 
 
-        # ´Ó»·¾³±äÁ¿»ñÈ¡Ô­Ê¼Ö÷»úµØÖ·£¨x.x.x.x£©
+        # ä»ç¯å¢ƒå˜é‡è·å–åŸå§‹ä¸»æœºåœ°å€ï¼ˆx.x.x.xï¼‰
         set $original_host ${Stream_IP};
         
-        # Ö´ĞĞ×Ö·û´®Ìæ»»
-        # ½«Ã½Ìå×ÊÔ´ÎÄ¼şÌæ»»ÎªNginxÊä³öµÄÏà¶ÔµØÖ·
+        # æ‰§è¡Œå­—ç¬¦ä¸²æ›¿æ¢
+        # å°†åª’ä½“èµ„æºæ–‡ä»¶æ›¿æ¢ä¸ºNginxè¾“å‡ºçš„ç›¸å¯¹åœ°å€
         sub_filter "http://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
         sub_filter "http://$original_host:80/index/api/downloadFile" "mediaserver/api/downloadFile";
         sub_filter "https://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
@@ -35,69 +35,69 @@ server {
         sub_filter "https://$original_host/mp4_record" "mp4_record";
         sub_filter "https://$original_host:443/mp4_record" "mp4_record";
         
-        # ÉèÖÃÎªoff±íÊ¾Ìæ»»ËùÓĞÆ¥ÅäÏî£¬¶ø²»½ö½öÊÇµÚÒ»¸ö
+        # è®¾ç½®ä¸ºoffè¡¨ç¤ºæ›¿æ¢æ‰€æœ‰åŒ¹é…é¡¹ï¼Œè€Œä¸ä»…ä»…æ˜¯ç¬¬ä¸€ä¸ª
         sub_filter_once off;
         
-        # È·±£ÏìÓ¦±»ÕıÈ·´¦Àí
-        sub_filter_types application/json;  # Ö»¶ÔJSONÏìÓ¦½øĞĞ´¦Àí
+        # ç¡®ä¿å“åº”è¢«æ­£ç¡®å¤„ç†
+        sub_filter_types application/json;  # åªå¯¹JSONå“åº”è¿›è¡Œå¤„ç†
     }
     
-    # ½«mediaserver/record×ª·¢µ½Ä¿±êµØÖ·
+    # å°†mediaserver/recordè½¬å‘åˆ°ç›®æ ‡åœ°å€
     location /mediaserver/api/downloadFile {
-        # Ä¿±ê·şÎñÆ÷µØÖ·
+        # ç›®æ ‡æœåŠ¡å™¨åœ°å€
         proxy_pass http://polaris-media:80/index/api/downloadFile;
         
-        # ÒÔÏÂÊÇ³£ÓÃµÄ·´Ïò´úÀíÉèÖÃ
+        # ä»¥ä¸‹æ˜¯å¸¸ç”¨çš„åå‘ä»£ç†è®¾ç½®
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # ³¬Ê±ÉèÖÃ£¬¸ù¾İĞèÒªµ÷Õû
+        # è¶…æ—¶è®¾ç½®ï¼Œæ ¹æ®éœ€è¦è°ƒæ•´
         proxy_connect_timeout 300s;
         proxy_send_timeout 300s;
         proxy_read_timeout 300s;
     }
 
-    # ½öÔÊĞí´úÀí/rtp/¿ªÍ·µÄÂ·¾¶
+    # ä»…å…è®¸ä»£ç†/rtp/å¼€å¤´çš„è·¯å¾„
     location ^~ /rtp/ {
-        # ´úÀíµ½ZLMediakit·şÎñ
+        # ä»£ç†åˆ°ZLMediakitæœåŠ¡
         proxy_pass http://polaris-media:80;
         
-        # »ù´¡HTTP´úÀíÅäÖÃ
+        # åŸºç¡€HTTPä»£ç†é…ç½®
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # WebSocketÖ§³ÖÅäÖÃ
+        # WebSocketæ”¯æŒé…ç½®
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         
-        # ³¬Ê±ÉèÖÃ£¬¸ù¾İÊµ¼ÊĞèÇóµ÷Õû
+        # è¶…æ—¶è®¾ç½®ï¼Œæ ¹æ®å®é™…éœ€æ±‚è°ƒæ•´
         proxy_connect_timeout 60s;
         proxy_read_timeout 3600s;
         proxy_send_timeout 60s;
     }
 
-    # ½öÔÊĞí´úÀí/rtp/¿ªÍ·µÄÂ·¾¶
+    # ä»…å…è®¸ä»£ç†/rtp/å¼€å¤´çš„è·¯å¾„
     location ^~ /mp4_record/ {
-        # ´úÀíµ½ZLMediakit·şÎñ
+        # ä»£ç†åˆ°ZLMediakitæœåŠ¡
         proxy_pass http://polaris-media:80;
         
-        # »ù´¡HTTP´úÀíÅäÖÃ
+        # åŸºç¡€HTTPä»£ç†é…ç½®
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # WebSocketÖ§³ÖÅäÖÃ
+        # WebSocketæ”¯æŒé…ç½®
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         
-        # ³¬Ê±ÉèÖÃ£¬¸ù¾İÊµ¼ÊĞèÇóµ÷Õû
+        # è¶…æ—¶è®¾ç½®ï¼Œæ ¹æ®å®é™…éœ€æ±‚è°ƒæ•´
         proxy_connect_timeout 60s;
         proxy_read_timeout 3600s;
         proxy_send_timeout 60s;

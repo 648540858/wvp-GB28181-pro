@@ -62,8 +62,10 @@ services:
      #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
      #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
       - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
+      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/udp"   # [收流]RTMP  
      #- "41935:41935/tcp"   # [收流]RTMPS 无效
       - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/tcp"     # [收流]RTSP  
+      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/udp"     # [收流]RTSP  
      #- "45540:45540/tcp"   # [收流]RTSPS 无效
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   

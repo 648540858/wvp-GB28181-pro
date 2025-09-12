@@ -1,0 +1,110 @@
+server {
+	listen 8080;
+	server_name localhost;
+
+    location / {
+		root /opt/dist;
+        index  index.html index.htm;
+    }
+	location /record_proxy/{
+		 proxy_set_header Host $http_host;
+		 proxy_set_header X-Real-IP $remote_addr;
+		 proxy_set_header REMOTE-HOST $remote_addr;
+		 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		 proxy_pass http://polaris-wvp:18978/;
+	}
+	location  /api/ {
+		proxy_set_header Host $http_host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header REMOTE-HOST $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://polaris-wvp:18978;
+
+
+        # 从环境变量获取原始主机地址（x.x.x.x）
+        set $original_host ${Stream_IP};
+        
+        # 执行字符串替换
+        # 将媒体资源文件替换为Nginx输出的相对地址
+        sub_filter "http://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
+        sub_filter "http://$original_host:80/index/api/downloadFile" "mediaserver/api/downloadFile";
+        sub_filter "https://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
+        sub_filter "https://$original_host:443/index/api/downloadFile" "mediaserver/api/downloadFile";
+        sub_filter "http://$original_host/mp4_record" "mp4_record";
+        sub_filter "http://$original_host:80/mp4_record" "mp4_record";
+        sub_filter "https://$original_host/mp4_record" "mp4_record";
+        sub_filter "https://$original_host:443/mp4_record" "mp4_record";
+        
+        # 设置为off表示替换所有匹配项，而不仅仅是第一个
+        sub_filter_once off;
+        
+        # 确保响应被正确处理
+        sub_filter_types application/json;  # 只对JSON响应进行处理
+    }
+    
+    # 将mediaserver/record转发到目标地址
+    location /mediaserver/api/downloadFile {
+        # 目标服务器地址
+        proxy_pass http://polaris-media:80/index/api/downloadFile;
+        
+        # 以下是常用的反向代理设置
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 超时设置，根据需要调整
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+    }
+
+    # 仅允许代理/rtp/开头的路径
+    location ^~ /rtp/ {
+        # 代理到ZLMediakit服务
+        proxy_pass http://polaris-media:80;
+        
+        # 基础HTTP代理配置
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket支持配置
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时设置，根据实际需求调整
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 60s;
+    }
+
+    # 仅允许代理/rtp/开头的路径
+    location ^~ /mp4_record/ {
+        # 代理到ZLMediakit服务
+        proxy_pass http://polaris-media:80;
+        
+        # 基础HTTP代理配置
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket支持配置
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时设置，根据实际需求调整
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 60s;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+}

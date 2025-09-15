@@ -12,6 +12,8 @@ import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
+import com.genersoft.iot.vmp.media.zlm.hookCallback.HookConstants;
+import com.genersoft.iot.vmp.media.zlm.hookCallback.ZLMHttpHookCallback;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,8 @@ public class ZLMHttpHookListener {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+    @Autowired
+    private ZLMHttpHookCallback zlmHttpHookCallback;
 
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -55,6 +59,8 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
+        zlmHttpHookCallback.sendPost(HookConstants.ON_SERVER_KEEPALIVE, param);
+
         try {
             HookZlmServerKeepaliveEvent event = new HookZlmServerKeepaliveEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
@@ -74,6 +80,7 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
+        zlmHttpHookCallback.sendPost(HookConstants.ON_PLAY, param);
 
         Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
         // 对于播放流进行鉴权
@@ -98,6 +105,8 @@ public class ZLMHttpHookListener {
         JSONObject json = (JSONObject) JSON.toJSON(param);
 
         log.info("[ZLM HOOK]推流鉴权：{}->{}", param.getMediaServerId(), param);
+        zlmHttpHookCallback.sendPost(HookConstants.ON_PUBLISH, param);
+
         // TODO 加快处理速度
 
         String mediaServerId = json.getString("mediaServerId");
@@ -126,6 +135,8 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
+        zlmHttpHookCallback.sendPost(HookConstants.ON_STREAM_CHANGED, param);
+
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
         if (mediaServer == null) {
             return HookResult.SUCCESS();
@@ -171,6 +182,7 @@ public class ZLMHttpHookListener {
 
         log.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
+        zlmHttpHookCallback.sendPost(HookConstants.ON_STREAM_NONE_READER, param);
 
         MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         if (mediaInfo == null) {
@@ -202,7 +214,9 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
     public HookResult onStreamNotFound(@RequestBody OnStreamNotFoundHookParam param) {
+
         log.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+        zlmHttpHookCallback.sendPost(HookConstants.ON_STREAM_NOT_FOUND, param);
 
 
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
@@ -225,6 +239,8 @@ public class ZLMHttpHookListener {
         ZLMServerConfig zlmServerConfig = JSON.to(ZLMServerConfig.class, jsonObject);
         zlmServerConfig.setIp(request.getRemoteAddr());
         log.info("[ZLM HOOK] zlm 启动 " + zlmServerConfig.getGeneralMediaServerId());
+        zlmHttpHookCallback.sendPost(HookConstants.ON_SERVER_STARTED, jsonObject);
+
         try {
             HookZlmServerStartEvent event = new HookZlmServerStartEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(zlmServerConfig.getMediaServerId());
@@ -274,6 +290,7 @@ public class ZLMHttpHookListener {
     public HookResult onRtpServerTimeout(@RequestBody OnRtpServerTimeoutHookParam
             param) {
         log.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
+        zlmHttpHookCallback.sendPost(HookConstants.ON_RTP_SERVER_TIMEOUT, param);
 
         try {
             MediaRtpServerTimeoutEvent event = new MediaRtpServerTimeoutEvent(this);
@@ -297,6 +314,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
         log.info("[ZLM HOOK] 录像完成：时长: {}, {}->{}",param.getTime_len(), param.getMediaServerId(), param.getFile_path());
+        zlmHttpHookCallback.sendPost(HookConstants.ON_RECORD_MP4, param);
 
         try {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());

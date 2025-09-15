@@ -272,7 +272,8 @@ user-settings:
     # 这允许服务器防止客户端发起的基于 TCP 的拒绝服务攻击（即发起数百个客户端事务）。
     # 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
     sip-cache-server-connections: true
-
+    # zlm钩子的回调,只做回调信息传递，回调返回值不处理，解决wvp必须独占zlm的hook的问题，如果为空则不触发回调
+    media-hook-web-url: http://127.0.0.1:8081/mediaHook
 # 关闭在线文档（生产环境建议关闭）
 springdoc:
     api-docs:

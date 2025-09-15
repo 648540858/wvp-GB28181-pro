@@ -85,12 +85,12 @@ public class ZLMServerFactory {
             param.put("ssrc", ssrc);
         }
 
-        JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
-        if (openRtpServerResultJson != null) {
-            if (openRtpServerResultJson.getInteger("code") == 0) {
-                result= openRtpServerResultJson.getInteger("port");
+        ZLMResult<?> zlmResult = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
+        if (zlmResult != null) {
+            if (zlmResult.getCode() == 0) {
+                result= zlmResult.getPort();
             }else {
-                log.error("创建RTP Server 失败 {}: ", openRtpServerResultJson.getString("msg"));
+                log.error("创建RTP Server 失败 {}: ", zlmResult.getMsg());
             }
         }else {
             //  检查ZLM状态
@@ -104,13 +104,12 @@ public class ZLMServerFactory {
         if (serverItem !=null){
             Map<String, Object> param = new HashMap<>();
             param.put("stream_id", streamId);
-            JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(serverItem, param);
-            log.info("关闭RTP Server " +  jsonObject);
-            if (jsonObject != null ) {
-                if (jsonObject.getInteger("code") == 0) {
-                    result = jsonObject.getInteger("hit") >= 1;
+            ZLMResult<?> zlmResult = zlmresTfulUtils.closeRtpServer(serverItem, param);
+            if (zlmResult != null ) {
+                if (zlmResult.getCode() == 0) {
+                    result = zlmResult.getHit() >= 1;
                 }else {
-                    log.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
+                    log.error("关闭RTP Server 失败: " + zlmResult.getMsg());
                 }
             }else {
                 //  检查ZLM状态

@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMResult;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -71,9 +72,10 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (mediaServer == null) {
             return false;
         }
-        JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServer);
-        if (responseJSON != null) {
-            JSONArray data = responseJSON.getJSONArray("data");
+        ZLMResult zlmResult = zlmresTfulUtils.getMediaServerConfig(mediaServer);
+        if (zlmResult != null) {
+            zlmResult.getData()
+            JSONArray data = zlmResult.getJSONArray("data");
             if (data != null && !data.isEmpty()) {
                 ZLMServerConfig zlmServerConfig= JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
                 return zlmServerConfig.getGeneralMediaServerId().equals(mediaServer.getId());
@@ -181,15 +183,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
         List<StreamInfo> streamInfoList = new ArrayList<>();
-        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaServer, app, stream);
-        if (mediaList != null) {
-            if (mediaList.getInteger("code") == 0) {
-                JSONArray dataArray = mediaList.getJSONArray("data");
-                if (dataArray == null) {
+        ZLMResult<?> zlmResult = zlmresTfulUtils.getMediaList(mediaServer, app, stream);
+        if (zlmResult != null) {
+            if (zlmResult.getCode() == 0) {
+                ZLMResult<JSONArray> result = (ZLMResult<JSONArray>)zlmResult;
+                if (result.getData() == null) {
                     return streamInfoList;
                 }
-                for (int i = 0; i < dataArray.size(); i++) {
-                    JSONObject mediaJSON = dataArray.getJSONObject(0);
+                for (int i = 0; i < result.getData().size(); i++) {
+                    JSONObject mediaJSON = result.getData().getJSONObject(0);
                     MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
                     StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(), mediaInfo.getStream(), mediaInfo, callId, true);
                     if (streamInfo != null) {

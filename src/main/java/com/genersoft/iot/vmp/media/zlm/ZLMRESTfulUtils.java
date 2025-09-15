@@ -1,8 +1,11 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.TypeReference;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -16,6 +19,7 @@ import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +32,10 @@ public class ZLMRESTfulUtils {
 
 
     public interface RequestCallback{
-        void run(JSONObject response);
+        void run(String response);
+    }
+    public interface ResultCallback{
+        void run(ZLMResult<?> response);
     }
 
     private OkHttpClient getClient(){
@@ -62,26 +69,22 @@ public class ZLMRESTfulUtils {
 
     }
 
-    public JSONObject sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
-        return sendPost(mediaServerItem, api, param, callback, null);
+    public String sendPost(MediaServer mediaServer, String api, Map<String, Object> param, RequestCallback callback) {
+        return sendPost(mediaServer, api, param, callback, null);
     }
 
 
-    public JSONObject sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
+    public String sendPost(MediaServer mediaServer, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
         OkHttpClient client = getClient(readTimeOut);
 
-        if (mediaServerItem == null) {
+        if (mediaServer == null) {
             return null;
         }
-        String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
-        JSONObject responseJSON = new JSONObject();
-        //-2自定义流媒体 调用错误码
-        responseJSON.put("code",-2);
-        responseJSON.put("msg","流媒体调用失败");
-
+        String url = String.format("http://%s:%s/index/api/%s",  mediaServer.getIp(), mediaServer.getHttpPort(), api);
+        String result = null;
         FormBody.Builder builder = new FormBody.Builder();
-        builder.add("secret",mediaServerItem.getSecret());
-        if (param != null && param.keySet().size() > 0) {
+        builder.add("secret",mediaServer.getSecret());
+        if (param != null && !param.isEmpty()) {
             for (String key : param.keySet()){
                 if (param.get(key) != null) {
                     builder.add(key, param.get(key).toString());
@@ -101,8 +104,7 @@ public class ZLMRESTfulUtils {
                     if (response.isSuccessful()) {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
-                            String responseStr = responseBody.string();
-                            responseJSON = JSON.parseObject(responseStr);
+                            result = responseBody.string();
                         }
                     }else {
                         response.close();
@@ -131,7 +133,7 @@ public class ZLMRESTfulUtils {
                         if (response.isSuccessful()) {
                             try {
                                 String responseStr = Objects.requireNonNull(response.body()).string();
-                                callback.run(JSON.parseObject(responseStr));
+                                callback.run(responseStr);
                             } catch (IOException e) {
                                 log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
@@ -158,20 +160,18 @@ public class ZLMRESTfulUtils {
                 });
             }
 
-
-
-        return responseJSON;
+        return result;
     }
 
-    public void sendGetForImg(MediaServer mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
-        String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
+    public void sendGetForImg(MediaServer mediaServer, String api, Map<String, Object> params, String targetPath, String fileName) {
+        String url = String.format("http://%s:%s/index/api/%s", mediaServer.getIp(), mediaServer.getHttpPort(), api);
         HttpUrl parseUrl = HttpUrl.parse(url);
         if (parseUrl == null) {
             return;
         }
         HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
 
-        httpBuilder.addQueryParameter("secret", mediaServerItem.getSecret());
+        httpBuilder.addQueryParameter("secret", mediaServer.getSecret());
         if (params != null) {
             for (Map.Entry<String, Object> param : params.entrySet()) {
                 httpBuilder.addQueryParameter(param.getKey(), param.getValue().toString());
@@ -217,7 +217,7 @@ public class ZLMRESTfulUtils {
         }
     }
 
-    public JSONObject isMediaOnline(MediaServer mediaServerItem, String app, String stream, String schema){
+    public ZLMResult<?> isMediaOnline(MediaServer mediaServer, String app, String stream, String schema){
         Map<String, Object> param = new HashMap<>();
         if (app != null) {
             param.put("app",app);
@@ -229,10 +229,15 @@ public class ZLMRESTfulUtils {
             param.put("schema",schema);
         }
         param.put("vhost","__defaultVhost__");
-        return sendPost(mediaServerItem, "isMediaOnline", param, null);
+        String response = sendPost(mediaServer, "isMediaOnline", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject getMediaList(MediaServer mediaServerItem, String app, String stream, String schema, RequestCallback callback){
+    public ZLMResult<?> getMediaList(MediaServer mediaServer, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
         if (app != null) {
             param.put("app",app);
@@ -244,106 +249,202 @@ public class ZLMRESTfulUtils {
             param.put("schema",schema);
         }
         param.put("vhost","__defaultVhost__");
-        return sendPost(mediaServerItem, "getMediaList",param, callback);
+        String response = sendPost(mediaServer, "getMediaList",param, callback);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<JSONArray>>() {});
+        }
     }
 
-    public JSONObject getMediaList(MediaServer mediaServerItem, String app, String stream){
-        return getMediaList(mediaServerItem, app, stream,null,  null);
+    public ZLMResult<?> getMediaList(MediaServer mediaServer, String app, String stream){
+        return getMediaList(mediaServer, app, stream,null,  null);
     }
 
-    public JSONObject getMediaList(MediaServer mediaServerItem, RequestCallback callback){
-        return sendPost(mediaServerItem, "getMediaList",null, callback);
-    }
-
-    public JSONObject getMediaInfo(MediaServer mediaServerItem, String app, String schema, String stream){
+    public ZLMResult<?> getMediaInfo(MediaServer mediaServer, String app, String schema, String stream){
         Map<String, Object> param = new HashMap<>();
         param.put("app",app);
         param.put("schema",schema);
         param.put("stream",stream);
         param.put("vhost","__defaultVhost__");
-        return sendPost(mediaServerItem, "getMediaInfo",param, null);
+
+        String response = sendPost(mediaServer, "getMediaInfo",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<MediaInfo>>() {});
+        }
     }
 
-    public JSONObject getRtpInfo(MediaServer mediaServerItem, String stream_id){
+    public ZLMResult<?> getRtpInfo(MediaServer mediaServer, String stream_id){
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id",stream_id);
-        return sendPost(mediaServerItem, "getRtpInfo",param, null);
+        String response = sendPost(mediaServer, "getRtpInfo",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_sec,
+    public ZLMResult<?> addFFmpegSource(MediaServer mediaServer, String src_url, String dst_url, Integer timeout_sec,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
-        log.info(src_url);
-        log.info(dst_url);
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);
         param.put("timeout_ms", timeout_sec*1000);
         param.put("enable_mp4", enable_mp4);
         param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
-        return sendPost(mediaServerItem, "addFFmpegSource",param, null);
+
+        String response = sendPost(mediaServer, "addFFmpegSource",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+        }
     }
 
-    public JSONObject delFFmpegSource(MediaServer mediaServerItem, String key){
+    public ZLMResult<?> delFFmpegSource(MediaServer mediaServer, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
-        return sendPost(mediaServerItem, "delFFmpegSource",param, null);
+
+        String response = sendPost(mediaServer, "delFFmpegSource",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+        }
     }
 
-    public JSONObject delStreamProxy(MediaServer mediaServerItem, String key){
+    public ZLMResult<?> delStreamProxy(MediaServer mediaServer, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
-        return sendPost(mediaServerItem, "delStreamProxy",param, null);
+        String response = sendPost(mediaServer, "delStreamProxy",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+        }
     }
 
-    public JSONObject getMediaServerConfig(MediaServer mediaServerItem){
-        return sendPost(mediaServerItem, "getServerConfig",null, null);
+    public ZLMResult<?> getMediaServerConfig(MediaServer mediaServer  ){
+
+        String response = sendPost(mediaServer, "getServerConfig",null, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<List<ZLMServerConfig>>>() {});
+        }
     }
 
-    public JSONObject setServerConfig(MediaServer mediaServerItem, Map<String, Object> param){
-        return sendPost(mediaServerItem,"setServerConfig",param, null);
+    public ZLMResult<?> setServerConfig(MediaServer mediaServer, Map<String, Object> param){
+        String response = sendPost(mediaServer, "setServerConfig",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject openRtpServer(MediaServer mediaServerItem, Map<String, Object> param){
-        return sendPost(mediaServerItem, "openRtpServer",param, null);
+    public ZLMResult<?> openRtpServer(MediaServer mediaServer, Map<String, Object> param){
+        String response = sendPost(mediaServer, "openRtpServer",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject closeRtpServer(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "closeRtpServer",param, null);
+    public ZLMResult<?> closeRtpServer(MediaServer mediaServer, Map<String, Object> param) {
+        String response = sendPost(mediaServer, "closeRtpServer",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public void closeRtpServer(MediaServer mediaServerItem, Map<String, Object> param, RequestCallback callback) {
-        sendPost(mediaServerItem, "closeRtpServer",param, callback);
+    public void closeRtpServer(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
+        sendPost(mediaServer, "closeRtpServer",param, (response -> {
+            if (response == null) {
+                callback.run(ZLMResult.getFailForMediaServer());
+            }else {
+                callback.run(JSON.parseObject(response, ZLMResult.class));
+            }
+        }));
+
     }
 
-    public JSONObject listRtpServer(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "listRtpServer",null, null);
+    public ZLMResult<?> listRtpServer(MediaServer mediaServer) {
+        String response = sendPost(mediaServer, "listRtpServer",null, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<List<RtpServerResult>>>() {});
+        }
     }
 
-    public JSONObject startSendRtp(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "startSendRtp",param, null);
+    public ZLMResult<?> startSendRtp(MediaServer mediaServer, Map<String, Object> param) {
+        String response = sendPost(mediaServer, "startSendRtp",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "startSendRtpPassive",param, null);
+    public ZLMResult<?> startSendRtpPassive(MediaServer mediaServer, Map<String, Object> param) {
+        String response = sendPost(mediaServer, "startSendRtpPassive",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object> param, RequestCallback callback) {
-        return sendPost(mediaServerItem, "startSendRtpPassive",param, callback);
+    public ZLMResult<?> startSendRtpPassive(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
+        String response = sendPost(mediaServer, "startSendRtpPassive",param, (responseStr -> {
+            if (responseStr == null) {
+                callback.run(ZLMResult.getFailForMediaServer());
+            }else {
+                callback.run(JSON.parseObject(responseStr, ZLMResult.class));
+            }
+        }));
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject startSendRtpTalk(MediaServer mediaServerItem, Map<String, Object> param, RequestCallback callback) {
-        return sendPost(mediaServerItem, "startSendRtpTalk",param, callback);
+    public ZLMResult<?> startSendRtpTalk(MediaServer mediaServer, Map<String, Object> param, RequestCallback callback) {
+        String response = sendPost(mediaServer, "startSendRtpTalk",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject stopSendRtp(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "stopSendRtp",param, null);
+    public ZLMResult<?> stopSendRtp(MediaServer mediaServer, Map<String, Object> param) {
+        String response = sendPost(mediaServer, "stopSendRtp",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject restartServer(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "restartServer",null, null);
+    public ZLMResult<?> restartServer(MediaServer mediaServer) {
+        String response = sendPost(mediaServer, "restartServer",null, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
+    public ZLMResult<?> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -355,95 +456,148 @@ public class ZLMRESTfulUtils {
         param.put("timeout_sec", timeOut);
         // 拉流重试次数,默认为3
         param.put("retry_count", 3);
-        return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
+
+        String response = sendPost(mediaServer, "addStreamProxy",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+        }
     }
 
-    public JSONObject closeStreams(MediaServer mediaServerItem, String app, String stream) {
+    public ZLMResult<?> closeStreams(MediaServer mediaServer, String app, String stream) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("force", 1);
-        return sendPost(mediaServerItem, "close_streams",param, null);
+
+        String response = sendPost(mediaServer, "close_streams",param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+        }
     }
 
-    public JSONObject getAllSession(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "getAllSession",null, null);
+    public ZLMResult<?> getAllSession(MediaServer mediaServer) {
+        String response = sendPost(mediaServer, "getAllSession",null, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, new TypeReference<ZLMResult<SessionData>>() {});
+        }
     }
 
-    public void kickSessions(MediaServer mediaServerItem, String localPortSStr) {
+    public void kickSessions(MediaServer mediaServer, String localPortSStr) {
         Map<String, Object> param = new HashMap<>();
         param.put("local_port", localPortSStr);
-        sendPost(mediaServerItem, "kick_sessions",param, null);
+        sendPost(mediaServer, "kick_sessions",param, null);
     }
 
-    public void getSnap(MediaServer mediaServerItem, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public void getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>(3);
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
         param.put("async", 1);
-        sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
+        sendGetForImg(mediaServer, "getSnap", param, targetPath, fileName);
     }
 
-    public JSONObject pauseRtpCheck(MediaServer mediaServerItem, String streamId) {
+    public ZLMResult<?> pauseRtpCheck(MediaServer mediaServer, String streamId) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "pauseRtpCheck",param, null);
+        String response = sendPost(mediaServer, "pauseRtpCheck", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject resumeRtpCheck(MediaServer mediaServerItem, String streamId) {
+    public ZLMResult<?> resumeRtpCheck(MediaServer mediaServer, String streamId) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "resumeRtpCheck",param, null);
+        String response = sendPost(mediaServer, "resumeRtpCheck", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject connectRtpServer(MediaServer mediaServerItem, String dst_url, int dst_port, String stream_id) {
+    public ZLMResult<?> connectRtpServer(MediaServer mediaServer, String dst_url, int dst_port, String stream_id) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("dst_url", dst_url);
         param.put("dst_port", dst_port);
         param.put("stream_id", stream_id);
-        return sendPost(mediaServerItem, "connectRtpServer",param, null);
+        String response = sendPost(mediaServer, "connectRtpServer", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc) {
+    public ZLMResult<?> updateRtpServerSSRC(MediaServer mediaServer, String streamId, String ssrc) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("ssrc", ssrc);
         param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "updateRtpServerSSRC",param, null);
+
+        String response = sendPost(mediaServer, "updateRtpServerSSRC", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName) {
+    public ZLMResult<?> deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("period", date);
         param.put("name", fileName);
-        return sendPost(mediaServerItem, "deleteRecordDirectory",param, null);
+        String response = sendPost(mediaServer, "deleteRecordDirectory", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+    public ZLMResult<?> loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("file_path", datePath);
         param.put("file_repeat", "0");
-        return sendPost(mediaServer, "loadMP4File",param, null);
+        String response = sendPost(mediaServer, "loadMP4File", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject setRecordSpeed(MediaServer mediaServer, String app, String stream, int speed, String schema) {
+    public ZLMResult<?> setRecordSpeed(MediaServer mediaServer, String app, String stream, int speed, String schema) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("speed", speed);
         param.put("schema", schema);
-        return sendPost(mediaServer, "setRecordSpeed",param, null);
+        String response = sendPost(mediaServer, "setRecordSpeed", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 
-    public JSONObject seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
+    public ZLMResult<?> seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -451,6 +605,12 @@ public class ZLMRESTfulUtils {
         BigDecimal bigDecimal = new BigDecimal(stamp);
         param.put("stamp", bigDecimal);
         param.put("schema", schema);
-        return sendPost(mediaServer, "seekRecordStamp",param, null);
+
+        String response = sendPost(mediaServer, "seekRecordStamp", param, null);
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            return JSON.parseObject(response, ZLMResult.class);
+        }
     }
 }

@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,18 +33,18 @@ public class ZLMServerFactory {
     public int createRTPServer(MediaServer mediaServerItem, String app, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
         int result = -1;
         // 查询此rtp server 是否已经存在
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
-        if(rtpInfo.getInteger("code") == 0){
-            if (rtpInfo.getBoolean("exist")) {
-                result = rtpInfo.getInteger("local_port");
+        ZLMResult<?> rtpInfoResult = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
+        if(rtpInfoResult.getCode() == 0){
+            if (rtpInfoResult.getExist() != null && rtpInfoResult.getExist()) {
+                result = rtpInfoResult.getLocal_port();
                 if (result == 0) {
                     // 此时说明rtpServer已经创建但是流还没有推上来
                     // 此时重新打开rtpServer
                     Map<String, Object> param = new HashMap<>();
                     param.put("stream_id", streamId);
-                    JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
-                    if (jsonObject != null ) {
-                        if (jsonObject.getInteger("code") == 0) {
+                    ZLMResult<?> zlmResult = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
+                    if (zlmResult != null ) {
+                        if (zlmResult.getCode() == 0) {
                             return createRTPServer(mediaServerItem, streamId, app, ssrc, port,onlyAuto, reUsePort,disableAudio, tcpMode);
                         }else {
                             log.warn("[开启rtpServer], 重启RtpServer错误");
@@ -51,7 +53,7 @@ public class ZLMServerFactory {
                 }
                 return result;
             }
-        }else if(rtpInfo.getInteger("code") == -2){
+        }else if(rtpInfoResult.getCode() == -2){
             return result;
         }
 
@@ -174,13 +176,14 @@ public class ZLMServerFactory {
      * 查询待转推的流是否就绪
      */
     public Boolean isStreamReady(MediaServer mediaServerItem, String app, String streamId) {
-        JSONObject mediaInfo = zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId);
-        if (mediaInfo == null || (mediaInfo.getInteger("code") == -2)) {
+        ZLMResult<?> zlmResult = zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId);
+        if (zlmResult == null || zlmResult.getCode() == -2) {
             return null;
         }
-        return  (mediaInfo.getInteger("code") == 0
-                && mediaInfo.getJSONArray("data") != null
-                && mediaInfo.getJSONArray("data").size() > 0);
+        ZLMResult<JSONArray> result = (ZLMResult<JSONArray>) zlmResult;
+        return  (result.getCode() == 0
+                && result.getData() != null
+                && !result.getData().isEmpty());
     }
 
     /**

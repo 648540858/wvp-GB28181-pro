@@ -398,6 +398,8 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platformInDb.getServerGBId());
             // 注销后出发平台离线， 如果是启用的平台，那么下次丢失检测会检测到并重新注册上线
             sendUnRegister(platformInDb, transactionInfo);
+        }else if (platform.isEnable()) {
+            sendRegister(platform, null);
         }
 
         return false;

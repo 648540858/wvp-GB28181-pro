@@ -2,8 +2,8 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
-import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import lombok.extern.slf4j.Slf4j;
@@ -233,11 +233,16 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> getMediaList(MediaServer mediaServer, String app, String stream, String schema, RequestCallback callback){
+    public ZLMResult<JSONArray> getMediaList(MediaServer mediaServer, String app, String stream, String schema, ResultCallback callback){
         Map<String, Object> param = new HashMap<>();
         if (app != null) {
             param.put("app",app);
@@ -249,19 +254,39 @@ public class ZLMRESTfulUtils {
             param.put("schema",schema);
         }
         param.put("vhost","__defaultVhost__");
-        String response = sendPost(mediaServer, "getMediaList",param, callback);
+        String response = sendPost(mediaServer, "getMediaList",param, (responseStr -> {
+            if (callback == null) {
+                return;
+            }
+            if (responseStr == null) {
+                callback.run(ZLMResult.getFailForMediaServer());
+            }else {
+                ZLMResult<JSONArray> zlmResult = JSON.parseObject(responseStr, new TypeReference<ZLMResult<JSONArray>>() {});
+                if (zlmResult == null) {
+                    callback.run(ZLMResult.getFailForMediaServer());
+                }else {
+                    callback.run(zlmResult);
+                }
+
+            }
+        }));
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<JSONArray>>() {});
+            ZLMResult<JSONArray> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<JSONArray>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> getMediaList(MediaServer mediaServer, String app, String stream){
+    public ZLMResult<JSONArray> getMediaList(MediaServer mediaServer, String app, String stream){
         return getMediaList(mediaServer, app, stream,null,  null);
     }
 
-    public ZLMResult<?> getMediaInfo(MediaServer mediaServer, String app, String schema, String stream){
+    public ZLMResult<JSONObject> getMediaInfo(MediaServer mediaServer, String app, String schema, String stream){
         Map<String, Object> param = new HashMap<>();
         param.put("app",app);
         param.put("schema",schema);
@@ -272,7 +297,15 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<MediaInfo>>() {});
+            JSONObject jsonObject = JSON.parseObject(response);
+            if (jsonObject == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                ZLMResult<JSONObject> zlmResult = new ZLMResult<>();
+                zlmResult.setCode(0);
+                zlmResult.setData(jsonObject);
+                return zlmResult;
+            }
         }
     }
 
@@ -283,11 +316,16 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> addFFmpegSource(MediaServer mediaServer, String src_url, String dst_url, Integer timeout_sec,
+    public ZLMResult<StreamProxyResult> addFFmpegSource(MediaServer mediaServer, String src_url, String dst_url, Integer timeout_sec,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
@@ -300,11 +338,16 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+            ZLMResult<StreamProxyResult> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> delFFmpegSource(MediaServer mediaServer, String key){
+    public ZLMResult<FlagData> delFFmpegSource(MediaServer mediaServer, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
 
@@ -312,28 +355,43 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            ZLMResult<FlagData> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> delStreamProxy(MediaServer mediaServer, String key){
+    public ZLMResult<FlagData> delStreamProxy(MediaServer mediaServer, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
         String response = sendPost(mediaServer, "delStreamProxy",param, null);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            ZLMResult<FlagData> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> getMediaServerConfig(MediaServer mediaServer  ){
+    public ZLMResult<List<JSONObject>> getMediaServerConfig(MediaServer mediaServer  ){
 
         String response = sendPost(mediaServer, "getServerConfig",null, null);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<List<ZLMServerConfig>>>() {});
+            ZLMResult<List<JSONObject>> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<List<JSONObject>>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -342,7 +400,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -351,7 +414,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -360,12 +428,20 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
     public void closeRtpServer(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
         sendPost(mediaServer, "closeRtpServer",param, (response -> {
+            if (callback == null) {
+                return;
+            }
             if (response == null) {
                 callback.run(ZLMResult.getFailForMediaServer());
             }else {
@@ -375,12 +451,17 @@ public class ZLMRESTfulUtils {
 
     }
 
-    public ZLMResult<?> listRtpServer(MediaServer mediaServer) {
+    public ZLMResult<List<RtpServerResult>> listRtpServer(MediaServer mediaServer) {
         String response = sendPost(mediaServer, "listRtpServer",null, null);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<List<RtpServerResult>>>() {});
+            ZLMResult<List<RtpServerResult>> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<List<RtpServerResult>>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -389,7 +470,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -398,12 +484,48 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
     public ZLMResult<?> startSendRtpPassive(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
         String response = sendPost(mediaServer, "startSendRtpPassive",param, (responseStr -> {
+            if (callback == null) {
+                return;
+            }
+            if (responseStr == null) {
+                callback.run(ZLMResult.getFailForMediaServer());
+            }else {
+                ZLMResult<?> zlmResult = JSON.parseObject(responseStr, ZLMResult.class);
+                if (zlmResult == null) {
+                    callback.run(ZLMResult.getFailForMediaServer());
+                }else {
+                    callback.run(zlmResult);
+                }
+            }
+        }));
+        if (response == null) {
+            return ZLMResult.getFailForMediaServer();
+        }else {
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
+        }
+    }
+
+    public ZLMResult<?> startSendRtpTalk(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
+        String response = sendPost(mediaServer, "startSendRtpTalk",param, (responseStr -> {
+            if (callback == null) {
+                return;
+            }
             if (responseStr == null) {
                 callback.run(ZLMResult.getFailForMediaServer());
             }else {
@@ -413,16 +535,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
-        }
-    }
-
-    public ZLMResult<?> startSendRtpTalk(MediaServer mediaServer, Map<String, Object> param, RequestCallback callback) {
-        String response = sendPost(mediaServer, "startSendRtpTalk",param, null);
-        if (response == null) {
-            return ZLMResult.getFailForMediaServer();
-        }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -431,7 +549,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -440,11 +563,16 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
+    public ZLMResult<StreamProxyResult> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -461,11 +589,16 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+            ZLMResult<StreamProxyResult> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<StreamProxyResult>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> closeStreams(MediaServer mediaServer, String app, String stream) {
+    public ZLMResult<FlagData> closeStreams(MediaServer mediaServer, String app, String stream) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -476,16 +609,26 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            ZLMResult<FlagData> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<FlagData>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
-    public ZLMResult<?> getAllSession(MediaServer mediaServer) {
+    public ZLMResult<List<SessionData>> getAllSession(MediaServer mediaServer) {
         String response = sendPost(mediaServer, "getAllSession",null, null);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, new TypeReference<ZLMResult<SessionData>>() {});
+            ZLMResult<List<SessionData>> zlmResult = JSON.parseObject(response, new TypeReference<ZLMResult<List<SessionData>>>() {});
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -511,7 +654,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -522,7 +670,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -535,7 +688,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -548,7 +706,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -563,7 +726,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -578,7 +746,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -593,7 +766,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 
@@ -610,7 +788,12 @@ public class ZLMRESTfulUtils {
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
-            return JSON.parseObject(response, ZLMResult.class);
+            ZLMResult<?> zlmResult = JSON.parseObject(response, ZLMResult.class);
+            if (zlmResult == null) {
+                return ZLMResult.getFailForMediaServer();
+            }else {
+                return zlmResult;
+            }
         }
     }
 }

@@ -1,17 +1,17 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.ConfigKeyId;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerStartEvent;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,17 +131,18 @@ public class ABLMediaServerStatusManger {
                     continue;
                 }
                 logger.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
-                JSONObject responseJson = ablResTfulUtils.getServerConfig(mediaServerItem);
+                ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
                 AblServerConfig ablServerConfig = null;
-                if (responseJson == null) {
+                if (ablResult.getCode() != 0) {
                     logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     continue;
                 }
-                JSONArray data = responseJson.getJSONArray("params");
-                if (data == null || data.isEmpty()) {
+                JSONArray params = ablResult.getParams();
+
+                if (params == null || params.isEmpty()) {
                     logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                 }else {
-                    ablServerConfig = AblServerConfig.getInstance(data);
+                    ablServerConfig = AblServerConfig.getInstance(params);
                     initPort(mediaServerItem, ablServerConfig);
                     online(mediaServerItem, ablServerConfig);
                 }
@@ -153,19 +154,19 @@ public class ABLMediaServerStatusManger {
                     continue;
                 }
                 logger.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
-                JSONObject responseJson = ablResTfulUtils.getServerConfig(mediaServerItem);
+                ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
                 AblServerConfig ablServerConfig = null;
-                if (responseJson == null) {
+                if (ablResult.getCode() != 0) {
                     logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
                     continue;
                 }
-                JSONArray data = responseJson.getJSONArray("params");
-                if (data == null || data.isEmpty()) {
+                JSONArray params = ablResult.getParams();
+                if (params == null || params.isEmpty()) {
                     logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
                 }else {
-                    ablServerConfig = AblServerConfig.getInstance(data);
+                    ablServerConfig = AblServerConfig.getInstance(params);
                     initPort(mediaServerItem, ablServerConfig);
                     online(mediaServerItem, ablServerConfig);
                 }
@@ -184,8 +185,8 @@ public class ABLMediaServerStatusManger {
             mediaServerService.update(mediaServerItem);
             if(mediaServerItem.isAutoConfig()) {
                 if (config == null) {
-                    JSONObject responseJSON = ablResTfulUtils.getServerConfig(mediaServerItem);
-                    JSONArray data = responseJSON.getJSONArray("params");
+                    ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
+                    JSONArray data = ablResult.getParams();
                     if (data != null && !data.isEmpty()) {
                         config = AblServerConfig.getInstance(data);
                     }
@@ -247,11 +248,11 @@ public class ABLMediaServerStatusManger {
         try {
             if (config.getHookEnable() == 0) {
                 logger.info("[媒体服务节点-ABL]  开启HOOK功能 ：{}", mediaServerItem.getId());
-                JSONObject responseJSON = ablResTfulUtils.setConfigParamValue(mediaServerItem, "hook_enable", "1");
-                if (responseJSON.getInteger("code") == 0) {
+                ABLResult ablResult = ablResTfulUtils.setConfigParamValue(mediaServerItem, "hook_enable", "1");
+                if (ablResult.getCode() == 0) {
                     logger.info("[媒体服务节点-ABL]  开启HOOK功能成功 ：{}", mediaServerItem.getId());
                 }else {
-                    logger.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}->{}", mediaServerItem.getId(), responseJSON.getString("memo"));
+                    logger.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}->{}", mediaServerItem.getId(), ablResult.getMemo());
                 }
             }
         }catch (Exception e) {
@@ -286,11 +287,11 @@ public class ABLMediaServerStatusManger {
                             field.setAccessible(true);
                             // 利用反射获取值后对比是否与配置中相同，不同则进行设置
                             if (!hookUrl.equals(field.get(config))) {
-                                JSONObject responseJSON = ablResTfulUtils.setConfigParamValue(mediaServerItem, hook, hookUrl);
-                                if (responseJSON.getInteger("code") == 0) {
+                                ABLResult ablResult = ablResTfulUtils.setConfigParamValue(mediaServerItem, hook, hookUrl);
+                                if (ablResult.getCode() == 0) {
                                     logger.info("[媒体服务节点-ABL]  设置HOOK {} 成功 ：{}", hook, mediaServerItem.getId());
                                 }else {
-                                    logger.info("[媒体服务节点-ABL]  设置HOOK {} 失败 ：{}->{}", hook, mediaServerItem.getId(), responseJSON.getString("memo"));
+                                    logger.info("[媒体服务节点-ABL]  设置HOOK {} 失败 ：{}->{}", hook, mediaServerItem.getId(), ablResult.getMemo());
                                 }
                             }
                         }

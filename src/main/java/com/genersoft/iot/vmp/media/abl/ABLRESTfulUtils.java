@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,10 @@ public class ABLRESTfulUtils {
     private OkHttpClient client;
 
     public interface RequestCallback{
-        void run(JSONObject response);
+        void run(String response);
+    }
+    public interface ResultCallback{
+        void run(ABLResult response);
     }
 
     private OkHttpClient getClient(){
@@ -53,26 +56,23 @@ public class ABLRESTfulUtils {
 
     }
 
-    public JSONObject sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
+    public String sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
         return sendPost(mediaServerItem, api, param, callback, null);
     }
 
 
-    public JSONObject sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
+    public String sendPost(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
         OkHttpClient client = getClient(readTimeOut);
 
         if (mediaServerItem == null) {
             return null;
         }
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
-        JSONObject responseJSON = new JSONObject();
-        //-2自定义流媒体 调用错误码
-        responseJSON.put("code",-2);
-        responseJSON.put("msg","流媒体调用失败");
+        String result = null;
 
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("secret",mediaServerItem.getSecret());
-        if (param != null && param.keySet().size() > 0) {
+        if (param != null && !param.isEmpty()) {
             for (String key : param.keySet()){
                 if (param.get(key) != null) {
                     builder.add(key, param.get(key).toString());
@@ -93,8 +93,7 @@ public class ABLRESTfulUtils {
                     if (response.isSuccessful()) {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
-                            String responseStr = responseBody.string();
-                            responseJSON = JSON.parseObject(responseStr);
+                            result = responseBody.string();
                         }
                     }else {
                         response.close();
@@ -123,7 +122,7 @@ public class ABLRESTfulUtils {
                         if (response.isSuccessful()) {
                             try {
                                 String responseStr = Objects.requireNonNull(response.body()).string();
-                                callback.run(JSON.parseObject(responseStr));
+                                callback.run(responseStr);
                             } catch (IOException e) {
                                 logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
@@ -149,19 +148,16 @@ public class ABLRESTfulUtils {
                     }
                 });
             }
-
-
-
-        return responseJSON;
+        return result;
     }
 
-    public JSONObject sendGet(MediaServer mediaServerItem, String api, Map<String, Object> param) {
+    public String sendGet(MediaServer mediaServerItem, String api, Map<String, Object> param) {
         OkHttpClient client = getClient();
 
         if (mediaServerItem == null) {
             return null;
         }
-        JSONObject responseJSON = null;
+        String result = null;
         StringBuilder stringBuffer = new StringBuilder();
         stringBuffer.append(String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api));
         if (param != null && !param.keySet().isEmpty()) {
@@ -188,8 +184,7 @@ public class ABLRESTfulUtils {
             if (response.isSuccessful()) {
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
-                    String responseStr = responseBody.string();
-                    responseJSON = JSON.parseObject(responseStr);
+                    result = responseBody.string();
                 }
             }else {
                 response.close();
@@ -201,10 +196,7 @@ public class ABLRESTfulUtils {
         }catch (IOException e) {
             logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
-
-
-
-        return responseJSON;
+        return result;
     }
 
     public void sendGetForImg(MediaServer mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
@@ -330,32 +322,55 @@ public class ABLRESTfulUtils {
             param.put("enable_mp4", 1);
         }
 
-        JSONObject jsonObject = sendPost(mediaServer, "openRtpServer", param, null);
-        if (jsonObject.getInteger("code") == 0) {
-            return jsonObject.getInteger("port");
-        }else {
+        String response = sendPost(mediaServer, "openRtpServer", param, null);
+        if (response == null) {
             return 0;
+        }else {
+            ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+            if (ablResult.getCode() == 0) {
+                return ablResult.getPort();
+            }else {
+                return 0;
+            }
         }
     }
 
-    public JSONObject closeStreams(MediaServer mediaServerItem, String app, String stream) {
+    public ABLResult closeStreams(MediaServer mediaServerItem, String app, String stream) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("force", 1);
-        return sendPost(mediaServerItem, "close_streams",param, null);
+        String response = sendPost(mediaServerItem, "close_streams", param, null);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject getServerConfig(MediaServer mediaServerItem){
-        return sendPost(mediaServerItem, "getServerConfig",null, null);
+    public ABLResult getServerConfig(MediaServer mediaServerItem){
+        String response = sendPost(mediaServerItem, "getServerConfig", null, null);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
+    public ABLResult setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
         Map<String, Object> param =  new HashMap<>();
         param.put("key", key);
         param.put("value", value);
-        return sendGet(mediaServerItem,"setConfigParamValue", param);
+        String response = sendGet(mediaServerItem, "setConfigParamValue", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
     public void stopSendRtp(MediaServer mediaServer,String key) {
@@ -364,22 +379,35 @@ public class ABLRESTfulUtils {
         sendPost(mediaServer,"stopSendRtp", param, null);
     }
 
-    public JSONObject getMediaList(MediaServer mediaServer, String app, String stream) {
+    public ABLResult getMediaList(MediaServer mediaServer, String app, String stream) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         if (stream != null) {
             param.put("stream", stream);
         }
-        return sendPost(mediaServer,"getMediaList", param, null);
+
+        String response = sendGet(mediaServer, "getMediaList", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject queryRecordList(MediaServer mediaServer, String app, String stream, String startTime, String endTime) {
+    public ABLResult queryRecordList(MediaServer mediaServer, String app, String stream, String startTime, String endTime) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);
         param.put("starttime", startTime);
         param.put("endtime", endTime);
-        return sendPost(mediaServer,"queryRecordList", param, null);
+        String response = sendGet(mediaServer, "queryRecordList", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
     public void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, String path, String fileName) {
@@ -397,7 +425,7 @@ public class ABLRESTfulUtils {
 
     }
 
-    public JSONObject addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+    public ABLResult addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);
@@ -405,10 +433,16 @@ public class ABLRESTfulUtils {
         param.put("disableAudio", disableAudio? "1" : "0");
         param.put("enable_mp4", enableMp4 ? "1" : "0");
         // TODO rtpType timeout 尚不支持
-        return sendPost(mediaServer,"addStreamProxy", param, null);
+        String response = sendGet(mediaServer, "addStreamProxy", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject addFFmpegProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+    public ABLResult addFFmpegProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);
@@ -416,19 +450,61 @@ public class ABLRESTfulUtils {
         param.put("disableAudio", disableAudio);
         param.put("enable_mp4", enableMp4);
         // TODO rtpType timeout 尚不支持
-        return sendPost(mediaServer,"addFFmpegProxy", param, null);
+        String response = sendGet(mediaServer, "addFFmpegProxy", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject delStreamProxy(MediaServer mediaServer, String streamKey) {
+    public ABLResult delStreamProxy(MediaServer mediaServer, String streamKey) {
         Map<String, Object> param =  new HashMap<>();
         param.put("key", streamKey);
-        return sendPost(mediaServer,"delStreamProxy", param, null);
+        String response = sendGet(mediaServer, "delStreamProxy", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
-    public JSONObject delFFmpegProxy(MediaServer mediaServer, String streamKey) {
+    public ABLResult delFFmpegProxy(MediaServer mediaServer, String streamKey) {
         Map<String, Object> param =  new HashMap<>();
         param.put("key", streamKey);
-        return sendPost(mediaServer,"delFFmpegProxy", param, null);
+        String response = sendGet(mediaServer, "delFFmpegProxy", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
+    }
+
+    public ABLResult pauseRtpServer(MediaServer mediaServer, String streamKey) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", streamKey);
+        String response = sendGet(mediaServer, "pauseRtpServer", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
+    }
+
+    public ABLResult resumeRtpServer(MediaServer mediaServer, String streamKey) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", streamKey);
+        String response = sendGet(mediaServer, "resumeRtpServer", param);
+        ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
+        if (ablResult == null) {
+            return ABLResult.getFailForMediaServer();
+        }else {
+            return ablResult;
+        }
     }
 
 }

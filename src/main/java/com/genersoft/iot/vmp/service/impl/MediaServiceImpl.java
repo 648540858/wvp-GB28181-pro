@@ -7,13 +7,10 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.jt1078.bean.JTMediaStreamType;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
@@ -21,8 +18,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -37,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -170,7 +166,7 @@ public class MediaServiceImpl implements IMediaService {
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
-                    log.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
+                    log.info("[HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
                     stream = inviteInfo.getStream();
                 }
             }

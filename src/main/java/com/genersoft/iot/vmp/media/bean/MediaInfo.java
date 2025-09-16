@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.bean;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.media.abl.bean.ABLMedia;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
@@ -270,7 +271,38 @@ public class MediaInfo {
         return mediaInfo;
     }
 
-    public static MediaInfo getInstanceForAblJson(JSONObject mediaJSON, MediaServer mediaServer) {
-        return null;
+    public static MediaInfo getInstance(ABLMedia ablMedia, MediaServer mediaServer) {
+        MediaInfo mediaInfo = new MediaInfo();
+        mediaInfo.setApp(ablMedia.getApp());
+        mediaInfo.setStream(ablMedia.getStream());
+        mediaInfo.setMediaServer(mediaServer);
+        mediaInfo.setReaderCount(ablMedia.getReaderCount());
+        mediaInfo.setOnline(true);
+        mediaInfo.setVideoCodec(ablMedia.getVideoCodec());
+        switch (ablMedia.getNetworkType()) {
+            case 21:
+                mediaInfo.setOriginType(OriginType.RTMP_PUSH.ordinal());
+                break;
+            case 23:
+                mediaInfo.setOriginType(OriginType.RTSP_PUSH.ordinal());
+                break;
+            case 30:
+            case 31:
+            case 32:
+            case 33:
+                mediaInfo.setOriginType(OriginType.PULL.ordinal());
+                break;
+            default:
+                mediaInfo.setOriginType(OriginType.UNKNOWN.ordinal());
+                break;
+
+        }
+        mediaInfo.setWidth(ablMedia.getWidth());
+        mediaInfo.setHeight(ablMedia.getHeight());
+        mediaInfo.setAudioCodec(ablMedia.getAudioCodec());
+        mediaInfo.setAudioChannels(ablMedia.getAudioChannels());
+        mediaInfo.setAudioSampleRate(ablMedia.getAudioSampleRate());
+
+        return mediaInfo;
     }
 }

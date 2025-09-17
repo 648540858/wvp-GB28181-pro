@@ -182,6 +182,8 @@ create table IF NOT EXISTS wvp_media_server
     rtsp_ssl_port       integer,
     flv_port            integer,
     flv_ssl_port        integer,
+    mp4_port            integer,
+    mp4_ssl_port        integer,
     ws_flv_port         integer,
     ws_flv_ssl_port     integer,
     jtt_proxy_port      integer,

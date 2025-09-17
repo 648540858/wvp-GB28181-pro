@@ -51,4 +51,28 @@ call wvp_20250708();
 DROP PROCEDURE wvp_20250708;
 DELIMITER ;
 
+/*
+* 20250917
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20250917`()
+BEGIN
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_media_server' and column_name = 'mp4_port')
+    THEN
+        ALTER TABLE wvp_media_server ADD mp4_port integer;
+    END IF;
+
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_media_server' and column_name = 'mp4_ssl_port')
+    THEN
+        ALTER TABLE wvp_media_server ADD mp4_ssl_port integer;
+    END IF;
+END; //
+call wvp_20250917();
+DROP PROCEDURE wvp_20250917;
+DELIMITER ;
+
+
+
 

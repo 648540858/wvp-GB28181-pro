@@ -21,7 +21,7 @@ public class ABLResult {
     private String starttime;
     private String endtime;
     private ABLUrls url;
-    private ABLRecordFile recordFileList;
+    private List<ABLRecordFile> recordFileList;
 
     public static ABLResult getFailForMediaServer() {
         ABLResult zlmResult = new ABLResult();

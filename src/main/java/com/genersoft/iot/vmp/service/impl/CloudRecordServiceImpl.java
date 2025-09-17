@@ -5,11 +5,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.hook.Hook;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
@@ -21,7 +18,6 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
-import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -37,7 +33,10 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -60,9 +59,6 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
-
-    @Autowired
-    private HookSubscribe subscribe;
 
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
@@ -255,9 +251,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (!userSetting.getServerId().equals(recordItem.getServerId())) {
             return redisRpcPlayService.getRecordPlayUrl(recordItem.getServerId(), recordId);
         }
-        String filePath = recordItem.getFilePath();
-        MediaServer mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
-        return CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
+
+        MediaServer mediaServer = mediaServerService.getOne(recordItem.getMediaServerId());
+
+        return mediaServerService.getDownloadFilePath(mediaServer, RecordInfo.getInstance(recordItem));
     }
 
     @Override
@@ -297,26 +294,13 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        String buildApp = "mp4_record";
-        String buildStream = app + "_" + stream + "_" + date;
-        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, buildApp, buildStream);
-         if (mediaInfo != null) {
-             if (callback != null) {
-                 StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null);
-                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-             }
-             return;
-         }
+        String dateDir = null;
+        String filePath = recordItemList.get(0).getFilePath();
+        if (filePath != null) {
+            dateDir = filePath.substring(0, filePath.lastIndexOf("/"));
+        }
+        mediaServerService.loadMP4File(mediaServer, app, stream, date, dateDir, callback);
 
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServerId);
-        subscribe.addSubscribe(hook, (hookData) -> {
-            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null);
-            if (callback != null) {
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-            }
-        });
-        String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
-        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
     }
 
     @Override

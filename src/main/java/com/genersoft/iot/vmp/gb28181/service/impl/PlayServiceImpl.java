@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -34,7 +33,6 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -981,8 +979,8 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
-    private void download(MediaServer mediaServerItem, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
-        if (mediaServerItem == null ) {
+    private void download(MediaServer mediaServer, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
+        if (mediaServer == null ) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
                     null);
@@ -992,7 +990,7 @@ public class PlayServiceImpl implements IPlayService {
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
         // 录像下载不使用固定流地址，固定流地址会导致如果开始时间与结束时间一致时文件错误的叠加在一起
         RTPServerParam rtpServerParam = new RTPServerParam();
-        rtpServerParam.setMediaServerItem(mediaServerItem);
+        rtpServerParam.setMediaServerItem(mediaServer);
         rtpServerParam.setSsrcCheck(device.isSsrcCheck());
         rtpServerParam.setPlayback(true);
         rtpServerParam.setPort(0);
@@ -1002,7 +1000,7 @@ public class PlayServiceImpl implements IPlayService {
         SSRCInfo ssrcInfo = receiveRtpServerService.openRTPServer(rtpServerParam, (code, msg, result) -> {
             if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
                 // hook响应
-                StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItem, result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
+                StreamInfo streamInfo = onPublishHandlerForDownload(mediaServer, result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
                 if (streamInfo == null) {
                     log.warn("[录像下载] 获取流地址信息失败");
                     callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
@@ -1048,24 +1046,24 @@ public class PlayServiceImpl implements IPlayService {
                 device.isSsrcCheck());
 
         // 初始化redis中的invite消息状态
-        InviteInfo inviteInfo = InviteInfo.getInviteInfo(device.getDeviceId(), channel.getId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
-                mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.DOWNLOAD,
+        InviteInfo inviteInfo = InviteInfo.getInviteInfo(device.getDeviceId(), channel.getId(), ssrcInfo.getStream(), ssrcInfo, mediaServer.getId(),
+                mediaServer.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.DOWNLOAD,
                 InviteSessionStatus.ready, true);
         inviteInfo.setStartTime(startTime);
         inviteInfo.setEndTime(endTime);
 
         inviteStreamService.updateInviteInfo(inviteInfo);
         try {
-            cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channel, startTime, endTime, downloadSpeed,
+            cmder.downloadStreamCmd(mediaServer, ssrcInfo, device, channel, startTime, endTime, downloadSpeed,
                     eventResult -> {
                         // 对方返回错误
                         callback.run(InviteErrorCode.FAIL.getCode(), String.format("录像下载失败， 错误码： %s, %s", eventResult.statusCode, eventResult.msg), null);
-                        receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo);
+                        receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo);
                         sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
                         inviteStreamService.removeInviteInfo(inviteInfo);
                     }, eventResult ->{
                         // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
-                        InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channel,
+                        InviteOKHandler(eventResult, ssrcInfo, mediaServer, device, channel,
                                  callback, inviteInfo, InviteSessionType.DOWNLOAD);
 
                         // 注册录像回调事件，录像下载结束后写入下载地址
@@ -1074,8 +1072,7 @@ public class PlayServiceImpl implements IPlayService {
                                     inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
                             log.info("[录像下载] 收到录像写入磁盘消息内容： " + hookData);
                             RecordInfo recordInfo = hookData.getRecordInfo();
-                            String filePath = recordInfo.getFilePath();
-                            DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
+                            DownloadFileInfo downloadFileInfo = mediaServerService.getDownloadFilePath(mediaServer, recordInfo);
                             InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType()
                                     , inviteInfo.getChannelId(), inviteInfo.getStream());
                             if (inviteInfoForNew != null && inviteInfoForNew.getStreamInfo() != null) {
@@ -1084,7 +1081,7 @@ public class PlayServiceImpl implements IPlayService {
                                 inviteStreamService.updateInviteInfo(inviteInfoForNew, 60*15L);
                             }
                         };
-                        Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
+                        Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServer.getId());
                         // 设置过期时间，下载失败时自动处理订阅数据
                         hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
                         subscribe.addSubscribe(hook, hookEventForRecord);
@@ -1092,7 +1089,7 @@ public class PlayServiceImpl implements IPlayService {
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 录像下载: {}", e.getMessage());
             callback.run(InviteErrorCode.FAIL.getCode(),e.getMessage(), null);
-            receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo);
+            receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo);
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         }
@@ -1112,11 +1109,7 @@ public class PlayServiceImpl implements IPlayService {
                     log.warn("[获取下载进度] 未查询到录像下载的信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
                     return null;
                 }
-                String filePath = allList.get(0).getFilePath();
-                if (filePath == null) {
-                    log.warn("[获取下载进度] 未查询到录像下载的文件路径 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                    return null;
-                }
+
                 String mediaServerId = allList.get(0).getMediaServerId();
                 MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
                 if (mediaServer == null) {
@@ -1124,7 +1117,7 @@ public class PlayServiceImpl implements IPlayService {
                     return null;
                 }
                 log.warn("[获取下载进度] 发现下载已经结束，直接从数据库获取到文件 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServer, filePath);
+                DownloadFileInfo downloadFileInfo = mediaServerService.getDownloadFilePath(mediaServer, RecordInfo.getInstance(allList.get(0)));
                 StreamInfo streamInfo = new StreamInfo();
                 streamInfo.setDownLoadFilePath(downloadFileInfo);
                 streamInfo.setApp(app);

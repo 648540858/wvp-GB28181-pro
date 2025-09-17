@@ -10,8 +10,14 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -20,7 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service("zlm")
@@ -35,6 +44,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private HookSubscribe subscribe;
 
     @Override
     public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
@@ -552,8 +564,28 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
-        ZLMResult<?> zlmResult = zlmresTfulUtils.loadMP4File(mediaServer, app, stream, datePath);
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
+        String buildApp = "mp4_record";
+        String buildStream = app + "_" + stream + "_" + date;
+        MediaInfo mediaInfo = getMediaInfo(mediaServer, buildApp, buildStream);
+        if (mediaInfo != null) {
+            if (callback != null) {
+                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null, true);
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+            return;
+        }
+
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServer.getServerId());
+        subscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null, true);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+        });
+
+        ZLMResult<?> zlmResult = zlmresTfulUtils.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
+
         if (zlmResult == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
         }
@@ -582,5 +614,31 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (zlmResult.getCode() != 0) {
             throw new ControllerException(zlmResult.getCode(), zlmResult.getMsg());
         }
+    }
+
+    @Override
+    public DownloadFileInfo getDownloadFilePath(MediaServer mediaServerItem, RecordInfo recordInfo) {
+
+        // 将filePath作为独立参数传入，避免%符号解析问题
+        String pathTemplate = "%s://%s:%s/index/api/downloadFile?file_path=%s";
+
+        DownloadFileInfo info = new DownloadFileInfo();
+
+        // filePath作为第4个参数
+        info.setHttpPath(String.format(pathTemplate,
+                "http",
+                mediaServerItem.getStreamIp(),
+                mediaServerItem.getHttpPort(),
+                recordInfo.getFilePath()));
+
+        // 同样作为第4个参数
+        if (mediaServerItem.getHttpSSlPort() > 0) {
+            info.setHttpsPath(String.format(pathTemplate,
+                    "https",
+                    mediaServerItem.getStreamIp(),
+                    mediaServerItem.getHttpSSlPort(),
+                    recordInfo.getFilePath()));
+        }
+        return info;
     }
 }

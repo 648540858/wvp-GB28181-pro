@@ -47,6 +47,9 @@ public class MediaConfig{
     @Value("${media.flv-port:0}")
     private Integer flvPort = 0;
 
+    @Value("${media.mp4-port:0}")
+    private Integer mp4Port = 0;
+
     @Value("${media.ws-flv-port:0}")
     private Integer wsFlvPort = 0;
 
@@ -55,6 +58,9 @@ public class MediaConfig{
 
     @Value("${media.flv-ssl-port:0}")
     private Integer flvSSlPort = 0;
+
+    @Value("${media.mp4-ssl-port:0}")
+    private Integer mp4SSlPort = 0;
 
     @Value("${media.ws-flv-ssl-port:0}")
     private Integer wsFlvSSlPort = 0;
@@ -164,6 +170,11 @@ public class MediaConfig{
         }else {
             mediaServer.setFlvPort(flvPort);
         }
+        if (mp4Port == 0) {
+            mediaServer.setMp4Port(httpPort);
+        }else {
+            mediaServer.setMp4Port(mp4Port);
+        }
         if (wsFlvPort == 0) {
             mediaServer.setWsFlvPort(httpPort);
         }else {
@@ -173,6 +184,11 @@ public class MediaConfig{
             mediaServer.setFlvSSLPort(httpSSlPort);
         }else {
             mediaServer.setFlvSSLPort(flvSSlPort);
+        }
+        if (mp4SSlPort == 0) {
+            mediaServer.setMp4SSLPort(httpSSlPort);
+        }else {
+            mediaServer.setMp4SSLPort(mp4SSlPort);
         }
         if (wsFlvSSlPort == 0) {
             mediaServer.setWsFlvSSLPort(httpSSlPort);

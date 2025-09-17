@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -12,8 +14,10 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -426,6 +430,12 @@ public class ABLRESTfulUtils {
     }
 
     public ABLResult addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        try {
+            url = URLEncoder.encode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"url编码失败");
+        }
+
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);
@@ -443,6 +453,11 @@ public class ABLRESTfulUtils {
     }
 
     public ABLResult addFFmpegProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        try {
+            url = URLEncoder.encode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"url编码失败");
+        }
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);

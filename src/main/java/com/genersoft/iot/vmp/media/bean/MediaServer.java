@@ -41,6 +41,12 @@ public class MediaServer {
     @Schema(description = "https-flv端口")
     private int flvSSLPort;
 
+    @Schema(description = "mp4端口")
+    private int mp4Port;
+
+    @Schema(description = "https-mp4端口")
+    private int mp4SSLPort;
+
     @Schema(description = "ws-flv端口")
     private int wsFlvPort;
 

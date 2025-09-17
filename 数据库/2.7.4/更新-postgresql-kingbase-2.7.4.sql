@@ -35,3 +35,5 @@ create table IF NOT EXISTS wvp_jt_channel (
 );
 
 ALTER table wvp_media_server ADD COLUMN IF NOT EXISTS jtt_proxy_port integer;
+ALTER table wvp_media_server ADD COLUMN IF NOT EXISTS mp4_port integer;
+ALTER table wvp_media_server ADD COLUMN IF NOT EXISTS mp4_ssl_port integer;

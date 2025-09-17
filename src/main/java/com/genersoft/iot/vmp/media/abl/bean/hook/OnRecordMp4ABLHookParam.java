@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.media.abl.bean.hook;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class OnRecordMp4ABLHookParam extends ABLHookParam{
     private String fileName;
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
+    private String startTime;
+    private String endTime;
+    private long fileSize;
 }

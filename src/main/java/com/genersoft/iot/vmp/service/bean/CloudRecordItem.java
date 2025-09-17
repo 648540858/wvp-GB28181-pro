@@ -91,14 +91,14 @@ public class CloudRecordItem {
         CloudRecordItem cloudRecordItem = new CloudRecordItem();
         cloudRecordItem.setApp(param.getApp());
         cloudRecordItem.setStream(param.getStream());
-        cloudRecordItem.setStartTime(param.getRecordInfo().getStartTime()*1000);
+        cloudRecordItem.setStartTime(param.getRecordInfo().getStartTime());
         cloudRecordItem.setFileName(param.getRecordInfo().getFileName());
         cloudRecordItem.setFolder(param.getRecordInfo().getFolder());
         cloudRecordItem.setFileSize(param.getRecordInfo().getFileSize());
         cloudRecordItem.setFilePath(param.getRecordInfo().getFilePath());
         cloudRecordItem.setMediaServerId(param.getMediaServer().getId());
-        cloudRecordItem.setTimeLen(param.getRecordInfo().getTimeLen() * 1000);
-        cloudRecordItem.setEndTime((param.getRecordInfo().getStartTime() + (long)param.getRecordInfo().getTimeLen()) * 1000);
+        cloudRecordItem.setTimeLen(param.getRecordInfo().getTimeLen());
+        cloudRecordItem.setEndTime((param.getRecordInfo().getStartTime() + (long)param.getRecordInfo().getTimeLen()));
         Map<String, String> paramsMap = MediaServerUtils.urlParamToMap(param.getRecordInfo().getParams());
         if (paramsMap.get("callId") != null) {
             cloudRecordItem.setCallId(paramsMap.get("callId"));

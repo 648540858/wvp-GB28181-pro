@@ -4,8 +4,10 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -15,9 +17,11 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -327,6 +331,12 @@ public class ZLMRESTfulUtils {
 
     public ZLMResult<StreamProxyResult> addFFmpegSource(MediaServer mediaServer, String src_url, String dst_url, Integer timeout_sec,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
+        try {
+            src_url = URLEncoder.encode(src_url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"url编码失败");
+        }
+
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);
@@ -573,6 +583,11 @@ public class ZLMRESTfulUtils {
     }
 
     public ZLMResult<StreamProxyResult> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
+        try {
+            url = URLEncoder.encode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"url编码失败");
+        }
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);

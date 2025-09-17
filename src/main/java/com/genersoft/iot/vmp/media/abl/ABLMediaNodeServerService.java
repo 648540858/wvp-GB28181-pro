@@ -15,11 +15,12 @@ import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
-import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -32,6 +33,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -192,8 +195,10 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
-        streamInfoResult.setMediaInfo(mediaInfo);
-        streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        if (mediaInfo != null) {
+            streamInfoResult.setMediaInfo(mediaInfo);
+            streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        }
         return streamInfoResult;
     }
 
@@ -255,18 +260,18 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     // 接受进度通知
-    @EventListener
-    public void onApplicationEvent(MediaRecordProcessEvent event) {
-        CloudRecordItem cloudRecordItem = cloudRecordServiceMapper.getListByFileName(event.getApp(), event.getStream(), event.getFileName());
-        if (cloudRecordItem == null) {
-            cloudRecordItem = CloudRecordItem.getInstance(event);
-            cloudRecordItem.setStartTime(event.getStartTime());
-            cloudRecordItem.setEndTime(event.getEndTime());
-            cloudRecordServiceMapper.add(cloudRecordItem);
-        }else {
-            cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000, System.currentTimeMillis());
-        }
-    }
+//    @EventListener
+//    public void onApplicationEvent(MediaRecordProcessEvent event) {
+//        CloudRecordItem cloudRecordItem = cloudRecordServiceMapper.getListByFileName(event.getApp(), event.getStream(), event.getFileName());
+//        if (cloudRecordItem == null) {
+//            cloudRecordItem = CloudRecordItem.getInstance(event);
+//            cloudRecordItem.setStartTime(event.getStartTime());
+//            cloudRecordItem.setEndTime(event.getEndTime());
+//            cloudRecordServiceMapper.add(cloudRecordItem);
+//        }else {
+//            cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000, System.currentTimeMillis());
+//        }
+//    }
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, null, event.getStream());
@@ -401,8 +406,24 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
-        logger.warn("[abl-loadMP4File] 未实现");
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
+        // 解析为 LocalDate
+        LocalDate localDate = LocalDate.parse(date, DateUtil.DateFormatter);
+        LocalDateTime startOfDay = localDate.atStartOfDay();
+        LocalDateTime endOfDay = localDate.atTime(23, 59,59, 999);
+        String startTime = DateUtil.urlFormatter.format(startOfDay);
+        String endTime = DateUtil.urlFormatter.format(endOfDay);
+
+        ABLResult ablResult = ablresTfulUtils.queryRecordList(mediaServer, app, stream, startTime, endTime);
+        if (ablResult.getCode() != 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), ablResult.getMemo());
+        }
+        String resultApp = ablResult.getApp();
+        String resultStream = ablResult.getStream();
+        StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, resultApp, resultStream, null, null, true);
+        if (callback != null) {
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+        }
     }
 
     @Override
@@ -413,5 +434,40 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
         logger.warn("[abl-setRecordSpeed] 未实现");
+    }
+
+    @Override
+    public DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo) {
+        // 将filePath作为独立参数传入，避免%符号解析问题
+        String pathTemplate = "%s://%s:%s/%s/%s__ReplayFMP4RecordFile__%s?download_speed=6";
+
+        DownloadFileInfo info = new DownloadFileInfo();
+
+        info.setHttpPath(
+                String.format(
+                        pathTemplate,
+                        "http",
+                        mediaServer.getStreamIp(),
+                        mediaServer.getHttpPort(),
+                        recordInfo.getApp(),
+                        recordInfo.getStream(),
+                        recordInfo.getFileName()
+                )
+        );
+
+        if (mediaServer.getHttpSSlPort() > 0) {
+            info.setHttpsPath(
+                    String.format(
+                            pathTemplate,
+                            "https",
+                            mediaServer.getStreamIp(),
+                            mediaServer.getHttpSSlPort(),
+                            recordInfo.getApp(),
+                            recordInfo.getStream(),
+                            recordInfo.getFileName()
+                    )
+            );
+        }
+        return info;
     }
 }

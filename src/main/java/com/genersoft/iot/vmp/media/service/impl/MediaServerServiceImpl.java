@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
@@ -20,8 +21,7 @@ import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -1008,14 +1008,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public StreamInfo loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[loadMP4File] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        mediaNodeServerService.loadMP4File(mediaServer, app, stream, datePath);
-        return getStreamInfoByAppAndStream(mediaServer, app, stream, null, null);
+        mediaNodeServerService.loadMP4File(mediaServer, app, stream, date, dateDir, callback);
+
     }
 
     @Override
@@ -1036,5 +1036,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
         mediaNodeServerService.setRecordSpeed(mediaServer, app, stream, speed, schema);
+    }
+
+    @Override
+    public DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            log.info("[setRecordSpeed] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        return mediaNodeServerService.getDownloadFilePath(mediaServer, recordInfo);
     }
 }

@@ -304,21 +304,21 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public void seekRecord(String mediaServerId,String app, String stream, Double seek, String schema) {
+    public void seekRecord(String mediaServerId,String app, String stream, String key, Double seek, String schema) {
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        mediaServerService.seekRecordStamp(mediaServer, app, stream, seek, schema);
+        mediaServerService.seekRecordStamp(mediaServer, app, stream, key, seek, schema);
     }
 
     @Override
-    public void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed, String schema) {
+    public void setRecordSpeed(String mediaServerId, String app, String stream, String key, Integer speed, String schema) {
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        mediaServerService.setRecordSpeed(mediaServer, app, stream, speed, schema);
+        mediaServerService.setRecordSpeed(mediaServer, app, stream, key, speed, schema);
     }
 
     @Override

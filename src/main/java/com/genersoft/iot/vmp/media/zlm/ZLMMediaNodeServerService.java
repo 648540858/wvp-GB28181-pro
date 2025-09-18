@@ -109,8 +109,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         mediaServer.setServerId(userSetting.getServerId());
         mediaServer.setIp(ip);
         mediaServer.setHttpPort(port);
-        mediaServer.setFlvPort(port);
-        mediaServer.setWsFlvPort(port);
         mediaServer.setSecret(secret);
         ZLMResult<List<JSONObject>> mediaServerConfigResult = zlmresTfulUtils.getMediaServerConfig(mediaServer);
         if (mediaServerConfigResult == null) {
@@ -126,8 +124,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         mediaServer.setId(zlmServerConfig.getGeneralMediaServerId());
         mediaServer.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
-        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpSSLport());
-        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
         mediaServer.setRtmpPort(zlmServerConfig.getRtmpPort());
         mediaServer.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         mediaServer.setRtspPort(zlmServerConfig.getRtspPort());
@@ -202,7 +198,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                 for (int i = 0; i < zlmResult.getData().size(); i++) {
                     JSONObject mediaJSON = zlmResult.getData().getJSONObject(0);
                     MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
-                    StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(), mediaInfo.getStream(), mediaInfo, callId, true);
+                    StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(),
+                            mediaInfo.getStream(), mediaInfo, null, callId, true);
                     if (streamInfo != null) {
                         streamInfoList.add(streamInfo);
                     }
@@ -210,52 +207,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             }
         }
         return streamInfoList;
-    }
-
-    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
-        StreamInfo streamInfoResult = new StreamInfo();
-        streamInfoResult.setServerId(userSetting.getServerId());
-        streamInfoResult.setStream(stream);
-        streamInfoResult.setApp(app);
-        String addr = mediaServer.getStreamIp();
-        streamInfoResult.setIp(addr);
-        streamInfoResult.setMediaServer(mediaServer);
-
-        Map<String, String> param = new HashMap<>();
-        if (!ObjectUtils.isEmpty(callId)) {
-            param.put("callId", callId);
-        }
-        if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))  {
-            param.put("originTypeStr", mediaInfo.getOriginTypeStr());
-        }
-        StringBuilder callIdParamBuilder = new StringBuilder();
-        if (!param.isEmpty()) {
-            callIdParamBuilder.append("?");
-            for (Map.Entry<String, String> entry : param.entrySet()) {
-                callIdParamBuilder.append(entry.getKey()).append("=").append(entry.getValue());
-                callIdParamBuilder.append("&");
-            }
-            callIdParamBuilder.deleteCharAt(callIdParamBuilder.length() - 1);
-        }
-
-        String callIdParam = callIdParamBuilder.toString();
-
-        streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
-        String flvFile = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
-        streamInfoResult.setFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
-        streamInfoResult.setWsFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
-        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
-
-        streamInfoResult.setMediaInfo(mediaInfo);
-        if (mediaInfo != null) {
-            streamInfoResult.setOriginType(mediaInfo.getOriginType());
-            streamInfoResult.setOriginTypeStr(mediaInfo.getOriginTypeStr());
-        }
-        return streamInfoResult;
     }
 
     @Override
@@ -570,7 +521,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         MediaInfo mediaInfo = getMediaInfo(mediaServer, buildApp, buildStream);
         if (mediaInfo != null) {
             if (callback != null) {
-                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null, true);
+                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null, null, true);
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
             return;
@@ -578,7 +529,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
         Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServer.getServerId());
         subscribe.addSubscribe(hook, (hookData) -> {
-            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null, true);
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null, null, true);
             if (callback != null) {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
@@ -595,7 +546,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema) {
         ZLMResult<?> zlmResult = zlmresTfulUtils.seekRecordStamp(mediaServer, app, stream, stamp, schema);
         if (zlmResult == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
@@ -606,7 +557,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema) {
         ZLMResult<?> zlmResult = zlmresTfulUtils.setRecordSpeed(mediaServer, app, stream, speed, schema);
         if (zlmResult == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
@@ -640,5 +591,71 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                     recordInfo.getFilePath()));
         }
         return info;
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStream(stream);
+        streamInfoResult.setApp(app);
+        if (addr == null) {
+            addr = mediaServer.getStreamIp();
+        }
+
+        streamInfoResult.setIp(addr);
+        if (mediaInfo != null) {
+            streamInfoResult.setServerId(mediaInfo.getServerId());
+        }else {
+            streamInfoResult.setServerId(userSetting.getServerId());
+        }
+
+        streamInfoResult.setMediaServer(mediaServer);
+        Map<String, String> param = new HashMap<>();
+        if (!ObjectUtils.isEmpty(callId)) {
+            param.put("callId", callId);
+        }
+        if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))  {
+            param.put("originTypeStr", mediaInfo.getOriginTypeStr());
+        }
+        StringBuilder callIdParamBuilder = new StringBuilder();
+        if (!param.isEmpty()) {
+            callIdParamBuilder.append("?");
+            for (Map.Entry<String, String> entry : param.entrySet()) {
+                callIdParamBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                callIdParamBuilder.append("&");
+            }
+            callIdParamBuilder.deleteCharAt(callIdParamBuilder.length() - 1);
+        }
+
+        String callIdParam = callIdParamBuilder.toString();
+
+        streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
+
+        String flvFile = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
+        streamInfoResult.setFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
+        streamInfoResult.setWsFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
+
+        String mp4File = String.format("%s/%s.live.mp4%s", app, stream, callIdParam);
+        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), mp4File);
+        streamInfoResult.setWsMp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), mp4File);
+
+        streamInfoResult.setHls(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setWsHls(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+
+        streamInfoResult.setTs(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setWsTs(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+
+        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
+
+        streamInfoResult.setMediaInfo(mediaInfo);
+
+        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())) {
+            String newStream = stream + "_" + mediaServer.getTranscodeSuffix();
+            mediaServer.setTranscodeSuffix(null);
+            StreamInfo transcodeStreamInfo = getStreamInfoByAppAndStream(mediaServer, app, newStream, null, addr, callId, isPlay);
+            streamInfoResult.setTranscodeStream(transcodeStreamInfo);
+        }
+        return streamInfoResult;
     }
 }

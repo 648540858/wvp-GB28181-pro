@@ -174,74 +174,65 @@ public class ABLMediaServerStatusManger {
         }
     }
 
-    private void online(MediaServer mediaServerItem, AblServerConfig config) {
-        offlineABLPrimaryMap.remove(mediaServerItem.getId());
-        offlineAblsecondaryMap.remove(mediaServerItem.getId());
-        offlineAblTimeMap.remove(mediaServerItem.getId());
-        if (!mediaServerItem.isStatus()) {
-            logger.info("[ABL-连接成功] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
-            mediaServerItem.setStatus(true);
-            mediaServerItem.setHookAliveInterval(10F);
-            mediaServerService.update(mediaServerItem);
-            if(mediaServerItem.isAutoConfig()) {
+    private void online(MediaServer mediaServer, AblServerConfig config) {
+        offlineABLPrimaryMap.remove(mediaServer.getId());
+        offlineAblsecondaryMap.remove(mediaServer.getId());
+        offlineAblTimeMap.remove(mediaServer.getId());
+        if (!mediaServer.isStatus()) {
+            logger.info("[ABL-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+            mediaServer.setStatus(true);
+            mediaServer.setHookAliveInterval(10F);
+            mediaServerService.update(mediaServer);
+            if(mediaServer.isAutoConfig()) {
                 if (config == null) {
-                    ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
+                    ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServer);
                     JSONArray data = ablResult.getParams();
                     if (data != null && !data.isEmpty()) {
                         config = AblServerConfig.getInstance(data);
                     }
                 }
                 if (config != null) {
-                    initPort(mediaServerItem, config);
-                    setAblConfig(mediaServerItem, false, config);
+                    initPort(mediaServer, config);
+                    setAblConfig(mediaServer, false, config);
                 }
             }
-            mediaServerService.update(mediaServerItem);
+            mediaServerService.update(mediaServer);
         }
         // 设置两次心跳未收到则认为zlm离线
-        String key = "ABL-keepalive-" + mediaServerItem.getId();
+        String key = "ABL-keepalive-" + mediaServer.getId();
         dynamicTask.startDelay(key, ()->{
-            logger.warn("[ABL-心跳超时] ID：{}", mediaServerItem.getId());
-            mediaServerItem.setStatus(false);
-            offlineABLPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
-            offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
+            logger.warn("[ABL-心跳超时] ID：{}", mediaServer.getId());
+            mediaServer.setStatus(false);
+            offlineABLPrimaryMap.put(mediaServer.getId(), mediaServer);
+            offlineAblTimeMap.put(mediaServer.getId(), System.currentTimeMillis());
             // TODO 发送离线通知
-            mediaServerService.update(mediaServerItem);
-        }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
+            mediaServerService.update(mediaServer);
+        }, (int)(mediaServer.getHookAliveInterval() * 2 * 1000));
     }
-    private void initPort(MediaServer mediaServerItem, AblServerConfig ablServerConfig) {
+    private void initPort(MediaServer mediaServer, AblServerConfig ablServerConfig) {
         // 端口只会从配置中读取一次，一旦自己配置或者读取过了将不在配置
-//        if (mediaServerItem.getHttpSSlPort() == 0) {
-//            mediaServerItem.setHttpSSlPort(ablServerConfig.getHttpSSLport());
-//        }
-        if (mediaServerItem.getRtmpPort() != ablServerConfig.getRtmpPort()) {
-            mediaServerItem.setRtmpPort(ablServerConfig.getRtmpPort());
+        if (ablServerConfig.getRtmpPort() != null && mediaServer.getRtmpPort() != ablServerConfig.getRtmpPort()) {
+            mediaServer.setRtmpPort(ablServerConfig.getRtmpPort());
         }
-//        if (mediaServerItem.getRtmpSSlPort() == 0) {
-//            mediaServerItem.setRtmpSSlPort(ablServerConfig.getRtmpSslPort());
-//        }
-        if (mediaServerItem.getRtspPort() != ablServerConfig.getRtspPort()) {
-            mediaServerItem.setRtspPort(ablServerConfig.getRtspPort());
+        if (ablServerConfig.getRtspPort() != null && mediaServer.getRtspPort() != ablServerConfig.getRtspPort()) {
+            mediaServer.setRtspPort(ablServerConfig.getRtspPort());
         }
-        if (mediaServerItem.getFlvPort() != ablServerConfig.getHttpFlvPort()) {
-            mediaServerItem.setFlvPort(ablServerConfig.getHttpFlvPort());
+        if (ablServerConfig.getHttpFlvPort() != null && mediaServer.getFlvPort() != ablServerConfig.getHttpFlvPort()) {
+            mediaServer.setFlvPort(ablServerConfig.getHttpFlvPort());
         }
-        if (mediaServerItem.getWsFlvPort() != ablServerConfig.getWsPort()) {
-            mediaServerItem.setWsFlvPort(ablServerConfig.getWsPort());
+        if (ablServerConfig.getMp4Port() != null && mediaServer.getMp4Port() != ablServerConfig.getMp4Port()) {
+            mediaServer.setMp4Port(ablServerConfig.getMp4Port());
         }
-        if (mediaServerItem.getRtpProxyPort() != ablServerConfig.getPsTsRecvPort()) {
-            mediaServerItem.setRtpProxyPort(ablServerConfig.getPsTsRecvPort());
+        if (ablServerConfig.getWsPort() != null && mediaServer.getWsFlvPort() != ablServerConfig.getWsPort()) {
+            mediaServer.setWsFlvPort(ablServerConfig.getWsPort());
         }
-        if (mediaServerItem.getRtpProxyPort() != ablServerConfig.getJtt1078RecvPort()) {
-            mediaServerItem.setJttProxyPort(ablServerConfig.getJtt1078RecvPort());
+        if (ablServerConfig.getPsTsRecvPort() != null && mediaServer.getRtpProxyPort() != ablServerConfig.getPsTsRecvPort()) {
+            mediaServer.setRtpProxyPort(ablServerConfig.getPsTsRecvPort());
         }
-//        if (mediaServerItem.getRtspSSLPort() == 0) {
-//            mediaServerItem.setRtspSSLPort(ablServerConfig.getRtspSSlport());
-//        }
-//        if (mediaServerItem.getRtpProxyPort() == 0) {
-//            mediaServerItem.setRtpProxyPort(ablServerConfig.getRtpProxyPort());
-//        }
-        mediaServerItem.setHookAliveInterval(10F);
+        if (ablServerConfig.getJtt1078RecvPort() != null && mediaServer.getRtpProxyPort() != ablServerConfig.getJtt1078RecvPort()) {
+            mediaServer.setJttProxyPort(ablServerConfig.getJtt1078RecvPort());
+        }
+        mediaServer.setHookAliveInterval(10F);
     }
 
     public void setAblConfig(MediaServer mediaServerItem, boolean restart, AblServerConfig config) {

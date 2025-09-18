@@ -225,6 +225,7 @@ export default {
         app: this.streamInfo.app,
         stream: this.streamInfo.stream,
         speed: this.playSpeed,
+        seek: this.playSeekValue,
         schema: 'ts'
       })
       this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
@@ -369,6 +370,7 @@ export default {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
         stream: this.streamInfo.stream,
+        key: this.streamInfo.key,
         seek: this.playSeekValue,
         schema: 'fmp4'
       })

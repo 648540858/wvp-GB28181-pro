@@ -237,9 +237,27 @@ export default {
           const link = document.createElement('a')
           link.target = '_blank'
           if (location.protocol === 'https:') {
-            link.href = data.httpsPath + '&save_name=' + row.fileName
+            if (data.httpsPath) {
+              link.href = data.httpsPath + '&save_name=' + row.fileName
+            }else if (data.httpPath){
+              link.href = data.httpPath + '&save_name=' + row.fileName
+            }else {
+              this.$message.error({
+                showClose: true,
+                message: '获取下载地址失败'
+              })
+            }
           } else {
-            link.href = data.httpPath + '&save_name=' + row.fileName
+            if (data.httpPath) {
+              link.href = data.httpPath + '&save_name=' + row.fileName
+            }else if (data.httpsPath){
+              link.href = data.httpsPath + '&save_name=' + row.fileName
+            }else {
+              this.$message.error({
+                showClose: true,
+                message: '获取下载地址失败'
+              })
+            }
           }
           link.click()
         })

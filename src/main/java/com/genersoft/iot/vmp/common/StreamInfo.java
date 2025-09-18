@@ -101,84 +101,108 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "使用的WVP ID")
     private String serverId;
 
-    public void setRtmp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+    @Schema(description = "流绑定的流媒体操作key")
+    private String key;
+
+    public void setRtmp(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s%s", app, stream, callIdParam);
-        if (port > 0) {
+        if (port != null && port > 0) {
             this.rtmp = new StreamURL("rtmp", host, port, file);
         }
-        if (sslPort > 0) {
+        if (sslPort != null && sslPort > 0) {
             this.rtmps = new StreamURL("rtmps", host, sslPort, file);
         }
     }
 
-    public void setRtsp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+    public void setRtsp(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s%s", app, stream, callIdParam);
-        if (port > 0) {
+        if (port != null && port > 0) {
             this.rtsp = new StreamURL("rtsp", host, port, file);
         }
-        if (sslPort > 0) {
+        if (sslPort != null && sslPort > 0) {
             this.rtsps = new StreamURL("rtsps", host, sslPort, file);
         }
     }
 
-    public void setFlv(String host, int port, int sslPort, String file) {
-        if (port > 0) {
+    public void setFlv(String host, Integer port, Integer sslPort, String file) {
+        if (port != null && port > 0) {
             this.flv = new StreamURL("http", host, port, file);
         }
-        this.ws_flv = new StreamURL("ws", host, port, file);
-        if (sslPort > 0) {
+        if (sslPort != null && sslPort > 0) {
             this.https_flv = new StreamURL("https", host, sslPort, file);
-            this.wss_flv = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setWsFlv(String host, int port, int sslPort, String file) {
-        if (port > 0) {
+    public void setWsFlv(String host, Integer port, Integer sslPort, String file) {
+        if (port != null && port > 0) {
             this.ws_flv = new StreamURL("ws", host, port, file);
         }
-        if (sslPort > 0) {
+        if (sslPort != null && sslPort > 0) {
             this.wss_flv = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setFmp4(String host, int port, int sslPort, String app, String stream, String callIdParam) {
-        String file = String.format("%s/%s.live.mp4%s", app, stream, callIdParam);
-        if (port > 0) {
+    public void setFmp4(String host, Integer port, Integer sslPort, String file) {
+        if (port != null &&  port > 0) {
             this.fmp4 = new StreamURL("http", host, port, file);
+        }
+        if (sslPort != null &&  sslPort > 0) {
+            this.https_fmp4 = new StreamURL("https", host, sslPort, file);
+        }
+    }
+
+    public void setWsMp4(String host, Integer port, Integer sslPort, String file) {
+        if (port != null && port > 0) {
             this.ws_fmp4 = new StreamURL("ws", host, port, file);
         }
-        if (sslPort > 0) {
-            this.https_fmp4 = new StreamURL("https", host, sslPort, file);
+        if (sslPort != null && sslPort > 0) {
             this.wss_fmp4 = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setHls(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+    public void setHls(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s/hls.m3u8%s", app, stream, callIdParam);
-        if (port > 0) {
+        if (port != null && port > 0) {
             this.hls = new StreamURL("http", host, port, file);
+        }
+        if (sslPort != null && sslPort > 0) {
+            this.https_hls = new StreamURL("https", host, sslPort, file);
+        }
+    }
+
+    public void setWsHls(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
+        String file = String.format("%s/%s/hls.m3u8%s", app, stream, callIdParam);
+        if (port != null && port > 0) {
             this.ws_hls = new StreamURL("ws", host, port, file);
         }
-        if (sslPort > 0) {
-            this.https_hls = new StreamURL("https", host, sslPort, file);
+        if (sslPort != null && sslPort > 0) {
             this.wss_hls = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setTs(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+    public void setTs(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s.live.ts%s", app, stream, callIdParam);
 
-        if (port > 0) {
+        if (port != null && port > 0) {
             this.ts = new StreamURL("http", host, port, file);
+        }
+        if (sslPort != null && sslPort > 0) {
+            this.https_ts = new StreamURL("https", host, sslPort, file);
+        }
+    }
+
+    public void setWsTs(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam) {
+        String file = String.format("%s/%s.live.ts%s", app, stream, callIdParam);
+
+        if (port != null && port > 0) {
             this.ws_ts = new StreamURL("ws", host, port, file);
         }
-        if (sslPort > 0) {
-            this.https_ts = new StreamURL("https", host, sslPort, file);
+        if (sslPort != null && sslPort > 0) {
             this.wss_ts = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam, boolean isPlay) {
+    public void setRtc(String host, Integer port, Integer sslPort, String app, String stream, String callIdParam, boolean isPlay) {
         if (callIdParam != null) {
             callIdParam = Objects.equals(callIdParam, "") ? callIdParam : callIdParam.replace("?", "&");
         }

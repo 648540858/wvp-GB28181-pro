@@ -44,9 +44,6 @@ public class MediaServer {
     @Schema(description = "mp4端口")
     private int mp4Port;
 
-    @Schema(description = "https-mp4端口")
-    private int mp4SSLPort;
-
     @Schema(description = "ws-flv端口")
     private int wsFlvPort;
 
@@ -128,11 +125,7 @@ public class MediaServer {
         sdpIp = ObjectUtils.isEmpty(zlmServerConfig.getSdpIp())? zlmServerConfig.getIp(): zlmServerConfig.getSdpIp();
         streamIp = ObjectUtils.isEmpty(zlmServerConfig.getStreamIp())? zlmServerConfig.getIp(): zlmServerConfig.getStreamIp();
         httpPort = zlmServerConfig.getHttpPort();
-        flvPort = zlmServerConfig.getHttpPort();
-        wsFlvPort = zlmServerConfig.getHttpPort();
         httpSSlPort = zlmServerConfig.getHttpSSLport();
-        flvSSLPort = zlmServerConfig.getHttpSSLport();
-        wsFlvSSLPort = zlmServerConfig.getHttpSSLport();
         rtmpPort = zlmServerConfig.getRtmpPort();
         rtmpSSlPort = zlmServerConfig.getRtmpSslPort();
         rtpProxyPort = zlmServerConfig.getRtpProxyPort();
@@ -156,20 +149,14 @@ public class MediaServer {
         streamIp = config.getServerIp();
         httpPort = config.getHttpServerPort();
         flvPort = config.getHttpFlvPort();
+        mp4Port = config.getMp4Port();
         wsFlvPort = config.getWsPort();
-//        httpSSlPort = config.getHttpSSLport();
-//        flvSSLPort = config.getHttpSSLport();
-//        wsFlvSSLPort = config.getHttpSSLport();
         rtmpPort = config.getRtmpPort();
-//        rtmpSSlPort = config.getRtmpSslPort();
         rtpProxyPort = config.getJtt1078RecvPort();
         rtspPort = config.getRtspPort();
-//        rtspSSLPort = config.getRtspSSlport();
         autoConfig = true; // 默认值true;
         secret = config.getSecret();
-//        hookAliveInterval = config.getHookAliveInterval();
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
-//        rtpPortRange = config.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         rtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
     }

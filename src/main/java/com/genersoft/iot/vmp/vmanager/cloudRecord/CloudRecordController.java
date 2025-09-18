@@ -312,31 +312,37 @@ public class CloudRecordController {
     @GetMapping("/seek")
     @Operation(summary = "定位录像播放到制定位置")
     @Parameter(name = "mediaServerId", description = "使用的节点Id", required = true)
+    @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "key", description = "流绑定的key", required = true)
     @Parameter(name = "seek", description = "要定位的时间位置，从录像开始的时间算起", required = true)
     public void seekRecord(
             @RequestParam(required = true) String mediaServerId,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
+            @RequestParam(required = true) String key,
             @RequestParam(required = true) Double seek,
             @RequestParam(required = false) String schema
             ) {
         if (schema == null) {
             schema = "ts";
         }
-        cloudRecordService.seekRecord(mediaServerId, app, stream, seek, schema);
+        cloudRecordService.seekRecord(mediaServerId, app, stream, key, seek, schema);
     }
 
     @ResponseBody
     @GetMapping("/speed")
     @Operation(summary = "设置录像播放速度")
     @Parameter(name = "mediaServerId", description = "使用的节点Id", required = true)
+    @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "key", description = "流绑定的key", required = true)
     @Parameter(name = "speed", description = "要设置的录像倍速", required = true)
     public void setRecordSpeed(
             @RequestParam(required = true) String mediaServerId,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
+            @RequestParam(required = true) String key,
             @RequestParam(required = true) Integer speed,
             @RequestParam(required = false) String schema
     ) {
@@ -344,7 +350,7 @@ public class CloudRecordController {
             schema = "ts";
         }
 
-        cloudRecordService.setRecordSpeed(mediaServerId, app, stream, speed, schema);
+        cloudRecordService.setRecordSpeed(mediaServerId, app, stream, key, speed, schema);
     }
 
     @ResponseBody

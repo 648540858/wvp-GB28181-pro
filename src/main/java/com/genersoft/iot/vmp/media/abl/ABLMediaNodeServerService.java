@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service("abl")
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
@@ -169,7 +171,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         for (int i = 0; i < result.getMediaList().size(); i++) {
             ABLMedia ablMedia = result.getMediaList().get(i);
             MediaInfo mediaInfo = MediaInfo.getInstance(ablMedia, mediaServer);
-            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, callId, true);
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, null, callId, true);
             if (streamInfo != null) {
                 streamInfoList.add(streamInfo);
             }
@@ -177,27 +179,82 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         return streamInfoList;
     }
 
-    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo,
+                                                  String addr, String callId, boolean isPlay) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
-        String addr = mediaServer.getStreamIp();
+        if (addr == null) {
+            addr = mediaServer.getStreamIp();
+        }
+
         streamInfoResult.setIp(addr);
+        if (mediaInfo != null) {
+            streamInfoResult.setServerId(mediaInfo.getServerId());
+        }else {
+            streamInfoResult.setServerId(userSetting.getServerId());
+        }
+
         streamInfoResult.setMediaServer(mediaServer);
-        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        Map<String, String> param = new HashMap<>();
+        if (!ObjectUtils.isEmpty(callId)) {
+            param.put("callId", callId);
+        }
+        if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))  {
+            param.put("originTypeStr", mediaInfo.getOriginTypeStr());
+        }
+        StringBuilder callIdParamBuilder = new StringBuilder();
+        if (!param.isEmpty()) {
+            callIdParamBuilder.append("?");
+            for (Map.Entry<String, String> entry : param.entrySet()) {
+                callIdParamBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                callIdParamBuilder.append("&");
+            }
+            callIdParamBuilder.deleteCharAt(callIdParamBuilder.length() - 1);
+        }
+
+        String callIdParam = callIdParamBuilder.toString();
+
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
-        String flvFile = String.format("%s/%s.flv%s", app, stream, callIdParam);
-        streamInfoResult.setFlv(addr, mediaServer.getFlvPort(),mediaServer.getHttpSSlPort(), flvFile);
-        streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),mediaServer.getHttpSSlPort(), flvFile);
-        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
-        if (mediaInfo != null) {
-            streamInfoResult.setMediaInfo(mediaInfo);
-            streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        String flvFile = String.format("%s/%s.flv%s", app, stream, callIdParam);
+        if ((mediaServer.getFlvPort() & 1) == 1) {
+            // 奇数端口 默认ssl端口
+            streamInfoResult.setFlv(addr, null, mediaServer.getFlvPort(), flvFile);
+        }else {
+            streamInfoResult.setFlv(addr, mediaServer.getFlvPort(),null,  flvFile);
+        }
+        if ((mediaServer.getWsFlvPort() & 1) == 1) {
+            // 奇数端口 默认ssl端口
+            streamInfoResult.setWsFlv(addr, null, mediaServer.getWsFlvPort(), flvFile);
+        }else {
+            streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),null,  flvFile);
+        }
+
+        streamInfoResult.setWsFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
+
+        String mp4File = String.format("%s/%s.mp4%s", app, stream, callIdParam);
+        if ((mediaServer.getMp4Port() & 1) == 1) {
+            // 奇数端口 默认ssl端口
+            streamInfoResult.setFmp4(addr, null, mediaServer.getMp4Port(), mp4File);
+        }else {
+            streamInfoResult.setFmp4(addr, mediaServer.getMp4Port(), null, mp4File);
+        }
+
+
+        streamInfoResult.setHls(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setTs(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
+
+        streamInfoResult.setMediaInfo(mediaInfo);
+
+        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())) {
+            String newStream = stream + "_" + mediaServer.getTranscodeSuffix();
+            mediaServer.setTranscodeSuffix(null);
+            StreamInfo transcodeStreamInfo = getStreamInfoByAppAndStream(mediaServer, app, newStream, null, addr, callId, isPlay);
+            streamInfoResult.setTranscodeStream(transcodeStreamInfo);
         }
         return streamInfoResult;
     }
@@ -420,48 +477,55 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         }
         String resultApp = ablResult.getApp();
         String resultStream = ablResult.getStream();
-        StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, resultApp, resultStream, null, null, true);
+        StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, resultApp, resultStream, null, null,null, true);
+        System.out.println(streamInfo.getRtsp());
+        streamInfo.setKey(ablResult.getKey());
         if (callback != null) {
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         }
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
-        logger.warn("[abl-seekRecordStamp] 未实现");
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema) {
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "seek", ((int)(stamp/1000)) + "");
+        if (ablResult.getCode() != 0) {
+            log.warn("[abl-seek] 失败：{}", ablResult.getMemo());
+        }
     }
 
     @Override
-    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
-        logger.warn("[abl-setRecordSpeed] 未实现");
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema) {
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "scale", speed + "");
+        if (ablResult.getCode() != 0) {
+            log.warn("[abl-倍速] 失败：{}", ablResult.getMemo());
+        }
     }
 
     @Override
     public DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo) {
         // 将filePath作为独立参数传入，避免%符号解析问题
-        String pathTemplate = "%s://%s:%s/%s/%s__ReplayFMP4RecordFile__%s?download_speed=6";
+        String pathTemplate = "%s://%s:%s/%s/%s__ReplayFMP4RecordFile__%s?download_speed=16";
 
         DownloadFileInfo info = new DownloadFileInfo();
-
-        info.setHttpPath(
-                String.format(
-                        pathTemplate,
-                        "http",
-                        mediaServer.getStreamIp(),
-                        mediaServer.getHttpPort(),
-                        recordInfo.getApp(),
-                        recordInfo.getStream(),
-                        recordInfo.getFileName()
-                )
-        );
-
-        if (mediaServer.getHttpSSlPort() > 0) {
+        if ((mediaServer.getMp4Port() & 1) == 1) {
             info.setHttpsPath(
                     String.format(
                             pathTemplate,
                             "https",
                             mediaServer.getStreamIp(),
-                            mediaServer.getHttpSSlPort(),
+                            mediaServer.getMp4Port(),
+                            recordInfo.getApp(),
+                            recordInfo.getStream(),
+                            recordInfo.getFileName()
+                    )
+            );
+        }else {
+            info.setHttpPath(
+                    String.format(
+                            pathTemplate,
+                            "http",
+                            mediaServer.getStreamIp(),
+                            mediaServer.getMp4Port(),
                             recordInfo.getApp(),
                             recordInfo.getStream(),
                             recordInfo.getFileName()

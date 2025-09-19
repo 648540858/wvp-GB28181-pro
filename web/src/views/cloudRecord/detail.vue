@@ -57,12 +57,15 @@
           <div class="cloud-record-show-time">
             {{showPlayTimeValue}}
           </div>
-          <div class="cloud-record-time-process" @click="timeProcessClick($event)"
+          <div class="cloud-record-time-process" ref="timeProcess" @click="timeProcessMousedown($event)"
                @mouseenter="timeProcessMouseEnter($event)" @mousemove="timeProcessMouseMove($event)"
                 @mouseleave="timeProcessMouseLeave($event)">
             <div v-if="streamInfo">
               <div class="cloud-record-time-process-value" :style="playTimeValue"></div>
-              <div class="cloud-record-time-process-pointer" :style="playTimeTotal"  @mousedown="timeProcessMousedown($event)"></div>
+              <div class="cloud-record-time-process-pointer" :style="playTimeTotal" @mousedown="timeProcessMousedown($event)"></div>
+              <transition name="el-fade-in-linear">
+                <div v-show="showTimeLeft" class="cloud-record-time-process-title" :style="playTimeTitleStyle" >{{showPlayTimeTitle}}</div>
+              </transition>
             </div>
           </div>
           <div class="cloud-record-show-time">
@@ -196,6 +199,17 @@ export default {
     },
     playTimeTotal() {
       return { left: `calc(${this.playerTime/this.streamInfo.duration * 100}% - 6px)` }
+    },
+    playTimeTitleStyle() {
+      return { left: (this.showTimeLeft - 16) + 'px' }
+    },
+    showPlayTimeTitle() {
+      if (this.showTimeLeft) {
+        let time = this.showTimeLeft / this.$refs.timeProcess.clientWidth * this.streamInfo.duration
+        return moment(time).format('mm:ss')
+      }else {
+        return ''
+      }
     }
   },
   created() {
@@ -216,7 +230,7 @@ export default {
   },
   methods: {
     timeProcessMouseup(event) {
-
+      this.isMousedown = false
     },
     timeProcessMousemove(event) {
 
@@ -389,13 +403,13 @@ export default {
         cloudRecordId: this.detailFiles[this.chooseFileIndex].id
       })
         .then(data => {
+          this.playerTime = 0
           this.streamInfo = data
           if (location.protocol === 'https:') {
             this.videoUrl = data['wss_flv']
           } else {
             this.videoUrl = data['ws_flv']
           }
-          this.playerTime = 0
         })
         .catch((error) => {
           console.log(error)
@@ -444,75 +458,10 @@ export default {
     },
 
     showPlayTimeChange(val) {
-      this.playTime += (val * 1000 - this.playerTime)
-      this.playerTime = val * 1000
+      this.playerTime += val * 1000
     },
     playingChange(val) {
       this.playing = val
-    },
-    playTimeChange(val) {
-      if (val === this.playTime) {
-        return
-      }
-      this.playTime = val
-    },
-    timelineMouseDown() {
-      this.timelineControl = true
-    },
-    mouseupTimeline(event) {
-      if (!this.timelineControl) {
-        this.timelineControl = false
-        return
-      }
-      this.timelineControl = false
-      let timeLength = 0
-      for (let i = 0; i < this.detailFiles.length; i++) {
-        const item = this.detailFiles[i]
-        if (this.playTime > item.endTime) {
-          timeLength += item.timeLen
-        } else if (this.playTime === item.endTime) {
-          timeLength += item.timeLen
-          this.chooseFileIndex = i
-          break
-        } else if (this.playTime > item.startTime && this.playTime < item.endTime) {
-          timeLength += (this.playTime - item.startTime)
-          this.chooseFileIndex = i
-          break
-        }
-      }
-      this.playSeekValue = timeLength
-      this.playRecord()
-    },
-    getTimeForFile(file) {
-      const starTime = new Date(file.startTime * 1000)
-      let endTime = new Date(file.endTime * 1000)
-      if (this.checkIsOver24h(starTime, endTime)) {
-        endTime = new Date(this.chooseDate + ' ' + '23:59:59')
-      }
-      return [starTime, endTime, endTime.getTime() - starTime.getTime()]
-    },
-    checkIsOver24h(starTime, endTime) {
-      return starTime > endTime
-    },
-    playTimeFormat(val) {
-      const h = parseInt(val / 3600)
-      const m = parseInt((val - h * 3600) / 60)
-      const s = parseInt(val - h * 3600 - m * 60)
-
-      let hStr = h
-      let mStr = m
-      let sStr = s
-      if (h < 10) {
-        hStr = '0' + hStr
-      }
-      if (m < 10) {
-        mStr = '0' + mStr
-        s
-      }
-      if (s < 10) {
-        sStr = '0' + sStr
-      }
-      return hStr + ':' + mStr + ':' + sStr
     },
     getDateInYear(callback) {
       this.dateFilesObj = {}
@@ -641,5 +590,13 @@ export default {
   border-radius: 5px;
   position: relative;
   top: -9px;
+}
+.cloud-record-time-process-title {
+  width: 40px;
+  text-align: center;
+  position: relative;
+  top: -45px;
+  color: rgb(192 190 190);
+  font-size: 14px;
 }
 </style>

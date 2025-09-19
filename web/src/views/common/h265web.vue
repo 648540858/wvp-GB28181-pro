@@ -167,7 +167,10 @@ export default {
         this.mediaInfo = h265web.mediaInfo()
       }
       h265web.onPlayTime = (videoPTS) => {
-        this.$emit('playTimeChange', videoPTS)
+        if (h265web.videoPTS) {
+          this.$emit('playTimeChange', videoPTS - h265web.videoPTS)
+        }
+        h265web.videoPTS = videoPTS
       }
       h265web.do()
     },
@@ -256,9 +259,6 @@ export default {
     },
     setPlaybackRate: function(speed) {
       h265webPlayer[this._uid].setPlaybackRate(speed)
-    },
-    playNextFrame: function() {
-      h265webPlayer[this._uid].do()
     }
   }
 }

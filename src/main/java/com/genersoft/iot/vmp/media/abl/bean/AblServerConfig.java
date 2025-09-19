@@ -44,11 +44,11 @@ public class AblServerConfig {
     @ConfigKeyId("hlsPort")
     private Integer hlsPort;
 
-    @ConfigKeyId("wsPort")
-    private Integer wsPort;
+    @ConfigKeyId("wsFlvPort")
+    private Integer wsFlvPort;
 
-    @ConfigKeyId("mp4Port")
-    private Integer mp4Port;
+    @ConfigKeyId("httpMp4Port")
+    private Integer httpMp4Port;
 
     @ConfigKeyId("ps_tsRecvPort")
     private Integer psTsRecvPort;

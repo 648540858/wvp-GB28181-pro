@@ -149,8 +149,8 @@ public class MediaServer {
         streamIp = config.getServerIp();
         httpPort = config.getHttpServerPort();
         flvPort = config.getHttpFlvPort();
-        mp4Port = config.getMp4Port();
-        wsFlvPort = config.getWsPort();
+        mp4Port = config.getHttpMp4Port();
+        wsFlvPort = config.getWsFlvPort();
         rtmpPort = config.getRtmpPort();
         rtpProxyPort = config.getJtt1078RecvPort();
         rtspPort = config.getRtspPort();

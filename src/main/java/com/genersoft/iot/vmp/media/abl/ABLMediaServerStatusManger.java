@@ -220,11 +220,11 @@ public class ABLMediaServerStatusManger {
         if (ablServerConfig.getHttpFlvPort() != null && mediaServer.getFlvPort() != ablServerConfig.getHttpFlvPort()) {
             mediaServer.setFlvPort(ablServerConfig.getHttpFlvPort());
         }
-        if (ablServerConfig.getMp4Port() != null && mediaServer.getMp4Port() != ablServerConfig.getMp4Port()) {
-            mediaServer.setMp4Port(ablServerConfig.getMp4Port());
+        if (ablServerConfig.getHttpMp4Port() != null && mediaServer.getMp4Port() != ablServerConfig.getHttpMp4Port()) {
+            mediaServer.setMp4Port(ablServerConfig.getHttpMp4Port());
         }
-        if (ablServerConfig.getWsPort() != null && mediaServer.getWsFlvPort() != ablServerConfig.getWsPort()) {
-            mediaServer.setWsFlvPort(ablServerConfig.getWsPort());
+        if (ablServerConfig.getWsFlvPort() != null && mediaServer.getWsFlvPort() != ablServerConfig.getWsFlvPort()) {
+            mediaServer.setWsFlvPort(ablServerConfig.getWsFlvPort());
         }
         if (ablServerConfig.getPsTsRecvPort() != null && mediaServer.getRtpProxyPort() != ablServerConfig.getPsTsRecvPort()) {
             mediaServer.setRtpProxyPort(ablServerConfig.getPsTsRecvPort());

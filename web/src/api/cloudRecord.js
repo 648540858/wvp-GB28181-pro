@@ -41,7 +41,7 @@ export function loadRecord(params) {
 }
 
 export function seek(params) {
-  const { mediaServerId, app, stream, key, seek, schema } = params
+  const { mediaServerId, app, stream, seek, schema } = params
   return request({
     method: 'get',
     url: `/api/cloud/record/seek`,
@@ -49,7 +49,6 @@ export function seek(params) {
       mediaServerId: mediaServerId,
       app: app,
       stream: stream,
-      key: key,
       seek: seek,
       schema: schema
     }
@@ -57,7 +56,7 @@ export function seek(params) {
 }
 
 export function speed(params) {
-  const { mediaServerId, app, stream, key, speed, schema } = params
+  const { mediaServerId, app, stream, speed, schema } = params
   return request({
     method: 'get',
     url: `/api/cloud/record/speed`,
@@ -65,7 +64,6 @@ export function speed(params) {
       mediaServerId: mediaServerId,
       app: app,
       stream: stream,
-      key: key,
       speed: speed,
       schema: schema
     }

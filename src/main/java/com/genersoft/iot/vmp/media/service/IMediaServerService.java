@@ -166,9 +166,9 @@ public interface IMediaServerService {
 
     void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String datePath, String dateDir, ErrorCallback<StreamInfo> callback);
 
-    void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema);
+    void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema);
 
-    void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema);
+    void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema);
 
     DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo);
 

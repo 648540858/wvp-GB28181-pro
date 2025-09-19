@@ -488,16 +488,16 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema) {
-        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "seek", "120");
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, app, stream, "seek", "120");
         if (ablResult.getCode() != 0) {
             log.warn("[abl-seek] 失败：{}", ablResult.getMemo());
         }
     }
 
     @Override
-    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema) {
-        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "scale", speed + "");
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, app, stream, "scale", speed + "");
         if (ablResult.getCode() != 0) {
             log.warn("[abl-倍速] 失败：{}", ablResult.getMemo());
         }

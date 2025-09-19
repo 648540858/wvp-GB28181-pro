@@ -256,6 +256,9 @@ export default {
     },
     setPlaybackRate: function(speed) {
       h265webPlayer[this._uid].setPlaybackRate(speed)
+    },
+    playNextFrame: function() {
+      h265webPlayer[this._uid].do()
     }
   }
 }

@@ -57,10 +57,12 @@
           <div class="cloud-record-show-time">
             {{showPlayTimeValue}}
           </div>
-          <div class="cloud-record-time-process">
+          <div class="cloud-record-time-process" @click="timeProcessClick($event)"
+               @mouseenter="timeProcessMouseEnter($event)" @mousemove="timeProcessMouseMove($event)"
+                @mouseleave="timeProcessMouseLeave($event)">
             <div v-if="streamInfo">
               <div class="cloud-record-time-process-value" :style="playTimeValue"></div>
-              <div class="cloud-record-time-process-pointer" :style="playTimeTotal"></div>
+              <div class="cloud-record-time-process-pointer" :style="playTimeTotal"  @mousedown="timeProcessMousedown($event)"></div>
             </div>
           </div>
           <div class="cloud-record-show-time">
@@ -132,6 +134,8 @@ export default {
       detailFiles: [],
       videoUrl: null,
       streamInfo: null,
+      showTimeLeft: null,
+      isMousedown: false,
       loading: false,
       chooseDate: null,
       playTime: null,
@@ -194,6 +198,10 @@ export default {
       return { left: `calc(${this.playerTime/this.streamInfo.duration * 100}% - 6px)` }
     }
   },
+  created() {
+    document.addEventListener('mousemove', this.timeProcessMousemove)
+    document.addEventListener('mouseup', this.timeProcessMouseup)
+  },
   mounted() {
     // 查询当年有视频的日期
     this.getDateInYear(() => {
@@ -207,6 +215,29 @@ export default {
     this.$destroy('recordVideoPlayer')
   },
   methods: {
+    timeProcessMouseup(event) {
+
+    },
+    timeProcessMousemove(event) {
+
+    },
+    timeProcessClick(event) {
+      let x = event.offsetX
+      let clientWidth = event.target.clientWidth
+      this.seekRecord(x / clientWidth * this.streamInfo.duration)
+    },
+    timeProcessMousedown(event) {
+      this.isMousedown = true
+    },
+    timeProcessMouseEnter(event) {
+      this.showTimeLeft = event.offsetX
+    },
+    timeProcessMouseMove(event) {
+      this.showTimeLeft = event.offsetX
+    },
+    timeProcessMouseLeave(event) {
+      this.showTimeLeft = null
+    },
     sidebarControl() {
       this.showSidebar = !this.showSidebar
     },
@@ -374,15 +405,17 @@ export default {
         })
 
     },
-    seekRecord() {
+    seekRecord(playSeekValue) {
       this.$store.dispatch('cloudRecord/seek', {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
         stream: this.streamInfo.stream,
-        key: this.streamInfo.key,
-        seek: this.playSeekValue,
+        seek: playSeekValue,
         schema: 'fmp4'
       })
+        .then((data) => {
+          this.playerTime = playSeekValue
+        })
         .catch((error) => {
           console.log(error)
         })

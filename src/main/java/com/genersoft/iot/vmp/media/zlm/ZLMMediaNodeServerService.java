@@ -567,7 +567,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema) {
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
         ZLMResult<?> zlmResult = zlmresTfulUtils.seekRecordStamp(mediaServer, app, stream, stamp, schema);
         if (zlmResult == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
@@ -578,7 +578,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema) {
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
         ZLMResult<?> zlmResult = zlmresTfulUtils.setRecordSpeed(mediaServer, app, stream, speed, schema);
         if (zlmResult == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");

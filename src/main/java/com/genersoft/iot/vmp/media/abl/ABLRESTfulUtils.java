@@ -522,9 +522,10 @@ public class ABLRESTfulUtils {
         }
     }
 
-    public ABLResult controlRecordPlay(MediaServer mediaServer, String key, String command, String value) {
+    public ABLResult controlRecordPlay(MediaServer mediaServer, String app, String stream, String command, String value) {
         Map<String, Object> param =  new HashMap<>();
-        param.put("key", key);
+        param.put("app", app);
+        param.put("stream", stream);
         param.put("command", command);
         param.put("value", Long.valueOf(value));
         String response = sendGet(mediaServer, "controlRecordPlay", param);

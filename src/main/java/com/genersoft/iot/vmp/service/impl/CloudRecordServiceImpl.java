@@ -281,7 +281,36 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback) {
+    public void loadMP4File(String app, String stream, int cloudRecordId, ErrorCallback<StreamInfo> callback) {
+
+        CloudRecordItem recordItem = cloudRecordServiceMapper.queryOne(cloudRecordId);
+        if (recordItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "无录像");
+        }
+        String mediaServerId = recordItem.getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            log.warn("[云端录像] 播放 未找到录制的流媒体，将自动选择低负载流媒体使用");
+            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        }
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "无可用流媒体");
+        }
+        String fileName = recordItem.getFileName().substring(0 , recordItem.getFileName().indexOf("."));
+        String filePath = recordItem.getFilePath();
+//        if (filePath != null) {
+//            fileName = filePath.substring(0, filePath.lastIndexOf("/"));
+//        }
+        mediaServerService.loadMP4File(mediaServer, app, stream, filePath, fileName, ((code, msg, streamInfo) -> {
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                streamInfo.setDuration(recordItem.getTimeLen());
+            }
+            callback.run(code, msg, streamInfo);
+        }));
+    }
+
+    @Override
+    public void loadMP4FileForDate(String app, String stream, String date, ErrorCallback<StreamInfo> callback) {
         long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
         long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
 
@@ -299,7 +328,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (filePath != null) {
             dateDir = filePath.substring(0, filePath.lastIndexOf("/"));
         }
-        mediaServerService.loadMP4File(mediaServer, app, stream, date, dateDir, callback);
+        mediaServerService.loadMP4FileForDate(mediaServer, app, stream, date, dateDir, callback);
 
     }
 

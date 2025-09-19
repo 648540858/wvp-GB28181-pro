@@ -253,17 +253,17 @@ public class CloudRecordController {
     @Operation(summary = "加载录像文件形成播放地址")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
-    @Parameter(name = "date", description = "日期， 例如 2025-04-10", required = true)
+    @Parameter(name = "cloudRecordId", description = "云端录像ID", required = true)
     public DeferredResult<WVPResult<StreamContent>> loadRecord(
             HttpServletRequest request,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
-            @RequestParam(required = true) String date
+            @RequestParam(required = true) int cloudRecordId
             ) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>();
 
         result.onTimeout(()->{
-            log.info("[加载录像文件超时] app={}, stream={}, date={}", app, stream, date);
+            log.info("[加载录像文件超时] app={}, stream={}, cloudRecordId={}", app, stream, cloudRecordId);
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("加载录像文件超时");
@@ -304,7 +304,7 @@ public class CloudRecordController {
             result.setResult(wvpResult);
         };
 
-        cloudRecordService.loadRecord(app, stream, date, callback);
+        cloudRecordService.loadMP4File(app, stream, cloudRecordId, callback);
         return result;
     }
 

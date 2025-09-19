@@ -28,14 +28,14 @@ export function queryListByData(params) {
 }
 
 export function loadRecord(params) {
-  const { app, stream, date } = params
+  const { app, stream, cloudRecordId } = params
   return request({
     method: 'get',
     url: `/api/cloud/record/loadRecord`,
     params: {
       app: app,
       stream: stream,
-      date: date
+      cloudRecordId: cloudRecordId
     }
   })
 }

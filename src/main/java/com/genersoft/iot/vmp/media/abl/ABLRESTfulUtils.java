@@ -526,7 +526,7 @@ public class ABLRESTfulUtils {
         Map<String, Object> param =  new HashMap<>();
         param.put("key", key);
         param.put("command", command);
-        param.put("value", value);
+        param.put("value", Long.valueOf(value));
         String response = sendGet(mediaServer, "controlRecordPlay", param);
         ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
         if (ablResult == null) {

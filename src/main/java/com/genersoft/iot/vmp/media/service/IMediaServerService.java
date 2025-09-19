@@ -164,11 +164,13 @@ public interface IMediaServerService {
 
     List<String> listRtpServer(MediaServer mediaServer);
 
-    void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath, String dateDir, ErrorCallback<StreamInfo> callback);
+    void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String datePath, String dateDir, ErrorCallback<StreamInfo> callback);
 
     void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema);
 
     void setRecordSpeed(MediaServer mediaServer, String app, String stream, String key, Integer speed, String schema);
 
     DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo);
+
+    void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback);
 }

@@ -232,9 +232,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         }else {
             streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),null,  flvFile);
         }
-
-        streamInfoResult.setWsFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), flvFile);
-
         String mp4File = String.format("%s/%s.mp4%s", app, stream, callIdParam);
         if ((mediaServer.getMp4Port() & 1) == 1) {
             // 奇数端口 默认ssl端口
@@ -242,7 +239,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         }else {
             streamInfoResult.setFmp4(addr, mediaServer.getMp4Port(), null, mp4File);
         }
-
 
         streamInfoResult.setHls(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setTs(addr, mediaServer.getHttpPort(), mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
@@ -463,7 +459,14 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void loadMP4File(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback) {
+        String buildStream = String.format("%s__ReplayFMP4RecordFile__%s", stream, fileName);
+        StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, buildStream, null, null, null, true);
+        callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+    }
+
+    @Override
+    public void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
         // 解析为 LocalDate
         LocalDate localDate = LocalDate.parse(date, DateUtil.DateFormatter);
         LocalDateTime startOfDay = localDate.atStartOfDay();
@@ -478,7 +481,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         String resultApp = ablResult.getApp();
         String resultStream = ablResult.getStream();
         StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, resultApp, resultStream, null, null,null, true);
-        System.out.println(streamInfo.getRtsp());
         streamInfo.setKey(ablResult.getKey());
         if (callback != null) {
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
@@ -487,7 +489,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void seekRecordStamp(MediaServer mediaServer, String app, String stream, String key, Double stamp, String schema) {
-        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "seek", ((int)(stamp/1000)) + "");
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, key, "seek", "120");
         if (ablResult.getCode() != 0) {
             log.warn("[abl-seek] 失败：{}", ablResult.getMemo());
         }

@@ -97,6 +97,9 @@ public class StreamContent {
     @Schema(description = "结束时间")
     private String endTime;
 
+    @Schema(description = "时长(回放时使用)")
+    private Double duration;
+
     @Schema(description = "文件下载地址（录像下载使用）")
     private DownloadFileInfo downLoadFilePath;
 
@@ -185,6 +188,7 @@ public class StreamContent {
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
+        this.duration = streamInfo.getDuration();
         this.key = streamInfo.getKey();
 
         if (streamInfo.getDownLoadFilePath() != null) {

@@ -20,6 +20,7 @@ public class ABLResult {
     private String stream;
     private String starttime;
     private String endtime;
+    private Long duration;
     private ABLUrls url;
     private List<ABLRecordFile> recordFileList;
 

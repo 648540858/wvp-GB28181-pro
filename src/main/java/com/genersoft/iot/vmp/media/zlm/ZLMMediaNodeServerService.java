@@ -22,14 +22,12 @@ import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service("zlm")
@@ -515,7 +513,30 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void loadMP4File(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback) {
+        String buildApp = "mp4_record";
+        String buildStream = app + "_" + stream + "_" + fileName + "_" + RandomStringUtils.randomAlphabetic(6).toLowerCase();
+
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServer.getServerId());
+        subscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null, null, true);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+        });
+
+        ZLMResult<?> zlmResult = zlmresTfulUtils.loadMP4File(mediaServer, buildApp, buildStream, filePath);
+
+        if (zlmResult == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (zlmResult.getCode() != 0) {
+            throw new ControllerException(zlmResult.getCode(), zlmResult.getMsg());
+        }
+    }
+
+    @Override
+    public void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
         String buildApp = "mp4_record";
         String buildStream = app + "_" + stream + "_" + date;
         MediaInfo mediaInfo = getMediaInfo(mediaServer, buildApp, buildStream);

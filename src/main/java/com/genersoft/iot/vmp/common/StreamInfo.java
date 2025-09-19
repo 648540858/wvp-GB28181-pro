@@ -79,6 +79,8 @@ public class StreamInfo implements Serializable, Cloneable{
     private String startTime;
     @Schema(description = "结束时间")
     private String endTime;
+    @Schema(description = "时长(回放时使用)")
+    private Double duration;
     @Schema(description = "进度（录像下载使用）")
     private double progress;
     @Schema(description = "文件下载地址（录像下载使用）")

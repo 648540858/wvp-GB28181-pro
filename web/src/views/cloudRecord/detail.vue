@@ -46,7 +46,7 @@
         </div>
       </div>
       <div id="playerBox">
-        <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
+        <div class="playBox" style="height: calc(100% - 24px); width: 100%; background-color: #000000">
           <div v-if="playLoading" style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;">
             <div class="el-icon-loading" />
             <div style="width: 100%; line-height: 2rem">正在加载</div>
@@ -54,16 +54,18 @@
           <h265web ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100vh - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
         </div>
         <div class="player-option-box">
-          <VideoTimeline
-            ref="Timeline"
-            :init-time="initTime"
-            :time-segments="timeSegments"
-            :init-zoom-index="4"
-            @timeChange="playTimeChange"
-            @mousedown="timelineMouseDown"
-            @mouseup="mouseupTimeline"
-          />
-          <div v-if="showTime" class="time-line-show">{{ showTimeValue }}</div>
+          <div class="cloud-record-show-time">
+            {{showPlayTimeValue}}
+          </div>
+          <div class="cloud-record-time-process">
+            <div v-if="streamInfo">
+              <div class="cloud-record-time-process-value" :style="playTimeValue"></div>
+              <div class="cloud-record-time-process-pointer" :style="playTimeTotal"></div>
+            </div>
+          </div>
+          <div class="cloud-record-show-time">
+            {{showPlayTimeTotal}}
+          </div>
         </div>
         <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 600px 1fr">
           <div style="text-align: left;">
@@ -111,14 +113,13 @@
 <script>
 
 import h265web from '../common/h265web.vue'
-import VideoTimeline from '../common/VideoTimeLine/index.vue'
 import moment from 'moment'
 import screenfull from 'screenfull'
 
 export default {
   name: 'CloudRecordDetail',
   components: {
-    h265web, VideoTimeline
+    h265web
   },
   data() {
     return {
@@ -179,8 +180,18 @@ export default {
         }
       }
     },
-    showTimeValue() {
-      return moment(this.playTime).format('YYYY-MM-DD HH:mm:ss')
+
+    showPlayTimeValue() {
+      return this.streamInfo !== null ? moment(this.playerTime).format('mm:ss') : '--:--'
+    },
+    playTimeValue() {
+      return { width: this.playerTime/this.streamInfo.duration * 100 + '%' }
+    },
+    showPlayTimeTotal() {
+      return this.streamInfo !== null ? moment(this.streamInfo.duration).format('mm:ss') : '--:--'
+    },
+    playTimeTotal() {
+      return { left: `calc(${this.playerTime/this.streamInfo.duration * 100}% - 6px)` }
     }
   },
   mounted() {
@@ -217,15 +228,14 @@ export default {
       this.chooseFile(this.chooseFileIndex + 1)
     },
     changePlaySpeed(speed) {
-      console.log(speed)
       // 倍速播放
       this.playSpeed = speed
       this.$store.dispatch('cloudRecord/speed', {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
         stream: this.streamInfo.stream,
+        key: this.streamInfo.key,
         speed: this.playSpeed,
-        seek: this.playSeekValue,
         schema: 'ts'
       })
       this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
@@ -243,10 +253,12 @@ export default {
     stopPLay() {
       // 停止
       this.$refs.recordVideoPlayer.destroy()
+      this.streamInfo = null
     },
     pausePlay() {
       // 暂停
       this.$refs.recordVideoPlayer.pause()
+      // TODO
     },
     play() {
       if (this.$refs.recordVideoPlayer.loaded) {
@@ -272,6 +284,9 @@ export default {
       this.isFullScreen = true
     },
     dateChange() {
+      this.$refs.recordVideoPlayer.destroy()
+      this.streamInfo = null
+      this.chooseFileIndex = null
       this.detailFiles = []
       this.currentPage = 1
       const chooseFullDate = new Date(this.chooseDate + ' ' + this.timeFormat)
@@ -331,32 +346,25 @@ export default {
     },
     chooseFile(index) {
       this.chooseFileIndex = index
-      let timeLength = 0
-      for (let i = 0; i < this.detailFiles.length; i++) {
-        if (i < index) {
-          timeLength += this.detailFiles[i].timeLen
-        }
-      }
-      this.playSeekValue = timeLength
       this.playRecord()
     },
     playRecord() {
-      if (!this.$refs.recordVideoPlayer.playing) {
+      if (this.$refs.recordVideoPlayer.playing) {
         this.$refs.recordVideoPlayer.destroy()
       }
       this.$store.dispatch('cloudRecord/loadRecord', {
         app: this.app,
         stream: this.stream,
-        date: this.chooseDate
+        cloudRecordId: this.detailFiles[this.chooseFileIndex].id
       })
         .then(data => {
           this.streamInfo = data
           if (location.protocol === 'https:') {
-            this.videoUrl = data['https_fmp4'] + '&time=' + new Date().getTime()
+            this.videoUrl = data['wss_flv']
           } else {
-            this.videoUrl = data['fmp4'] + '&time=' + new Date().getTime()
+            this.videoUrl = data['ws_flv']
           }
-          this.seekRecord()
+          this.playerTime = 0
         })
         .catch((error) => {
           console.log(error)
@@ -364,6 +372,7 @@ export default {
         .finally(() => {
           this.playLoading = false
         })
+
     },
     seekRecord() {
       this.$store.dispatch('cloudRecord/seek', {
@@ -566,13 +575,38 @@ export default {
   user-select: none;
 }
 .player-option-box {
-  height: 50px
+  height: 20px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 50px auto 50px;
+  background-color: rgb(0, 0, 0);
 }
-.time-line-show {
+.cloud-record-time-process {
+  width: 100%;
+  height: 8px;
+  margin: 6px 0 ;
+  border-radius: 4px;
+  border: 1px solid #505050;
+  background-color: rgb(56, 56, 56);
+  cursor: pointer;
+}
+.cloud-record-show-time {
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px
+}
+.cloud-record-time-process-value {
+  width: 100%;
+  height: 6px;
+  background-color: rgb(162, 162, 162);
+}
+.cloud-record-time-process-pointer {
+  width: 12px;
+  height: 12px;
+  background-color: rgb(192 190 190);
+  border-radius: 5px;
   position: relative;
-  color: rgba(250, 249, 249, 0.89);
-  left: calc(50% - 85px);
-  top: -72px;
-  text-shadow: 1px 0 #5f6b7c, -1px 0 #5f6b7c, 0 1px #5f6b7c, 0 -1px #5f6b7c, 1.1px 1.1px #5f6b7c, 1.1px -1.1px #5f6b7c, -1.1px 1.1px #5f6b7c, -1.1px -1.1px #5f6b7c;
+  top: -9px;
 }
 </style>

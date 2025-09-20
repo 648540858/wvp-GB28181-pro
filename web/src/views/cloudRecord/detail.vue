@@ -46,7 +46,7 @@
         </div>
       </div>
       <div id="playerBox">
-        <div class="playBox" style="height: calc(100% - 24px); width: 100%; background-color: #000000">
+        <div class="playBox" style="height: calc(100vh - 190px); width: 100%; background-color: #000000">
           <div v-if="playLoading" style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;">
             <div class="el-icon-loading" />
             <div style="width: 100%; line-height: 2rem">正在加载</div>
@@ -57,12 +57,11 @@
           <div class="cloud-record-show-time">
             {{showPlayTimeValue}}
           </div>
-          <div class="cloud-record-time-process" ref="timeProcess" @click="timeProcessMousedown($event)"
+          <div class="cloud-record-time-process" ref="timeProcess" @click="timeProcessClick($event)"
                @mouseenter="timeProcessMouseEnter($event)" @mousemove="timeProcessMouseMove($event)"
                 @mouseleave="timeProcessMouseLeave($event)">
             <div v-if="streamInfo">
               <div class="cloud-record-time-process-value" :style="playTimeValue"></div>
-              <div class="cloud-record-time-process-pointer" :style="playTimeTotal" @mousedown="timeProcessMousedown($event)"></div>
               <transition name="el-fade-in-linear">
                 <div v-show="showTimeLeft" class="cloud-record-time-process-title" :style="playTimeTitleStyle" >{{showPlayTimeTitle}}</div>
               </transition>
@@ -119,7 +118,10 @@
 
 import h265web from '../common/h265web.vue'
 import moment from 'moment'
+import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
+
+momentDurationFormatSetup(moment)
 
 export default {
   name: 'CloudRecordDetail',
@@ -141,7 +143,6 @@ export default {
       isMousedown: false,
       loading: false,
       chooseDate: null,
-      playTime: null,
       playerTime: null,
       playSpeed: 1,
       chooseFileIndex: null,
@@ -150,12 +151,9 @@ export default {
       count: 1000000, // TODO 分页导致滑轨视频有效值无法获取完全
       total: 0,
       playLoading: false,
-      showTime: true,
       isFullScreen: false,
-      playSeekValue: 0,
       playing: false,
       taskTimeRange: [],
-      timeFormat: '00:00:00',
       initTime: null,
       timelineControl: false,
       showOtherSpeed: true,
@@ -189,13 +187,25 @@ export default {
     },
 
     showPlayTimeValue() {
-      return this.streamInfo !== null ? moment(this.playerTime).format('mm:ss') : '--:--'
+      if (this.streamInfo === null) {
+        return '--:--:--'
+      }else {
+        return moment.duration(this.playerTime, 'milliseconds').format('hh:mm:ss', {
+          trim: false
+        })
+      }
     },
     playTimeValue() {
       return { width: this.playerTime/this.streamInfo.duration * 100 + '%' }
     },
     showPlayTimeTotal() {
-      return this.streamInfo !== null ? moment(this.streamInfo.duration).format('mm:ss') : '--:--'
+      if (this.streamInfo === null) {
+        return '--:--:--'
+      }else {
+        return moment.duration(this.streamInfo.duration, 'milliseconds').format('hh:mm:ss', {
+          trim: false
+        })
+      }
     },
     playTimeTotal() {
       return { left: `calc(${this.playerTime/this.streamInfo.duration * 100}% - 6px)` }
@@ -206,7 +216,9 @@ export default {
     showPlayTimeTitle() {
       if (this.showTimeLeft) {
         let time = this.showTimeLeft / this.$refs.timeProcess.clientWidth * this.streamInfo.duration
-        return moment(time).format('mm:ss')
+        let chooseFile = this.detailFiles[this.chooseFileIndex]
+        let realTime = chooseFile.timeLen/this.streamInfo.duration * time + chooseFile.startTime
+        return `${moment(time).format('mm:ss')}(${moment(realTime).format('HH:mm:ss')})`
       }else {
         return ''
       }
@@ -237,7 +249,7 @@ export default {
     },
     timeProcessClick(event) {
       let x = event.offsetX
-      let clientWidth = event.target.clientWidth
+      let clientWidth = this.$refs.timeProcess.clientWidth
       this.seekRecord(x / clientWidth * this.streamInfo.duration)
     },
     timeProcessMousedown(event) {
@@ -287,18 +299,18 @@ export default {
     },
     seekBackward() {
       // 快退五秒
-      this.playSeekValue -= 5 * 1000
-      this.playRecord()
+      this.seekRecord(this.playerTime - 5 * 1000)
     },
     seekForward() {
       // 快进五秒
-      this.playSeekValue += 5 * 1000
-      this.playRecord()
+      this.seekRecord(this.playerTime + 5 * 1000)
     },
     stopPLay() {
       // 停止
       this.$refs.recordVideoPlayer.destroy()
       this.streamInfo = null
+      this.playerTime = null
+      this.playSpeed = null
     },
     pausePlay() {
       // 暂停
@@ -334,7 +346,7 @@ export default {
       this.chooseFileIndex = null
       this.detailFiles = []
       this.currentPage = 1
-      const chooseFullDate = new Date(this.chooseDate + ' ' + this.timeFormat)
+      const chooseFullDate = new Date(this.chooseDate + ' 00:00:00')
       if (chooseFullDate.getFullYear() !== this.queryDate.getFullYear() ||
         chooseFullDate.getMonth() !== this.queryDate.getMonth()) {
         this.queryDate = chooseFullDate
@@ -397,6 +409,7 @@ export default {
       if (this.$refs.recordVideoPlayer.playing) {
         this.$refs.recordVideoPlayer.destroy()
       }
+      console.log(this.detailFiles[this.chooseFileIndex])
       this.$store.dispatch('cloudRecord/loadRecord', {
         app: this.app,
         stream: this.stream,
@@ -462,6 +475,10 @@ export default {
     },
     playingChange(val) {
       this.playing = val
+      if (!val) {
+        this.stopPLay()
+      }
+
     },
     getDateInYear(callback) {
       this.dateFilesObj = {}
@@ -560,7 +577,7 @@ export default {
   height: 20px;
   width: 100%;
   display: grid;
-  grid-template-columns: 50px auto 50px;
+  grid-template-columns: 70px auto 70px;
   background-color: rgb(0, 0, 0);
 }
 .cloud-record-time-process {
@@ -583,19 +600,23 @@ export default {
   height: 6px;
   background-color: rgb(162, 162, 162);
 }
-.cloud-record-time-process-pointer {
+.cloud-record-time-process-value::after {
+  content: '';
+  display: block;
   width: 12px;
   height: 12px;
   background-color: rgb(192 190 190);
   border-radius: 5px;
   position: relative;
-  top: -9px;
+  top: -3px;
+  right: -6px;
+  float: right;
 }
 .cloud-record-time-process-title {
-  width: 40px;
+  width: fit-content;
   text-align: center;
   position: relative;
-  top: -45px;
+  top: -35px;
   color: rgb(192 190 190);
   font-size: 14px;
 }

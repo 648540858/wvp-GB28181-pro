@@ -1,10 +1,12 @@
 <template>
   <div id="h265Player" ref="container" style="background-color: #000000; " @dblclick="fullscreenSwich">
-    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" />
-    <div v-if="playerLoading" class="player-loading">
-      <i class="el-icon-loading" />
-      <span>视频加载中</span>
+    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" >
+      <div v-if="playerLoading" class="play-loading">
+        <i class="el-icon-loading" />
+        视频加载中
+      </div>
     </div>
+
     <div v-if="showButton" id="buttonsBox" class="buttons-box">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play h265web-btn" @click="unPause" />
@@ -265,6 +267,16 @@ export default {
 </script>
 
 <style>
+.play-loading {
+  width: 100%;
+  height: 100%;
+  color: rgb(255, 255, 255);
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  justify-content: center;
+  font-size: 18px;
+}
 .buttons-box {
   width: 100%;
   height: 28px;

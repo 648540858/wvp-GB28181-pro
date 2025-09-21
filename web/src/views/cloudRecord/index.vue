@@ -117,32 +117,23 @@
         @current-change="currentChange"
       />
     </div>
-    <el-dialog
-      :title="playerTitle"
-      :visible.sync="showPlayer"
-      top="2rem"
-      width="1200px"
-      height="560px"
-    >
-      <h265web ref="recordVideoPlayer" :video-url="videoUrl" :height="false" :show-button="true" />
-    </el-dialog>
+    <playerDialog ref="playerDialog"></playerDialog>
   </div>
 </template>
 
 <script>
-import h265web from '../common/h265web.vue'
+import playerDialog from './playerDialog.vue'
 import moment from 'moment'
 import Vue from 'vue'
 
 export default {
   name: 'CloudRecord',
-  components: { h265web },
+  components: { playerDialog },
   data() {
     return {
       search: '',
       startTime: '',
       endTime: '',
-      showPlayer: false,
       playerTitle: '',
       videoUrl: '',
       mediaServerList: [], // 滅体节点列表
@@ -216,19 +207,21 @@ export default {
         })
     },
     play(row) {
-      console.log(row)
       this.chooseRecord = row
-      this.$store.dispatch('cloudRecord/getPlayPath', row.id)
-        .then((data) => {
-          if (location.protocol === 'https:') {
-            this.videoUrl = data.httpsPath
-          } else {
-            this.videoUrl = data.httpPath
-          }
-          this.showPlayer = true
+      this.$refs.playerDialog.stopPlay()
+      this.$store.dispatch('cloudRecord/loadRecord', {
+        app: row.app,
+        stream: row.stream,
+        cloudRecordId: row.id
+      })
+        .then(data => {
+          this.$refs.playerDialog.openDialog(data)
         })
         .catch((error) => {
           console.log(error)
+        })
+        .finally(() => {
+          this.playLoading = false
         })
     },
     downloadFile(row) {
@@ -328,6 +321,6 @@ export default {
 
 <style>
 .el-dialog__body {
-  padding: 30px 0 !important;
+  padding: 20px 0 0 0 !important;
 }
 </style>

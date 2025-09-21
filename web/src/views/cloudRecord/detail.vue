@@ -46,69 +46,8 @@
         </div>
       </div>
       <div id="playerBox">
-        <div class="playBox" style="height: calc(100vh - 190px); width: 100%; background-color: #000000">
-          <div v-if="playLoading" style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;">
-            <div class="el-icon-loading" />
-            <div style="width: 100%; line-height: 2rem">正在加载</div>
-          </div>
-          <h265web ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100vh - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
-        </div>
-        <div class="player-option-box">
-          <div class="cloud-record-show-time">
-            {{showPlayTimeValue}}
-          </div>
-          <div class="cloud-record-time-process" ref="timeProcess" @click="timeProcessClick($event)"
-               @mouseenter="timeProcessMouseEnter($event)" @mousemove="timeProcessMouseMove($event)"
-                @mouseleave="timeProcessMouseLeave($event)">
-            <div v-if="streamInfo">
-              <div class="cloud-record-time-process-value" :style="playTimeValue"></div>
-              <transition name="el-fade-in-linear">
-                <div v-show="showTimeLeft" class="cloud-record-time-process-title" :style="playTimeTitleStyle" >{{showPlayTimeTitle}}</div>
-              </transition>
-            </div>
-          </div>
-          <div class="cloud-record-show-time">
-            {{showPlayTimeTotal}}
-          </div>
-        </div>
-        <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 600px 1fr">
-          <div style="text-align: left;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <a target="_blank" class="record-play-control-item iconfont icon-list" title="列表" @click="sidebarControl()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-camera1196054easyiconnet" title="截图" @click="snap()" />
-              <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
-            </div>
-          </div>
-          <div style="text-align: center;">
-            <div class="record-play-control">
-              <a v-if="chooseFileIndex > 0" target="_blank" class="record-play-control-item iconfont icon-diyigeshipin" title="上一个" @click="playLast()" />
-              <a v-else style="color: #acacac; cursor: not-allowed" target="_blank" class="record-play-control-item iconfont icon-diyigeshipin" title="上一个" />
-              <a target="_blank" class="record-play-control-item iconfont icon-kuaijin" title="快退五秒" @click="seekBackward()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-stop1" style="font-size: 14px" title="停止" @click="stopPLay()" />
-              <a v-if="playing" target="_blank" class="record-play-control-item iconfont icon-zanting" title="暂停" @click="pausePlay()" />
-              <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-houtui" title="快进五秒" @click="seekForward()" />
-              <a v-if="chooseFileIndex < detailFiles.length - 1" target="_blank" class="record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
-              <a v-else style="color: #acacac; cursor: not-allowed" target="_blank" class="record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
-              <el-dropdown @command="changePlaySpeed">
-                <a target="_blank" class="record-play-control-item record-play-control-speed" title="倍速播放">{{ playSpeed }}X</a>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item
-                    v-for="item in playSpeedRange"
-                    :key="item"
-                    :command="item"
-                  >{{ item }}X</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <a v-if="!isFullScreen" target="_blank" class="record-play-control-item iconfont icon-fangdazhanshi" title="全屏" @click="fullScreen()" />
-              <a v-else target="_blank" class="record-play-control-item iconfont icon-suoxiao1" title="全屏" @click="fullScreen()" />
-            </div>
-          </div>
-        </div>
+        <cloudRecordPlayer ref="cloudRecordPlayer" :showListCallback="sidebarControl" :showNextCallback="playNext"
+                             :showLastCallback="playLast" :lastDiable="lastBtnDiable" :nextDiable="nextBtnDiable" ></cloudRecordPlayer>
       </div>
     </div>
   </div>
@@ -116,17 +55,17 @@
 
 <script>
 
-import h265web from '../common/h265web.vue'
 import moment from 'moment'
 import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
+import cloudRecordPlayer from './cloudRecordPlayer.vue'
 
 momentDurationFormatSetup(moment)
 
 export default {
   name: 'CloudRecordDetail',
   components: {
-    h265web
+    cloudRecordPlayer
   },
   data() {
     return {
@@ -134,7 +73,7 @@ export default {
       app: this.$route.params.app,
       stream: this.$route.params.stream,
       mediaServerId: null,
-      dateFilesObj: [],
+      dateFilesObj: {},
       mediaServerList: [],
       detailFiles: [],
       videoUrl: null,
@@ -157,6 +96,8 @@ export default {
       initTime: null,
       timelineControl: false,
       showOtherSpeed: true,
+      lastBtnDiable: this.chooseFileIndex - 1 <= 0,
+      nextBtnDiable: false,
       timeSegments: [],
       pickerOptions: {
         cellClassName: (date) => {
@@ -184,44 +125,6 @@ export default {
           display: 'grid', gridTemplateColumns: '0 minmax(0, 1fr)'
         }
       }
-    },
-
-    showPlayTimeValue() {
-      if (this.streamInfo === null) {
-        return '--:--:--'
-      }else {
-        return moment.duration(this.playerTime, 'milliseconds').format('hh:mm:ss', {
-          trim: false
-        })
-      }
-    },
-    playTimeValue() {
-      return { width: this.playerTime/this.streamInfo.duration * 100 + '%' }
-    },
-    showPlayTimeTotal() {
-      if (this.streamInfo === null) {
-        return '--:--:--'
-      }else {
-        return moment.duration(this.streamInfo.duration, 'milliseconds').format('hh:mm:ss', {
-          trim: false
-        })
-      }
-    },
-    playTimeTotal() {
-      return { left: `calc(${this.playerTime/this.streamInfo.duration * 100}% - 6px)` }
-    },
-    playTimeTitleStyle() {
-      return { left: (this.showTimeLeft - 16) + 'px' }
-    },
-    showPlayTimeTitle() {
-      if (this.showTimeLeft) {
-        let time = this.showTimeLeft / this.$refs.timeProcess.clientWidth * this.streamInfo.duration
-        let chooseFile = this.detailFiles[this.chooseFileIndex]
-        let realTime = chooseFile.timeLen/this.streamInfo.duration * time + chooseFile.startTime
-        return `${moment(time).format('mm:ss')}(${moment(realTime).format('HH:mm:ss')})`
-      }else {
-        return ''
-      }
     }
   },
   created() {
@@ -247,25 +150,8 @@ export default {
     timeProcessMousemove(event) {
 
     },
-    timeProcessClick(event) {
-      let x = event.offsetX
-      let clientWidth = this.$refs.timeProcess.clientWidth
-      this.seekRecord(x / clientWidth * this.streamInfo.duration)
-    },
-    timeProcessMousedown(event) {
-      this.isMousedown = true
-    },
-    timeProcessMouseEnter(event) {
-      this.showTimeLeft = event.offsetX
-    },
-    timeProcessMouseMove(event) {
-      this.showTimeLeft = event.offsetX
-    },
-    timeProcessMouseLeave(event) {
-      this.showTimeLeft = null
-    },
-    sidebarControl() {
-      this.showSidebar = !this.showSidebar
+    sidebarControl(status) {
+      this.showSidebar = status
     },
     snap() {
       this.$refs.recordVideoPlayer.screenshot()
@@ -280,42 +166,18 @@ export default {
     playNext() {
       // 播放上一个
       if (this.chooseFileIndex === this.detailFiles.length - 1) {
+        this.nextBtnDiable = true
         return
       }
+      if (this.chooseFileIndex < Object.values(this.dateFilesObj).length - 1) {
+        this.nextBtnDiable = true
+      }
       this.chooseFile(this.chooseFileIndex + 1)
-    },
-    changePlaySpeed(speed) {
-      // 倍速播放
-      this.playSpeed = speed
-      this.$store.dispatch('cloudRecord/speed', {
-        mediaServerId: this.streamInfo.mediaServerId,
-        app: this.streamInfo.app,
-        stream: this.streamInfo.stream,
-        key: this.streamInfo.key,
-        speed: this.playSpeed,
-        schema: 'ts'
-      })
-      this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
-    },
-    seekBackward() {
-      // 快退五秒
-      this.seekRecord(this.playerTime - 5 * 1000)
-    },
-    seekForward() {
-      // 快进五秒
-      this.seekRecord(this.playerTime + 5 * 1000)
+
     },
     stopPLay() {
       // 停止
-      this.$refs.recordVideoPlayer.destroy()
-      this.streamInfo = null
-      this.playerTime = null
-      this.playSpeed = null
-    },
-    pausePlay() {
-      // 暂停
-      this.$refs.recordVideoPlayer.pause()
-      // TODO
+      this.$refs.cloudRecordPlayer.stopPLay()
     },
     play() {
       if (this.$refs.recordVideoPlayer.loaded) {
@@ -341,7 +203,7 @@ export default {
       this.isFullScreen = true
     },
     dateChange() {
-      this.$refs.recordVideoPlayer.destroy()
+      this.$refs.cloudRecordPlayer.stopPLay()
       this.streamInfo = null
       this.chooseFileIndex = null
       this.detailFiles = []
@@ -406,10 +268,7 @@ export default {
       this.playRecord()
     },
     playRecord() {
-      if (this.$refs.recordVideoPlayer.playing) {
-        this.$refs.recordVideoPlayer.destroy()
-      }
-      console.log(this.detailFiles[this.chooseFileIndex])
+      this.$refs.cloudRecordPlayer.stopPLay()
       this.$store.dispatch('cloudRecord/loadRecord', {
         app: this.app,
         stream: this.stream,
@@ -417,12 +276,7 @@ export default {
       })
         .then(data => {
           this.playerTime = 0
-          this.streamInfo = data
-          if (location.protocol === 'https:') {
-            this.videoUrl = data['wss_flv']
-          } else {
-            this.videoUrl = data['ws_flv']
-          }
+          this.$refs.cloudRecordPlayer.setStreamInfo(data)
         })
         .catch((error) => {
           console.log(error)
@@ -431,21 +285,6 @@ export default {
           this.playLoading = false
         })
 
-    },
-    seekRecord(playSeekValue) {
-      this.$store.dispatch('cloudRecord/seek', {
-        mediaServerId: this.streamInfo.mediaServerId,
-        app: this.streamInfo.app,
-        stream: this.streamInfo.stream,
-        seek: playSeekValue,
-        schema: 'fmp4'
-      })
-        .then((data) => {
-          this.playerTime = playSeekValue
-        })
-        .catch((error) => {
-          console.log(error)
-        })
     },
     downloadFile(file) {
       this.$store.dispatch('cloudRecord/getPlayPath', file.id)
@@ -463,22 +302,8 @@ export default {
           console.log(error)
         })
     },
-    backToList() {
-      this.$router.back()
-    },
     getFileShowName(item) {
       return moment(item.startTime).format('HH:mm:ss') + '-' + moment(item.endTime).format('HH:mm:ss')
-    },
-
-    showPlayTimeChange(val) {
-      this.playerTime += val * 1000
-    },
-    playingChange(val) {
-      this.playing = val
-      if (!val) {
-        this.stopPLay()
-      }
-
     },
     getDateInYear(callback) {
       this.dateFilesObj = {}
@@ -502,20 +327,15 @@ export default {
           console.log(error)
         })
     },
-    goBack() {
-      this.$router.push('/cloudRecord')
-    }
   }
 }
 </script>
 
-<style>
-
+<style scoped>
 .record-list-box-box {
   width: fit-content;
   float: left;
 }
-
 .record-list-box {
   width: 100%;
   overflow: auto;
@@ -617,7 +437,12 @@ export default {
   text-align: center;
   position: relative;
   top: -35px;
-  color: rgb(192 190 190);
+  color: rgb(217, 217, 217);
   font-size: 14px;
+  text-shadow:
+    -1px -1px 0 black, /* 左上角阴影 */
+    1px -1px 0 black, /* 右上角阴影 */
+    -1px 1px 0 black, /* 左下角阴影 */
+    1px 1px 0 black; /* 右下角阴影 */
 }
 </style>

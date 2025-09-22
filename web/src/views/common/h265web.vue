@@ -1,6 +1,6 @@
 <template>
   <div id="h265Player" ref="container" style="background-color: #000000; " @dblclick="fullscreenSwich">
-    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" >
+    <div id="h265PlayerContainer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" >
       <div v-if="playerLoading" class="play-loading">
         <i class="el-icon-loading" />
         视频加载中
@@ -37,7 +37,21 @@ const h265webPlayer = {}
  * 从github上复制的
  * @see https://github.com/numberwolf/h265web.js/blob/master/example_normal/index.js
  */
-const token = 'base64:QXV0aG9yOmNoYW5neWFubG9uZ3xudW1iZXJ3b2xmLEdpdGh1YjpodHRwczovL2dpdGh1Yi5jb20vbnVtYmVyd29sZixFbWFpbDpwb3JzY2hlZ3QyM0Bmb3htYWlsLmNvbSxRUTo1MzEzNjU4NzIsSG9tZVBhZ2U6aHR0cDovL3h2aWRlby52aWRlbyxEaXNjb3JkOm51bWJlcndvbGYjODY5NCx3ZWNoYXI6bnVtYmVyd29sZjExLEJlaWppbmcsV29ya0luOkJhaWR1'
+
+// 需要加载的h265web的wasm的js文件(完整http地址)
+const wasm_js_uri = window.location.origin + '/static/js/h265web2/h265web_wasm.js'
+// 需要加载的h265web的wasm文件(完整http地址)
+const wasm_wasm_uri = window.location.origin + '/static/js/h265web2/h265web_wasm.wasm'
+// 需要加载的扩展wasm的js文件(完整http地址)
+const ext_src_js_uri = window.location.origin + '/static/js/h265web2/extjs.js'
+// 需要加载的扩展wasm的js文件(完整http地址)
+const ext_wasm_js_uri = window.location.origin + '/static/js/h265web2/extwasm.js'
+
+window.wasm_js_uri = wasm_js_uri
+window.wasm_wasm_uri = wasm_wasm_uri
+window.ext_src_js_uri = ext_src_js_uri
+window.ext_wasm_js_uri = ext_wasm_js_uri
+
 export default {
   name: 'H265web',
   props: ['videoUrl', 'error', 'hasAudio', 'height', 'showButton'],
@@ -78,14 +92,18 @@ export default {
       this.updatePlayerDomSize()
     }
     this.btnDom = document.getElementById('buttonsBox')
-    console.log('初始化时的地址为: ' + paramUrl)
+    if (paramUrl) {
+      console.log('初始化时的地址为: ' + paramUrl)
+
+    }
+    console.log('初始化时的地址为: ' + wasm_js_uri)
     if (paramUrl) {
       this.play(this.videoUrl)
     }
   },
   destroyed() {
     if (h265webPlayer[this._uid]) {
-      h265webPlayer[this._uid].destroy()
+      h265webPlayer[this._uid].release()
     }
     this.playing = false
     this.loaded = false
@@ -134,47 +152,48 @@ export default {
     },
     create(url) {
       this.playerLoading = true
-      const options = {}
-      h265webPlayer[this._uid] = new window.new265webjs(url, Object.assign(
-        {
-          player: 'glplayer', // 播放器容器id
-          width: this.playerWidth,
-          height: this.playerHeight,
-          token: token,
-          extInfo: {
-            coreProbePart: 0.4,
-            probeSize: 8192,
-            ignoreAudio: this.hasAudio == null ? 0 : (this.hasAudio ? 0 : 1)
-          }
-        },
-        options
-      ))
+      h265webPlayer[this._uid] = H265webjsPlayer()
+      const player_config ={
+        player_id: 'h265PlayerContainer', // 播放器容器id
+        wasm_js_uri: wasm_js_uri, // h265web的wasm的js文件的地址(完整http地址)
+        wasm_wasm_uri: wasm_wasm_uri, // h265web的wasm文件的地址(完整http地址)
+        ext_src_js_uri: ext_src_js_uri, //  需要加载的扩展wasm的js文件(完整http地址), 有hls的播放则必须填写
+        ext_wasm_js_uri: ext_wasm_js_uri, //  需要加载的扩展wasm文件(完整http地址), 有hls的播放则必须填写
+        width: this.playerWidth,
+        height: this.playerHeight,
+        color: 'black', // 背景颜色
+        auto_play: true, // 是否自动播放, 默认否
+        readframe_multi_times: -1,
+        enable_play_button: true,
+        // core: 'mse_hevc',
+        // core: 'wasm_hevc',
+        // core: 'webcodec_hevc', // 优先使用的内核，不填写则自动识别
+        ignore_audio: false // 是否要忽略掉音频，默认否
+      }
+      h265webPlayer[this._uid].build(player_config)
+
       const h265web = h265webPlayer[this._uid]
-      h265web.onOpenFullScreen = () => {
-        this.fullscreen = true
-      }
-      h265web.onCloseFullScreen = () => {
-        this.fullscreen = false
-      }
-      h265web.onReadyShowDone = () => {
+
+      h265web.on_ready_show_done_callback = () => {
         // 准备好显示了，尝试自动播放
-        const result = h265web.play()
-        this.playing = result
+        this.playing = true
         this.playerLoading = false
       }
-      h265web.onLoadFinish = () => {
+      h265web.video_probe_callback = () => {
         this.loaded = true
         // 可以获取mediaInfo
         // @see https://github.com/numberwolf/h265web.js/blob/8b26a31ffa419bd0a0f99fbd5111590e144e36a8/example_normal/index.js#L252C9-L263C11
-        this.mediaInfo = h265web.mediaInfo()
+        // this.mediaInfo = h265web.mediaInfo()
       }
-      h265web.onPlayTime = (videoPTS) => {
+      h265web.on_play_time = (videoPTS) => {
         if (h265web.videoPTS) {
           this.$emit('playTimeChange', videoPTS - h265web.videoPTS)
         }
         h265web.videoPTS = videoPTS
       }
-      h265web.do()
+      // h265web.do()
+
+      h265web.load_media(url)
     },
     screenshot: function() {
       if (h265webPlayer[this._uid]) {
@@ -182,7 +201,7 @@ export default {
         console.log(this.mediaInfo)
         canvas.width = this.mediaInfo.meta.size.width
         canvas.height = this.mediaInfo.meta.size.height
-        h265webPlayer[this._uid].snapshot(canvas) // snapshot to canvas
+        h265webPlayer[this._uid].screenshot(canvas) // snapshot to canvas
 
         // 下载截图
         const link = document.createElement('a')
@@ -260,7 +279,7 @@ export default {
         document.webkitFullscreenElement || false
     },
     setPlaybackRate: function(speed) {
-      h265webPlayer[this._uid].setPlaybackRate(speed)
+      h265webPlayer[this._uid].set_playback_rate(speed)
     }
   }
 }

@@ -5,7 +5,7 @@
     @dblclick="fullscreenSwich"
   >
     <div style="width:100%; padding-top: 56.25%; position: relative;" />
-    <div id="buttonsBox" class="buttons-box">
+    <div id="buttonsBox" class="buttons-box" v-if="typeof showBtn == 'undefined' || showBtn">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
@@ -34,7 +34,7 @@
 const jessibucaPlayer = {}
 export default {
   name: 'Jessibuca',
-  props: ['videoUrl', 'error', 'hasAudio', 'height'],
+  props: ['videoUrl', 'error', 'hasAudio', 'height', 'showBtn'],
   data() {
     return {
       playing: false,
@@ -266,7 +266,7 @@ export default {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].destroy()
       }
-      if (document.getElementById('buttonsBox') == null) {
+      if (document.getElementById('buttonsBox') === null && (typeof this.showBtn === 'undefined' || this.showBtn)) {
         this.$refs.container.appendChild(this.btnDom)
       }
       jessibucaPlayer[this._uid] = null

@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id 1291092 */
-  src: url('iconfont.woff2?t=1758456390170') format('woff2');
+  src: url('iconfont.woff2?t=1758456390170') format('woff2')
 }
 
 .iconfont {
@@ -9,6 +9,34 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-a-bofangqi1:before {
+  content: "\ec17";
+}
+
+.icon-sanjiaoxing:before {
+  content: "\e7f1";
+}
+
+.icon-icon_gps:before {
+  content: "\e7f0";
+}
+
+.icon-yidingdaoweizhuangtai:before {
+  content: "\e7ef";
+}
+
+.icon-gps:before {
+  content: "\e8b6";
+}
+
+.icon-tongdao:before {
+  content: "\e7ee";
+}
+
+.icon-xiazailiebiao:before {
+  content: "\e7ed";
 }
 
 .icon-zoom-in:before {

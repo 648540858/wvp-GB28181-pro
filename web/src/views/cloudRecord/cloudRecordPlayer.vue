@@ -26,6 +26,7 @@
         <div class="cloud-record-record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
           <a v-if="showListCallback" target="_blank" class="cloud-record-record-play-control-item iconfont icon-list" title="列表" @click="sidebarControl()" />
           <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-camera1196054easyiconnet" title="截图" @click="snap()" />
+          <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-shuaxin11" title="刷新" @click="refresh()" />
 <!--          <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-xiazai011" title="下载" />-->
         </div>
       </div>
@@ -54,6 +55,9 @@
       </div>
       <div style="text-align: right;">
         <div class="cloud-record-record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+          <div class="cloud-record-record-play-control-item record-play-control-player">
+            H265web
+          </div>
           <a v-if="!isFullScreen" target="_blank" class="cloud-record-record-play-control-item iconfont icon-fangdazhanshi" title="全屏" @click="fullScreen()" />
           <a v-else target="_blank" class="cloud-record-record-play-control-item iconfont icon-suoxiao1" title="全屏" @click="fullScreen()" />
         </div>
@@ -144,6 +148,9 @@ export default {
     this.$destroy('recordVideoPlayer')
   },
   methods: {
+    changePlayer(command) {
+      this.playerType = command
+    },
     timeProcessMouseup(event) {
       this.isMousedown = false
     },
@@ -173,6 +180,9 @@ export default {
     },
     snap() {
       this.$refs.recordVideoPlayer.screenshot()
+    },
+    refresh() {
+      this.$refs.recordVideoPlayer.playBtnClick()
     },
     playLast() {
       this.showLastCallback()
@@ -249,6 +259,9 @@ export default {
       this.startTime = startTime
     },
     seekRecord(playSeekValue) {
+      let streamInfo = this.streamInfo
+      let videoUrl = this.videoUrl
+      this.$refs.recordVideoPlayer.destroy()
       this.$store.dispatch('cloudRecord/seek', {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
@@ -258,6 +271,13 @@ export default {
       })
         .then((data) => {
           this.playerTime = playSeekValue
+          setTimeout(() => {
+            this.streamInfo = streamInfo
+            this.videoUrl = videoUrl
+          }, 500)
+
+
+
         })
         .catch((error) => {
           console.log(error)
@@ -360,5 +380,9 @@ export default {
     1px -1px 0 black, /* 右上角阴影 */
     -1px 1px 0 black, /* 左下角阴影 */
     1px 1px 0 black; /* 右下角阴影 */
+}
+.record-play-control-player {
+  width: fit-content;
+  height: 32px;
 }
 </style>

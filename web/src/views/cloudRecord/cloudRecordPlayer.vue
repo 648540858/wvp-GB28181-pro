@@ -40,7 +40,7 @@
           <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-houtui" title="快进五秒" @click="seekForward()" />
           <a v-if="!nextDiable" target="_blank" class="cloud-record-record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
           <a v-else style="color: #acacac; cursor: not-allowed" target="_blank" class="cloud-record-record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
-          <el-dropdown @command="changePlaySpeed">
+          <el-dropdown @command="changePlaySpeed" :popper-append-to-body='false' >
             <a target="_blank" class="cloud-record-record-play-control-item record-play-control-speed" title="倍速播放">{{ playSpeed }}X</a>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item
@@ -82,6 +82,8 @@ export default {
       showSidebar: false,
       videoUrl: null,
       streamInfo: null,
+      timeLen: null,
+      startTime: null,
       showTimeLeft: null,
       isMousedown: false,
       loading: false,
@@ -97,7 +99,7 @@ export default {
   computed: {
     playBoxStyle() {
       return {
-        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 190px)'
+        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
       }
     },
     showPlayTimeValue() {
@@ -126,8 +128,7 @@ export default {
     showPlayTimeTitle() {
       if (this.showTimeLeft) {
         let time = this.showTimeLeft / this.$refs.timeProcess.clientWidth * this.streamInfo.duration
-        let chooseFile = this.detailFiles[this.chooseFileIndex]
-        let realTime = chooseFile.timeLen/this.streamInfo.duration * time + chooseFile.startTime
+        let realTime = this.timeLen/this.streamInfo.duration * time + this.startTime
         return `${moment(time).format('mm:ss')}(${moment(realTime).format('HH:mm:ss')})`
       }else {
         return ''
@@ -202,7 +203,7 @@ export default {
     },
     stopPLay() {
       // 停止
-      if (this.$refs.recordVideoPlayer.playing) {
+      if (this.$refs.recordVideoPlayer) {
         this.$refs.recordVideoPlayer.destroy()
       }
       this.streamInfo = null
@@ -230,20 +231,22 @@ export default {
       }
       const playerWidth = this.$refs.recordVideoPlayer.playerWidth
       const playerHeight = this.$refs.recordVideoPlayer.playerHeight
-      screenfull.request(document.getElementById('playerBox'))
+      screenfull.request(document.getElementById('cloudRecordPlayer'))
       screenfull.on('change', (event) => {
         this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
         this.isFullScreen = screenfull.isFullscreen
       })
       this.isFullScreen = true
     },
-    setStreamInfo(streamInfo) {
+    setStreamInfo(streamInfo, timeLen, startTime) {
       if (location.protocol === 'https:') {
         this.videoUrl = streamInfo['wss_flv']
       } else {
         this.videoUrl = streamInfo['ws_flv']
       }
       this.streamInfo = streamInfo
+      this.timeLen = timeLen
+      this.startTime = startTime
     },
     seekRecord(playSeekValue) {
       this.$store.dispatch('cloudRecord/seek', {

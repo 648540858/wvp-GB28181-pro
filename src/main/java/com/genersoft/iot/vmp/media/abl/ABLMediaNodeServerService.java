@@ -489,7 +489,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
-        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, app, stream, "seek", "120");
+        ABLResult ablResult = ablresTfulUtils.controlRecordPlay(mediaServer, app, stream, "seek", stamp/1000 + "");
         if (ablResult.getCode() != 0) {
             log.warn("[abl-seek] 失败：{}", ablResult.getMemo());
         }

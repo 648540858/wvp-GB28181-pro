@@ -215,7 +215,7 @@ export default {
         cloudRecordId: row.id
       })
         .then(data => {
-          this.$refs.playerDialog.openDialog(data)
+          this.$refs.playerDialog.openDialog(data, row.timeLen, row.startTime)
         })
         .catch((error) => {
           console.log(error)

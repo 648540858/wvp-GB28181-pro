@@ -5,6 +5,9 @@
       top="2rem"
       width="1460px"
       height="400px"
+      :append-to-body="false"
+      :modal-append-to-body="false"
+      :modal="false"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       :destroy-on-close="true"
@@ -34,12 +37,12 @@ export default {
   computed: {},
   created() {},
   methods: {
-    openDialog: function(streamInfo) {
+    openDialog: function(streamInfo, timeLen, startTime) {
       console.log(streamInfo)
       this.showDialog = true
       this.streamInfo = streamInfo
       this.$nextTick(() => {
-          this.$refs.cloudRecordPlayer.setStreamInfo(streamInfo)
+          this.$refs.cloudRecordPlayer.setStreamInfo(streamInfo, timeLen, startTime)
       })
     },
     stopPlay: function() {

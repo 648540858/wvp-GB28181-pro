@@ -527,7 +527,7 @@ public class ABLRESTfulUtils {
         param.put("app", app);
         param.put("stream", stream);
         param.put("command", command);
-        param.put("value", Long.valueOf(value));
+        param.put("value", value);
         String response = sendGet(mediaServer, "controlRecordPlay", param);
         ABLResult ablResult = JSON.parseObject(response, ABLResult.class);
         if (ablResult == null) {

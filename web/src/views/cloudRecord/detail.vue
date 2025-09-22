@@ -1,5 +1,5 @@
 <template>
-  <div id="recordDetail" class="app-container">
+  <div id="recordDetail" style="padding: 10px 20px">
     <div :style="boxStyle">
       <div>
         <div v-if="this.$route.query.mediaServerId" class="page-header-btn" style="padding-right: 1rem">
@@ -276,7 +276,7 @@ export default {
       })
         .then(data => {
           this.playerTime = 0
-          this.$refs.cloudRecordPlayer.setStreamInfo(data)
+          this.$refs.cloudRecordPlayer.setStreamInfo(data, this.detailFiles[this.chooseFileIndex].timeLen, this.detailFiles[this.chooseFileIndex].startTime)
         })
         .catch((error) => {
           console.log(error)

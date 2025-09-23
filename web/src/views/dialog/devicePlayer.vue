@@ -7,11 +7,12 @@
       title="视频播放"
       top="0"
       append-to-body
+      width="40vw"
       :close-on-click-modal="false"
       :visible.sync="showVideoDialog"
       @close="close()"
     >
-      <div style="width: 100%; height: 100%">
+      <div style="width: 100%; ">
         <el-tabs
           v-if="Object.keys(this.player).length > 1"
           v-model="activePlayer"
@@ -20,18 +21,21 @@
           @tab-click="changePlayer"
         >
           <el-tab-pane label="Jessibuca" name="jessibuca">
-            <jessibucaPlayer
-              v-if="activePlayer === 'jessibuca'"
-              ref="jessibuca"
-              :visible.sync="showVideoDialog"
-              :video-url="videoUrl"
-              :error="videoError"
-              :message="videoError"
-              :has-audio="hasAudio"
-              fluent
-              autoplay
-              live
-            />
+            <div style="height: 22.5vw">
+              <jessibucaPlayer
+                v-if="activePlayer === 'jessibuca'"
+                ref="jessibuca"
+                :visible.sync="showVideoDialog"
+                :video-url="videoUrl"
+                :error="videoError"
+                :message="videoError"
+                :has-audio="hasAudio"
+                fluent
+                autoplay
+                live
+              />
+            </div>
+
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">
             <rtc-player
@@ -64,44 +68,6 @@
 
           </el-tab-pane>
         </el-tabs>
-        <jessibucaPlayer
-          v-if="Object.keys(this.player).length == 1 && this.player.jessibuca"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
-        <rtc-player
-          v-if="Object.keys(this.player).length == 1 && this.player.webRTC"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          height="100px"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
-        <h265web
-          v-if="Object.keys(this.player).length == 1 && this.player.h265web"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          height="100px"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
       </div>
       <div id="shared" style="text-align: right; margin-top: 1rem;">
 

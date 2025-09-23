@@ -21,20 +21,19 @@
           @tab-click="changePlayer"
         >
           <el-tab-pane label="Jessibuca" name="jessibuca">
-            <div style="height: 22.5vw">
-              <jessibucaPlayer
-                v-if="activePlayer === 'jessibuca'"
-                ref="jessibuca"
-                :visible.sync="showVideoDialog"
-                :video-url="videoUrl"
-                :error="videoError"
-                :message="videoError"
-                :has-audio="hasAudio"
-                fluent
-                autoplay
-                live
-              />
-            </div>
+            <jessibucaPlayer
+              style="height: 22.5vw"
+              v-if="activePlayer === 'jessibuca'"
+              ref="jessibuca"
+              :visible.sync="showVideoDialog"
+              :video-url="videoUrl"
+              :error="videoError"
+              :message="videoError"
+              :has-audio="hasAudio"
+              fluent
+              autoplay
+              live
+            />
 
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">
@@ -351,7 +350,7 @@ export default {
   data() {
     return {
       video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
-      videoUrl: '',
+      videoUrl: null,
       activePlayer: 'jessibuca',
       // 如何你只是用一种播放器，直接注释掉不用的部分即可
       player: {
@@ -427,7 +426,6 @@ export default {
       console.log(this.player[tab.name][0])
       this.activePlayer = tab.name
       this.videoUrl = this.getUrlByStreamInfo()
-      console.log(this.videoUrl)
     },
     openDialog: function(tab, deviceId, channelId, param) {
       if (this.showVideoDialog) {
@@ -439,7 +437,7 @@ export default {
       this.streamId = ''
       this.mediaServerId = ''
       this.app = ''
-      this.videoUrl = ''
+      this.videoUrl = null
       if (this.$refs[this.activePlayer]) {
         this.$refs[this.activePlayer].pause()
       }
@@ -470,7 +468,6 @@ export default {
       this.playFromStreamInfo(false, streamInfo)
     },
     getUrlByStreamInfo() {
-      console.log(this.streamInfo)
       let streamInfo = this.streamInfo
       if (this.streamInfo.transcodeStream) {
         streamInfo = this.streamInfo.transcodeStream

@@ -295,6 +295,7 @@ export default {
       } else {
         this.videoUrl = streamInfo['ws_flv']
       }
+      console.log(location.protocol)
       this.streamInfo = streamInfo
       this.timeLen = timeLen
       this.startTime = startTime

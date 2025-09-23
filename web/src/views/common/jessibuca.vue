@@ -5,7 +5,7 @@
     @dblclick="fullscreenSwich"
   >
     <div style="width:100%; padding-top: 56.25%; position: relative;" />
-    <div id="buttonsBox" class="buttons-box" v-if="typeof showButton == 'undefined' || showButton">
+    <div id="buttonsBox" class="buttons-box" >
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
@@ -57,9 +57,12 @@ export default {
   watch: {
     videoUrl: {
       handler(val, _) {
-        this.$nextTick(() => {
-          this.play(val)
-        })
+        if (val) {
+          this.$nextTick(() => {
+            console.log(22222111)
+            this.play(val)
+          })
+        }
       },
       immediate: true
     }
@@ -67,7 +70,7 @@ export default {
   created() {
     const paramUrl = decodeURIComponent(this.$route.params.url)
     this.$nextTick(() => {
-      if (typeof (this.videoUrl) === 'undefined') {
+      if (typeof (this.videoUrl) === 'undefined' || typeof (paramUrl) !== 'undefined') {
         this.videoUrl = paramUrl
       }
       this.btnDom = document.getElementById('buttonsBox')
@@ -89,16 +92,21 @@ export default {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].destroy()
       }
-      this.$refs.container.dataset['jessibuca'] = undefined
+      console.log(1111)
+      console.log(this.$refs.container.dataset['jessibuca'])
+      if (this.$refs.container.dataset['jessibuca']) {
+        this.$refs.container.dataset['jessibuca'] = undefined
+      }
+
       if (this.$refs.container.getAttribute('data-jessibuca')) {
         this.$refs.container.removeAttribute('data-jessibuca')
       }
       const options = {
         container: this.$refs.container,
         videoBuffer: 0,
-        isResize: false,
+        isResize: true,
         useMSE: true,
-        useWCS: true,
+        useWCS: false,
         text: '',
         // background: '',
         controlAutoHide: false,
@@ -193,7 +201,6 @@ export default {
         console.log('Jessibuca -> playToRenderTimes: ', msg)
       })
       jessibuca.on('timeUpdate', (videoPTS) => {
-        console.log(videoPTS)
         if (jessibuca.videoPTS) {
           this.playerTime += (videoPTS - jessibuca.videoPTS)
           this.$emit('playTimeChange', this.playerTime)
@@ -210,18 +217,21 @@ export default {
         this.destroy()
       }
       this.create()
-      jessibucaPlayer[this._uid].on('play', () => {
-        this.playing = true
-        this.loaded = true
-        this.quieting = jessibuca.quieting
-      })
-      if (jessibucaPlayer[this._uid].hasLoaded()) {
-        jessibucaPlayer[this._uid].play(url)
-      } else {
-        jessibucaPlayer[this._uid].on('load', () => {
-          jessibucaPlayer[this._uid].play(url)
+      this.$nextTick(() => {
+        jessibucaPlayer[this._uid].on('play', () => {
+          this.playing = true
+          this.loaded = true
+          this.quieting = jessibuca.quieting
         })
-      }
+        if (jessibucaPlayer[this._uid].hasLoaded()) {
+          jessibucaPlayer[this._uid].play(url)
+        } else {
+          jessibucaPlayer[this._uid].on('load', () => {
+            jessibucaPlayer[this._uid].play(url)
+          })
+        }
+      })
+
     },
     pause: function() {
       if (jessibucaPlayer[this._uid]) {

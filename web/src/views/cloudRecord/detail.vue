@@ -45,7 +45,7 @@
           </div>
         </div>
       </div>
-      <div id="playerBox">
+      <div id="playerBox" :style="playBoxStyle">
         <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
           <div v-if="playLoading" style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;">
             <div class="el-icon-loading" />
@@ -167,6 +167,11 @@ export default {
     }
   },
   computed: {
+    playBoxStyle() {
+      return {
+        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
+      }
+    },
     boxStyle() {
       if (this.showSidebar) {
         return {

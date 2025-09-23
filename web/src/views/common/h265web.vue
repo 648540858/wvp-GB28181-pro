@@ -144,7 +144,7 @@ export default {
           extInfo: {
             coreProbePart: 0.4,
             probeSize: 8192,
-            ignoreAudio: this.hasAudio == null ? 0 : (this.hasAudio ? 0 : 1)
+            ignoreAudio: this.hasAudio === null ? 0 : (this.hasAudio ? 0 : 1)
           }
         },
         options
@@ -169,10 +169,7 @@ export default {
         this.mediaInfo = h265web.mediaInfo()
       }
       h265web.onPlayTime = (videoPTS) => {
-        if (h265web.videoPTS) {
-          this.$emit('playTimeChange', videoPTS - h265web.videoPTS)
-        }
-        h265web.videoPTS = videoPTS
+        this.$emit('playTimeChange', videoPTS * 1000)
       }
       h265web.do()
     },
@@ -192,6 +189,9 @@ export default {
       }
     },
     playBtnClick: function(event) {
+      this.play(this.videoUrl)
+    },
+    refresh: function() {
       this.play(this.videoUrl)
     },
     play: function(url) {
@@ -261,7 +261,6 @@ export default {
     },
     setPlaybackRate: function(speed) {
       h265webPlayer[this._uid].setPlaybackRate(speed)
-
     }
   }
 }

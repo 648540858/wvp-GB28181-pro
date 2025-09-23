@@ -3,8 +3,8 @@
     <el-dialog
       v-el-drag-dialog
       top="2rem"
-      width="1460px"
-      height="400px"
+      width="800px"
+      height="450px"
       :append-to-body="false"
       :modal-append-to-body="false"
       :modal="false"
@@ -13,7 +13,7 @@
       :destroy-on-close="true"
       @close="close()"
     >
-      <cloudRecordPlayer ref="cloudRecordPlayer" ></cloudRecordPlayer>
+      <cloudRecordPlayer style="height: 450px" ref="cloudRecordPlayer" ></cloudRecordPlayer>
     </el-dialog>
   </div>
 </template>

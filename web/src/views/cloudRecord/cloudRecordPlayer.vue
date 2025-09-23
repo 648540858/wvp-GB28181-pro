@@ -1,7 +1,19 @@
 <template>
-  <div id="cloudRecordPlayer" >
+  <div id="cloudRecordPlayer" style="height: 100%">
     <div class="cloud-record-playBox" :style="playBoxStyle">
-      <h265web ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100vh - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
+      <h265web v-if="playerType === 'H265web'" ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100% - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
+      <jessibucaPlayer
+        v-if="playerType === 'Jessibuca'"
+        ref="recordVideoPlayer"
+        :height="'calc(100% - 250px)'"
+        :show-button="false"
+        :video-url="videoUrl"
+        @playTimeChange="showPlayTimeChange"
+        @playStatusChange="playingChange"
+        fluent
+        autoplay
+        live
+      />
     </div>
     <div class="cloud-record-player-option-box">
       <div class="cloud-record-show-time">
@@ -21,12 +33,12 @@
         {{showPlayTimeTotal}}
       </div>
     </div>
-    <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 600px 1fr">
+    <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr auto 1fr">
       <div style="text-align: left;">
         <div class="cloud-record-record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
           <a v-if="showListCallback" target="_blank" class="cloud-record-record-play-control-item iconfont icon-list" title="列表" @click="sidebarControl()" />
           <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-camera1196054easyiconnet" title="截图" @click="snap()" />
-          <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-shuaxin11" title="刷新" @click="refresh()" />
+<!--          <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-shuaxin11" title="刷新" @click="refresh()" />-->
 <!--          <a target="_blank" class="cloud-record-record-play-control-item iconfont icon-xiazai011" title="下载" />-->
         </div>
       </div>
@@ -56,7 +68,14 @@
       <div style="text-align: right;">
         <div class="cloud-record-record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
           <div class="cloud-record-record-play-control-item record-play-control-player">
-            H265web
+
+            <el-dropdown @command="changePlayerType" :popper-append-to-body='false' >
+              <a target="_blank" class="cloud-record-record-play-control-item record-play-control-speed" title="选择播放器">{{ playerType }}</a>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="H265web" >H265web</el-dropdown-item>
+                <el-dropdown-item command="Jessibuca" >Jessibuca</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </div>
           <a v-if="!isFullScreen" target="_blank" class="cloud-record-record-play-control-item iconfont icon-fangdazhanshi" title="全屏" @click="fullScreen()" />
           <a v-else target="_blank" class="cloud-record-record-play-control-item iconfont icon-suoxiao1" title="全屏" @click="fullScreen()" />
@@ -72,12 +91,14 @@ import h265web from '../common/h265web.vue'
 import moment from 'moment'
 import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
+import jessibucaPlayer from '@/views/common/jessibuca.vue'
 
 momentDurationFormatSetup(moment)
 
 export default {
   name: 'CloudRecordPlayer',
   components: {
+    jessibucaPlayer,
     h265web
   },
   props: ['showListCallback', 'showNextCallback', 'showLastCallback', 'lastDiable', 'nextDiable'],
@@ -97,14 +118,13 @@ export default {
       isFullScreen: false,
       playing: false,
       initTime: null,
+      playerType: 'Jessibuca',
       playSpeedRange: [1, 2, 4, 6, 8, 16, 20]
     }
   },
   computed: {
     playBoxStyle() {
-      return {
-        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
-      }
+      return this.isFullScreen ? { height: 'calc(100vh - 61px)' } : { height: '100%' }
     },
     showPlayTimeValue() {
       return this.streamInfo === null ? '--:--:--' : moment.duration(this.playerTime, 'milliseconds').format('hh:mm:ss', {
@@ -182,6 +202,7 @@ export default {
       this.$refs.recordVideoPlayer.screenshot()
     },
     refresh() {
+      this.$refs.recordVideoPlayer.destroy()
       this.$refs.recordVideoPlayer.playBtnClick()
     },
     playLast() {
@@ -202,6 +223,26 @@ export default {
         schema: 'ts'
       })
       this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
+    },
+    changePlayerType(playerType) {
+      if (this.playerType === playerType) {
+        return
+      }
+      let streamInfo = this.streamInfo
+      let videoUrl = this.videoUrl
+      this.$refs.recordVideoPlayer.destroy()
+      this.seekRecord(0, () => {
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.playerType = playerType
+            this.playerTime = 0
+            this.streamInfo = streamInfo
+            this.videoUrl = videoUrl
+          }, 1000)
+
+        })
+      })
+
     },
     seekBackward() {
       // 快退五秒
@@ -258,10 +299,7 @@ export default {
       this.timeLen = timeLen
       this.startTime = startTime
     },
-    seekRecord(playSeekValue) {
-      let streamInfo = this.streamInfo
-      let videoUrl = this.videoUrl
-      this.$refs.recordVideoPlayer.destroy()
+    seekRecord(playSeekValue, callback) {
       this.$store.dispatch('cloudRecord/seek', {
         mediaServerId: this.streamInfo.mediaServerId,
         app: this.streamInfo.app,
@@ -271,20 +309,19 @@ export default {
       })
         .then((data) => {
           this.playerTime = playSeekValue
-          setTimeout(() => {
-            this.streamInfo = streamInfo
-            this.videoUrl = videoUrl
-          }, 500)
-
-
-
+          if (callback) {
+            callback(playSeekValue)
+          }
         })
         .catch((error) => {
           console.log(error)
         })
     },
     showPlayTimeChange(val) {
-      this.playerTime += val * 1000
+      console.log(val)
+      if (Number(val)) {
+        this.playerTime = Number(val)
+      }
     },
     playingChange(val) {
       this.playing = val
@@ -356,7 +393,7 @@ export default {
   height: 6px;
   background-color: rgb(162, 162, 162);
 }
-.cloud-record-time-process-value::after {
+.cloud-record-time-process-value1::after {
   content: '';
   display: block;
   width: 12px;

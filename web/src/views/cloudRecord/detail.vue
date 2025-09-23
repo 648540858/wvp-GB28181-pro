@@ -45,7 +45,7 @@
           </div>
         </div>
       </div>
-      <div id="playerBox">
+      <div id="playerBox" :style="playBoxStyle">
         <cloudRecordPlayer ref="cloudRecordPlayer" :showListCallback="sidebarControl" :showNextCallback="playNext"
                              :showLastCallback="playLast" :lastDiable="lastBtnDiable" :nextDiable="nextBtnDiable" ></cloudRecordPlayer>
       </div>
@@ -114,6 +114,11 @@ export default {
     }
   },
   computed: {
+    playBoxStyle() {
+      return {
+        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
+      }
+    },
     boxStyle() {
       if (this.showSidebar) {
         return {

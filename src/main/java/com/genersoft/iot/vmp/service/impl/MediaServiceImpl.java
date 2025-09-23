@@ -108,6 +108,12 @@ public class MediaServiceImpl implements IMediaService {
                 result.setEnable_audio(true);
                 return result;
             }
+            if ("mp4_record".equals(app) ) {
+                ResultForOnPublish result = new ResultForOnPublish();
+                result.setEnable_mp4(false);
+                result.setEnable_audio(true);
+                return result;
+            }
             StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
             if (streamProxyItem != null) {
                 ResultForOnPublish result = new ResultForOnPublish();
@@ -269,6 +275,8 @@ public class MediaServiceImpl implements IMediaService {
             }
         }else if ("talk".equals(app) || "broadcast".equals(app)) {
             return false;
+        } else if ("mp4_record".equals(app)) {
+            return true;
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理

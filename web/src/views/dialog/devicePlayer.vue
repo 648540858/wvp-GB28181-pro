@@ -26,7 +26,6 @@
               v-if="activePlayer === 'jessibuca'"
               ref="jessibuca"
               :visible.sync="showVideoDialog"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
@@ -350,7 +349,7 @@ export default {
   data() {
     return {
       video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
-      videoUrl: null,
+      videoUrl: '',
       activePlayer: 'jessibuca',
       // 如何你只是用一种播放器，直接注释掉不用的部分即可
       player: {
@@ -437,7 +436,7 @@ export default {
       this.streamId = ''
       this.mediaServerId = ''
       this.app = ''
-      this.videoUrl = null
+      this.videoUrl = ''
       if (this.$refs[this.activePlayer]) {
         this.$refs[this.activePlayer].pause()
       }
@@ -472,17 +471,19 @@ export default {
       if (this.streamInfo.transcodeStream) {
         streamInfo = this.streamInfo.transcodeStream
       }
+      let videoUrl
       if (location.protocol === 'https:') {
-        this.videoUrl = streamInfo[this.player[this.activePlayer][1]]
+        videoUrl = streamInfo[this.player[this.activePlayer][1]]
       } else {
-        this.videoUrl = streamInfo[this.player[this.activePlayer][0]]
+        videoUrl = streamInfo[this.player[this.activePlayer][0]]
       }
-      return this.videoUrl
+      return videoUrl
     },
 
     playFromStreamInfo: function(realHasAudio, streamInfo) {
       this.showVideoDialog = true
       this.hasaudio = realHasAudio && this.hasaudio
+      console.log(66666666)
       if (this.$refs[this.activePlayer]) {
         this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
       } else {

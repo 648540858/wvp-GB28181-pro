@@ -55,17 +55,19 @@ export default {
     }
   },
   watch: {
-    videoUrl: {
-      handler(val, _) {
-        if (val) {
-          this.$nextTick(() => {
-            console.log(22222111)
-            this.play(val)
-          })
-        }
-      },
-      immediate: true
-    }
+    // videoUrl: {
+    //   handler(val, _) {
+    //     if (typeof val !== 'undefined' && val !== 'undefined') {
+    //       console.log(22222111)
+    //       console.log(val)
+    //       this.$nextTick(() => {
+    //
+    //         this.play(val)
+    //       })
+    //     }
+    //   },
+    //   immediate: true
+    // }
   },
   created() {
     const paramUrl = decodeURIComponent(this.$route.params.url)
@@ -152,20 +154,19 @@ export default {
       jessibucaPlayer[this._uid] = new window.Jessibuca(options)
 
       const jessibuca = jessibucaPlayer[this._uid]
-      const _this = this
       jessibuca.on('pause', () => {
-        _this.playing = false
+        this.playing = false
         this.$emit('playStatusChange', false)
       })
       jessibuca.on('play', () => {
-        _this.playing = true
+        this.playing = true
         this.$emit('playStatusChange', true)
       })
       jessibuca.on('fullscreen', (msg) => {
-        _this.fullscreen = msg
+        this.fullscreen = msg
       })
       jessibuca.on('mute', (msg) => {
-        _this.isNotMute = !msg
+        this.isNotMute = !msg
       })
       jessibuca.on('performance', (performance) => {
         let show = '卡顿'
@@ -174,10 +175,10 @@ export default {
         } else if (performance === 1) {
           show = '流畅'
         }
-        _this.performance = show
+        this.performance = show
       })
       jessibuca.on('kBps', (kBps) => {
-        _this.kBps = Math.round(kBps)
+        this.kBps = Math.round(kBps)
       })
       jessibuca.on('videoInfo', (msg) => {
         console.log('Jessibuca -> videoInfo: ', msg)
@@ -207,6 +208,11 @@ export default {
         }
         jessibuca.videoPTS = videoPTS
       })
+      jessibuca.on('play', () => {
+        this.playing = true
+        this.loaded = true
+        this.quieting = jessibuca.quieting
+      })
     },
     playBtnClick: function(event) {
       this.play(this.videoUrl)
@@ -218,16 +224,13 @@ export default {
       }
       this.create()
       this.$nextTick(() => {
-        jessibucaPlayer[this._uid].on('play', () => {
-          this.playing = true
-          this.loaded = true
-          this.quieting = jessibuca.quieting
-        })
+        jessibucaPlayer[this._uid].play(url)
+
         if (jessibucaPlayer[this._uid].hasLoaded()) {
-          jessibucaPlayer[this._uid].play(url)
+          // jessibucaPlayer[this._uid].play(url)
         } else {
           jessibucaPlayer[this._uid].on('load', () => {
-            jessibucaPlayer[this._uid].play(url)
+            // jessibucaPlayer[this._uid].play(url)
           })
         }
       })

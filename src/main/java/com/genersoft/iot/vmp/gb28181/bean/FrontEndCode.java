@@ -1,8 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 
 /**
  * 解析收到的前端控制指令

@@ -7,9 +7,9 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
+import jakarta.validation.constraints.NotNull;
 import org.dom4j.Element;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**

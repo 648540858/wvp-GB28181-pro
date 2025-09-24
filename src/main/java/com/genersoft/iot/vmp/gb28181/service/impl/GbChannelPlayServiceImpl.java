@@ -2,95 +2,63 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.ServiceException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.PlayException;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
 import javax.sip.message.Response;
-import java.text.ParseException;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Autowired
-    private IPlayService deviceChannelPlayService;
-
-    @Autowired
-    private IStreamProxyPlayService streamProxyPlayService;
-
-    @Autowired
-    private IStreamPushPlayService streamPushPlayService;
-
-    @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private CommonGBChannelMapper channelMapper;
+
+    @Autowired
+    private Map<String, ISourcePlayService> sourcePlayServiceMap;
+
+    @Autowired
+    private Ijt1078PlayService jt1078PlayService;
+
+    @Autowired
+    private Map<String, ISourcePlaybackService> sourcePlaybackServiceMap;
+
+    @Autowired
+    private Map<String, ISourceDownloadService> sourceDownloadServiceMap;
 
 
     @Override
-    public void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
+    public void startInvite(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
         if (channel == null || inviteInfo == null || callback == null || channel.getDataType() == null) {
             log.warn("[通用通道点播] 参数异常, channel: {}, inviteInfo: {}, callback: {}", channel != null, inviteInfo != null, callback != null);
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
+
         if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
             play(channel, platform, userSetting.getRecordSip(), callback);
         }else if ("Playback".equals(inviteInfo.getSessionName())) {
-            if (channel.getDataType() == ChannelDataType.GB28181.value) {
-                // 国标通道
-                playbackGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), callback);
-            } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
-                // 拉流代理
-                log.warn("[回放通用通道] 不支持回放拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
-                // 推流
-                log.warn("[回放通用通道] 不支持回放推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else {
-                // 通道数据异常
-                log.error("[回放通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-            }
+            playback(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), callback);
         }else if ("Download".equals(inviteInfo.getSessionName())) {
-            if (channel.getDataType() == ChannelDataType.GB28181.value) {
-                int downloadSpeed = 4;
-                try {
-                    if (inviteInfo.getDownloadSpeed() != null){
-                        downloadSpeed = Integer.parseInt(inviteInfo.getDownloadSpeed());
-                    }
-                }catch (Exception ignored) {}
-
-                // 国标通道
-                downloadGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), downloadSpeed, callback);
-            } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
-                // 拉流代理
-                log.warn("[下载通用通道录像] 不支持下载拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
-                // 推流
-                log.warn("[下载通用通道录像] 不支持下载推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else {
-                // 通道数据异常
-                log.error("[回放通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-            }
+            Integer downloadSpeed = Integer.parseInt(inviteInfo.getDownloadSpeed());
+            // 国标通道
+            download(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), downloadSpeed, callback);
         }else {
             // 不支持的点播方式
             log.error("[点播通用通道] 不支持的点播方式：{}， {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
@@ -99,149 +67,173 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream) {
-        if (channel.getDataType() == ChannelDataType.GB28181.value) {
-            // 国标通道
-            stopPlayDeviceChannel(type, channel, stream);
-        } else if (channel.getDataType() ==  ChannelDataType.STREAM_PROXY.value) {
-            // 拉流代理
-            stopPlayProxy(channel);
-        } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
-            // 推流
-            stopPlayPush(channel);
-        } else {
-            // 通道数据异常
-            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+    public void stopInvite(InviteSessionType type, CommonGBChannel channel, String stream) {
+        switch (type) {
+            case PLAY:
+                stopPlay(channel, stream);
+                break;
+            case PLAYBACK:
+                stopPlayback(channel, stream);
+                break;
+            case DOWNLOAD:
+                stopDownload(channel, stream);
+                break;
+            default:
+                // 通道数据异常
+                log.error("[点播通用通道] 类型编号： {} 不支持此类型请求", type);
+                throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
     }
+
+
 
     @Override
     public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
-        if (channel.getDataType() == ChannelDataType.GB28181.value) {
-            // 国标通道
-            playGbDeviceChannel(channel, record, callback);
-        } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
-            // 拉流代理
-            playProxy(channel, record, callback);
-        } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
-            if (platform != null) {
-                // 推流
-                playPush(channel, platform.getServerGBId(), platform.getName(), callback);
-            }else {
-                // 推流
-                playPush(channel, null, null, callback);
-            }
-        } else {
+        log.info("[通用通道] 播放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
+        if (sourceChannelPlayService == null) {
             // 通道数据异常
-            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+            log.error("[点播通用通道] 类型编号： {} 不支持实时流预览", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        sourceChannelPlayService.play(channel, platform, record, (code, msg, data) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                // 将流ID记录到数据库
+                if (channel.getDataType() != ChannelDataType.GB28181) {
+                    channelMapper.updateStream(channel.getGbId(), data.getStream());
+                }
+            }
+            callback.run(code, msg, data);
+        });
+    }
+    @Override
+    public void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
+        log.info("[通用通道] 回放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.playback(channel, startTime, stopTime, callback);
     }
 
     @Override
-    public void playGbDeviceChannel(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
-        // 国标通道
-        try {
-            deviceChannelPlayService.play(channel, record, callback);
-        } catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        } catch (ControllerException e) {
-            log.error("[点播失败] {}({}), {}", channel.getGbName(), channel.getGbDeviceId(), e.getMsg());
-            callback.run(Response.BUSY_HERE, "busy here", null);
-        } catch (Exception e) {
-            log.error("[点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
-            callback.run(Response.BUSY_HERE, "busy here", null);
+    public void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
+                         ErrorCallback<StreamInfo> callback){
+        log.info("[通用通道] 录像下载， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourceDownloadService downloadService = sourceDownloadServiceMap.get(ChannelDataType.DOWNLOAD_SERVICE + dataType);
+        if (downloadService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持录像下载", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        downloadService.download(channel, startTime, stopTime, downloadSpeed, callback);
     }
 
     @Override
-    public void stopPlayDeviceChannel(InviteSessionType type, CommonGBChannel channel, String stream) {
-        // 国标通道
-        try {
-            deviceChannelPlayService.stop(type, channel, stream);
-        }  catch (Exception e) {
-            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+    public void stopPlay(CommonGBChannel channel, String stream) {
+        Integer dataType = channel.getDataType();
+        ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
+        if (sourceChannelPlayService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持停止实时流", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        sourceChannelPlayService.stopPlay(channel, stream);
     }
 
     @Override
-    public void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
-        // 拉流代理通道
-        try {
-            streamProxyPlayService.start(channel.getDataDeviceId(), record, callback);
-        }catch (Exception e) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
+    public void stopPlayback(CommonGBChannel channel, String stream) {
+        log.info("[通用通道] 停止回放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        playbackService.stopPlayback(channel, stream);
     }
 
     @Override
-    public void stopPlayProxy(CommonGBChannel channel) {
-        // 拉流代理通道
-        try {
-            streamProxyPlayService.stop(channel.getDataDeviceId());
-        }catch (Exception e) {
-            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+    public void stopDownload(CommonGBChannel channel, String stream) {
+        log.info("[通用通道] 停止录像下载， 类型： {}， 编号：{} stream: {}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourceDownloadService downloadService = sourceDownloadServiceMap.get(ChannelDataType.DOWNLOAD_SERVICE + dataType);
+        if (downloadService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持录像下载", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        downloadService.stopDownload(channel, stream);
     }
 
     @Override
-    public void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback){
-        // 推流
-        try {
-            streamPushPlayService.start(channel.getDataDeviceId(), callback, platformDeviceId, platformName);
-        }catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        }catch (Exception e) {
-            log.error("[点播推流通道失败] 通道： {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
-            callback.run(Response.BUSY_HERE, "busy here", null);
+    public void playbackPause(CommonGBChannel channel, String stream) {
+        log.info("[通用通道] 回放暂停， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        playbackService.playbackPause(channel, stream);
     }
 
     @Override
-    public void stopPlayPush(CommonGBChannel channel) {
-        // 推流
-        try {
-            streamPushPlayService.stop(channel.getDataDeviceId());
-        }catch (Exception e) {
-            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+    public void playbackResume(CommonGBChannel channel, String stream) {
+        log.info("[通用通道] 回放暂停恢复， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
-    }
-
-    private void playbackGbDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback){
-        try {
-            deviceChannelPlayService.playBack(channel, startTime, stopTime, callback);
-        } catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        } catch (Exception e) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
-        }
+        playbackService.playbackResume(channel, stream);
     }
 
     @Override
-    public void pauseRtp(String streamId) {
-        try {
-            deviceChannelPlayService.pauseRtp(streamId);
-        } catch (ServiceException | InvalidArgumentException | ParseException | SipException ignore) {}
+    public void playbackSeek(CommonGBChannel channel, String stream, long seekTime) {
+        log.info("[通用通道] 回放拖动播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.playbackSeek(channel, stream, seekTime);
     }
 
     @Override
-    public void resumeRtp(String streamId) {
-        try {
-            deviceChannelPlayService.resumeRtp(streamId);
-        } catch (ServiceException | InvalidArgumentException | ParseException | SipException ignore) {}
-    }
-
-    private void downloadGbDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
-                                         ErrorCallback<StreamInfo> callback){
-        try {
-            deviceChannelPlayService.download(channel, startTime, stopTime, downloadSpeed, callback);
-        } catch (PlayException e) {
-            callback.run(e.getCode(), e.getMsg(), null);
-        } catch (Exception e) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
+    public void playbackSpeed(CommonGBChannel channel, String stream, Double speed) {
+        log.info("[通用通道] 回放倍速播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
+        playbackService.playbackSpeed(channel, stream, speed);
     }
 
-
+    @Override
+    public void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback) {
+        log.info("[通用通道] 录像查询， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
+        if (playbackService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型编号： {} 不支持回放暂停恢复", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        playbackService.queryRecord(channel, startTime, endTime, callback);
+    }
 }

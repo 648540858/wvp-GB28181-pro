@@ -171,7 +171,32 @@ declare namespace Jessibuca {
          * https://github.com/langhuihui/jessibuca/issues/152 解决方案
          * 例如：WebGL图像预处理默认每次取4字节的数据，但是540x960分辨率下的U、V分量宽度是540/2=270不能被4整除，导致绿屏。
          */
-        openWebglAlignment?: boolean
+        openWebglAlignment?: boolean,
+
+        /**
+         * webcodecs硬解码是否通过video标签渲染
+         */
+        wcsUseVideoRender?: boolean,
+
+        /**
+         * 底部控制台是否自动隐藏
+         */
+        controlAutoHide?: boolean,
+
+        /**
+         * 录制的视频格式
+         */
+        recordType?: 'webm' | 'mp4',
+
+        /**
+         * 是否使用web全屏(旋转90度)（只会在移动端生效）。
+         */
+        useWebFullScreen?: boolean,
+
+        /**
+         * 是否自动使用系统全屏
+         */
+        autoUseSystemFullScreen?: boolean,
     }
 }
 
@@ -222,8 +247,8 @@ declare class Jessibuca {
      jessibuca.setTimeout(10)
 
      jessibuca.on('timeout',function(){
-        //
-    });
+     //
+     });
      */
     setTimeout(): void;
 
@@ -249,17 +274,17 @@ declare class Jessibuca {
      * 可以在pause 之后，再调用 `play()`方法就继续播放之前的流。
      @example
      jessibuca.pause().then(()=>{
-        console.log('pause success')
+     console.log('pause success')
 
-        jessibuca.play().then(()=>{
+     jessibuca.play().then(()=>{
 
-        }).catch((e)=>{
+     }).catch((e)=>{
 
-        })
+     })
 
-    }).catch((e)=>{
-        console.log('pause error',e);
-    })
+     }).catch((e)=>{
+     console.log('pause error',e);
+     })
      */
     pause(): Promise<void>;
 
@@ -289,14 +314,20 @@ declare class Jessibuca {
      @example
 
      jessibuca.play('url').then(()=>{
-        console.log('play success')
-    }).catch((e)=>{
-        console.log('play error',e)
-    })
-     //
-     jessibuca.play()
+     console.log('play success')
+     }).catch((e)=>{
+     console.log('play error',e)
+     })
+     // 添加请求头
+     jessibuca.play('url',{headers:{'Authorization':'test111'}}).then(()=>{
+     console.log('play success')
+     }).catch((e)=>{
+     console.log('play error',e)
+     })
      */
-    play(url?: string): Promise<void>;
+    play(url?: string, options?: {
+        headers: Object
+    }): Promise<void>;
 
     /**
      * 重新调整视图大小
@@ -427,6 +458,21 @@ declare class Jessibuca {
      */
     isRecording(): boolean;
 
+    /**
+     * 切换底部控制条 隐藏/显示
+     * @param isShow
+     *
+     * @example
+     * jessibuca.toggleControlBar(true) // 显示
+     * jessibuca.toggleControlBar(false)  // 隐藏
+     * jessibuca.toggleControlBar() // 切换 隐藏/显示
+     */
+    toggleControlBar(isShow:boolean): void;
+
+    /**
+     * 获取底部控制条是否显示
+     */
+    getControlBarShow(): boolean;
 
     /**
      * 监听 jessibuca 初始化事件
@@ -477,14 +523,14 @@ declare class Jessibuca {
      * 错误信息
      * @example
      * jessibuca.on("error",function(error){
-        if(error === Jessibuca.ERROR.fetchError){
-            //
-        }
-        else if(error === Jessibuca.ERROR.webcodecsH265NotSupport){
-            //
-        }
-        console.log('error:',error)
-    })
+     if(error === Jessibuca.ERROR.fetchError){
+     //
+     }
+     else if(error === Jessibuca.ERROR.webcodecsH265NotSupport){
+     //
+     }
+     console.log('error:',error)
+     })
      */
     on(event: 'error', callback: (err: Jessibuca.ERROR) => void): void;
 

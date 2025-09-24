@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.jt1078.codec.decode.Jt808Decoder;
 import com.genersoft.iot.vmp.jt1078.codec.encode.Jt808Encoder;
 import com.genersoft.iot.vmp.jt1078.codec.encode.Jt808EncoderCmd;
 import com.genersoft.iot.vmp.jt1078.proc.factory.CodecFactory;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,6 +18,13 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
@@ -34,11 +42,15 @@ public class TcpServer {
     private boolean isRunning = false;
     private EventLoopGroup bossGroup = null;
     private EventLoopGroup workerGroup = null;
+    private ApplicationEventPublisher applicationEventPublisher = null;
+    private Ijt1078Service service = null;
 
     private final ByteBuf DECODER_JT808 = Unpooled.wrappedBuffer(new byte[]{0x7e});
 
-    public TcpServer(Integer port) {
+    public TcpServer(Integer port, ApplicationEventPublisher applicationEventPublisher, Ijt1078Service service) {
         this.port = port;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.service = service;
     }
 
     private void startTcpServer() {
@@ -59,10 +71,10 @@ public class TcpServer {
                             channel.pipeline()
                                     .addLast(new IdleStateHandler(10, 0, 0, TimeUnit.MINUTES))
                                     .addLast(new DelimiterBasedFrameDecoder(1024 * 2, DECODER_JT808))
-                                    .addLast(new Jt808Decoder())
+                                    .addLast(new Jt808Decoder(applicationEventPublisher, service))
                                     .addLast(new Jt808Encoder())
                                     .addLast(new Jt808EncoderCmd())
-                                    .addLast(new Jt808Handler());
+                                    .addLast(new Jt808Handler(applicationEventPublisher));
                         }
                     });
             ChannelFuture channelFuture = bootstrap.bind(port).sync();

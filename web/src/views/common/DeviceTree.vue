@@ -1,5 +1,5 @@
 <template>
-  <div id="DeviceTree" class="device-tree-container">
+  <div id="DeviceTree" class="device-tree-container" style="height: 100%">
     <div class="device-tree-header">
       <div class="header-title">通道列表</div>
       <div class="header-switch">
@@ -20,7 +20,7 @@
           :edit="false"
           :show-header="false"
           :has-channel="true"
-          :click-event="treeNodeClickEvent"
+          @clickEvent="treeNodeClickEvent"
           :default-expanded-keys="[]"
         />
         <GroupTree
@@ -29,7 +29,7 @@
           :edit="false"
           :show-header="false"
           :has-channel="true"
-          :click-event="treeNodeClickEvent"
+          @clickEvent="treeNodeClickEvent"
           :default-expanded-keys="[]"
         />
       </div>
@@ -52,10 +52,6 @@ export default {
     onlyCatalog: {
       type: Boolean,
       default: false
-    },
-    clickEvent: {
-      type: Function,
-      default: null
     },
     contextMenuEvent: {
       type: Function,
@@ -137,11 +133,7 @@ export default {
     },
     treeNodeClickEvent: function(data) {
       if (data.leaf) {
-        console.log(23111)
-        console.log(data)
-        if (this.clickEvent) {
-          this.clickEvent(data.id)
-        }
+        this.$emit('clickEvent', data.id)
       }
     }
   }

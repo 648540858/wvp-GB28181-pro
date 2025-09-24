@@ -8,7 +8,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             size="mini"
             placeholder="关键字"
@@ -134,7 +134,7 @@ export default {
   data() {
     return {
       channelList: [],
-      searchSrt: '',
+      searchStr: '',
       channelType: '',
       online: '',
       hasShare: 'false',
@@ -168,7 +168,7 @@ export default {
       this.$store.dispatch('platform/getChannelList', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         online: this.online,
         channelType: this.channelType,
         platformId: this.platformId,

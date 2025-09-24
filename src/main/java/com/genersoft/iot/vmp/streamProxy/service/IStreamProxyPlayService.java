@@ -4,13 +4,13 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 
+import javax.validation.constraints.NotNull;
+
 public interface IStreamProxyPlayService {
 
-    StreamInfo start(int id, Boolean record, ErrorCallback<StreamInfo> callback);
+    void start(int id, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void start(int id, ErrorCallback<StreamInfo> callback);
-
-    StreamInfo startProxy(StreamProxy streamProxy);
+    void startProxy(@NotNull StreamProxy streamProxy, ErrorCallback<StreamInfo> callback);
 
     void stop(int id);
 

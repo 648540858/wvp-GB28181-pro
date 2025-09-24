@@ -1,10 +1,12 @@
 <template>
   <div id="h265Player" ref="container" style="background-color: #000000; " @dblclick="fullscreenSwich">
-    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" />
-    <div v-if="playerLoading" class="player-loading">
-      <i class="el-icon-loading" />
-      <span>视频加载中</span>
+    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" >
+      <div v-if="playerLoading" class="play-loading">
+        <i class="el-icon-loading" />
+        视频加载中
+      </div>
     </div>
+
     <div v-if="showButton" id="buttonsBox" class="buttons-box">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play h265web-btn" @click="unPause" />
@@ -142,7 +144,7 @@ export default {
           extInfo: {
             coreProbePart: 0.4,
             probeSize: 8192,
-            ignoreAudio: this.hasAudio == null ? 0 : (this.hasAudio ? 0 : 1)
+            ignoreAudio: this.hasAudio === null ? 0 : (this.hasAudio ? 0 : 1)
           }
         },
         options
@@ -167,7 +169,7 @@ export default {
         this.mediaInfo = h265web.mediaInfo()
       }
       h265web.onPlayTime = (videoPTS) => {
-        this.$emit('playTimeChange', videoPTS)
+        this.$emit('playTimeChange', videoPTS * 1000)
       }
       h265web.do()
     },
@@ -187,6 +189,9 @@ export default {
       }
     },
     playBtnClick: function(event) {
+      this.play(this.videoUrl)
+    },
+    refresh: function() {
       this.play(this.videoUrl)
     },
     play: function(url) {
@@ -262,6 +267,16 @@ export default {
 </script>
 
 <style>
+.play-loading {
+  width: 100%;
+  height: 100%;
+  color: rgb(255, 255, 255);
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  justify-content: center;
+  font-size: 18px;
+}
 .buttons-box {
   width: 100%;
   height: 28px;

@@ -3,31 +3,39 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.CommonRecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 
+import java.util.List;
+
 public interface IGbChannelPlayService {
 
-    void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
+    void startInvite(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
 
-    void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream);
+    void stopInvite(InviteSessionType type, CommonGBChannel channel, String stream);
+
+    void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
+
+    void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
+                  ErrorCallback<StreamInfo> callback);
+
+    void stopPlay(CommonGBChannel channel, String stream);
 
     void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void playGbDeviceChannel(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
+    void stopPlayback(CommonGBChannel channel, String stream);
 
-    void stopPlayDeviceChannel(InviteSessionType type, CommonGBChannel channel, String stream);
+    void stopDownload(CommonGBChannel channel, String stream);
 
-    void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
+    void playbackPause(CommonGBChannel channel, String streamId);
 
-    void stopPlayProxy(CommonGBChannel channel);
+    void playbackResume(CommonGBChannel channel, String streamId);
 
-    void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
+    void playbackSeek(CommonGBChannel channel, String stream, long seekTime);
 
-    void  stopPlayPush(CommonGBChannel channel);
+    void playbackSpeed(CommonGBChannel channel, String stream, Double speed);
 
-    void pauseRtp(String streamId);
-
-    void resumeRtp(String streamId);
+    void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback);
 }

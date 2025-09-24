@@ -50,6 +50,8 @@ public class DateUtil {
      * wvp内部统一时间格式
      */
     public static final String URL_PATTERN = "yyyyMMddHHmmss";
+    public static final String PATTERN1078 = "yyMMddHHmmss";
+    public static final String PATTERN1078Date = "yyyyMMdd";
 
     /**
      * 日期格式
@@ -66,9 +68,15 @@ public class DateUtil {
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatter1078 = DateTimeFormatter.ofPattern(PATTERN1078, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatter1078date = DateTimeFormatter.ofPattern(PATTERN1078Date, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(@NotNull String formatTime) {
         return formatterISO8601.format(formatter.parse(formatTime));
+    }
+
+	public static String yyyy_MM_dd_HH_mm_ssToUrl(@NotNull String formatTime) {
+        return urlFormatter.format(formatter.parse(formatTime));
     }
 
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
@@ -85,6 +93,15 @@ public class DateUtil {
 
 	public static String urlToyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(urlFormatter.parse(formatTime));
+    }
+    public static String yyyy_MM_dd_HH_mm_ssTo1078(String formatTime) {
+        return formatter1078.format(formatter.parse(formatTime));
+    }
+    public static String jt1078Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
+        return formatter.format(formatter1078.parse(formatTime));
+    }
+    public static String jt1078dateToyyyy_MM_dd(String formatTime) {
+        return DateFormatter.format(formatter1078date.parse(formatTime));
     }
 
     /**
@@ -132,6 +149,18 @@ public class DateUtil {
     public static String timestampMsTo_yyyy_MM_dd_HH_mm_ss(long timestamp) {
         Instant instant = Instant.ofEpochMilli(timestamp);
         return formatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
+    }
+
+    /**
+     * yyyy_MM_dd_HH_mm_ss 转时间戳（毫秒）
+     *
+     * @param formatTime
+     * @return
+     */
+    public static long urlToTimestampMs(String formatTime) {
+        TemporalAccessor temporalAccessor = urlFormatter.parse(formatTime);
+        Instant instant = Instant.from(temporalAccessor);
+        return instant.toEpochMilli();
     }
 
     /**

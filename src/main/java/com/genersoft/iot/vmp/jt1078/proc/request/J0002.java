@@ -4,8 +4,11 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * 终端心跳
@@ -14,6 +17,7 @@ import io.netty.buffer.ByteBuf;
  * @date 2023/4/27 18:04
  * @email qingtaij@163.com
  */
+@Slf4j
 @MsgId(id = "0002")
 public class J0002 extends Re {
     @Override
@@ -22,11 +26,17 @@ public class J0002 extends Re {
     }
 
     @Override
-    protected Rs handler(Header header, Session session) {
+    protected Rs handler(Header header, Session session, Ijt1078Service service) {
+        log.info("[终端心跳] {}", header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
         j8001.setResult(J8001.SUCCESS);
         return j8001;
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
+        return null;
     }
 }

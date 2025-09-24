@@ -3,16 +3,20 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
 
 /**
- * @description:设备录像bean 
+ * @description:设备录像bean
  * @author: swwheihei
- * @date:   2020年5月8日 下午2:06:54     
+ * @date:   2020年5月8日 下午2:06:54
  */
+@Setter
+@Getter
 @Schema(description = "设备录像详情")
 public class RecordItem  implements Comparable<RecordItem>{
 
@@ -40,93 +44,13 @@ public class RecordItem  implements Comparable<RecordItem>{
 	@Schema(description = "保密属性(必选)缺省为0;0:不涉密,1:涉密")
 	private int secrecy;
 
-	@Schema(description = "录像产生类型(可选)time或alarm 或 manua")
+	@Schema(description = "录像产生类型(可选)time或alarm 或 manual")
 	private String type;
 
 	@Schema(description = "录像触发者ID(可选)")
 	private String recorderId;
 
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getFilePath() {
-		return filePath;
-	}
-
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public String getStartTime() {
-		return startTime;
-	}
-
-	public void setStartTime(String startTime) {
-		this.startTime = startTime;
-	}
-
-	public String getEndTime() {
-		return endTime;
-	}
-
-	public void setEndTime(String endTime) {
-		this.endTime = endTime;
-	}
-
-	public int getSecrecy() {
-		return secrecy;
-	}
-
-	public void setSecrecy(int secrecy) {
-		this.secrecy = secrecy;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getRecorderId() {
-		return recorderId;
-	}
-
-	public void setRecorderId(String recorderId) {
-		this.recorderId = recorderId;
-	}
-
-	public String getFileSize() {
-		return fileSize;
-	}
-
-	public void setFileSize(String fileSize) {
-		this.fileSize = fileSize;
-	}
-
-	@Override
+    @Override
 	public int compareTo(@NotNull RecordItem recordItem) {
 		TemporalAccessor startTimeNow = DateUtil.formatter.parse(startTime);
 		TemporalAccessor startTimeParam = DateUtil.formatter.parse(recordItem.getStartTime());

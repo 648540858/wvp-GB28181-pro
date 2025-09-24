@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
-import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
@@ -12,6 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.jt1078.config.JT1078Config;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
@@ -45,7 +45,10 @@ import oshi.software.os.OperatingSystem;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
@@ -66,6 +69,9 @@ public class ServerController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private JT1078Config jt1078Config;
 
     @Autowired
     private IDeviceService deviceService;
@@ -196,6 +202,7 @@ public class ServerController {
         systemConfigInfo.setSip(sipConfig);
         systemConfigInfo.setAddOn(userSetting);
         systemConfigInfo.setServerPort(serverPort);
+        systemConfigInfo.setJt1078Config(jt1078Config);
         return systemConfigInfo;
     }
 
@@ -331,20 +338,6 @@ public class ServerController {
         docmap.put("接口文档", String.format("%s://%s:%s/doc.html", request.getScheme(), request.getServerName(), request.getServerPort()));
 
 
-        return result;
-    }
-
-    @GetMapping(value = "/channel/datatype")
-    @ResponseBody
-    @Operation(summary = "获取系统接入的数据类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public List<Map<String, Object>> getDataType() {
-        List<Map<String, Object>> result = new LinkedList<>();
-        for (ChannelDataType item : ChannelDataType.values()) {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("key", item.desc);
-            map.put("value", item.value);
-            result.add(map);
-        }
         return result;
     }
 

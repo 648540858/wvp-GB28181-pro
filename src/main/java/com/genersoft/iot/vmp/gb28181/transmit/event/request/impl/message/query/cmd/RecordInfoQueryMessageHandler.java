@@ -1,13 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEventListener;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
@@ -27,6 +25,8 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -39,6 +39,9 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private IGbChannelService channelService;
+
+    @Autowired
+    private IGbChannelPlayService playService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -105,55 +108,105 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
-            log.info("[平台查询录像记录] 只支持查询国标28181的录像数据 {}/{}", platform.getName(), channelId );
-            try {
-                responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 平台查询录像记录: {}", e.getMessage());
+        if (channel.getDataType() == ChannelDataType.GB28181) {
+            Device device = deviceService.getDevice(channel.getDataDeviceId());
+            if (device == null) {
+                log.warn("[平台查询录像记录] 未找到通道对应的设备 {}/{}", platform.getName(), channelId );
+                try {
+                    responseAck(request, Response.BAD_REQUEST);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] [平台查询录像记录] 未找到通道对应的设备: {}", e.getMessage());
+                }
+                return;
             }
-            return;
-        }
-        Device device = deviceService.getDevice(channel.getDataDeviceId());
-        if (device == null) {
-            log.warn("[平台查询录像记录] 未找到通道对应的设备 {}/{}", platform.getName(), channelId );
+            // 获取通道的原始信息
+            DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+            // 接收录像数据
+            recordInfoEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
+                try {
+                    log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
+                    cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
+                }
+            });
             try {
-                responseAck(request, Response.BAD_REQUEST);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] [平台查询录像记录] 未找到通道对应的设备: {}", e.getMessage());
+                commander.recordInfoQuery(device, deviceChannel.getDeviceId(), DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
+                        DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
+                            // 回复200 OK
+                            try {
+                                responseAck(request, Response.OK);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                            }
+                        }),(eventResult -> {
+                            // 查询失败
+                            try {
+                                responseAck(request, eventResult.statusCode, eventResult.msg);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                            }
+                        }));
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                log.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
-            return;
-        }
-        // 获取通道的原始信息
-        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        // 接收录像数据
-        recordInfoEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
+        }else {
+            // 回复200 OK
             try {
-                log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
-                cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);
+                responseAck(request, Response.OK);
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
+                log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
             }
-        });
-        try {
-            commander.recordInfoQuery(device, deviceChannel.getDeviceId(), DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
-                    DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
-                        // 回复200 OK
-                        try {
-                            responseAck(request, Response.OK);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
-                        }
-                    }),(eventResult -> {
-                        // 查询失败
-                        try {
-                            responseAck(request, eventResult.statusCode, eventResult.msg);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
-                        }
-                    }));
-        } catch (InvalidArgumentException | ParseException | SipException e) {
-            log.error("[命令发送失败] 录像查询: {}", e.getMessage());
+
+            playService.queryRecord(channel, DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
+                    DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime),
+                    (code, msg, commonRecordInfoList) -> {
+                RecordInfo recordInfo = new RecordInfo();
+                recordInfo.setSumNum(commonRecordInfoList.size());
+                recordInfo.setChannelId(channelId);
+                recordInfo.setSn(sn + "");
+                List<RecordItem> recordList = new ArrayList<>(commonRecordInfoList.size());
+                for (int i = 0; i < commonRecordInfoList.size(); i++) {
+                    CommonRecordInfo commonRecordInfo = commonRecordInfoList.get(i);
+                    RecordItem recordItem = new RecordItem();
+                    recordItem.setDeviceId(channelId);
+                    recordItem.setName(commonRecordInfo.getStartTime());
+                    recordItem.setFilePath("/" + commonRecordInfo.getStartTime());
+                    recordItem.setAddress("/" + commonRecordInfo.getStartTime());
+                    recordItem.setStartTime(commonRecordInfo.getStartTime());
+                    recordItem.setEndTime(commonRecordInfo.getEndTime());
+                    recordItem.setSecrecy(0);
+                    recordItem.setRecorderId("");
+                    recordItem.setType("");
+                    recordItem.setFileSize(commonRecordInfo.getFileSize());
+                    recordList.add(recordItem);
+                }
+                recordInfo.setRecordList(recordList);
+
+                try {
+                    log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
+                    cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
+                }
+            });
         }
+//
+//
+//
+//
+//
+//
+//
+//        if (channel.getDataType() != ChannelDataType.GB28181) {
+//            log.info("[平台查询录像记录] 只支持查询国标28181的录像数据 {}/{}", platform.getName(), channelId );
+//            try {
+//                responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
+//            } catch (SipException | InvalidArgumentException | ParseException e) {
+//                log.error("[命令发送失败] 平台查询录像记录: {}", e.getMessage());
+//            }
+//            return;
+//        }
+
     }
 }

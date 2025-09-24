@@ -58,7 +58,7 @@ public class JwtUtils implements InitializingBean {
     private static IUserService userService;
 
     private static IUserApiKeyService userApiKeyService;
-    
+
     private static UserSetting userSetting;
 
     public static String getApiKeyHeader() {
@@ -236,7 +236,7 @@ public class JwtUtils implements InitializingBean {
                     jwtUser.setStatus(JwtUser.TokenStatus.EXPIRING_SOON);
                 } else {
                     jwtUser.setStatus(JwtUser.TokenStatus.NORMAL);
-                }
+               }
             } else {
                 jwtUser.setStatus(JwtUser.TokenStatus.NORMAL);
             }

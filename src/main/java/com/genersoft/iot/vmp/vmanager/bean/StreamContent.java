@@ -4,7 +4,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
+@Data
 @Schema(description = "流信息")
 public class StreamContent {
 
@@ -95,6 +97,9 @@ public class StreamContent {
     @Schema(description = "结束时间")
     private String endTime;
 
+    @Schema(description = "时长(回放时使用)")
+    private Double duration;
+
     @Schema(description = "文件下载地址（录像下载使用）")
     private DownloadFileInfo downLoadFilePath;
 
@@ -102,6 +107,9 @@ public class StreamContent {
     private StreamContent transcodeStream;
 
     private double progress;
+
+    @Schema(description = "拉流代理返回的KEY")
+    private String key;
 
     public StreamContent(StreamInfo streamInfo) {
         if (streamInfo == null) {
@@ -180,6 +188,8 @@ public class StreamContent {
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
+        this.duration = streamInfo.getDuration();
+        this.key = streamInfo.getKey();
 
         if (streamInfo.getDownLoadFilePath() != null) {
             this.downLoadFilePath = streamInfo.getDownLoadFilePath();
@@ -189,259 +199,4 @@ public class StreamContent {
         }
     }
 
-    public StreamContent getTranscodeStream() {
-        return transcodeStream;
-    }
-
-    public void setTranscodeStream(StreamContent transcodeStream) {
-        this.transcodeStream = transcodeStream;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getFlv() {
-        return flv;
-    }
-
-    public void setFlv(String flv) {
-        this.flv = flv;
-    }
-
-    public String getHttps_flv() {
-        return https_flv;
-    }
-
-    public void setHttps_flv(String https_flv) {
-        this.https_flv = https_flv;
-    }
-
-    public String getWs_flv() {
-        return ws_flv;
-    }
-
-    public void setWs_flv(String ws_flv) {
-        this.ws_flv = ws_flv;
-    }
-
-    public String getWss_flv() {
-        return wss_flv;
-    }
-
-    public void setWss_flv(String wss_flv) {
-        this.wss_flv = wss_flv;
-    }
-
-    public String getFmp4() {
-        return fmp4;
-    }
-
-    public void setFmp4(String fmp4) {
-        this.fmp4 = fmp4;
-    }
-
-    public String getHttps_fmp4() {
-        return https_fmp4;
-    }
-
-    public void setHttps_fmp4(String https_fmp4) {
-        this.https_fmp4 = https_fmp4;
-    }
-
-    public String getWs_fmp4() {
-        return ws_fmp4;
-    }
-
-    public void setWs_fmp4(String ws_fmp4) {
-        this.ws_fmp4 = ws_fmp4;
-    }
-
-    public String getWss_fmp4() {
-        return wss_fmp4;
-    }
-
-    public void setWss_fmp4(String wss_fmp4) {
-        this.wss_fmp4 = wss_fmp4;
-    }
-
-    public String getHls() {
-        return hls;
-    }
-
-    public void setHls(String hls) {
-        this.hls = hls;
-    }
-
-    public String getHttps_hls() {
-        return https_hls;
-    }
-
-    public void setHttps_hls(String https_hls) {
-        this.https_hls = https_hls;
-    }
-
-    public String getWs_hls() {
-        return ws_hls;
-    }
-
-    public void setWs_hls(String ws_hls) {
-        this.ws_hls = ws_hls;
-    }
-
-    public String getWss_hls() {
-        return wss_hls;
-    }
-
-    public void setWss_hls(String wss_hls) {
-        this.wss_hls = wss_hls;
-    }
-
-    public String getTs() {
-        return ts;
-    }
-
-    public void setTs(String ts) {
-        this.ts = ts;
-    }
-
-    public String getHttps_ts() {
-        return https_ts;
-    }
-
-    public void setHttps_ts(String https_ts) {
-        this.https_ts = https_ts;
-    }
-
-    public String getWs_ts() {
-        return ws_ts;
-    }
-
-    public void setWs_ts(String ws_ts) {
-        this.ws_ts = ws_ts;
-    }
-
-    public String getWss_ts() {
-        return wss_ts;
-    }
-
-    public void setWss_ts(String wss_ts) {
-        this.wss_ts = wss_ts;
-    }
-
-    public String getRtmp() {
-        return rtmp;
-    }
-
-    public void setRtmp(String rtmp) {
-        this.rtmp = rtmp;
-    }
-
-    public String getRtmps() {
-        return rtmps;
-    }
-
-    public void setRtmps(String rtmps) {
-        this.rtmps = rtmps;
-    }
-
-    public String getRtsp() {
-        return rtsp;
-    }
-
-    public void setRtsp(String rtsp) {
-        this.rtsp = rtsp;
-    }
-
-    public String getRtsps() {
-        return rtsps;
-    }
-
-    public void setRtsps(String rtsps) {
-        this.rtsps = rtsps;
-    }
-
-    public String getRtc() {
-        return rtc;
-    }
-
-    public void setRtc(String rtc) {
-        this.rtc = rtc;
-    }
-
-    public String getRtcs() {
-        return rtcs;
-    }
-
-    public void setRtcs(String rtcs) {
-        this.rtcs = rtcs;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
-    }
-
-    public MediaInfo getMediaInfo() {
-        return mediaInfo;
-    }
-
-    public void setMediaInfo(MediaInfo mediaInfo) {
-        this.mediaInfo = mediaInfo;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public double getProgress() {
-        return progress;
-    }
-
-    public void setProgress(double progress) {
-        this.progress = progress;
-    }
-
-    public DownloadFileInfo getDownLoadFilePath() {
-        return downLoadFilePath;
-    }
-
-    public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
-        this.downLoadFilePath = downLoadFilePath;
-    }
 }

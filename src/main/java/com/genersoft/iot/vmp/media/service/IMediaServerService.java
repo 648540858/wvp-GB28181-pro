@@ -5,8 +5,8 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
+import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
@@ -40,6 +40,10 @@ public interface IMediaServerService {
     void closeRTPServer(MediaServer mediaServerItem, String streamId);
 
     void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
+
+    SSRCInfo openJTTServer(MediaServer mediaServerItem, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
+
+    void closeJTTServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
 
     Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc);
 
@@ -85,7 +89,7 @@ public interface IMediaServerService {
 
     Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream);
 
-    void getSnap(MediaServer mediaServerItemInuse, String streamUrl, int timeoutSec, int expireSec, String path, String fileName);
+    void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, int expireSec, String path, String fileName);
 
     MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream);
 
@@ -96,8 +100,6 @@ public interface IMediaServerService {
     String getFfmpegCmd(MediaServer mediaServer, String cmdKey);
 
     void closeStreams(MediaServer mediaServerItem, String app, String stream);
-
-    WVPResult<String> addFFmpegSource(MediaServer mediaServerItem, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
 
     WVPResult<String> addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout);
 
@@ -144,15 +146,17 @@ public interface IMediaServerService {
 
     Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
+    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+
     void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
     MediaServer getMediaServerByAppAndStream(String app, String stream);
 
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
 
-    StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+    String startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
-    void stopProxy(MediaServer mediaServer, String streamKey);
+    void stopProxy(MediaServer mediaServer, String streamKey, String type);
 
     StreamInfo getMediaByAppAndStream(String app, String stream);
 
@@ -160,9 +164,13 @@ public interface IMediaServerService {
 
     List<String> listRtpServer(MediaServer mediaServer);
 
-    StreamInfo loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
+    void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String datePath, String dateDir, ErrorCallback<StreamInfo> callback);
 
     void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema);
 
     void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema);
+
+    DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo);
+
+    void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback);
 }

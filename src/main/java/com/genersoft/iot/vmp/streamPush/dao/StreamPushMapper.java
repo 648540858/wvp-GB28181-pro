@@ -14,7 +14,7 @@ import java.util.Set;
 @Repository
 public interface StreamPushMapper {
 
-    Integer dataType = ChannelDataType.GB28181.value;
+    Integer dataType = ChannelDataType.GB28181;
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing, start_offline_push) VALUES" +
             "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing}, #{startOfflinePush})")
@@ -53,8 +53,8 @@ public interface StreamPushMapper {
             " 1=1 " +
             " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') escape '/' OR st.stream LIKE concat('%',#{query},'%') escape '/' " +
             " OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/' OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')</if> " +
-            " <if test='pushing == true' > AND st.pushing=1</if>" +
-            " <if test='pushing == false' > AND st.pushing=0 </if>" +
+            " <if test='pushing == true' > AND st.pushing=true</if>" +
+            " <if test='pushing == false' > AND st.pushing=false </if>" +
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
             " order by st.create_time desc" +
             " </script>"})

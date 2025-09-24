@@ -209,7 +209,7 @@ public class AssistRESTfulUtils {
                     if (response.isSuccessful()) {
                         try {
                             String responseStr = Objects.requireNonNull(response.body()).string();
-                            callback.run(JSON.parseObject(responseStr));
+                            callback.run(responseStr);
                         } catch (IOException e) {
                             log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                         }

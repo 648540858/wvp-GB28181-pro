@@ -3,8 +3,10 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * 查询服务器时间
@@ -21,7 +23,12 @@ public class J0004 extends Re {
     }
 
     @Override
-    protected Rs handler(Header header, Session session) {
+    protected Rs handler(Header header, Session session, Ijt1078Service service) {
+        return null;
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
         return null;
     }
 }

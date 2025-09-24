@@ -1,7 +1,7 @@
 version: '3'
 services:
   polaris-redis:
-    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-redis:latest
+    image: redis:latest  # 使用官方Redis镜像
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
@@ -11,8 +11,8 @@ services:
       start_period: 10s
     networks:
       - media-net
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
     volumes:
       - ./redis/conf/redis.conf:/opt/polaris/redis/redis.conf
       - ./volumes/redis/data/:/data
@@ -21,7 +21,7 @@ services:
     command: redis-server /opt/polaris/redis/redis.conf --appendonly yes
 
   polaris-mysql:
-    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-mysql:latest
+    image: mysql:8  # 使用官方MySQL 8镜像
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/3306" ]
@@ -34,18 +34,18 @@ services:
     environment:
       MYSQL_DATABASE: wvp
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_USER: wvp_user
+      MYSQL_PASSWORD: wvp_password
       TZ: Asia/Shanghai
-    ports:
-      - 3306:3306
+    # ports:
+    #   - 3306:3306
     volumes:
       - ./mysql/conf:/etc/mysql/conf.d
       - ./logs/mysql:/logs
       - ./volumes/mysql/data:/var/lib/mysql  
+      - ../数据库/2.7.4/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql  # 初始化SQL脚本目录
     command: [
-          'mysqld',
-          '--default-authentication-plugin=mysql_native_password',
+          # '--default-authentication-plugin=mysql_native_password',
           '--innodb-buffer-pool-size=80M',
           '--character-set-server=utf8mb4',
           '--collation-server=utf8mb4_general_ci',
@@ -54,69 +54,99 @@ services:
         ]
 
   polaris-media:
-    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-media:latest
+    image: zlmediakit/zlmediakit:master  # 替换为官方镜像
     restart: always
     networks:
       - media-net
     ports:
-      - "10935:10935"
-      - "5540:5540"
-      - "6080:6080"
+     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
+     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
+      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
+      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/udp"   # [收流]RTMP  
+     #- "41935:41935/tcp"   # [收流]RTMPS 无效
+      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/tcp"     # [收流]RTSP  
+      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/udp"     # [收流]RTSP  
+     #- "45540:45540/tcp"   # [收流]RTSPS 无效
+      - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
+      - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   
     volumes:
-      - ./volumes/video:/opt/media/www/record/
+      - ./volumes/video:/opt/media/bin/www/record/
       - ./logs/media:/opt/media/log/
+      - ./media/config.ini:/conf/config.ini
+    command: [
+        'MediaServer',
+        '-c', '/conf/config.ini',
+        '-l', '0'
+    ]
 
   polaris-wvp:
-    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-wvp:latest
+    # 显式指定构建上下文和Dockerfile路径
+    build:
+      context: ..  # 构建上下文的根路径
+      dockerfile: ./docker/wvp/Dockerfile  # 相对于上下文路径的Dockerfile位置
     restart: always
     networks:
       - media-net
     ports:
       - "18978:18978"
-      - "8116:8116/udp"
-      - "8116:8116/tcp"
+      - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
+      - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
     depends_on:
       - polaris-redis
       - polaris-mysql
       - polaris-media
-    links:
-      - polaris-redis
-      - polaris-mysql
-      - polaris-media
     volumes:
-      - ./wvp/wvp/:/opt/wvp/wvp/
+      - ./wvp/wvp/:/opt/ylcx/wvp/
       - ./logs/wvp:/opt/wvp/logs/
     environment:
       TZ: "Asia/Shanghai"
-      # 本机的IP
-      SIP_HOST: 127.0.0.1
-      STREAM_HOST: 127.0.0.1
+      # 流链接的IP
+      Stream_IP: ${Stream_IP}
+      # SDP里的IP
+      SDP_IP: ${SDP_IP}
+      # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
+      ZLM_HOOK_HOST: polaris-wvp
       ZLM_HOST: polaris-media
-      ZLM_PORT: 6080
       ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
+
+      MediaHttp: ${WebHttp:-8080}
+      #MediaHttps: ${WebHttps:-8081}
+      MediaRtmp: ${MediaRtmp:-10935}
+      MediaRtsp: ${MediaRtsp:-5540}
+      MediaRtp: ${MediaRtp:-10000}
+
       REDIS_HOST: polaris-redis
       REDIS_PORT: 6379
+
       DATABASE_HOST: polaris-mysql
       DATABASE_PORT: 3306
-      DATABASE_USER: wvp
-      DATABASE_PASSWORD: wvp
-      # 前端跨域配置，nginx容器所在物理机IP
-      NGINX_HOST: http://127.0.0.1:8080
+      DATABASE_USER: wvp_user
+      DATABASE_PASSWORD: wvp_password
+
+      SIP_ShowIP: ${SIP_ShowIP}
+      SIP_Port: ${SIP_Port:-8116}
+      SIP_Domain: ${SIP_Domain}
+      SIP_Id: ${SIP_Id}
+      SIP_Password: ${SIP_Password}
+
+      RecordSip: ${RecordSip}
+      RecordPushLive: ${RecordPushLive}
 
   polaris-nginx:
-    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-nginx:latest
+    # 显式指定构建上下文和Dockerfile路径
+    build:
+      context: ..  # 构建上下文的根路径
+      dockerfile: ./docker/nginx/Dockerfile  # 相对于上下文路径的Dockerfile位置
     ports:
-      - "8080:8080"
+      - "${WebHttp:-8080}:8080"
     depends_on:
       - polaris-wvp
-    links:
-      - polaris-wvp
-    environment:
-      WVP_HOST: polaris-wvp
-      WVP_PORT: 18978
     volumes:
-      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/templates/:/etc/nginx/templates
       - ./logs/nginx:/var/log/nginx
+    environment:
+      # 流链接的IP
+      Stream_IP: ${Stream_IP}
     networks:
       - media-net
       

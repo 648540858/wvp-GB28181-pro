@@ -696,7 +696,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, channelType, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, false, channelType, online, null, null);
         return new PageInfo<>(all);
     }
 
@@ -717,7 +717,19 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("_", "/_");
         }
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, null, query, hasSubChannel, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, null, null, query, false, hasSubChannel, online, null, null);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public PageInfo<DeviceChannel> queryChannels(String query, Boolean queryParent, Boolean hasSubChannel, Boolean online, Boolean hasStream, int page, int count) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<DeviceChannel> all = channelMapper.queryChannels(null, null, null, null, query, queryParent, hasSubChannel, online, null, hasStream);
         return new PageInfo<>(all);
     }
 
@@ -768,7 +780,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void addChannel(DeviceChannel channel) {
-        channel.setDataType(ChannelDataType.GB28181.value);
+        channel.setDataType(ChannelDataType.GB28181);
         channel.setDataDeviceId(channel.getDataDeviceId());
         channelMapper.add(channel);
     }
@@ -814,7 +826,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value){
+        if (channel.getDataType() != ChannelDataType.GB28181){
             // 只支持国标的语音喊话
             log.warn("[INFO 消息] 非国标设备， 通道ID： {}", channel.getGbId());
             callback.run(ErrorCode.ERROR100.getCode(), "非国标设备", null);

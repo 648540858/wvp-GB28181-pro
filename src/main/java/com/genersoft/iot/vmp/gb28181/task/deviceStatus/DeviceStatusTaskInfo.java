@@ -11,7 +11,7 @@ public class DeviceStatusTaskInfo{
     private SipTransactionInfo transactionInfo;
 
     /**
-     * 过期时间
+     * 过期时间,单位毫秒
      */
     private long expireTime;
 }

@@ -11,6 +11,7 @@ public enum ErrorCode {
     ERROR403(403, "无权限操作"),
     ERROR486(486, "超时或无响应"),
     ERROR401(401, "请登录后重新请求"),
+    ERROR408(408, "请求超时"),
     ERROR500(500, "系统异常");
 
     private final int code;

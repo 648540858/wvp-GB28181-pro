@@ -19,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.message.Response;
-
 @Component
 @Slf4j
 @RedisRpcController("sendRtp")
@@ -61,7 +59,7 @@ public class RedisRpcSendRtpController extends RpcController {
         }
         // 自平台内容
         int localPort = sendRtpServerService.getNextPort(mediaServerItem);
-        if (localPort == 0) {
+        if (localPort <= 0) {
             log.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(ErrorCode.SUCCESS.getCode());

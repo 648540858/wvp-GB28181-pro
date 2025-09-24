@@ -7,7 +7,7 @@
         </el-form-item>
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             placeholder="关键字"
             prefix-icon="el-icon-search"
@@ -55,8 +55,8 @@
             <el-option label="streamnumber:1(子码流-2022)" value="streamnumber:1" />
             <el-option label="streamprofile:0(主码流-大华)" value="streamprofile:0" />
             <el-option label="streamprofile:1(子码流-大华)" value="streamprofile:1" />
-            <el-option label="streamMode:main(主码流-水星+TP-LINK)" value="streamMode:main" />
-            <el-option label="streamMode:sub(子码流-水星+TP-LINK)" value="streamMode:sub" />
+            <el-option label="streamMode:MAIN(主码流-水星+TP-LINK)" value="streamMode:MAIN" />
+            <el-option label="streamMode:SUB(子码流-水星+TP-LINK)" value="streamMode:SUB" />
           </el-select>
         </el-form-item>
         <el-form-item style="float: right;">
@@ -123,8 +123,8 @@
               <el-option label="streamnumber:1(子码流-2022)" value="streamnumber:1" />
               <el-option label="streamprofile:0(主码流-大华)" value="streamprofile:0" />
               <el-option label="streamprofile:1(子码流-大华)" value="streamprofile:1" />
-              <el-option label="streamMode:main(主码流-水星+TP-LINK)" value="streamMode:main" />
-              <el-option label="streamMode:sub(子码流-水星+TP-LINK)" value="streamMode:sub" />
+              <el-option label="streamMode:MAIN(主码流-水星+TP-LINK)" value="streamMode:MAIN" />
+              <el-option label="streamMode:SUB(子码流-水星+TP-LINK)" value="streamMode:SUB" />
             </el-select>
           </template>
         </el-table-column>
@@ -248,7 +248,7 @@ export default {
       videoComponentList: [],
       currentPlayerInfo: {}, // 当前播放对象
       updateLooper: 0, // 数据刷新轮训标志
-      searchSrt: '',
+      searchStr: '',
       channelType: '',
       online: '',
       subStream: '',
@@ -322,7 +322,7 @@ export default {
       this.$store.dispatch('device/queryChannels', [this.deviceId, {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         online: this.online,
         channelType: this.channelType
       }]).then(data => {
@@ -465,7 +465,7 @@ export default {
 
       var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.deviceId}`
       this.$router.push(url).then(() => {
-        this.searchSrt = ''
+        this.searchStr = ''
         this.channelType = ''
         this.online = ''
         this.initParam()
@@ -477,7 +477,7 @@ export default {
         {
           page: this.currentPage,
           count: this.count,
-          query: this.searchSrt,
+          query: this.searchStr,
           online: this.online,
           channelType: this.channelType
         },

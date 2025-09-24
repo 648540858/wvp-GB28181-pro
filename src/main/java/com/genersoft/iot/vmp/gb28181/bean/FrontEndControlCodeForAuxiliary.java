@@ -14,7 +14,7 @@ public class FrontEndControlCodeForAuxiliary implements  IFrontEndControlCode {
     }
 
     /**
-     * 辅助开关控制指令： 1为开， 2为关， 3为设置自动扫描右边界， 4为设置自动扫描速度
+     * 辅助开关控制指令： 1为开， 2为关
      */
     @Getter
     @Setter

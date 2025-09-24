@@ -275,10 +275,8 @@ public interface CommonGBChannelMapper {
             "    true as is_leaf " +
             " from wvp_device_channel " +
             " where coalesce(gb_civil_code, civil_code) = #{parentDeviceId} " +
-            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
-            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parentDeviceId") String parentDeviceId);
+    List<RegionTree> queryForRegionTreeByCivilCode(@Param("parentDeviceId") String parentDeviceId);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -582,4 +580,21 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceId")
     List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
+
+    @Update("UPDATE wvp_device_channel SET stream_id = #{stream} where id = #{gbId}")
+    void updateStream(int gbId, String stream);
+
+    @Update("<script> " +
+            "<foreach collection='commonGBChannels' index='index' item='item' separator=';'> " +
+            "UPDATE wvp_device_channel " +
+            " SET gb_longitude=#{item.gbLongitude}" +
+            ", gb_latitude=#{item.gbLatitude} " +
+            ", gps_speed=#{item.gpsSpeed} " +
+            ", gps_altitude=#{item.gpsAltitude} " +
+            ", gps_direction=#{item.gpsDirection} " +
+            ", gps_time=#{item.gpsTime} " +
+            "WHERE id = #{item.gbId}" +
+            "</foreach> " +
+            "</script>")
+    void updateGps(List<CommonGBChannel> commonGBChannels);
 }

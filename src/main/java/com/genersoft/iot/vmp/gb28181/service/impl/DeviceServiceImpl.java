@@ -691,7 +691,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public List<Device> getAllByStatus(Boolean status) {
-        return deviceMapper.getDevices(ChannelDataType.GB28181.value, status);
+        return deviceMapper.getDevices(ChannelDataType.GB28181, status);
     }
 
     @Override
@@ -852,7 +852,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181.value, query, status);
+        List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181, query, status);
         return new PageInfo<>(all);
     }
 
@@ -863,12 +863,12 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public Device getDeviceByChannelId(Integer channelId) {
-        return deviceMapper.queryByChannelId(ChannelDataType.GB28181.value,channelId);
+        return deviceMapper.queryByChannelId(ChannelDataType.GB28181,channelId);
     }
 
     @Override
     public Device getDeviceBySourceChannelDeviceId(String channelId) {
-        return deviceMapper.getDeviceBySourceChannelDeviceId(ChannelDataType.GB28181.value,channelId);
+        return deviceMapper.getDeviceBySourceChannelDeviceId(ChannelDataType.GB28181,channelId);
     }
 
     @Override
@@ -1252,9 +1252,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     }
 
     @Override
-    public void queryPreset(Device device, String channelId, ErrorCallback<Object> callback) {
+    public void queryPreset(Device device, String channelId, ErrorCallback<List<Preset>> callback) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            WVPResult<Object> result = redisRpcService.queryPreset(device.getServerId(), device, channelId);
+            WVPResult<List<Preset>> result = redisRpcService.queryPreset(device.getServerId(), device, channelId);
             callback.run(result.getCode(), result.getMsg(), result.getData());
             return;
         }
@@ -1267,4 +1267,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
     }
+
+
 }

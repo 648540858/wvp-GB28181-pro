@@ -48,3 +48,15 @@ export function getPath(params) {
     }
   })
 }
+export function queryTree(params) {
+  const { page, count, query } = params
+  return request({
+    method: 'get',
+    url: `/api/group/tree/query`,
+    params: {
+      query: query,
+      page: page,
+      count: count
+    }
+  })
+}

@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import org.springframework.util.Assert;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -78,7 +78,7 @@ public class PTZServiceImpl implements IPTZService {
 
     @Override
     public void frontEndCommand(CommonGBChannel channel, Integer cmdCode, Integer parameter1, Integer parameter2, Integer combindCode2) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只有国标通道的支持云台控制
             log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
@@ -92,17 +92,20 @@ public class PTZServiceImpl implements IPTZService {
     }
 
     @Override
-    public List<Preset> queryPresetList(String deviceId, String channelDeviceId) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void addPreset(Preset preset) {
-
-    }
-
-    @Override
-    public void deletePreset(Integer qq) {
-
+    public void queryPresetList(CommonGBChannel channel, ErrorCallback<List<Preset>> callback) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
+            // 只有国标通道的支持云台控制
+            log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
+        }
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备");
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道");
+        }
+        deviceService.queryPreset(device, deviceChannel.getDeviceId(), callback);
     }
 }

@@ -22,6 +22,7 @@ import userApiKeys from './modules/userApiKeys'
 import gbRecord from './modules/gbRecord'
 import log from './modules/log'
 import frontEnd from './modules/frontEnd'
+import jtDevice from './modules/jtDevice'
 
 Vue.use(Vuex)
 
@@ -47,7 +48,8 @@ const store = new Vuex.Store({
     userApiKeys,
     gbRecord,
     log,
-    frontEnd
+    frontEnd,
+    jtDevice
   },
   getters
 })

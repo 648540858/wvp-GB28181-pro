@@ -6,7 +6,7 @@ import {
   queryChildListInBase,
   update,
   add,
-  queryPath
+  queryPath, queryTree
 } from '@/api/region'
 
 const actions = {
@@ -83,6 +83,16 @@ const actions = {
   queryPath({ commit }, deviceId) {
     return new Promise((resolve, reject) => {
       queryPath(deviceId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryTree({ commit }, param) {
+    return new Promise((resolve, reject) => {
+      queryTree(param).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

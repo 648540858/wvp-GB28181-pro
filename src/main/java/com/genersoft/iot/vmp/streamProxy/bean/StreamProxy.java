@@ -79,7 +79,7 @@ public class StreamProxy extends CommonGBChannel {
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName( app+ "-" +stream);
         }
-        this.setDataType(ChannelDataType.STREAM_PROXY.value);
+        this.setDataType(ChannelDataType.STREAM_PROXY);
         this.setDataDeviceId(this.getId());
         return this;
     }

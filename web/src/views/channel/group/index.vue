@@ -4,8 +4,8 @@
       ref="groupTree"
       :show-header="true"
       :edit="true"
-      :click-event="treeNodeClickEvent"
-      :on-channel-change="onChannelChange"
+      @clickEvent="treeNodeClickEvent"
+      @onChannelChange="onChannelChange"
       :enable-add-channel="true"
       :add-channel-to-group="addChannelToGroup"
     />
@@ -20,7 +20,7 @@
         <div style="float: right;">
           <el-form-item label="搜索">
             <el-input
-              v-model="searchSrt"
+              v-model="searchStr"
               style="margin-right: 1rem; width: 10rem; "
               placeholder="关键字"
               prefix-icon="el-icon-search"
@@ -132,7 +132,7 @@ export default {
   data() {
     return {
       channelList: [],
-      searchSrt: '',
+      searchStr: '',
       channelType: '',
       online: '',
       hasGroup: 'false',
@@ -170,7 +170,7 @@ export default {
       this.$store.dispatch('commonChanel/getParentList', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         online: this.online,
         channelType: this.channelType,
         groupDeviceId: this.groupDeviceId
@@ -306,7 +306,10 @@ export default {
         })
     },
     onChannelChange: function(deviceId) {
-      //
+
+      if (this.groupDeviceId === deviceId) {
+        this.getChannelList()
+      }
     },
     showUnusualChanel: function() {
       this.$refs.unusualGroupChannelSelect.openDialog()

@@ -80,9 +80,8 @@ public interface RegionMapper {
             " where " +
             " <if test='parentId != null'> parent_id = #{parentId} </if> " +
             " <if test='parentId == null'> parent_id is null </if> " +
-            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') escape '/' OR name LIKE concat('%',#{query},'%') escape '/')</if> " +
             " </script>")
-    List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") Integer parentId);
+    List<RegionTree> queryForTree(@Param("parentId") Integer parentId);
 
     @Delete("<script>" +
             " DELETE FROM wvp_common_region WHERE id in " +

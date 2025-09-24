@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.bean;
 
 
+import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -40,6 +41,9 @@ public class MediaServer {
     @Schema(description = "https-flv端口")
     private int flvSSLPort;
 
+    @Schema(description = "mp4端口")
+    private int mp4Port;
+
     @Schema(description = "ws-flv端口")
     private int wsFlvPort;
 
@@ -51,6 +55,9 @@ public class MediaServer {
 
     @Schema(description = "RTP收流端口（单端口模式有用）")
     private int rtpProxyPort;
+
+    @Schema(description = "1078收流端口（单端口模式有用）")
+    private int jttProxyPort;
 
     @Schema(description = "RTSP端口")
     private int rtspPort;
@@ -118,11 +125,7 @@ public class MediaServer {
         sdpIp = ObjectUtils.isEmpty(zlmServerConfig.getSdpIp())? zlmServerConfig.getIp(): zlmServerConfig.getSdpIp();
         streamIp = ObjectUtils.isEmpty(zlmServerConfig.getStreamIp())? zlmServerConfig.getIp(): zlmServerConfig.getStreamIp();
         httpPort = zlmServerConfig.getHttpPort();
-        flvPort = zlmServerConfig.getHttpPort();
-        wsFlvPort = zlmServerConfig.getHttpPort();
         httpSSlPort = zlmServerConfig.getHttpSSLport();
-        flvSSLPort = zlmServerConfig.getHttpSSLport();
-        wsFlvSSLPort = zlmServerConfig.getHttpSSLport();
         rtmpPort = zlmServerConfig.getRtmpPort();
         rtmpSSlPort = zlmServerConfig.getRtmpSslPort();
         rtpProxyPort = zlmServerConfig.getRtpProxyPort();
@@ -136,5 +139,25 @@ public class MediaServer {
         recordAssistPort = 0; // 默认关闭
         transcodeSuffix = zlmServerConfig.getTranscodeSuffix();
 
+    }
+
+    public MediaServer(AblServerConfig config, String sipIp) {
+        id = config.getMediaServerId();
+        ip = config.getServerIp();
+        hookIp = sipIp;
+        sdpIp = config.getServerIp();
+        streamIp = config.getServerIp();
+        httpPort = config.getHttpServerPort();
+        flvPort = config.getHttpFlvPort();
+        mp4Port = config.getHttpMp4Port();
+        wsFlvPort = config.getWsFlvPort();
+        rtmpPort = config.getRtmpPort();
+        rtpProxyPort = config.getJtt1078RecvPort();
+        rtspPort = config.getRtspPort();
+        autoConfig = true; // 默认值true;
+        secret = config.getSecret();
+        rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
+        rtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
+        recordAssistPort = 0; // 默认关闭
     }
 }

@@ -49,7 +49,7 @@
           </div>
         </div>
       </div>
-      <div id="playerBox">
+      <div id="playerBox" style="width: 100%">
         <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
           <div
             v-if="playLoading"

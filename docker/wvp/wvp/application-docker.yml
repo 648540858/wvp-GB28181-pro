@@ -1,73 +1,107 @@
 spring:
-  # 设置接口超时时间
-  mvc:
-    async:
-      request-timeout: 20000
-  thymeleaf:
-    cache: false
-  # [可选]上传文件大小限制
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 100MB
-  # REDIS数据库配置
-  redis:
-    # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-    host: ${REDIS_HOST:127.0.0.1}
-    # [必须修改] 端口号
-    port: ${REDIS_PORT:6379}
-    # [可选] 数据库 DB
-    database: 1
-    # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password: 
-    # [可选] 超时时间
-    timeout: 30000
-  # mysql数据源
-  datasource:
-      type: com.zaxxer.hikari.HikariDataSource
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://${DATABASE_HOST:127.0.0.1}:${DATABASE_PORT:3306}/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
-      username: ${DATABASE_USER:root}
-      password: ${DATABASE_PASSWORD:root}
+    cache:
+        type: redis
+    thymeleaf:
+        cache: false
+    # 设置接口超时时间
+    mvc:
+        async:
+            request-timeout: 20000
+    # [可选]上传文件大小限制
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
+    # REDIS数据库配置
+    redis:
+        # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
+        host: ${REDIS_HOST:127.0.0.1}
+        # [必须修改] 端口号
+        port: ${REDIS_PORT:6379}
+        # [可选] 数据库 DB
+        database: 1
+        # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+        password: 
+        # [可选] 超时时间
+        timeout: 10000
+       ## [可选] 一个pool最多可分配多少个jedis实例
+       #poolMaxTotal: 1000
+       ## [可选] 一个pool最多有多少个状态为idle(空闲)的jedis实例
+       #poolMaxIdle: 500
+       ## [可选] 最大的等待时间(秒)
+       #poolMaxWait: 5
+    # [必选] jdbc数据库配置
+    datasource:
+        # mysql数据源
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://${DATABASE_HOST:127.0.0.1}:${DATABASE_PORT:3306}/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+        username: ${DATABASE_USER:root}
+        password: ${DATABASE_PASSWORD:root}
 
 #[可选] 监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 18978
-  ssl:
-    # [可选] 是否开启HTTPS访问
-    enabled: false
+    port: 18978
+    ssl:
+        # [可选] 是否开启HTTPS访问
+        # docker里运行，内部不需要HTTPS
+        enabled: false
 # 作为28181服务器的配置
 sip:
-  # [必须修改] 本机的IP
-  ip: ${SIP_HOST:127.0.0.1}
-  # [可选]
-  port: 8116
-  # [可选]
-  domain: 3402000000
-  # [可选]
-  id: 34020000002000000001
-  password:
-  alarm: true
+    # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，
+    # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
+    # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
+    # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
+    ip: 0.0.0.0
+    # [可选] 没有任何业务需求，仅仅是在前端展示的时候用
+    show-ip: ${SIP_ShowIP}
+    # [可选]
+    port: ${SIP_Port:8116}
+    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
+    # 后两位为行业编码，定义参照附录D.3
+    # 3701020049标识山东济南历下区 信息行业接入
+    # [可选]
+    domain: ${SIP_Domain:3402000000}
+    # [可选]
+    id: ${SIP_Id:34020000002000000001}
+    # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
+    password: ${SIP_Password}
+    # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
+    register-time-interval: 60
+    # [可选] 云台控制速度
+    ptz-speed: 50
+    # TODO [可选] 收到心跳后自动上线， 重启服务后会将所有设备置为离线，默认false，等待注册后上线。设置为true则收到心跳设置为上线。
+    # keepalliveToOnline: false
+    # 是否存储alarm信息
+    alarm: true
+    # 命令发送等待回复的超时时间, 单位:毫秒
+    timeout: 1000
 
 # 默认服务器配置
 media:
   id: polaris
   # [必须修改] ZLM 内网IP与端口
   ip: ${ZLM_HOST:127.0.0.1}
-  http-port: ${ZLM_PORT:6080}
+  http-port: 80
   # [可选] 返回流地址时的ip，置空使用 media.ip
-  stream-ip: ${STREAM_HOST:127.0.0.1}
+  stream-ip: ${Stream_IP}
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-  sdp-ip: ${SIP_HOST:127.0.0.1}
-  # [可选] Hook IP, 默认使用sip.ip
-  hook-ip: ${SIP_HOST:127.0.0.1}
+  sdp-ip: ${SDP_IP}
+  # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
+  hook-ip: ${ZLM_HOOK_HOST}
   # [可选] sslport
-  http-ssl-port: 4443
-  rtp-proxy-port: 10000
-  rtmp-port: 10935
-  rtmp-ssl-port: 41935
-  rtsp-port: 5540
-  rtsp-ssl-port: 45540
+  http-ssl-port: 0
+  flv-port: ${MediaHttp:}
+  flv-ssl-port: ${MediaHttps:}
+  ws-flv-port: ${MediaHttp:}
+  ws-flv-ssl-port: ${MediaHttps:}
+  rtp-proxy-port: ${MediaRtp:}
+  rtmp-port: ${MediaRtmp:}
+  rtmp-ssl-port: 0
+  rtsp-port: ${MediaRtsp:}
+  rtsp-ssl-port: 0
+  # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
+  auto-config: true
   # [可选] 
   secret: ${ZLM_SERCERT}
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
@@ -79,28 +113,28 @@ media:
     # [可选] 
     send-port-range: 50502,50506 
 
-  record-path: /opt/media/record
+  record-path: /opt/media/bin/www/record/
   record-day: 7
   record-assist-port: 0
 user-settings:
     auto-apply-play: true
     play-timeout: 30000
     wait-track: false
-    record-push-live: false
-    record-sip: false
+    record-push-live: ${RecordPushLive:false}
+    record-sip: ${RecordSip:false}
     stream-on-demand: true
-    interface-authentication: false
+    interface-authentication: true
     broadcast-for-platform: TCP-PASSIVE
     push-stream-after-ack: true
     send-to-platforms-when-id-lost: true
     interface-authentication-excludes:
-      - /api/**
-    push-authority: false
-    allowed-origins:
-      - http://localhost:8080
-      - http://127.0.0.1:8080
-      - http://0.0.0.0:8080
-      - ${NGINX_HOST}
+    #  - /api/**
+    push-authority: true
+    # allowed-origins:
+    #   - http://localhost:8080
+    #   - http://127.0.0.1:8080
+    #   - http://0.0.0.0:8080
+    #   - ${NGINX_HOST}
 logging:
   config: classpath:logback-spring.xml
 

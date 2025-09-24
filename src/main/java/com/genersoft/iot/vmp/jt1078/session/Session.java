@@ -2,9 +2,14 @@ package com.genersoft.iot.vmp.jt1078.session;
 
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.util.AttributeKey;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -24,17 +29,27 @@ public class Session {
     private final AtomicInteger serialNo = new AtomicInteger(0);
 
     // 是否注册成功
+    @Getter
     private boolean registered = false;
 
-    // 设备ID
-    private String devId;
+    // 设备手机号
+    @Getter
+    private String phoneNumber;
+
+    // 设备手机号
+    @Setter
+    @Getter
+    private String authenticationCode;
 
     // 创建时间
+    @Getter
     private final long creationTime;
 
     // 协议版本号
+    @Getter
     private Integer protocolVersion;
 
+    @Getter
     private Header header;
 
     protected Session(Channel channel) {
@@ -68,46 +83,29 @@ public class Session {
      * @param devId 设备ID
      */
     public void register(String devId, Integer version, Header header) {
-        this.devId = devId;
+        this.phoneNumber = devId;
         this.registered = true;
         this.protocolVersion = version;
         this.header = header;
         SessionManager.INSTANCE.put(devId, this);
     }
 
-    /**
-     * 获取设备号
-     *
-     * @return 设备号
-     */
-    public String getDevId() {
-        return devId;
-    }
-
-
-    public boolean isRegistered() {
-        return registered;
-    }
-
-    public long getCreationTime() {
-        return creationTime;
-    }
-
-    public Integer getProtocolVersion() {
-        return protocolVersion;
-    }
-
-    public Header getHeader() {
-        return header;
-    }
-
     @Override
     public String toString() {
         return "[" +
-                "devId=" + devId +
+                "phoneNumber=" + phoneNumber +
                 ", reg=" + registered +
                 ", version=" + protocolVersion +
                 ",ip=" + channel.remoteAddress() +
                 ']';
+    }
+
+    public void unregister() {
+        channel.close();
+        SessionManager.INSTANCE.remove(this.phoneNumber);
+    }
+
+    public InetSocketAddress getLoadAddress() {
+        return (InetSocketAddress)channel.localAddress();
     }
 }

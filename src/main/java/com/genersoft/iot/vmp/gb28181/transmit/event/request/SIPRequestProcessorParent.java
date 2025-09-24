@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.utils.IpPortUtil;
 import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -95,7 +96,7 @@ public abstract class SIPRequestProcessorParent {
 			if (responseAckExtraParam.sipURI != null && sipRequest.getMethod().equals(Request.INVITE)) {
 				log.debug("responseSdpAck SipURI: {}:{}", responseAckExtraParam.sipURI.getHost(), responseAckExtraParam.sipURI.getPort());
 				Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(
-						SipFactory.getInstance().createAddressFactory().createSipURI(responseAckExtraParam.sipURI.getUser(),  responseAckExtraParam.sipURI.getHost()+":"+responseAckExtraParam.sipURI.getPort()
+						SipFactory.getInstance().createAddressFactory().createSipURI(responseAckExtraParam.sipURI.getUser(), IpPortUtil.concatenateIpAndPort(responseAckExtraParam.sipURI.getHost(), String.valueOf(responseAckExtraParam.sipURI.getPort()))
 						));
 				response.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader(concatAddress));
 			}
@@ -135,7 +136,7 @@ public abstract class SIPRequestProcessorParent {
 		// 兼容国标中的使用编码@域名作为RequestURI的情况
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  IpPortUtil.concatenateIpAndPort(platform.getServerIp(), String.valueOf(platform.getServerPort())));
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;
@@ -156,7 +157,7 @@ public abstract class SIPRequestProcessorParent {
 
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(), IpPortUtil.concatenateIpAndPort(platform.getServerIp(), String.valueOf(platform.getServerPort())));
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;

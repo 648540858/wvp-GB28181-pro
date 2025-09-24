@@ -21,6 +21,12 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "数据库自增ID")
 	private int id;
 
+	@Schema(description = "父设备编码")
+	private String parentDeviceId;
+
+	@Schema(description = "父设备名称")
+	private String parentName;
+
 	@MessageElementForCatalog("DeviceID")
 	@Schema(description = "编码")
 	private String deviceId;
@@ -173,9 +179,6 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "子设备数")
 	private int subCount;
 
-	@Schema(description = "流唯一编号，存在表示正在直播")
-	private String  streamId;
-
 	@Schema(description = "是否含有音频")
 	private boolean hasAudio;
 
@@ -189,7 +192,7 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
 	private int channelType;
 
-	private Integer dataType = ChannelDataType.GB28181.value;
+	private Integer dataType = ChannelDataType.GB28181;
 
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
@@ -249,7 +252,7 @@ public class DeviceChannel extends CommonGBChannel {
 		commonGBChannel.setGbId(id);
 		commonGBChannel.setGbDeviceId(deviceId);
 		commonGBChannel.setGbName(name);
-		commonGBChannel.setDataType(ChannelDataType.GB28181.value);
+		commonGBChannel.setDataType(ChannelDataType.GB28181);
 		commonGBChannel.setDataDeviceId(getDataDeviceId());
 		return commonGBChannel;
 	}

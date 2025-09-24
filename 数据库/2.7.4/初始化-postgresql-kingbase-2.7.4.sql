@@ -182,8 +182,11 @@ create table IF NOT EXISTS wvp_media_server
     rtsp_ssl_port       integer,
     flv_port            integer,
     flv_ssl_port        integer,
+    mp4_port            integer,
+    mp4_ssl_port        integer,
     ws_flv_port         integer,
     ws_flv_ssl_port     integer,
+    jtt_proxy_port      integer,
     auto_config         bool                  default false,
     secret              character varying(50),
     type                character varying(50) default 'zlm',
@@ -463,5 +466,41 @@ create table IF NOT EXISTS wvp_record_plan_item
     plan_id        int,
     create_time     character varying(50),
     update_time     character varying(50)
+);
+
+drop table IF EXISTS wvp_jt_terminal;
+create table IF NOT EXISTS wvp_jt_terminal (
+                                 id serial primary key,
+                                 phone_number character varying(50),
+                                 terminal_id character varying(50),
+                                 province_id character varying(50),
+                                 province_text character varying(100),
+                                 city_id character varying(50),
+                                 city_text character varying(100),
+                                 maker_id character varying(50),
+                                 model character varying(50),
+                                 plate_color character varying(50),
+                                 plate_no character varying(50),
+                                 longitude double precision,
+                                 latitude double precision,
+                                 status bool default false,
+                                 register_time character varying(50) default null,
+                                 update_time character varying(50) not null,
+                                 create_time character varying(50) not null,
+                                 geo_coord_sys character varying(50),
+                                 media_server_id character varying(50) default 'auto',
+                                 sdp_ip character varying(50),
+                                 constraint uk_jt_device_id_device_id unique (id, phone_number)
+);
+drop table IF EXISTS wvp_jt_channel;
+create table IF NOT EXISTS wvp_jt_channel (
+                                id serial primary key,
+                                terminal_db_id integer,
+                                channel_id integer,
+                                has_audio bool default false,
+                                name character varying(255),
+                                update_time character varying(50) not null,
+                                create_time character varying(50) not null,
+                                constraint uk_jt_channel_id_device_id unique (terminal_db_id, channel_id)
 );
 

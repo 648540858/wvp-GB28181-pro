@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.IpPortUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.SIPDateHeader;
@@ -103,7 +104,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     device.setExpires(request.getExpires().getExpires());
                     device.setIp(remoteAddressInfo.getIp());
                     device.setPort(remoteAddressInfo.getPort());
-                    device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+                    device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
 
                     device.setLocalIp(request.getLocalAddress().getHostAddress());
                     Response registerOkResponse = getRegisterOkResponse(request);
@@ -144,12 +145,15 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);
-            // 添加date头
-            SIPDateHeader dateHeader = new SIPDateHeader();
-            // 使用自己修改的
-            GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-            dateHeader.setDate(gbSipDate);
-            response.addHeader(dateHeader);
+            // 如果主动禁用了Date头，则不添加
+            if (!userSetting.isDisableDateHeader()) {
+                // 添加date头
+                SIPDateHeader dateHeader = new SIPDateHeader();
+                // 使用自己修改的
+                GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+                dateHeader.setDate(gbSipDate);
+                response.addHeader(dateHeader);
+            }
 
             if (request.getExpires() == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
@@ -183,7 +187,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setServerId(userSetting.getServerId());
             device.setIp(remoteAddressInfo.getIp());
             device.setPort(remoteAddressInfo.getPort());
-            device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+            device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
             device.setLocalIp(request.getLocalAddress().getHostAddress());
             if (request.getExpires().getExpires() == 0) {
                 // 注销成功
@@ -218,12 +222,15 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     private Response getRegisterOkResponse(Request request) throws ParseException {
         // 携带授权头并且密码正确
         Response response = getMessageFactory().createResponse(Response.OK, request);
-        // 添加date头
-        SIPDateHeader dateHeader = new SIPDateHeader();
-        // 使用自己修改的
-        GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-        dateHeader.setDate(gbSipDate);
-        response.addHeader(dateHeader);
+        // 如果主动禁用了Date头，则不添加
+        if (!userSetting.isDisableDateHeader()) {
+            // 添加date头
+            SIPDateHeader dateHeader = new SIPDateHeader();
+            // 使用自己修改的
+            GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+            dateHeader.setDate(gbSipDate);
+            response.addHeader(dateHeader);
+        }
 
         // 添加Contact头
         response.addHeader(request.getHeader(ContactHeader.NAME));

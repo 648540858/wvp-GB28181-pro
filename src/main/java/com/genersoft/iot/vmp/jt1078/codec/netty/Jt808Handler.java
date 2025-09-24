@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.codec.netty;
 
+import com.genersoft.iot.vmp.jt1078.event.ConnectChangeEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
@@ -8,6 +9,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,6 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Jt808Handler extends ChannelInboundHandlerAdapter {
 
+    private ApplicationEventPublisher applicationEventPublisher = null;
+
+    public Jt808Handler(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof Rs) {
@@ -25,6 +36,8 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         } else {
             ctx.fireChannelRead(msg);
         }
+        // 读取完成后的消息释放
+        ReferenceCountUtil.release(msg);
     }
 
     @Override
@@ -33,6 +46,13 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = SessionManager.INSTANCE.newSession(channel);
         channel.attr(Session.KEY).set(session);
         log.info("> Tcp connect {}", session);
+        if (session.getPhoneNumber() == null) {
+            return;
+        }
+        ConnectChangeEvent event = new ConnectChangeEvent(this);
+        event.setConnected(true);
+        event.setPhoneNumber(session.getPhoneNumber());
+        applicationEventPublisher.publishEvent(event);
     }
 
     @Override
@@ -40,6 +60,14 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = ctx.channel().attr(Session.KEY).get();
         log.info("< Tcp disconnect {}", session);
         ctx.close();
+        if (session.getPhoneNumber() == null) {
+            return;
+        }
+        ConnectChangeEvent event = new ConnectChangeEvent(this);
+        event.setConnected(false);
+        event.setPhoneNumber(session.getPhoneNumber());
+        applicationEventPublisher.publishEvent(event);
+
     }
 
     @Override

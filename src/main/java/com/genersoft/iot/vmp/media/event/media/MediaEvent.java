@@ -20,6 +20,16 @@ public class MediaEvent extends ApplicationEvent {
 
     private String schema;
 
+    private String params;
+
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
+    }
+
 
     public String getApp() {
         return app;

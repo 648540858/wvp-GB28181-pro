@@ -1,5 +1,5 @@
 <template>
-  <div id="recordDetail" class="app-container">
+  <div id="recordDetail" style="padding: 10px 20px">
     <div :style="boxStyle">
       <div>
         <div v-if="this.$route.query.mediaServerId" class="page-header-btn" style="padding-right: 1rem">
@@ -45,64 +45,9 @@
           </div>
         </div>
       </div>
-      <div id="playerBox">
-        <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
-          <div v-if="playLoading" style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;">
-            <div class="el-icon-loading" />
-            <div style="width: 100%; line-height: 2rem">正在加载</div>
-          </div>
-          <h265web ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100vh - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
-        </div>
-        <div class="player-option-box">
-          <VideoTimeline
-            ref="Timeline"
-            :init-time="initTime"
-            :time-segments="timeSegments"
-            :init-zoom-index="4"
-            @timeChange="playTimeChange"
-            @mousedown="timelineMouseDown"
-            @mouseup="mouseupTimeline"
-          />
-          <div v-if="showTime" class="time-line-show">{{ showTimeValue }}</div>
-        </div>
-        <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 600px 1fr">
-          <div style="text-align: left;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <a target="_blank" class="record-play-control-item iconfont icon-list" title="列表" @click="sidebarControl()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-camera1196054easyiconnet" title="截图" @click="snap()" />
-              <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
-            </div>
-          </div>
-          <div style="text-align: center;">
-            <div class="record-play-control">
-              <a v-if="chooseFileIndex > 0" target="_blank" class="record-play-control-item iconfont icon-diyigeshipin" title="上一个" @click="playLast()" />
-              <a v-else style="color: #acacac; cursor: not-allowed" target="_blank" class="record-play-control-item iconfont icon-diyigeshipin" title="上一个" />
-              <a target="_blank" class="record-play-control-item iconfont icon-kuaijin" title="快退五秒" @click="seekBackward()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-stop1" style="font-size: 14px" title="停止" @click="stopPLay()" />
-              <a v-if="playing" target="_blank" class="record-play-control-item iconfont icon-zanting" title="暂停" @click="pausePlay()" />
-              <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
-              <a target="_blank" class="record-play-control-item iconfont icon-houtui" title="快进五秒" @click="seekForward()" />
-              <a v-if="chooseFileIndex < detailFiles.length - 1" target="_blank" class="record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
-              <a v-else style="color: #acacac; cursor: not-allowed" target="_blank" class="record-play-control-item iconfont icon-zuihouyigeshipin" title="下一个" @click="playNext()" />
-              <el-dropdown @command="changePlaySpeed">
-                <a target="_blank" class="record-play-control-item record-play-control-speed" title="倍速播放">{{ playSpeed }}X</a>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item
-                    v-for="item in playSpeedRange"
-                    :key="item"
-                    :command="item"
-                  >{{ item }}X</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <a v-if="!isFullScreen" target="_blank" class="record-play-control-item iconfont icon-fangdazhanshi" title="全屏" @click="fullScreen()" />
-              <a v-else target="_blank" class="record-play-control-item iconfont icon-suoxiao1" title="全屏" @click="fullScreen()" />
-            </div>
-          </div>
-        </div>
+      <div id="playerBox" :style="playBoxStyle">
+        <cloudRecordPlayer ref="cloudRecordPlayer" :showListCallback="sidebarControl" :showNextCallback="playNext"
+                             :showLastCallback="playLast" :lastDiable="lastBtnDiable" :nextDiable="nextBtnDiable" ></cloudRecordPlayer>
       </div>
     </div>
   </div>
@@ -110,15 +55,17 @@
 
 <script>
 
-import h265web from '../common/h265web.vue'
-import VideoTimeline from '../common/VideoTimeLine/index.vue'
 import moment from 'moment'
+import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
+import cloudRecordPlayer from './cloudRecordPlayer.vue'
+
+momentDurationFormatSetup(moment)
 
 export default {
   name: 'CloudRecordDetail',
   components: {
-    h265web, VideoTimeline
+    cloudRecordPlayer
   },
   data() {
     return {
@@ -126,14 +73,15 @@ export default {
       app: this.$route.params.app,
       stream: this.$route.params.stream,
       mediaServerId: null,
-      dateFilesObj: [],
+      dateFilesObj: {},
       mediaServerList: [],
       detailFiles: [],
       videoUrl: null,
       streamInfo: null,
+      showTimeLeft: null,
+      isMousedown: false,
       loading: false,
       chooseDate: null,
-      playTime: null,
       playerTime: null,
       playSpeed: 1,
       chooseFileIndex: null,
@@ -142,15 +90,14 @@ export default {
       count: 1000000, // TODO 分页导致滑轨视频有效值无法获取完全
       total: 0,
       playLoading: false,
-      showTime: true,
       isFullScreen: false,
-      playSeekValue: 0,
       playing: false,
       taskTimeRange: [],
-      timeFormat: '00:00:00',
       initTime: null,
       timelineControl: false,
       showOtherSpeed: true,
+      lastBtnDiable: this.chooseFileIndex - 1 <= 0,
+      nextBtnDiable: false,
       timeSegments: [],
       pickerOptions: {
         cellClassName: (date) => {
@@ -167,6 +114,11 @@ export default {
     }
   },
   computed: {
+    playBoxStyle() {
+      return {
+        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
+      }
+    },
     boxStyle() {
       if (this.showSidebar) {
         return {
@@ -178,10 +130,11 @@ export default {
           display: 'grid', gridTemplateColumns: '0 minmax(0, 1fr)'
         }
       }
-    },
-    showTimeValue() {
-      return moment(this.playTime).format('YYYY-MM-DD HH:mm:ss')
     }
+  },
+  created() {
+    document.addEventListener('mousemove', this.timeProcessMousemove)
+    document.addEventListener('mouseup', this.timeProcessMouseup)
   },
   mounted() {
     // 查询当年有视频的日期
@@ -196,8 +149,14 @@ export default {
     this.$destroy('recordVideoPlayer')
   },
   methods: {
-    sidebarControl() {
-      this.showSidebar = !this.showSidebar
+    timeProcessMouseup(event) {
+      this.isMousedown = false
+    },
+    timeProcessMousemove(event) {
+
+    },
+    sidebarControl(status) {
+      this.showSidebar = status
     },
     snap() {
       this.$refs.recordVideoPlayer.screenshot()
@@ -212,40 +171,18 @@ export default {
     playNext() {
       // 播放上一个
       if (this.chooseFileIndex === this.detailFiles.length - 1) {
+        this.nextBtnDiable = true
         return
       }
+      if (this.chooseFileIndex < Object.values(this.dateFilesObj).length - 1) {
+        this.nextBtnDiable = true
+      }
       this.chooseFile(this.chooseFileIndex + 1)
-    },
-    changePlaySpeed(speed) {
-      console.log(speed)
-      // 倍速播放
-      this.playSpeed = speed
-      this.$store.dispatch('cloudRecord/speed', {
-        mediaServerId: this.streamInfo.mediaServerId,
-        app: this.streamInfo.app,
-        stream: this.streamInfo.stream,
-        speed: this.playSpeed,
-        schema: 'ts'
-      })
-      this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
-    },
-    seekBackward() {
-      // 快退五秒
-      this.playSeekValue -= 5 * 1000
-      this.playRecord()
-    },
-    seekForward() {
-      // 快进五秒
-      this.playSeekValue += 5 * 1000
-      this.playRecord()
+
     },
     stopPLay() {
       // 停止
-      this.$refs.recordVideoPlayer.destroy()
-    },
-    pausePlay() {
-      // 暂停
-      this.$refs.recordVideoPlayer.pause()
+      this.$refs.cloudRecordPlayer.stopPLay()
     },
     play() {
       if (this.$refs.recordVideoPlayer.loaded) {
@@ -271,9 +208,12 @@ export default {
       this.isFullScreen = true
     },
     dateChange() {
+      this.$refs.cloudRecordPlayer.stopPLay()
+      this.streamInfo = null
+      this.chooseFileIndex = null
       this.detailFiles = []
       this.currentPage = 1
-      const chooseFullDate = new Date(this.chooseDate + ' ' + this.timeFormat)
+      const chooseFullDate = new Date(this.chooseDate + ' 00:00:00')
       if (chooseFullDate.getFullYear() !== this.queryDate.getFullYear() ||
         chooseFullDate.getMonth() !== this.queryDate.getMonth()) {
         this.queryDate = chooseFullDate
@@ -330,32 +270,18 @@ export default {
     },
     chooseFile(index) {
       this.chooseFileIndex = index
-      let timeLength = 0
-      for (let i = 0; i < this.detailFiles.length; i++) {
-        if (i < index) {
-          timeLength += this.detailFiles[i].timeLen
-        }
-      }
-      this.playSeekValue = timeLength
       this.playRecord()
     },
     playRecord() {
-      if (!this.$refs.recordVideoPlayer.playing) {
-        this.$refs.recordVideoPlayer.destroy()
-      }
+      this.$refs.cloudRecordPlayer.stopPLay()
       this.$store.dispatch('cloudRecord/loadRecord', {
         app: this.app,
         stream: this.stream,
-        date: this.chooseDate
+        cloudRecordId: this.detailFiles[this.chooseFileIndex].id
       })
         .then(data => {
-          this.streamInfo = data
-          if (location.protocol === 'https:') {
-            this.videoUrl = data['https_fmp4'] + '&time=' + new Date().getTime()
-          } else {
-            this.videoUrl = data['fmp4'] + '&time=' + new Date().getTime()
-          }
-          this.seekRecord()
+          this.playerTime = 0
+          this.$refs.cloudRecordPlayer.setStreamInfo(data, this.detailFiles[this.chooseFileIndex].timeLen, this.detailFiles[this.chooseFileIndex].startTime)
         })
         .catch((error) => {
           console.log(error)
@@ -363,18 +289,7 @@ export default {
         .finally(() => {
           this.playLoading = false
         })
-    },
-    seekRecord() {
-      this.$store.dispatch('cloudRecord/seek', {
-        mediaServerId: this.streamInfo.mediaServerId,
-        app: this.streamInfo.app,
-        stream: this.streamInfo.stream,
-        seek: this.playSeekValue,
-        schema: 'fmp4'
-      })
-        .catch((error) => {
-          console.log(error)
-        })
+
     },
     downloadFile(file) {
       this.$store.dispatch('cloudRecord/getPlayPath', file.id)
@@ -392,83 +307,8 @@ export default {
           console.log(error)
         })
     },
-    backToList() {
-      this.$router.back()
-    },
     getFileShowName(item) {
       return moment(item.startTime).format('HH:mm:ss') + '-' + moment(item.endTime).format('HH:mm:ss')
-    },
-
-    showPlayTimeChange(val) {
-      this.playTime += (val * 1000 - this.playerTime)
-      this.playerTime = val * 1000
-    },
-    playingChange(val) {
-      this.playing = val
-    },
-    playTimeChange(val) {
-      if (val === this.playTime) {
-        return
-      }
-      this.playTime = val
-    },
-    timelineMouseDown() {
-      this.timelineControl = true
-    },
-    mouseupTimeline(event) {
-      if (!this.timelineControl) {
-        this.timelineControl = false
-        return
-      }
-      this.timelineControl = false
-      let timeLength = 0
-      for (let i = 0; i < this.detailFiles.length; i++) {
-        const item = this.detailFiles[i]
-        if (this.playTime > item.endTime) {
-          timeLength += item.timeLen
-        } else if (this.playTime === item.endTime) {
-          timeLength += item.timeLen
-          this.chooseFileIndex = i
-          break
-        } else if (this.playTime > item.startTime && this.playTime < item.endTime) {
-          timeLength += (this.playTime - item.startTime)
-          this.chooseFileIndex = i
-          break
-        }
-      }
-      this.playSeekValue = timeLength
-      this.playRecord()
-    },
-    getTimeForFile(file) {
-      const starTime = new Date(file.startTime * 1000)
-      let endTime = new Date(file.endTime * 1000)
-      if (this.checkIsOver24h(starTime, endTime)) {
-        endTime = new Date(this.chooseDate + ' ' + '23:59:59')
-      }
-      return [starTime, endTime, endTime.getTime() - starTime.getTime()]
-    },
-    checkIsOver24h(starTime, endTime) {
-      return starTime > endTime
-    },
-    playTimeFormat(val) {
-      const h = parseInt(val / 3600)
-      const m = parseInt((val - h * 3600) / 60)
-      const s = parseInt(val - h * 3600 - m * 60)
-
-      let hStr = h
-      let mStr = m
-      let sStr = s
-      if (h < 10) {
-        hStr = '0' + hStr
-      }
-      if (m < 10) {
-        mStr = '0' + mStr
-        s
-      }
-      if (s < 10) {
-        sStr = '0' + sStr
-      }
-      return hStr + ':' + mStr + ':' + sStr
     },
     getDateInYear(callback) {
       this.dateFilesObj = {}
@@ -492,20 +332,15 @@ export default {
           console.log(error)
         })
     },
-    goBack() {
-      this.$router.push('/cloudRecord')
-    }
   }
 }
 </script>
 
-<style>
-
+<style scoped>
 .record-list-box-box {
   width: fit-content;
   float: left;
 }
-
 .record-list-box {
   width: 100%;
   overflow: auto;
@@ -564,13 +399,55 @@ export default {
   user-select: none;
 }
 .player-option-box {
-  height: 50px
+  height: 20px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 70px auto 70px;
+  background-color: rgb(0, 0, 0);
 }
-.time-line-show {
+.cloud-record-time-process {
+  width: 100%;
+  height: 8px;
+  margin: 6px 0 ;
+  border-radius: 4px;
+  border: 1px solid #505050;
+  background-color: rgb(56, 56, 56);
+  cursor: pointer;
+}
+.cloud-record-show-time {
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px
+}
+.cloud-record-time-process-value {
+  width: 100%;
+  height: 6px;
+  background-color: rgb(162, 162, 162);
+}
+.cloud-record-time-process-value::after {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  background-color: rgb(192 190 190);
+  border-radius: 5px;
   position: relative;
-  color: rgba(250, 249, 249, 0.89);
-  left: calc(50% - 85px);
-  top: -72px;
-  text-shadow: 1px 0 #5f6b7c, -1px 0 #5f6b7c, 0 1px #5f6b7c, 0 -1px #5f6b7c, 1.1px 1.1px #5f6b7c, 1.1px -1.1px #5f6b7c, -1.1px 1.1px #5f6b7c, -1.1px -1.1px #5f6b7c;
+  top: -3px;
+  right: -6px;
+  float: right;
+}
+.cloud-record-time-process-title {
+  width: fit-content;
+  text-align: center;
+  position: relative;
+  top: -35px;
+  color: rgb(217, 217, 217);
+  font-size: 14px;
+  text-shadow:
+    -1px -1px 0 black, /* 左上角阴影 */
+    1px -1px 0 black, /* 右上角阴影 */
+    -1px 1px 0 black, /* 左下角阴影 */
+    1px 1px 0 black; /* 右下角阴影 */
 }
 </style>

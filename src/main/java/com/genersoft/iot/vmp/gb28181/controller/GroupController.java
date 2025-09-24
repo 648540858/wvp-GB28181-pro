@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +34,7 @@ public class GroupController {
         groupService.add(group);
     }
 
-    @Operation(summary = "查询分组")
+    @Operation(summary = "查询分组节点")
     @Parameter(name = "query", description = "要搜索的内容", required = true)
     @Parameter(name = "parent", description = "所属分组编号", required = true)
     @ResponseBody
@@ -47,6 +48,17 @@ public class GroupController {
             query = null;
         }
         return groupService.queryForTree(query, parent, hasChannel);
+    }
+
+    @Operation(summary = "查询分组")
+    @Parameter(name = "query", description = "要搜索的内容", required = true)
+    @Parameter(name = "channel", description = "true为查询通道，false为查询节点", required = true)
+    @ResponseBody
+    @GetMapping("/tree/query")
+    public PageInfo<Group> queryTree(Integer page, Integer count,
+                                      @RequestParam(required = true) String query
+    ){
+        return groupService.queryList(page, count, query);
     }
 
     @Operation(summary = "更新分组")

@@ -1,5 +1,5 @@
 ![logo](doc/_media/logo.png)
-# 开箱即用的28181协议视频平台
+# 开箱即用的国标28181和部标808+1078协议视频平台
 
 [![Build Status](https://travis-ci.org/xia-chu/ZLMediaKit.svg?branch=master)](https://travis-ci.org/xia-chu/ZLMediaKit)
 [![license](http://img.shields.io/badge/license-MIT-green.svg)](https://github.com/xia-chu/ZLMediaKit/blob/master/LICENSE)
@@ -8,7 +8,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-yellow.svg)](https://github.com/xia-chu/ZLMediaKit/pulls)
 
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。
+WEB VIDEO PLATFORM是一个基于GB28181-2016、部标808、部标1078标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。
 
 流媒体服务基于@夏楚 ZLMediaKit [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)   
 播放器使用@dexter jessibuca [https://github.com/langhuihui/jessibuca/tree/v3](https://github.com/langhuihui/jessibuca/tree/v3)  
@@ -26,15 +26,6 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 # 文档
 wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)  
 ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)
-
-# 付费社群
-[![社群](doc/_media/shequ.png "shequ")](https://t.zsxq.com/0d8VAD3Dm)
-> 收费是为了提供更好的服务，也是对作者更大的激励。加入星球的用户三天后可以私信我留下微信号，我会拉大家入群。
-> 加入三天内不满意可以直接自行推出,星球会直接退款给大家。需要发票可以在星球app中直接咨询星球客服获取。
-
-> 星球还提供了包括闭源的全功能试用包, 会随时更新。
-
-> 付费社群即可以对作者提供支持，也可以为大家更加快速的解决问题。如果暂时无法加入，给项目点个星也是极大的鼓励。
 
 # gitee仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git
@@ -129,19 +120,55 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 支持Mysql，Postgresql，金仓等数据库
 - [X] 支持录制计划, 根据设定的时间对通道进行录制. 暂不支持将录制的内容转发到国标上级
 - [X] 支持国标信令集群
+- [X] 新增支持部标808和部标1078，大量新特性不一一列表了。支持作为网关被国标上级调用部标设备
 
 
 # 闭源内容
-- [X] 支持ONVIF协议，设备检索，支持点播，云台控制，国标级联点播，自动点播等。
-- [X] 支持部标1078+808协议，支持点播，云台控制，录像回放，位置上报，自动点播等。
-- [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
-- [X] 支持国网B接口协议。支持注册，获取资源，预览, 云台控制，预置位控制等，可免费定制支持语音对讲、录像回放和抓拍图像。
+- [X] 国标增强版: 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
+- [X] 全功能版： 
+  - [X] 支持开源所有功能
+  - [X] ONVIF协议
+    - 设备检索
+    - 实时图像预览
+    - 录像回放、回放倍速控制
+    - 云台控制、预置位控制、云台绝对定位、看守位
+    - 聚焦控制
+    - 设备重启
+    - 设备时间设置以及跟系统时间的差值比较
+    - 恢复出厂设置
+    - 自动获取设备品牌等信息、支持展示DNS信息、支持协议的展示
+    - 国标级联点播、自动点播等。
+  - [X] 国网B接口协议
+    - 设备注册
+    - 资源获取
+    - 预览
+    - 云台控制
+    - 预置位控制等，
+    - 可免费定制支持语音对讲、录像回放和抓拍图像。
+  - [X] 支持按权限分配可以使用的通道
+  - [X] 支持电子地图。支持展示通道位置，支持在地图上修改通道位置。可扩展接入高德地图API，支持搜索位置，附近设备。
+  - [X] 支持表格导出
+  - [X] 拉流代理支持按照品牌拼接url。
+  - [X] 播放鉴权，更加安全。
+  - [X] 此版本后续开发功能支持直接更新提供，无需二次付费。
+  - [X] 提供源码不限制部署次数和支持路数。
 
 
 # 授权协议
 本项目自有代码使用宽松的MIT协议，在保留版权信息的情况下可以自由应用于各自商用、非商业的项目。 但是本项目也零碎的使用了一些其他的开源代码，在商用的情况下请自行替代或剔除； 由于使用本项目而产生的商业纠纷或侵权行为一概与本项目及开发者无关，请自行承担法律风险。 在使用本项目代码时，也应该在授权协议中同时表明本项目依赖的第三方库的协议
 
 # 技术支持
+
+# 付费社群
+<img src="doc/_media/shequ.png" width="50%" height="50%">
+
+> 收费是为了提供更好的服务，也是对作者更大的激励。加入星球的用户三天后可以私信我留下微信号，我会拉大家入群。
+> 加入三天内不满意可以直接自行推出,星球会直接退款给大家。需要发票可以在星球app中直接咨询星球客服获取。
+
+> 星球还提供了包括闭源的全功能试用包, 会随时更新。
+
+> 付费社群即可以对作者提供支持，也可以为大家更加快速的解决问题。如果暂时无法加入，给项目点个星也是极大的鼓励。
+
 
 [知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：，
 - [使用入门系列一：WVP-PRO能做什么](https://t.zsxq.com/0dLguVoSp)

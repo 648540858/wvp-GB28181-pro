@@ -20,7 +20,7 @@ public class JT1078ServerTest {
 
     public static void main(String[] args) {
         System.out.println("Starting jt1078 server...");
-        TcpServer tcpServer = new TcpServer(21078);
+        TcpServer tcpServer = new TcpServer(21078, null, null);
         tcpServer.start();
         System.out.println("Start jt1078 server success!");
 
@@ -54,7 +54,7 @@ public class JT1078ServerTest {
         j9102.setCloseType(0);
         j9102.setStreamType(0);
 
-        String s = jt1078Template.stopLive("18864197066", j9102, 6);
+        Object s = jt1078Template.stopLive("18864197066", j9102, 6);
         System.out.println(s);
     }
 
@@ -72,7 +72,7 @@ public class JT1078ServerTest {
         j9201.setStartTime("230428134100");
         j9201.setEndTime("230428134200");
 
-        String s = jt1078Template.startBackLive("18864197066", j9201, 6);
+        Object s = jt1078Template.startBackLive("18864197066", j9201, 6);
         System.out.println(s);
     }
 
@@ -84,7 +84,7 @@ public class JT1078ServerTest {
         j9202.setPlaybackSpeed(0);
         j9202.setPlaybackTime("230428134100");
 
-        String s = jt1078Template.controlBackLive("18864197066", j9202, 6);
+        Object s = jt1078Template.controlBackLive("18864197066", j9202, 6);
         System.out.println(s);
     }
 
@@ -97,7 +97,7 @@ public class JT1078ServerTest {
         j9205.setStreamType(0);
         j9205.setStorageType(0);
 
-        String s = jt1078Template.queryBackTime("18864197066", j9205, 6);
+        Object s = jt1078Template.queryBackTime("18864197066", j9205, 6);
         System.out.println(s);
     }
 }

@@ -20,7 +20,7 @@ public enum SessionManager {
     INSTANCE;
 
     // 用与消息的缓存
-    private final Map<String, SynchronousQueue<String>> topicSubscribers = new ConcurrentHashMap<>();
+    private final Map<String, SynchronousQueue<Object>> topicSubscribers = new ConcurrentHashMap<>();
 
     // session的缓存
     private final Map<Object, Session> sessionMap;
@@ -56,7 +56,7 @@ public enum SessionManager {
      * @param clientId   设备ID
      * @param newSession session
      */
-    protected void put(Object clientId, Session newSession) {
+    void put(Object clientId, Session newSession) {
         sessionMap.put(clientId, newSession);
     }
 
@@ -65,22 +65,22 @@ public enum SessionManager {
      * 发送同步消息，接收响应
      * 默认超时时间6秒
      */
-    public String request(Cmd cmd) {
+    public Object request(Cmd cmd) {
         // 默认6秒
         int timeOut = 6000;
         return request(cmd, timeOut);
     }
 
-    public String request(Cmd cmd, Integer timeOut) {
-        Session session = this.get(cmd.getDevId());
+    public Object request(Cmd cmd, Integer timeOut) {
+        Session session = this.get(cmd.getPhoneNumber());
         if (session == null) {
-            log.error("DevId: {} not online!", cmd.getDevId());
+            log.error("DevId: {} not online!", cmd.getPhoneNumber());
             return null;
         }
-        String requestKey = requestKey(cmd.getDevId(), cmd.getRespId(), cmd.getPackageNo());
-        SynchronousQueue<String> subscribe = subscribe(requestKey);
+        String requestKey = requestKey(cmd.getPhoneNumber(), cmd.getRespId(), cmd.getPackageNo());
+        SynchronousQueue<Object> subscribe = subscribe(requestKey);
         if (subscribe == null) {
-            log.error("DevId: {} key:{} send repaid", cmd.getDevId(), requestKey);
+            log.error("DevId: {} key:{} send repaid", cmd.getPhoneNumber(), requestKey);
             return null;
         }
         session.writeObject(cmd);
@@ -94,33 +94,58 @@ public enum SessionManager {
         return null;
     }
 
-    public Boolean response(String devId, String respId, Long responseNo, String data) {
+    public Boolean response(String devId, String respId, Long responseNo, Object data) {
         String requestKey = requestKey(devId, respId, responseNo);
-        SynchronousQueue<String> queue = topicSubscribers.get(requestKey);
-        if (queue != null) {
-            try {
-                return queue.offer(data, 2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("{}", e.getMessage(), e);
+
+        boolean result = false;
+        if (responseNo == null) {
+            for (String key : topicSubscribers.keySet()) {
+                if (key.startsWith(requestKey)) {
+                    SynchronousQueue<Object> queue = topicSubscribers.get(key);
+                    if (queue != null) {
+                        result = true;
+                        try {
+                            queue.offer(data, 2, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            log.error("{}", e.getMessage(), e);
+                        }
+                    }
+                }
+            }
+        }else {
+            SynchronousQueue<Object> queue = topicSubscribers.get(requestKey);
+            if (queue != null) {
+                result = true;
+                try {
+                    queue.offer(data, 2, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.error("{}", e.getMessage(), e);
+                }
             }
         }
-        log.warn("Not find response,key:{} data:{} ", requestKey, data);
-        return false;
+        if (!result) {
+            log.warn("Not find response,key:{} data:{} ", requestKey, data);
+        }
+        return result;
     }
 
     private void unsubscribe(String key) {
         topicSubscribers.remove(key);
     }
 
-    private SynchronousQueue<String> subscribe(String key) {
-        SynchronousQueue<String> queue = null;
+    private SynchronousQueue<Object> subscribe(String key) {
+        SynchronousQueue<Object> queue = null;
         if (!topicSubscribers.containsKey(key))
-            topicSubscribers.put(key, queue = new SynchronousQueue<String>());
+            topicSubscribers.put(key, queue = new SynchronousQueue<>());
         return queue;
     }
 
     private String requestKey(String devId, String respId, Long requestNo) {
-        return String.join("_", devId.replaceFirst("^0*", ""), respId, requestNo.toString());
+        return String.join("_", devId.replaceFirst("^0*", ""), respId, requestNo == null?"":requestNo.toString());
+
     }
 
+    public void remove(String devId) {
+        sessionMap.remove(devId);
+    }
 }

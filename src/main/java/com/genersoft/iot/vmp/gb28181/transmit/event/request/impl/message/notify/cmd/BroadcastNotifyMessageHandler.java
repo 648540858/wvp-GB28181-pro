@@ -107,7 +107,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 responseAck(request, Response.NOT_FOUND, "TargetID not found");
                 return;
             }
-            if (channel.getDataType() != ChannelDataType.GB28181.value) {
+            if (channel.getDataType() != ChannelDataType.GB28181) {
                 // 只支持国标的语音喊话
                 log.warn("[INFO 消息] 只支持国标的语音喊话命令， 通道ID： {}", channel.getGbId());
                 try {

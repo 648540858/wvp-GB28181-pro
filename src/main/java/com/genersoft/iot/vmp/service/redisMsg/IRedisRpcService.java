@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
+import java.util.List;
+
 public interface IRedisRpcService {
 
     SendRtpInfo getSendRtpItem(String callId);
@@ -63,5 +65,5 @@ public interface IRedisRpcService {
 
     WVPResult<Object> deviceInfo(String serverId, Device device);
 
-    WVPResult<Object> queryPreset(String serverId, Device device, String channelId);
+    WVPResult<List<Preset>> queryPreset(String serverId, Device device, String channelId);
 }

@@ -18,6 +18,8 @@ public class ChannelProvider {
             "    update_time,\n" +
             "    stream_id,\n" +
             "    record_plan_id,\n" +
+            "    enable_ptz,\n" +
+            "    enable_broadcast,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
@@ -63,6 +65,8 @@ public class ChannelProvider {
             "    wdc.update_time,\n" +
             "    wdc.stream_id,\n" +
             "    wdc.record_plan_id,\n" +
+            "    wdc.enable_ptz,\n" +
+            "    wdc.enable_broadcast,\n" +
             "    coalesce(wdc.gb_device_id,  wdc.device_id) as gb_device_id,\n" +
             "    coalesce(wdc.gb_name,  wdc.name) as gb_name,\n" +
             "    coalesce(wdc.gb_manufacturer,  wdc.manufacturer) as gb_manufacturer,\n" +
@@ -107,6 +111,8 @@ public class ChannelProvider {
             "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
+            "    wdc.enable_ptz,\n" +
+            "    wdc.enable_broadcast,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
             "    coalesce(wpgc.custom_name, wdc.gb_name, wdc.name) as gb_name,\n" +
             "    coalesce(wpgc.custom_manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +

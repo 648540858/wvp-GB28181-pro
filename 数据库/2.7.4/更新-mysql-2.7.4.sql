@@ -73,6 +73,30 @@ call wvp_20250917();
 DROP PROCEDURE wvp_20250917;
 DELIMITER ;
 
+/*
+* 20250924
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20250924`()
+BEGIN
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'enable_ptz')
+    THEN
+        ALTER TABLE wvp_device_channel ADD enable_ptz integer default 0;
+    END IF;
+
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'enable_broadcast')
+    THEN
+        ALTER TABLE wvp_device_channel ADD enable_broadcast integer default 0;
+    END IF;
+END; //
+call wvp_20250924();
+DROP PROCEDURE wvp_20250924;
+DELIMITER ;
+
+
+
 
 
 

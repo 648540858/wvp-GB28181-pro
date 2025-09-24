@@ -153,6 +153,12 @@ public class CommonGBChannel {
     @Schema(description = "流唯一编号，存在表示正在直播")
     private String  streamId;
 
+    @Schema(description = "是否支持云台控制 1支持,0不支持")
+    private Integer enablePtz;
+
+    @Schema(description = "是否支持对讲 1支持,0不支持")
+    private Integer enableBroadcast;
+
     public String encode(String serverDeviceId) {
         return encode(null, serverDeviceId);
     }
@@ -339,6 +345,12 @@ public class CommonGBChannel {
                 }
                 if (this.getGbSvcTimeSupportMode() != null) {
                     content.append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n");
+                }
+                if (this.getEnablePtz() != null) {
+                    content.append("  <EnablePtz>" + this.getEnablePtz() + "</EnablePtz>\n");
+                }
+                if (this.getEnableBroadcast() != null) {
+                    content.append("  <EnableBroadcast>" + this.getEnableBroadcast() + "</EnableBroadcast>\n");
                 }
                 content.append("</Info>\n");
             }

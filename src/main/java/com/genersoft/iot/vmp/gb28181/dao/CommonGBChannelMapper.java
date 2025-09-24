@@ -57,7 +57,9 @@ public interface CommonGBChannelMapper {
             "gb_business_group_id," +
             "gb_download_speed," +
             "gb_svc_space_support_mod," +
-            "gb_svc_time_support_mode ) " +
+            "gb_svc_time_support_mode," +
+            "enable_ptz," +
+            "enable_broadcast ) " +
             "VALUES (" +
             "#{gbDeviceId}, " +
             "#{dataType}, " +
@@ -96,7 +98,9 @@ public interface CommonGBChannelMapper {
             "#{gbBusinessGroupId},"+
             "#{gbDownloadSpeed},"+
             "#{gbSvcSpaceSupportMod},"+
-            "#{gbSvcTimeSupportMode}"+
+            "#{gbSvcTimeSupportMode},"+
+            "#{enablePtz},"+
+            "#{enableBroadcast}"+
             ")" +
             " </script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbId", keyColumn = "id")
@@ -144,6 +148,8 @@ public interface CommonGBChannelMapper {
             ", gb_download_speed = #{gbDownloadSpeed}" +
             ", gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
             ", gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
+            ", enable_ptz = #{enablePtz}" +
+            ", enable_broadcast = #{enableBroadcast}" +
             " WHERE id = #{gbId}"+
             " </script>"})
     int update(CommonGBChannel commonGBChannel);
@@ -205,7 +211,9 @@ public interface CommonGBChannelMapper {
             "gb_business_group_id," +
             "gb_download_speed," +
             "gb_svc_space_support_mod," +
-            "gb_svc_time_support_mode ) " +
+            "gb_svc_time_support_mode," +
+            "enable_ptz," +
+            "enable_broadcast ) " +
             "VALUES" +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=','> " +
             "(#{item.gbDeviceId}, #{item.dataType}, #{item.dataDeviceId},#{item.createTime},#{item.updateTime}," +
@@ -214,7 +222,7 @@ public interface CommonGBChannelMapper {
             "#{item.gbRegisterWay},#{item.gbCertNum},#{item.gbCertifiable},#{item.gbErrCode},#{item.gbEndTime}, #{item.gbSecrecy},#{item.gbIpAddress}," +
             "#{item.gbPort},#{item.gbPassword},#{item.gbStatus},#{item.gbLongitude}, #{item.gbLatitude},#{item.gbPtzType},#{item.gbPositionType},#{item.gbRoomType}," +
             "#{item.gbUseType},#{item.gbSupplyLightType},#{item.gbDirectionType},#{item.gbResolution},#{item.gbBusinessGroupId},#{item.gbDownloadSpeed}," +
-            "#{item.gbSvcSpaceSupportMod},#{item.gbSvcTimeSupportMode})" +
+            "#{item.gbSvcSpaceSupportMod},#{item.gbSvcTimeSupportMode},#{item.enablePtz},#{item.enableBroadcast})" +
             "</foreach> " +
             " </script>")
     int batchAdd(List<CommonGBChannel> commonGBChannels);
@@ -424,6 +432,8 @@ public interface CommonGBChannelMapper {
             ", gb_download_speed=#{item.gbDownloadSpeed}" +
             ", gb_svc_space_support_mod=#{item.gbSvcSpaceSupportMod}" +
             ", gb_svc_time_support_mode=#{item.gbSvcTimeSupportMode}" +
+            ", enable_ptz = #{enablePtz}" +
+            ", enable_broadcast = #{enableBroadcast}" +
             " WHERE id=#{item.gbId}" +
             "</foreach>" +
             "</script>"})
@@ -505,6 +515,8 @@ public interface CommonGBChannelMapper {
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    wdc.record_plan_id,\n" +
+            "    wdc.enable_ptz,\n" +
+            "    wdc.enable_broadcast,\n" +
             "    coalesce( wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
             "    coalesce( wdc.gb_name, wdc.name) as gb_name,\n" +
             "    coalesce( wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +

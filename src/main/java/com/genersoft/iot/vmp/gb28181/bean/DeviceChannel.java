@@ -236,7 +236,18 @@ public class DeviceChannel extends CommonGBChannel {
 		GbCode gbCode = GbCode.decode(deviceChannel.getDeviceId());
 		if (gbCode != null && "138".equals(gbCode.getTypeCode())) {
 			deviceChannel.setHasAudio(true);
+            if (deviceChannel.getEnableBroadcast() == null && "138".equals(gbCode.getTypeCode())) {
+                deviceChannel.setEnableBroadcast(1);
+            }
+            if (deviceChannel.getEnablePtz() == null && (
+                    deviceChannel.getPtzType() == 1
+                    || deviceChannel.getPtzType() == 4
+                    || deviceChannel.getPtzType() == 5
+            )) {
+                deviceChannel.setEnablePtz(1);
+            }
 		}
+
 		return deviceChannel;
 	}
 

@@ -26,7 +26,7 @@ export function exit(deviceGbId) {
 export function remove(id) {
   return request({
     method: 'delete',
-    url: `/api/platform/delete/`,
+    url: `/api/platform/delete`,
     params: {
       id: id
     }

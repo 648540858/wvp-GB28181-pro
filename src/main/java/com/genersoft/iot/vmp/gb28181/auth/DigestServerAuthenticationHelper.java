@@ -48,7 +48,7 @@ import java.util.Random;
 @Slf4j
 public class DigestServerAuthenticationHelper  {
 
-    private MessageDigest messageDigest;
+    private final MessageDigest messageDigest;
 
     public static final String DEFAULT_ALGORITHM = "MD5";
     public static final String DEFAULT_SCHEME = "Digest";
@@ -59,19 +59,18 @@ public class DigestServerAuthenticationHelper  {
 
     /**
      * Default constructor.
-     * @throws NoSuchAlgorithmException
      */
     public DigestServerAuthenticationHelper()
             throws NoSuchAlgorithmException {
         messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
     }
 
-    public static String toHexString(byte b[]) {
+    public static String toHexString(byte[] b) {
         int pos = 0;
         char[] c = new char[b.length * 2];
-        for (int i = 0; i < b.length; i++) {
-            c[pos++] = toHex[(b[i] >> 4) & 0x0F];
-            c[pos++] = toHex[b[i] & 0x0f];
+        for (byte value : b) {
+            c[pos++] = toHex[(value >> 4) & 0x0F];
+            c[pos++] = toHex[value & 0x0f];
         }
         return new String(c);
     }
@@ -87,8 +86,8 @@ public class DigestServerAuthenticationHelper  {
         long pad = rand.nextLong();
         String nonceString = Long.valueOf(time).toString()
                 + Long.valueOf(pad).toString();
-        byte mdbytes[] = messageDigest.digest(nonceString.getBytes());
-        return toHexString(mdbytes);
+        byte[] mdBytes = messageDigest.digest(nonceString.getBytes());
+        return toHexString(mdBytes);
     }
 
     public Response generateChallenge(HeaderFactory headerFactory, Response response, String realm) {
@@ -131,8 +130,6 @@ public class DigestServerAuthenticationHelper  {
         if (uri == null) {
             return false;
         }
-
-
 
         String A2 = request.getMethod().toUpperCase() + ":" + uri.toString();
         String HA1 = hashedPassword;
@@ -177,12 +174,11 @@ public class DigestServerAuthenticationHelper  {
         if ( authHeader == null || authHeader.getRealm() == null) {
             return false;
         }
-        String realm = authHeader.getRealm().trim();
-        String username = authHeader.getUsername().trim();
-
-        if ( username == null || realm == null ) {
+        if ( authHeader.getUsername() == null || authHeader.getRealm() == null ) {
             return false;
         }
+        String realm = authHeader.getRealm().trim();
+        String username = authHeader.getUsername().trim();
 
         String nonce = authHeader.getNonce();
         URI uri = authHeader.getURI();
@@ -199,26 +195,24 @@ public class DigestServerAuthenticationHelper  {
         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
         int nc = authHeader.getNonceCount();
         String ncStr = String.format("%08x", nc).toUpperCase();
-        // String ncStr = new DecimalFormat("00000000").format(nc);
-        // String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
 
         String A1 = username + ":" + realm + ":" + pass;
 
         String A2 = request.getMethod().toUpperCase() + ":" + uri.toString();
 
-        byte mdbytes[] = messageDigest.digest(A1.getBytes());
+        byte[] mdbytes = messageDigest.digest(A1.getBytes());
         String HA1 = toHexString(mdbytes);
-        log.debug("A1: " + A1);
-        log.debug("A2: " + A2);
+        log.debug("A1: {}", A1);
+        log.debug("A2: {}", A2);
         mdbytes = messageDigest.digest(A2.getBytes());
         String HA2 = toHexString(mdbytes);
-        log.debug("HA1: " + HA1);
-        log.debug("HA2: " + HA2);
+        log.debug("HA1: {}", HA1);
+        log.debug("HA2: {}", HA2);
         // String cnonce = authHeader.getCNonce();
-        log.debug("nonce: " + nonce);
-        log.debug("nc: " + ncStr);
-        log.debug("cnonce: " + cnonce);
-        log.debug("qop: " + qop);
+        log.debug("nonce: {}", nonce);
+        log.debug("nc: {}", ncStr);
+        log.debug("cnonce: {}", cnonce);
+        log.debug("qop: {}", qop);
         String KD = HA1 + ":" + nonce;
 
         if (qop != null && qop.equalsIgnoreCase("auth") ) {
@@ -231,12 +225,12 @@ public class DigestServerAuthenticationHelper  {
             KD += ":" + qop;
         }
         KD += ":" + HA2;
-        log.debug("KD: " + KD);
+        log.debug("KD: {}", KD);
         mdbytes = messageDigest.digest(KD.getBytes());
         String mdString = toHexString(mdbytes);
-        log.debug("mdString: " + mdString);
+        log.debug("mdString: {}", mdString);
         String response = authHeader.getResponse();
-        log.debug("response: " + response);
+        log.debug("response: {}", response);
         return mdString.equals(response);
 
     }

@@ -34,7 +34,7 @@
 const jessibucaPlayer = {}
 export default {
   name: 'Jessibuca',
-  props: ['videoUrl', 'error', 'hasAudio', 'height', 'showButton'],
+  props: ['showButton'],
   data() {
     return {
       playing: false,
@@ -54,28 +54,15 @@ export default {
       forceNoOffscreen: false
     }
   },
-  watch: {
-    // videoUrl: {
-    //   handler(val, _) {
-    //     if (typeof val !== 'undefined' && val !== 'undefined') {
-    //       console.log(22222111)
-    //       console.log(val)
-    //       this.$nextTick(() => {
-    //
-    //         this.play(val)
-    //       })
-    //     }
-    //   },
-    //   immediate: true
-    // }
+  beforeCreate() {
+    const paramUrl = decodeURIComponent(this.$route.params.url)
+    if (typeof (this.videoUrl) === 'undefined' || typeof (paramUrl) !== 'undefined') {
+      this.videoUrl = paramUrl
+    }
   },
   created() {
-    const paramUrl = decodeURIComponent(this.$route.params.url)
-    this.$nextTick(() => {
-      if (typeof (this.videoUrl) === 'undefined' || typeof (paramUrl) !== 'undefined') {
-        this.videoUrl = paramUrl
-      }
-      this.btnDom = document.getElementById('buttonsBox')
+    this.createPlayer().then(player => {
+
     })
   },
   mounted() {},
@@ -90,12 +77,10 @@ export default {
     this.playerTime = 0
   },
   methods: {
-    create() {
+    createPlayer() {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].destroy()
       }
-      console.log(1111)
-      console.log(this.$refs.container.dataset['jessibuca'])
       if (this.$refs.container.dataset['jessibuca']) {
         this.$refs.container.dataset['jessibuca'] = undefined
       }

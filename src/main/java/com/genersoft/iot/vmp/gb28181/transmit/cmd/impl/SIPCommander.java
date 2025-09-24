@@ -1203,7 +1203,13 @@ public class SIPCommander implements ISIPCommander {
         } else {
             callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
         }
-        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), sipTransactionInfo, device.getSubscribeCycleForMobilePosition(), "presence",callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+
+        int subscribeCycleForMobilePosition = device.getSubscribeCycleForMobilePosition();
+        if (subscribeCycleForMobilePosition > 0) {
+            // 移动位置订阅有效期不小于 30 秒
+            subscribeCycleForMobilePosition = Math.max(subscribeCycleForMobilePosition, 30);
+        }
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), sipTransactionInfo, subscribeCycleForMobilePosition, "presence",callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
         return request;
@@ -1275,8 +1281,13 @@ public class SIPCommander implements ISIPCommander {
             callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
         }
 
+        int subscribeCycleForCatalog = device.getSubscribeCycleForCatalog();
+        if (subscribeCycleForCatalog > 0) {
+            // 目录订阅有效期不小于 30 秒
+            subscribeCycleForCatalog = Math.max(subscribeCycleForCatalog, 30);
+        }
         // 有效时间默认为60秒以上
-        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), sipTransactionInfo, device.getSubscribeCycleForCatalog(), "Catalog",
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), sipTransactionInfo, subscribeCycleForCatalog, "Catalog",
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
         return request;

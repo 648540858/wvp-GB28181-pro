@@ -12,7 +12,6 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.message.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -787,5 +785,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
         } else {
             commonGBChannelMapper.updateGps(commonGBChannels);
         }
+    }
+
+    @Override
+    public List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
+        return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType);
     }
 }

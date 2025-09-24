@@ -97,4 +97,6 @@ public interface IGbChannelService {
     void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList);
 
     void updateGPS(List<CommonGBChannel> channelList);
+
+    List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType);
 }

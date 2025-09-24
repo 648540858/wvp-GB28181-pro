@@ -586,3 +586,15 @@ export function speedPlayback({ channelId, stream, speed}) {
     }
   })
 }
+export function getAllForMap({ query, online, hasRecordPlan, channelType }) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/map/list',
+    params: {
+      query: query,
+      online: online,
+      hasRecordPlan: hasRecordPlan,
+      channelType: channelType
+    }
+  })
+}

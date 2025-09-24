@@ -48,7 +48,7 @@ import {
   stopPlayback,
   pausePlayback,
   resumePlayback,
-  seekPlayback, speedPlayback
+  seekPlayback, speedPlayback, getAllForMap
 } from '@/api/commonChannel'
 
 const actions = {
@@ -555,6 +555,16 @@ const actions = {
   speedPlayback({ commit }, params) {
     return new Promise((resolve, reject) => {
       speedPlayback(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getAllForMap({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getAllForMap(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

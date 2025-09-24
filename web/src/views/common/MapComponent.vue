@@ -17,11 +17,16 @@ import View from 'ol/View'
 import Feature from 'ol/Feature'
 import Overlay from 'ol/Overlay'
 import { Point, LineString } from 'ol/geom'
-import { get as getProj, fromLonLat } from 'ol/proj'
-import { ZoomSlider, Zoom } from 'ol/control'
+import { get as getProj } from 'ol/proj'
 import { containsCoordinate } from 'ol/extent'
+import {
+  defaults as defaultInteractions
+} from 'ol/interaction'
+import DragInteraction from './map/DragInteraction'
+import { fromLonLat, toLonLat } from './map/TransformLonLat'
 
 import { v4 } from 'uuid'
+import { getUid } from 'ol'
 
 let olMap = null
 
@@ -30,7 +35,8 @@ export default {
   props: [],
   data() {
     return {
-
+      overlayId: null,
+      dragInteraction: new DragInteraction()
     }
   },
   created() {
@@ -44,34 +50,28 @@ export default {
 
   },
   destroyed() {
-    // if (this.jessibuca) {
-    //   this.jessibuca.destroy();
-    // }
-    // this.playing = false;
-    // this.loaded = false;
-    // this.performance = "";
   },
   methods: {
     init() {
       let center = fromLonLat([116.41020, 39.915119])
-      if (mapParam.center) {
-        center = fromLonLat(mapParam.center)
+      if (window.mapParam.center) {
+        center = fromLonLat(window.mapParam.center)
       }
       const view = new View({
         center: center,
-        zoom: mapParam.zoom || 10,
+        zoom: window.mapParam.zoom || 10,
         projection: this.projection,
-        maxZoom: mapParam.maxZoom || 19,
-        minZoom: mapParam.minZoom || 1
+        maxZoom: window.mapParam.maxZoom || 19,
+        minZoom: window.mapParam.minZoom || 1
       })
       let tileLayer = null
-      if (mapParam.tilesUrl) {
+      if (window.mapParam.tilesUrl) {
         tileLayer = new Tile({
           source: new XYZ({
             projection: getProj('EPSG:3857'),
             wrapX: false,
-            tileSize: 256 || mapParam.tileSize,
-            url: mapParam.tilesUrl
+            tileSize: 256 || window.mapParam.tileSize,
+            url: window.mapParam.tilesUrl
           })
         })
       } else {
@@ -81,18 +81,48 @@ export default {
         })
       }
       olMap = new Map({
+        interactions: defaultInteractions().extend([this.dragInteraction]),
         target: this.$refs.mapContainer, // 容器ID
         layers: [tileLayer], // 默认图层
         view: view, // 视图
         controls: [ // 控件
-          // new ZoomSlider(),
-          new Zoom()
         ]
       })
-      console.log(3222)
+      olMap.once('loadend', event => {
+        this.$emit('loaded')
+      })
+      olMap.on('click', event => {
+        let features = {}
+        let layers = {}
+        // 单个元素事件传递
+        olMap.forEachFeatureAtPixel(event.pixel, (featureAtPixel, layerAtPixel) => {
+
+          if (layerAtPixel) {
+            let ol_uid = 'key' + getUid(layerAtPixel)
+            layers[ol_uid] = layerAtPixel
+            if (Object.hasOwn(features, ol_uid)) {
+              features[ol_uid].push(featureAtPixel)
+            } else {
+              features[ol_uid] = new Array(featureAtPixel)
+            }
+          }
+        })
+        // 遍历图层，传递事件
+        for (const key in layers) {
+          if (Object.hasOwn(layers, key)) {
+            var layer = layers[key]
+            layer.dispatchEvent({ type: 'click', event: event, features: features[key], outParam: { layersCount: Object.keys(layers).length } });
+          }
+        }
+        features = {}
+        layer = {}
+      })
     },
     setCenter(point) {
 
+    },
+    getCenter() {
+      return toLonLat(olMap.getView().getCenter())
     },
     zoomIn(zoom) {
 
@@ -110,23 +140,33 @@ export default {
         duration: duration
       })
     },
-    panTo(point, zoom) {
-      const duration = 800
+    coordinateInView: function(point) {
+      return containsCoordinate(olMap.getView().calculateExtent(), fromLonLat(point))
+    },
+    panTo(point, zoom, endCallback) {
+      const duration = 1500
+      var coordinate = fromLonLat(point)
+      if (containsCoordinate(olMap.getView().calculateExtent(), coordinate)) {
+        olMap.getView().setCenter(coordinate)
+        if (endCallback) {
+          endCallback()
+        }
+        return
+      }
 
       olMap.getView().cancelAnimations()
       olMap.getView().animate({
-        center: fromLonLat(point),
+        center: coordinate,
         duration: duration
       })
-      if (!containsCoordinate(olMap.getView().calculateExtent(), fromLonLat(point))) {
-        olMap.getView().animate({
-          zoom: olMap.getView().getZoom() - 1,
-          duration: duration / 2
-        }, {
-          zoom: zoom || olMap.getView().getZoom(),
-          duration: duration / 2
-        })
-      }
+      olMap.getView().animate({
+        zoom: 12,
+        duration: duration / 2
+      }, {
+        zoom: zoom || olMap.getView().getZoom(),
+        duration: duration / 2
+      })
+      setTimeout(endCallback, duration + 100)
     },
     fit(layer) {
       const extent = layer.getSource().getExtent()
@@ -138,10 +178,15 @@ export default {
       }
     },
     openInfoBox(position, content, offset) {
+      if (this.overlayId !== null) {
+        console.log(this.overlayId)
+        this.closeInfoBox(this.overlayId)
+        this.overlayId = null
+      }
       const id = v4()
-      // let infoBox = document.createElement("div");
-      // infoBox.innerHTML = content ;
-      // infoBox.setAttribute("infoBoxId", id)
+      // let infoBox = document.createElement('div')
+      // infoBox.setAttribute('id', id)
+      // infoBox.innerHTML = content
       const overlay = new Overlay({
         id: id,
         autoPan: true,
@@ -150,16 +195,23 @@ export default {
         },
         element: content,
         positioning: 'bottom-center',
-        offset: offset
+        offset: offset,
+        position: fromLonLat(position)
         // className:overlayStyle.className
       })
       olMap.addOverlay(overlay)
-      overlay.setPosition(fromLonLat(position))
+      this.overlayId = id
       return id
     },
     closeInfoBox(id) {
-      olMap.getOverlayById(id).setPosition(undefined)
-      // olMap.removeOverlay(olMap.getOverlayById(id))
+      let overlay = olMap.getOverlayById(id)
+      if (overlay) {
+        olMap.removeOverlay(overlay)
+      }
+      var element = document.getElementById(id)
+      if (element) {
+        element.remove()
+      }
     },
     /**
        * 添加图层
@@ -178,13 +230,13 @@ export default {
        * ]
        */
     addLayer(data, clickEvent) {
-      const style = new Style()
       if (data.length > 0) {
         const features = []
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
+          feature.setId(data[i].id)
           feature.customData = data[i].data
-          const cloneStyle = style.clone()
+          const cloneStyle = new Style()
           cloneStyle.setImage(new Icon({
             anchor: data[i].image.anchor,
             crossOrigin: 'Anonymous',
@@ -197,30 +249,87 @@ export default {
         source.addFeatures(features)
         const vectorLayer = new VectorLayer({
           source: source,
-          style: style,
           renderMode: 'image',
           declutter: false
         })
         olMap.addLayer(vectorLayer)
         if (typeof clickEvent === 'function') {
-          olMap.on('click', (event) => {
-            vectorLayer.getFeatures(event.pixel).then((features) => {
-              if (features.length > 0) {
-                const items = []
-                for (let i = 0; i < features.length; i++) {
-                  items.push(features[i].customData)
-                }
-                clickEvent(items)
+          vectorLayer.on('click', (event) => {
+
+            if (event.features.length > 0) {
+              const items = []
+              for (let i = 0; i < event.features.length; i++) {
+                items.push(event.features[i].customData)
               }
-            })
+              clickEvent(items)
+            }
           })
         }
 
         return vectorLayer
       }
     },
+    updateLayer(layer, data, postponement) {
+      console.log(layer)
+      layer.getSource().clear(true)
+      const features = []
+      for (let i = 0; i < data.length; i++) {
+        const feature = new Feature(new Point(fromLonLat(data[i].position)))
+        feature.setId(data[i].id)
+        feature.customData = data[i].data
+        const cloneStyle = new Style()
+        cloneStyle.setImage(new Icon({
+          anchor: data[i].image.anchor,
+          crossOrigin: 'Anonymous',
+          src: data[i].image.src
+        }))
+        feature.setStyle(cloneStyle)
+        features.push(feature)
+      }
+      layer.getSource().addFeatures(features)
+      if (postponement) {
+        olMap.removeLayer(layer)
+        setTimeout(() => {
+          olMap.addLayer(layer)
+        }, 100)
+      }
+      return layer
+    },
     removeLayer(layer) {
       olMap.removeLayer(layer)
+    },
+    setFeatureImageById(layer, featureId, image) {
+      let feature = layer.getSource().getFeatureById(featureId)
+      if (!feature) {
+        console.error('更改feature的图标时未找到图标')
+        return
+      }
+      let style = feature.getStyle()
+      style.setImage(new Icon({
+        anchor: image.anchor,
+        crossOrigin: 'Anonymous',
+        src: image.src
+      }))
+      feature.setStyle(style)
+      olMap.render()
+    },
+    setFeaturePositionById(layer, featureId, data) {
+      let featureOld = layer.getSource().getFeatureById(featureId)
+      if (featureOld) {
+        layer.getSource().removeFeature(featureOld)
+      }
+
+      const feature = new Feature(new Point(fromLonLat(data.position)))
+      feature.setId(data.id)
+      feature.customData = data.data
+      const style = new Style()
+      style.setImage(new Icon({
+        anchor: data.image.anchor,
+        crossOrigin: 'Anonymous',
+        src: data.image.src
+      }))
+      feature.setStyle(style)
+      layer.getSource().addFeature(feature)
     },
 
     addLineLayer(positions) {

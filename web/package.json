@@ -21,6 +21,7 @@
     "dayjs": "^1.11.13",
     "echarts": "^4.9.0",
     "element-ui": "^2.15.14",
+    "gcoord": "^1.0.7",
     "js-cookie": "2.2.0",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",

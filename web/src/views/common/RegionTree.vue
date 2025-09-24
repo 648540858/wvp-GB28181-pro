@@ -56,15 +56,11 @@
               class="iconfont icon-shexiangtou2"
             />
             <span
-              v-if="node.data.deviceId !=='' && showCode"
-              style=" padding-left: 1px"
-              :title="node.data.deviceId"
-            >{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
-            <span
-              v-if="node.data.deviceId ==='' || !showCode"
               style=" padding-left: 1px"
               :title="node.data.deviceId"
             >{{ node.label }}</span>
+            <span v-if="node.data.deviceId !=='' && showCode">（编号：{{ node.data.deviceId }}）</span>
+            <span v-if="node.data.longitude && showPosition" class="iconfont icon-gps"></span>
           </span>
         </template>
       </vue-easy-tree>
@@ -131,7 +127,7 @@ export default {
     GbChannelSelect,
     VueEasyTree, regionEdit, gbDeviceSelect
   },
-  props: ['edit', 'enableAddChannel', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight'],
+  props: ['edit', 'enableAddChannel', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight', 'showPosition', 'contextmenu'],
   data() {
     return {
       props: {
@@ -236,95 +232,115 @@ export default {
       this.$forceUpdate()
     },
     contextmenuEventHandler: function(event, data, node, element) {
-      if (!this.edit) {
+      if (!this.edit && !this.contextmenu) {
         return
       }
+      const allMenuItem = []
       if (node.data.type === 0) {
-        const menuItem = [
-          {
-            label: '刷新节点',
-            icon: 'el-icon-refresh',
-            disabled: false,
-            onClick: () => {
-              this.refreshNode(node)
-            }
-          },
-          {
-            label: '新建节点',
-            icon: 'el-icon-plus',
-            disabled: false,
-            onClick: () => {
-              this.addRegion(data.id, node)
-            }
-          },
-          {
-            label: '编辑节点',
-            icon: 'el-icon-edit',
-            disabled: node.level === 1,
-            onClick: () => {
-              this.editCatalog(data, node)
-            }
-          },
-          {
-            label: '删除节点',
-            icon: 'el-icon-delete',
-            disabled: node.level === 1,
-            divided: true,
-            onClick: () => {
-              this.$confirm('确定删除?', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-              }).then(() => {
-                this.removeRegion(data.id, node)
-              }).catch(() => {
+        if (this.edit) {
 
-              })
-            }
-          }
-        ]
-        if (this.enableAddChannel) {
-          menuItem.push(
+          const menuItem = [
             {
-              label: '添加设备',
+              label: '刷新节点',
+              icon: 'el-icon-refresh',
+              disabled: false,
+              onClick: () => {
+                this.refreshNode(node)
+              }
+            },
+            {
+              label: '新建节点',
               icon: 'el-icon-plus',
+              disabled: false,
+              onClick: () => {
+                this.addRegion(data.id, node)
+              }
+            },
+            {
+              label: '编辑节点',
+              icon: 'el-icon-edit',
               disabled: node.level === 1,
               onClick: () => {
-                this.addChannelFormDevice(data.id, node)
+                this.editCatalog(data, node)
               }
-            }
-          )
-          menuItem.push(
+            },
             {
-              label: '移除设备',
+              label: '删除节点',
               icon: 'el-icon-delete',
               disabled: node.level === 1,
               divided: true,
               onClick: () => {
-                this.removeChannelFormDevice(data.id, node)
+                this.$confirm('确定删除?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  this.removeRegion(data.id, node)
+                }).catch(() => {
+
+                })
               }
             }
-          )
-          menuItem.push(
-            {
-              label: '添加通道',
-              icon: 'el-icon-plus',
-              disabled: node.level === 1,
-              onClick: () => {
-                this.addChannel(data.id, node)
+          ]
+          if (this.enableAddChannel) {
+            menuItem.push(
+              {
+                label: '添加设备',
+                icon: 'el-icon-plus',
+                disabled: node.level === 1,
+                onClick: () => {
+                  this.addChannelFormDevice(data.id, node)
+                }
               }
-            }
-          )
+            )
+            menuItem.push(
+              {
+                label: '移除设备',
+                icon: 'el-icon-delete',
+                disabled: node.level === 1,
+                divided: true,
+                onClick: () => {
+                  this.removeChannelFormDevice(data.id, node)
+                }
+              }
+            )
+            menuItem.push(
+              {
+                label: '添加通道',
+                icon: 'el-icon-plus',
+                disabled: node.level === 1,
+                onClick: () => {
+                  this.addChannel(data.id, node)
+                }
+              }
+            )
+          }
+          allMenuItem.push(...menuItem)
         }
-
-        this.$contextmenu({
-          items: menuItem,
-          event, // 鼠标事件信息
-          customClass: 'custom-class', // 自定义菜单 class
-          zIndex: 3000 // 菜单样式 z-index
-        })
       }
-
+      if (this.contextmenu) {
+        for (let i = 0; i < this.contextmenu.length; i++) {
+          let item = this.contextmenu[i]
+          if (item.type === node.data.type) {
+            allMenuItem.push({
+              label: item.label,
+              icon: item.icon,
+              onClick: () => {
+                item.onClick(event, data, node)
+              }
+            })
+          }
+        }
+      }
+      if (allMenuItem.length === 0) {
+        return
+      }
+      this.$contextmenu({
+        items: allMenuItem,
+        event, // 鼠标事件信息
+        customClass: 'custom-class', // 自定义菜单 class
+        zIndex: 3000 // 菜单样式 z-index
+      })
       return false
     },
     removeRegion: function(id, node) {
@@ -396,12 +412,16 @@ export default {
       node.expand()
     },
     refresh: function(id) {
-      console.log(id)
       // 查询node
       const node = this.$refs.veTree.getNode(id)
       if (node) {
-        node.loaded = false
-        node.expand()
+        if (id.includes('channel') >= 0) {
+          node.parent.loaded = false
+          node.parent.expand()
+        }else {
+          node.loaded = false
+          node.expand()
+        }
       }
     },
     addRegion: function(id, node) {

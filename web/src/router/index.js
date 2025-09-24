@@ -86,6 +86,17 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/map',
+    component: Layout,
+    redirect: '/map',
+    children: [{
+      path: '',
+      name: 'Map',
+      component: () => import('@/views/map/index'),
+      meta: { title: '电子地图', icon: 'map' }
+    }]
+  },
+  {
     path: '/device',
     component: Layout,
     name: '设备接入',

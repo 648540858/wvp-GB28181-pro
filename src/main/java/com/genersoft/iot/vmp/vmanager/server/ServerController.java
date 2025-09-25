@@ -16,18 +16,17 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMapService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
-import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -84,6 +82,10 @@ public class ServerController {
 
     @Autowired
     private IStreamProxyService proxyService;
+
+
+    @Autowired
+    private IMapService mapService;
 
     @Value("${server.port}")
     private int serverPort;
@@ -361,5 +363,12 @@ public class ServerController {
         }
         double tbNumber = gbNumber / FORMAT;
         return new DecimalFormat("#.##TB").format(tbNumber);
+    }
+
+    @GetMapping(value = "/map/config")
+    @ResponseBody
+    @Operation(summary = "获取地图配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public List<MapConfig> getMapConfig() {
+        return mapService.getConfig();
     }
 }

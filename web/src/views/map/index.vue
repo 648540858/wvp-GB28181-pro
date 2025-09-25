@@ -7,6 +7,11 @@
       <div class="map-tool-box">
         <div class="map-tool-btn-group">
           <div class="map-tool-btn" @click="initChannelLayer">
+            <i class="iconfont icon-tuceng"></i>
+          </div>
+        </div>
+        <div class="map-tool-btn-group">
+          <div class="map-tool-btn" @click="initChannelLayer">
             <i class="iconfont icon-shuaxin3"></i>
           </div>
         </div>
@@ -60,6 +65,7 @@ import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
 import devicePlayer from '../common/channelPlayer/index.vue'
+import gcoord from 'gcoord'
 
 export default {
   name: 'Map',
@@ -151,16 +157,18 @@ export default {
     initChannelLayer: function () {
       // 获取所有有位置的通道
       this.closeInfoBox()
-      this.$store.dispatch('commonChanel/getAllForMap', {
-        geoCoordSys: window.mapParam.coordinateSystem
-      }).then(data => {
+      this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
         let array = []
         for (let i = 0; i < data.length; i++) {
           let item = data[i]
           if (item.gbLongitude && item.gbLatitude) {
+            let position = [item.gbLongitude, item.gbLatitude]
+            let gcj02Position = gcoord.transform(position, gcoord.WGS84, gcoord.GCJ02)
+            item.gbLongitude = gcj02Position[0]
+            item.gbLatitude = gcj02Position[1]
             array.push({
               id: item.gbId,
-              position: [item.gbLongitude, item.gbLatitude],
+              position: gcj02Position,
               data: item,
               image: {
                 anchor: [0.5, 1],
@@ -291,6 +299,12 @@ export default {
       })
     },
     submitEdit: function(channel) {
+      let position = [channel.gbLongitude, channel.gbLatitude]
+      if (this.$refs.mapComponent.getCurrentCoordinateSystem() === 'GCJ02') {
+        let wgs84Position = gcoord.transform(position, gcoord.GCJ02, gcoord.WGS84)
+        channel.gbLongitude = wgs84Position[0]
+        channel.gbLatitude = wgs84Position[1]
+      }
       this.$store.dispatch('commonChanel/update', channel)
         .then(data => {
           this.$message.success({
@@ -302,7 +316,7 @@ export default {
           this.$refs.mapComponent.dragInteraction.removeFeatureId(channel.gbId)
           this.$refs.mapComponent.setFeaturePositionById(this.channelLayer, channel.gbId, {
             id: channel.gbId,
-            position: [channel.gbLongitude, channel.gbLatitude],
+            position: position,
             data: channel,
             image: {
               anchor: [0.5, 1],

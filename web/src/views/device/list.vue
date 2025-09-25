@@ -169,7 +169,7 @@
 </template>
 
 <script>
-import deviceEdit from '../dialog/deviceEdit.vue'
+import deviceEdit from './edit.vue'
 import syncChannelProgress from '../dialog/SyncChannelProgress.vue'
 import configInfo from '../dialog/configInfo.vue'
 import Vue from 'vue'

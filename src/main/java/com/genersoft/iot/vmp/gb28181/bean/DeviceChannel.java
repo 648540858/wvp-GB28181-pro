@@ -122,7 +122,6 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "经度 WGS-84坐标系")
 	private Double longitude;
 
-
 	@MessageElementForCatalog("Latitude")
 	@Schema(description = ",纬度 WGS-84坐标系")
 	private Double latitude;

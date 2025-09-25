@@ -36,15 +36,16 @@ export default {
   data() {
     return {
       overlayId: null,
-      dragInteraction: new DragInteraction()
+      dragInteraction: new DragInteraction(),
+      mapTileList: [],
+      mapTileIndex: 0
     }
   },
   created() {
     this.$nextTick(() => {
-      setTimeout(() => {
-        this.init()
-      }, 100)
+      this.init()
     })
+
   },
   mounted() {
 
@@ -53,6 +54,23 @@ export default {
   },
   methods: {
     init() {
+      this.$store.dispatch('server/getMapConfig')
+        .then(mapConfigList => {
+          console.log(mapConfigList.length)
+          if (mapConfigList.length === 0) {
+           if (window.mapParam.tilesUrl) {
+             this.mapTileList.push({
+               tilesUrl: window.mapParam.tilesUrl,
+               coordinateSystem: window.mapParam.coordinateSystem
+             })
+           }
+          }else {
+            this.mapTileList = mapConfigList
+          }
+          this.initMap()
+      })
+    },
+    initMap(){
       let center = fromLonLat([116.41020, 39.915119])
       if (window.mapParam.center) {
         center = fromLonLat(window.mapParam.center)
@@ -65,13 +83,13 @@ export default {
         minZoom: window.mapParam.minZoom || 1
       })
       let tileLayer = null
-      if (window.mapParam.tilesUrl) {
+      if (this.mapTileList.length > 0 && this.mapTileList[this.mapTileIndex].tilesUrl) {
         tileLayer = new Tile({
           source: new XYZ({
             projection: getProj('EPSG:3857'),
             wrapX: false,
             tileSize: 256 || window.mapParam.tileSize,
-            url: window.mapParam.tilesUrl
+            url: this.mapTileList[this.mapTileIndex].tilesUrl
           })
         })
       } else {
@@ -179,7 +197,6 @@ export default {
     },
     openInfoBox(position, content, offset) {
       if (this.overlayId !== null) {
-        console.log(this.overlayId)
         this.closeInfoBox(this.overlayId)
         this.overlayId = null
       }
@@ -354,6 +371,9 @@ export default {
         olMap.addLayer(vectorLayer)
         return vectorLayer
       }
+    },
+    getCurrentCoordinateSystem() {
+      return this.mapTileList[this.mapTileIndex].coordinateSystem
     }
   }
 }

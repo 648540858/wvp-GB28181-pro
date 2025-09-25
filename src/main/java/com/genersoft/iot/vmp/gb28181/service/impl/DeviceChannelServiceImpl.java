@@ -24,6 +24,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -434,6 +435,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition) {
+
+        if (device.getGeoCoordSys().equalsIgnoreCase("GCJ02")) {
+            Double[] wgs84Position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+            mobilePosition.setLongitude(wgs84Position[0]);
+            mobilePosition.setLatitude(wgs84Position[1]);
+
+            Double[] wgs84PositionForChannel = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+            deviceChannel.setGbLongitude(wgs84PositionForChannel[0]);
+            deviceChannel.setGbLatitude(wgs84PositionForChannel[1]);
+        }
+
         if (userSetting.getSavePositionHistory()) {
             deviceMobilePositionMapper.insertNewPosition(mobilePosition);
         }

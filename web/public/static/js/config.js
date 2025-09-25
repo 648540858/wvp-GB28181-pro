@@ -5,8 +5,8 @@ window.baseUrl = ""
 window.mapParam = {
   // 开启/关闭地图功能
   enable: true,
-  // 坐标系 GCJ-02 WGS-84,
-  coordinateSystem: "GCJ-02",
+  // 坐标系 GCJ02 WGS84,
+  coordinateSystem: "GCJ02",
   // 地图瓦片地址
   tilesUrl: "http://webrd0{1-4}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scale=1&style=8",
   // 瓦片大小

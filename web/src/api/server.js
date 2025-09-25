@@ -115,3 +115,10 @@ export function info() {
   })
 }
 
+export function getMapConfig() {
+  return request({
+    method: 'get',
+    url: `/api/server/map/config`
+  })
+}
+

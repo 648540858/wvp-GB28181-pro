@@ -44,6 +44,12 @@
               <el-option key="UTF-8" label="UTF-8" value="utf-8" />
             </el-select>
           </el-form-item>
+          <el-form-item label="坐标系" prop="geoCoordSys">
+            <el-select v-model="form.geoCoordSys" style="float: left; width: 100%">
+              <el-option key="WGS84" label="WGS84" value="gb2312" />
+              <el-option key="GCJ02" label="GCJ02" value="utf-8" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox v-model="form.ssrcCheck" label="SSRC校验" style="float: left" />
             <el-checkbox v-model="form.asMessageChannel" label="作为消息通道" style="float: left" />

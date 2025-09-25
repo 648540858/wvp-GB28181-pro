@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
@@ -30,43 +29,11 @@ public interface IDeviceChannelService {
     ResourceBaseInfo getOverview();
 
     /**
-     * 查询所有未分配的通道
-     * @param platformId
-     * @return
-     */
-    List<ChannelReduce> queryAllChannelList(String platformId);
-
-    PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
-
-    /**
-     * 查询通道所属的设备
-     */
-    List<Device> getDeviceByChannelId(String channelId);
-
-    /**
-     * 批量删除通道
-     * @param deleteChannelList 待删除的通道列表
-     */
-    int deleteChannelsForNotify(List<DeviceChannel> deleteChannelList);
-
-    int updateChannelsStatus(List<DeviceChannel> channels);
-
-    /**
      *  获取一个通道
      */
     DeviceChannel getOne(String deviceId, String channelId);
 
     DeviceChannel getOneForSource(String deviceId, String channelId);
-
-    /**
-     * 直接批量更新通道
-     */
-    void batchUpdateChannelForNotify(List<DeviceChannel> channels);
-
-    /**
-     * 直接批量添加
-     */
-    void batchAddChannel(List<DeviceChannel> deviceChannels);
 
     /**
      * 修改通道的码流类型
@@ -80,10 +47,6 @@ public interface IDeviceChannelService {
     void startPlay(Integer channelId, String stream);
 
     void stopPlay(Integer channelId);
-
-    void batchUpdateChannelGPS(List<DeviceChannel> channelList);
-
-    void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
 
     void online(DeviceChannel channel);
 
@@ -124,8 +87,6 @@ public interface IDeviceChannelService {
     DeviceChannel getOneForSource(int deviceDbId, String channelId);
 
     DeviceChannel getOneBySourceId(int deviceDbId, String channelId);
-
-    List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId);
 
     List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbId);
 

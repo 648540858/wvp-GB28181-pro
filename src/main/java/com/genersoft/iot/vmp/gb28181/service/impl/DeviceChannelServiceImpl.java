@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
@@ -210,66 +209,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         return new ResourceBaseInfo(total, online);
     }
 
-
-    @Override
-    public List<ChannelReduce> queryAllChannelList(String platformId) {
-        return channelMapper.queryChannelListInAll(null, null, null, platformId, null);
-    }
-
-    @Override
-    public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId) {
-        PageHelper.startPage(page, count);
-        List<ChannelReduce> all = channelMapper.queryChannelListInAll(query, online, channelType, platformId, catalogId);
-        return new PageInfo<>(all);
-    }
-
-    @Override
-    public List<Device> getDeviceByChannelId(String channelId) {
-        return channelMapper.getDeviceByChannelDeviceId(channelId);
-    }
-
-    @Override
-    @Transactional
-    public int deleteChannelsForNotify(List<DeviceChannel> channels) {
-        int limitCount = 1000;
-        int result = 0;
-        if (!channels.isEmpty()) {
-            if (channels.size() > limitCount) {
-                for (int i = 0; i < channels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channels.size()) {
-                        toIndex = channels.size();
-                    }
-                    result += channelMapper.batchDel(channels.subList(i, toIndex));
-                }
-            }else {
-                result += channelMapper.batchDel(channels);
-            }
-        }
-        return result;
-    }
-
-    @Transactional
-    @Override
-    public int updateChannelsStatus(List<DeviceChannel> channels) {
-        int limitCount = 1000;
-        int result = 0;
-        if (!channels.isEmpty()) {
-            if (channels.size() > limitCount) {
-                for (int i = 0; i < channels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channels.size()) {
-                        toIndex = channels.size();
-                    }
-                    result += channelMapper.batchUpdateStatus(channels.subList(i, toIndex));
-                }
-            }else {
-                result += channelMapper.batchUpdateStatus(channels);
-            }
-        }
-        return result;
-    }
-
     @Override
     public void online(DeviceChannel channel) {
         channelMapper.online(channel.getId());
@@ -314,58 +253,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    @Transactional
-    public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
-        String now = DateUtil.getNow();
-        for (DeviceChannel channel : channels) {
-            channel.setUpdateTime(now);
-        }
-        int limitCount = 1000;
-        if (!channels.isEmpty()) {
-            if (channels.size() > limitCount) {
-                for (int i = 0; i < channels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channels.size()) {
-                        toIndex = channels.size();
-                    }
-                    channelMapper.batchUpdateForNotify(channels.subList(i, toIndex));
-                }
-            }else {
-                channelMapper.batchUpdateForNotify(channels);
-            }
-        }
-    }
-
-    @Override
-    @Transactional
-    public void batchAddChannel(List<DeviceChannel> channels) {
-        String now = DateUtil.getNow();
-        for (DeviceChannel channel : channels) {
-            channel.setUpdateTime(now);
-            channel.setCreateTime(now);
-        }
-        int limitCount = 1000;
-        if (!channels.isEmpty()) {
-            if (channels.size() > limitCount) {
-                for (int i = 0; i < channels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channels.size()) {
-                        toIndex = channels.size();
-                    }
-                    channelMapper.batchAdd(channels.subList(i, toIndex));
-                }
-            }else {
-                channelMapper.batchAdd(channels);
-            }
-        }
-        for (DeviceChannel channel : channels) {
-            if (channel.getParentId() != null) {
-                channelMapper.updateChannelSubCount(channel.getDataDeviceId(), channel.getParentId());
-            }
-        }
-    }
-
-    @Override
     public void updateChannelStreamIdentification(DeviceChannel channel) {
         Assert.hasLength(channel.getStreamIdentification(), "码流标识必须存在");
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
@@ -388,11 +275,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + deviceId);
         }
         return channelMapper.queryChannelsByDeviceDbId(device.getId());
-    }
-
-    @Override
-    public List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId) {
-        return channelMapper.queryChannelsByDeviceDbId(deviceDbId);
     }
 
     @Override
@@ -507,49 +389,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public void stopPlay(Integer channelId) {
         channelMapper.stopPlayById(channelId);
-    }
-
-    @Override
-    @Transactional
-    public void batchUpdateChannelGPS(List<DeviceChannel> channelList) {
-        for (DeviceChannel deviceChannel : channelList) {
-            deviceChannel.setUpdateTime(DateUtil.getNow());
-            if (deviceChannel.getGpsTime() == null) {
-                deviceChannel.setGpsTime(DateUtil.getNow());
-            }
-        }
-        int count = 1000;
-        if (channelList.size() > count) {
-            for (int i = 0; i < channelList.size(); i+=count) {
-                int toIndex = i+count;
-                if ( i + count > channelList.size()) {
-                    toIndex = channelList.size();
-                }
-                List<DeviceChannel> channels = channelList.subList(i, toIndex);
-                channelMapper.batchUpdatePosition(channels);
-            }
-        }else {
-            channelMapper.batchUpdatePosition(channelList);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void batchAddMobilePosition(List<MobilePosition> mobilePositions) {
-//        int count = 500;
-//        if (mobilePositions.size() > count) {
-//            for (int i = 0; i < mobilePositions.size(); i+=count) {
-//                int toIndex = i+count;
-//                if ( i + count > mobilePositions.size()) {
-//                    toIndex = mobilePositions.size();
-//                }
-//                List<MobilePosition> mobilePositionsSub = mobilePositions.subList(i, toIndex);
-//                deviceMobilePositionMapper.batchadd(mobilePositionsSub);
-//            }
-//        }else {
-//            deviceMobilePositionMapper.batchadd(mobilePositions);
-//        }
-        deviceMobilePositionMapper.batchadd(mobilePositions);
     }
 
     @Override

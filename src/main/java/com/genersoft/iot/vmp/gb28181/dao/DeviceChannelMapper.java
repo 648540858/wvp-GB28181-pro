@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.provider.DeviceChannelProvider;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -23,13 +22,13 @@ public interface DeviceChannelMapper {
             "insert into wvp_device_channel " +
             "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
-            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
+            "ip_address, port, password, status, longitude, latitude, gb_longitude, gb_latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "(#{deviceId}, #{dataType}, #{dataDeviceId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}, " +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
-            "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
+            "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{gbLongitude}, #{gbLatitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
             " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification}, #{channelType}) " +
             "</script>")
@@ -64,6 +63,8 @@ public interface DeviceChannelMapper {
             ", status=#{status}" +
             ", longitude=#{longitude}" +
             ", latitude=#{latitude}" +
+            ", gb_longitude=#{gbLongitude}" +
+            ", gb_latitude=#{gbLatitude}" +
             ", ptz_type=#{ptzType}" +
             ", position_type=#{positionType}" +
             ", room_type=#{roomType}" +
@@ -199,14 +200,14 @@ public interface DeviceChannelMapper {
             "insert into wvp_device_channel " +
             "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
-            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
+            "ip_address, port, password, status, longitude, latitude, gb_longitude, gb_latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.deviceId}, #{item.dataType}, #{item.dataDeviceId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
             "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
-            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
+            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.gbLongitude}, #{item.gbLatitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
             "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
             " #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId}, #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}, #{item.channelType}) " +
             "</foreach> " +
@@ -247,6 +248,8 @@ public interface DeviceChannelMapper {
             ", status=#{item.status}" +
             ", longitude=#{item.longitude}" +
             ", latitude=#{item.latitude}" +
+            ", gb_longitude=#{gbLongitude}" +
+            ", gb_latitude=#{gbLatitude}" +
             ", ptz_type=#{item.ptzType}" +
             ", position_type=#{item.positionType}" +
             ", room_type=#{item.roomType}" +
@@ -269,72 +272,13 @@ public interface DeviceChannelMapper {
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
 
-
-    @Update({"<script>" +
-            "<foreach collection='updateChannels' item='item' separator=';'>" +
-            " UPDATE" +
-            " wvp_device_channel" +
-            " SET update_time=#{item.updateTime}" +
-            ", device_id=#{item.deviceId}" +
-            ", data_type=#{item.dataType}" +
-            ", data_device_id=#{item.dataDeviceId}" +
-            ", name=#{item.name}" +
-            ", manufacturer=#{item.manufacturer}" +
-            ", model=#{item.model}" +
-            ", owner=#{item.owner}" +
-            ", civil_code=#{item.civilCode}" +
-            ", block=#{item.block}" +
-            ", address=#{item.address}" +
-            ", parental=#{item.parental}" +
-            ", parent_id=#{item.parentId}" +
-            ", safety_way=#{item.safetyWay}" +
-            ", register_way=#{item.registerWay}" +
-            ", cert_num=#{item.certNum}" +
-            ", certifiable=#{item.certifiable}" +
-            ", err_code=#{item.errCode}" +
-            ", end_time=#{item.endTime}" +
-            ", secrecy=#{item.secrecy}" +
-            ", ip_address=#{item.ipAddress}" +
-            ", port=#{item.port}" +
-            ", password=#{item.password}" +
-            ", status=#{item.status}" +
-            ", longitude=#{item.longitude}" +
-            ", latitude=#{item.latitude}" +
-            ", ptz_type=#{item.ptzType}" +
-            ", position_type=#{item.positionType}" +
-            ", room_type=#{item.roomType}" +
-            ", use_type=#{item.useType}" +
-            ", supply_light_type=#{item.supplyLightType}" +
-            ", direction_type=#{item.directionType}" +
-            ", resolution=#{item.resolution}" +
-            ", business_group_id=#{item.businessGroupId}" +
-            ", download_speed=#{item.downloadSpeed}" +
-            ", svc_space_support_mod=#{item.svcSpaceSupportMod}" +
-            ", svc_time_support_mode=#{item.svcTimeSupportMode}" +
-            ", sub_count=#{item.subCount}" +
-            ", stream_id=#{item.streamId}" +
-            ", has_audio=#{item.hasAudio}" +
-            ", gps_time=#{item.gpsTime}" +
-            ", stream_identification=#{item.streamIdentification}" +
-            ", channel_type=#{item.channelType}" +
-            " WHERE data_type = #{item.dataType} and data_device_id = #{item.dataDeviceId} and device_id=#{item.deviceId}" +
-            "</foreach>" +
-            "</script>"})
-    int batchUpdateForNotify(List<DeviceChannel> updateChannels);
-
-    @Update(" update wvp_device_channel" +
-            " set sub_count = (select *" +
-            "             from (select count(0)" +
-            "                   from wvp_device_channel" +
-            "                   where data_type = 1 and data_device_id = #{dataDeviceId} and parent_id = #{channelId}) as temp)" +
-            " where data_type = 1 and data_device_id = #{dataDeviceId} and device_id = #{channelId}")
-    int updateChannelSubCount(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
-
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
             " SET " +
             " latitude=#{latitude}, " +
             " longitude=#{longitude}, " +
+            " gb_longitude=#{gbLongitude}, " +
+            " gb_latitude=#{gbLatitude}, " +
             " gps_time=#{gpsTime} " +
             " WHERE id=#{id} " +
             " </script>"})
@@ -374,6 +318,8 @@ public interface DeviceChannelMapper {
             " status,\n" +
             " longitude,\n" +
             " latitude,\n" +
+            " gb_longitude,\n" +
+            " gb_latitude,\n" +
             " ptz_type,\n" +
             " position_type,\n" +
             " room_type,\n" +
@@ -429,6 +375,8 @@ public interface DeviceChannelMapper {
             " SET update_time=#{item.updateTime}" +
             "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
+            "<if test='item.gbLongitude != null'>, gb_longitude=#{item.gbLongitude}</if>" +
+            "<if test='item.gbLatitude != null'>, gb_latitude=#{item.gbLatitude}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
             "<if test='item.id == 0'>WHERE data_type = #{item.dataType} and data_device_id=#{item.dataDeviceId} AND device_id=#{item.deviceId}</if>" +
@@ -474,6 +422,8 @@ public interface DeviceChannelMapper {
             " status,\n" +
             " longitude,\n" +
             " latitude,\n" +
+            " gb_longitude,\n" +
+            " gb_latitude,\n" +
             " ptz_type,\n" +
             " position_type,\n" +
             " room_type,\n" +
@@ -529,6 +479,8 @@ public interface DeviceChannelMapper {
             " status,\n" +
             " longitude,\n" +
             " latitude,\n" +
+            " gb_longitude,\n" +
+            " gb_latitude,\n" +
             " ptz_type,\n" +
             " position_type,\n" +
             " room_type,\n" +
@@ -555,13 +507,6 @@ public interface DeviceChannelMapper {
             " WHERE id=#{channelId}" +
             " </script>"})
     void changeAudio(@Param("channelId") int channelId, @Param("audio") boolean audio);
-
-    @Update("<script> " +
-            "<foreach collection='gpsMsgInfoList' index='index' item='item' separator=';'> " +
-            "UPDATE wvp_device_channel SET gb_longitude = #{item.lng}, gb_latitude=#{item.lat} WHERE id = #{item.channelId}" +
-            "</foreach> " +
-            "</script>")
-    void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 
     @Update("UPDATE wvp_device_channel SET status=#{status} WHERE data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}")
     void updateStatus(DeviceChannel channel);
@@ -595,6 +540,8 @@ public interface DeviceChannelMapper {
             ", status=#{status}" +
             ", longitude=#{longitude}" +
             ", latitude=#{latitude}" +
+            ", gb_longitude=#{gbLongitude}" +
+            ", gb_latitude=#{gbLatitude}" +
             ", ptz_type=#{ptzType}" +
             ", position_type=#{positionType}" +
             ", room_type=#{roomType}" +
@@ -652,6 +599,8 @@ public interface DeviceChannelMapper {
             " status,\n" +
             " longitude,\n" +
             " latitude,\n" +
+            " gb_longitude,\n" +
+            " gb_latitude,\n" +
             " ptz_type,\n" +
             " position_type,\n" +
             " room_type,\n" +

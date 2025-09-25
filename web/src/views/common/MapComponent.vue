@@ -17,7 +17,7 @@ import View from 'ol/View'
 import Feature from 'ol/Feature'
 import Overlay from 'ol/Overlay'
 import { Point, LineString } from 'ol/geom'
-import { get as getProj } from 'ol/proj'
+import { get as getProj, toLonLat as projToLonLat } from 'ol/proj'
 import { containsCoordinate } from 'ol/extent'
 import {
   defaults as defaultInteractions
@@ -27,9 +27,9 @@ import { fromLonLat, toLonLat } from './map/TransformLonLat'
 
 import { v4 } from 'uuid'
 import { getUid } from 'ol'
+import gcoord from 'gcoord'
 
-let olMap = null
-
+let olMap, tileLayer = null
 export default {
   name: 'MapComponent',
   props: [],
@@ -72,6 +72,7 @@ export default {
     },
     initMap(){
       let center = fromLonLat([116.41020, 39.915119])
+      window.coordinateSystem = this.mapTileList[this.mapTileIndex].coordinateSystem
       if (window.mapParam.center) {
         center = fromLonLat(window.mapParam.center)
       }
@@ -82,7 +83,7 @@ export default {
         maxZoom: window.mapParam.maxZoom || 19,
         minZoom: window.mapParam.minZoom || 1
       })
-      let tileLayer = null
+
       if (this.mapTileList.length > 0 && this.mapTileList[this.mapTileIndex].tilesUrl) {
         tileLayer = new Tile({
           source: new XYZ({
@@ -231,7 +232,7 @@ export default {
       }
     },
     /**
-       * 添加图层
+       * 添加图层， 数据坐标系由控件内完成，输入和输出永远是wgs84
        * @param data
        * [
        *     {
@@ -287,7 +288,6 @@ export default {
       }
     },
     updateLayer(layer, data, postponement) {
-      console.log(layer)
       layer.getSource().clear(true)
       const features = []
       for (let i = 0; i < data.length; i++) {
@@ -374,6 +374,19 @@ export default {
     },
     getCurrentCoordinateSystem() {
       return this.mapTileList[this.mapTileIndex].coordinateSystem
+    },
+    changeMapTile(index) {
+      let center = this.getCenter()
+      let mapTileConfig = this.mapTileList[this.mapTileIndex]
+      this.mapTileIndex = index
+      window.coordinateSystem = this.mapTileList[this.mapTileIndex].coordinateSystem
+      tileLayer.getSource().setUrl(this.mapTileList[index].tilesUrl)
+      if (mapTileConfig.coordinateSystem !== this.mapTileList[this.mapTileIndex].coordinateSystem) {
+        // 发送通知
+        this.$emit('coordinateSystemChange', this.mapTileList[this.mapTileIndex].coordinateSystem)
+        // 修正地图的中心点
+        olMap.getView().setCenter(fromLonLat(center))
+      }
     }
   }
 }

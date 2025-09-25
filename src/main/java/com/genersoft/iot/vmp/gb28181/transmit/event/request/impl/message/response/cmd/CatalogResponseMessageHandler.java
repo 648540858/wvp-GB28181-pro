@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.session.CatalogDataManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.utils.Coordtransform;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
@@ -157,6 +158,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     channel.setParental(1);
                                     channel.setChannelType(2);
                                     groupList.add(group);
+                                }
+                                if (channel.getLongitude() > 0 && channel.getLatitude() > 0) {
+                                    Double[] wgs84Position = Coordtransform.GCJ02ToWGS84(channel.getLongitude(), channel.getLatitude());
+                                    channel.setGbLongitude(wgs84Position[0]);
+                                    channel.setGbLatitude(wgs84Position[1]);
                                 }
                             }
                             channelList.add(channel);

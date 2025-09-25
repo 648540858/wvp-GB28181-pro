@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
@@ -116,6 +117,17 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								continue;
 							}
 							catalogChannelEvent.getChannel().setDataDeviceId(device.getId());
+                            if (catalogChannelEvent.getChannel().getLongitude() > 0
+                                    && catalogChannelEvent.getChannel().getLatitude() > 0) {
+                               if (device.isWgs84()) {
+                                   catalogChannelEvent.getChannel().setGbLongitude(catalogChannelEvent.getChannel().getLongitude());
+                                   catalogChannelEvent.getChannel().setGbLatitude(catalogChannelEvent.getChannel().getLatitude());
+                               }else {
+                                   Double[] wgs84Position = Coordtransform.GCJ02ToWGS84(catalogChannelEvent.getChannel().getLongitude(), catalogChannelEvent.getChannel().getLatitude());
+                                   catalogChannelEvent.getChannel().setGbLongitude(wgs84Position[0]);
+                                   catalogChannelEvent.getChannel().setGbLatitude(wgs84Position[1]);
+                               }
+                            }
                         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                                  IllegalAccessException e) {
                             log.error("[解析CatalogChannelEvent]失败，", e);

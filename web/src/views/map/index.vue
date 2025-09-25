@@ -2,13 +2,19 @@
     <div id="devicePosition" style="height: calc(100vh - 84px);width: 100%;">
       <div style="height: 100%; display: grid; grid-template-columns: 360px auto">
         <DeviceTree ref="deviceTree" @clickEvent="treeChannelClickEvent" :showPosition="true" :contextmenu="getContextmenu()"/>
-        <MapComponent ref="mapComponent" @loaded="initChannelLayer"></MapComponent>
+        <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer"></MapComponent>
       </div>
       <div class="map-tool-box">
         <div class="map-tool-btn-group">
-          <div class="map-tool-btn" @click="initChannelLayer">
-            <i class="iconfont icon-tuceng"></i>
-          </div>
+          <el-dropdown placement="top"  @command="changeMapTile">
+            <div class="el-dropdown-link map-tool-btn">
+              <i class="iconfont icon-tuceng"></i>
+            </div>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item  v-for="(item,index) in mapTileList" :key="index" :command="index">{{item.name}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
         </div>
         <div class="map-tool-btn-group">
           <div class="map-tool-btn" @click="initChannelLayer">
@@ -89,10 +95,12 @@ export default {
       },
       isLoging: false,
       longitudeStr: 'longitude',
-      latitudeStr: 'latitude'
+      latitudeStr: 'latitude',
+      mapTileList: []
     }
   },
   created() {
+
   },
   destroyed() {
 
@@ -151,10 +159,12 @@ export default {
     },
     showChannelInfo: function(data) {
       this.channel = data
-      this.infoBoxId = this.$refs.mapComponent.openInfoBox([data.gbLongitude, data.gbLatitude], this.$refs.infobox, [0, -50])
+      let position = [data.gbLongitude, data.gbLatitude]
+      this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
     },
 
     initChannelLayer: function () {
+      this.mapTileList = this.$refs.mapComponent.mapTileList
       // 获取所有有位置的通道
       this.closeInfoBox()
       this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
@@ -163,12 +173,9 @@ export default {
           let item = data[i]
           if (item.gbLongitude && item.gbLatitude) {
             let position = [item.gbLongitude, item.gbLatitude]
-            let gcj02Position = gcoord.transform(position, gcoord.WGS84, gcoord.GCJ02)
-            item.gbLongitude = gcj02Position[0]
-            item.gbLatitude = gcj02Position[1]
             array.push({
               id: item.gbId,
-              position: gcj02Position,
+              position: position,
               data: item,
               image: {
                 anchor: [0.5, 1],
@@ -179,6 +186,9 @@ export default {
         }
         this.updateChannelLayer(array)
       })
+    },
+    changeMapTile: function (index) {
+      this.$refs.mapComponent.changeMapTile(index)
     },
     updateChannelLayer: function(array) {
       if (this.channelLayer) {
@@ -300,11 +310,6 @@ export default {
     },
     submitEdit: function(channel) {
       let position = [channel.gbLongitude, channel.gbLatitude]
-      if (this.$refs.mapComponent.getCurrentCoordinateSystem() === 'GCJ02') {
-        let wgs84Position = gcoord.transform(position, gcoord.GCJ02, gcoord.WGS84)
-        channel.gbLongitude = wgs84Position[0]
-        channel.gbLatitude = wgs84Position[1]
-      }
       this.$store.dispatch('commonChanel/update', channel)
         .then(data => {
           this.$message.success({

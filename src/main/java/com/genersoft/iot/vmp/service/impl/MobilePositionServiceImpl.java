@@ -4,11 +4,11 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
-import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
+import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
+import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,11 +88,6 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         return mobilePositionMapper.queryLatestPositionByDevice(deviceId);
     }
 
-    @Override
-    public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
-        channelMapper.updateStreamGPS(gpsMsgInfoList);
-    }
-
     @Scheduled(fixedDelay = 1000)
     @Transactional
     public void executeTaskQueue() {
@@ -114,6 +109,11 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             deviceChannel.setLatitude(mobilePosition.getLatitude());
             deviceChannel.setGpsTime(mobilePosition.getTime());
             deviceChannel.setUpdateTime(DateUtil.getNow());
+            if (mobilePosition.getLongitude() > 0 || mobilePosition.getLatitude() > 0) {
+                Double[] wgs84Position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+                deviceChannel.setGbLongitude(wgs84Position[0]);
+                deviceChannel.setGbLatitude(wgs84Position[1]);
+            }
             updateChannelMap.put(mobilePosition.getDeviceId() + mobilePosition.getChannelId(), deviceChannel);
         }
         List<DeviceChannel> channels = new ArrayList<>(updateChannelMap.values());

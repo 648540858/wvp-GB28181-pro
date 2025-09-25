@@ -43,7 +43,7 @@ public class MapServiceImplForSy implements IMapService {
         }
 
         // 卫星地图
-        MapConfig mapConfigForSatellited = readConfig("FRAGMENTIMG_SERVER", configObject);
+        MapConfig mapConfigForSatellited = readConfig("SATELLITE_FRAGMENTIMG_SERVER", configObject);
         if (mapConfigForSatellited != null) {
             mapConfigForSatellited.setName("卫星地图");
             configList.add(mapConfigForSatellited);

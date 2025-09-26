@@ -204,7 +204,6 @@
           </el-select>
         </el-form-item>
         <el-form-item >
-          <el-checkbox v-model="form.enablePtzForBool" >云台控制(非标属性)</el-checkbox>
           <el-checkbox v-model="form.enableBroadcastForBool" >语音对讲(非标属性)</el-checkbox>
         </el-form-item>
 
@@ -259,7 +258,6 @@ export default {
       if (this.form.gbDownloadSpeedArray) {
         this.form.gbDownloadSpeed = this.form.gbDownloadSpeedArray.join('/')
       }
-      this.form.enablePtz = this.form.enablePtzForBool ? 1 : 0
       this.form.enableBroadcast = this.form.enableBroadcastForBool ? 1 : 0
       if (this.form.gbId) {
         this.$store.dispatch('commonChanel/update', this.form)
@@ -328,7 +326,6 @@ export default {
             data.gbDownloadSpeedArray = data.gbDownloadSpeed.split('/')
           }
           this.form = data
-          this.$set(this.form, 'enablePtzForBool', this.form.enablePtz === 1)
           this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
         })
         .finally(() => {

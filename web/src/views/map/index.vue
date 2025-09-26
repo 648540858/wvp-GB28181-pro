@@ -4,7 +4,7 @@
         <DeviceTree ref="deviceTree" @clickEvent="treeChannelClickEvent" :showPosition="true" :contextmenu="getContextmenu()"/>
         <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer"></MapComponent>
       </div>
-      <div class="map-tool-box">
+      <div class="map-tool-box-bottom-right">
         <div class="map-tool-btn-group">
           <el-dropdown placement="top"  @command="changeMapTile">
             <div class="el-dropdown-link map-tool-btn">
@@ -29,7 +29,29 @@
             <i class="iconfont icon-minus1"></i>
           </div>
         </div>
-
+      </div>
+      <div class="map-tool-box-top-left">
+        <div class="map-tool-btn-group">
+          <div class="map-tool-btn" title="图层抽稀">
+            <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
+          </div>
+<!--          <div class="map-tool-btn" title="位置编辑">-->
+<!--            <i class="el-icon-edit"></i> <span>位置编辑</span>-->
+<!--          </div>-->
+        </div>
+      </div>
+      <div class="map-tool-box-top-right">
+        <div class="map-tool-btn-group">
+          <div class="map-tool-btn" title="抽稀">
+            <i class="iconfont icon-mti-sandian"></i>
+          </div>
+          <div class="map-tool-btn" title="聚合">
+            <i class="iconfont icon-mti-jutai"></i>
+          </div>
+          <div class="map-tool-btn" title="默认">
+            <i class="iconfont icon-mti-jutai"></i>
+          </div>
+        </div>
       </div>
       <div ref="infobox">
         <transition name="el-zoom-in-center">
@@ -370,10 +392,20 @@ export default {
 </script>
 
 <style>
-.map-tool-box {
+.map-tool-box-bottom-right {
   position: absolute;
   right: 20px;
   bottom: 20px;
+}
+.map-tool-box-top-right {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+.map-tool-box-top-left {
+  position: absolute;
+  left: 380px;
+  top: 20px;
 }
 .map-tool-btn-group {
   background-color: #FFFFFF;
@@ -382,9 +414,23 @@ export default {
   box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
   margin-bottom: 10px;
 }
+.map-tool-box-top-left .map-tool-btn-group {
+  display: flex;
+}
+.map-tool-box-top-right .map-tool-btn-group {
+  display: flex;
+}
+.map-tool-box-top-left .map-tool-btn {
+  padding: 0 10px;
+}
+.map-tool-box-top-right .map-tool-btn {
+  padding: 0 10px;
+}
 .map-tool-btn {
   border-bottom: 1px #dfdfdf solid;
-  width: 33px;
+  border-right: 1px #dfdfdf solid;
+  width: fit-content;
+  min-width: 33px;
   height: 36px;
   cursor: pointer;
   text-align: center;
@@ -396,6 +442,7 @@ export default {
 }
 .map-tool-btn-group:last-child {
   border-bottom: none;
+  border-right: none;
 }
 
 .infobox-content{

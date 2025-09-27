@@ -34,6 +34,11 @@ public class RedisMsgListenConfig {
 	@Autowired
 	private RedisPushStreamListMsgListener pushStreamListMsgListener;
 
+	@Autowired
+	private RedisGroupMsgListener groupMsgListener;
+
+	@Autowired
+	private RedisGroupChangeListener groupChangeListener;
 
 	@Autowired
 	private RedisCloseStreamMsgListener redisCloseStreamMsgListener;
@@ -64,6 +69,8 @@ public class RedisMsgListenConfig {
 		container.addMessageListener(redisCloseStreamMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE));
 		container.addMessageListener(redisRpcConfig, new PatternTopic(RedisRpcConfig.REDIS_REQUEST_CHANNEL_KEY));
 		container.addMessageListener(redisPushStreamCloseResponseListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_RESPONSE));
+		container.addMessageListener(groupMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_GROUP_LIST_RESPONSE));
+		container.addMessageListener(groupChangeListener, new PatternTopic(VideoManagerConstants.VM_MSG_GROUP_LIST_CHANGE));
         return container;
     }
 }

@@ -87,9 +87,15 @@ BEGIN
 
     IF NOT EXISTS (SELECT column_name FROM information_schema.columns
                        WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'map_level')
-        THEN
-            ALTER TABLE wvp_device_channel ADD map_level integer default 0;
-        END IF;
+    THEN
+        ALTER TABLE wvp_device_channel ADD map_level integer default 0;
+    END IF;
+
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                       WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_common_group' and column_name = 'alias')
+    THEN
+        ALTER TABLE wvp_common_group ADD alias varchar(255) default null;
+    END IF;
 END; //
 call wvp_20250924();
 DROP PROCEDURE wvp_20250924;

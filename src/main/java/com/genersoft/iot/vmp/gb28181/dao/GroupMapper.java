@@ -286,4 +286,7 @@ public interface GroupMapper {
 
     @Delete("DELETE FROM wvp_platform_group WHERE group_id = #{groupId}")
     void deletePlatformGroup(@Param("groupId") int groupId);
+
+    @Select("SELECT * from wvp_common_group WHERE alias = #{alias} ")
+    Group queryGroupByAlias(@Param("alias") String alias);
 }

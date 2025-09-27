@@ -209,4 +209,14 @@ public class UserSetting {
      */
     private boolean disableDateHeader = false;
 
+    /**
+     * 同步业务分组时自动生成分组国标编号的模板，不配置则默认参考当前的sip域信息生成
+     */
+    private String groupSyncDeviceTemplate;
+
+    /**
+     * 与第三方进行分组同步时使用别名而不是分组ID， 如果没有设置此项为true，那么分组编号就是必须传递的。如果是设置为true则，自动为别名的分组生成新的编号
+     */
+    private boolean useAliasForGroupSync = false;
+
 }

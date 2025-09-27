@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.alibaba.fastjson2.JSON;
 import lombok.Data;
 
 @Data
@@ -36,13 +35,33 @@ public class RedisGroupMessage {
      */
     private String parentGAlias;
 
+    /**
+     * 分组所属业务分组国标ID
+     */
+    private String topGroupGbId;
 
-    public static void main(String[] args) {
-        RedisGroupMessage redisGroupMessage = new RedisGroupMessage();
-        redisGroupMessage.setGroupAlias("100000001");
-        redisGroupMessage.setGroupName("消防大队");
-        System.out.println(JSON.toJSONString(redisGroupMessage));
+    /**
+     * 分组所属业务分组别名
+     */
+    private String topGroupGAlias;
+
+    /**
+     * 分组变化消息中的消息类型，取值为 add update delete
+     */
+    private String messageType;
+
+
+    @Override
+    public String toString() {
+        return "RedisGroupMessage{" +
+                "groupGbId='" + groupGbId + '\'' +
+                ", groupAlias='" + groupAlias + '\'' +
+                ", groupName='" + groupName + '\'' +
+                ", groupCivilCode='" + groupCivilCode + '\'' +
+                ", parentGroupGbId='" + parentGroupGbId + '\'' +
+                ", parentGAlias='" + parentGAlias + '\'' +
+                ", topGroupGbId='" + topGroupGbId + '\'' +
+                ", topGroupGAlias='" + topGroupGAlias + '\'' +
+                '}';
     }
-
-
 }

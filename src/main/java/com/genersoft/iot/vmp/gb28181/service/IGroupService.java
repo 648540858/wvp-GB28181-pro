@@ -17,8 +17,6 @@ public interface IGroupService {
 
     List<GroupTree> queryForTree(String query, Integer parent, Boolean hasChannel);
 
-    void syncFromChannel();
-
     boolean delete(int id);
 
     boolean batchAdd(List<Group> groupList);
@@ -26,4 +24,6 @@ public interface IGroupService {
     List<Group> getPath(String deviceId, String businessGroup);
 
     PageInfo<Group> queryList(Integer page, Integer count, String query);
+
+    Group queryGroupByAlias(String groupAlias);
 }

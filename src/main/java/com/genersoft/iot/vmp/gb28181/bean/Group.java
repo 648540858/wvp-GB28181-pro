@@ -58,11 +58,18 @@ public class Group implements Comparable<Group>{
      */
     @Schema(description = "更新时间")
     private String updateTime;
+
     /**
      * 行政区划
      */
     @Schema(description = "行政区划")
     private String civilCode;
+
+    /**
+     * 别名
+     */
+    @Schema(description = "别名， 此别名为唯一值，可以对接第三方是存储对方的ID")
+    private String alias;
 
     public static Group getInstance(DeviceChannel channel) {
         GbCode gbCode = GbCode.decode(channel.getDeviceId());

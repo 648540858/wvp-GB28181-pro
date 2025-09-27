@@ -432,6 +432,7 @@ create table IF NOT EXISTS wvp_common_group
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
     civil_code       varchar(50) default null,
+    alias            varchar(255) default null,
     constraint uk_common_group_device_platform unique (device_id)
 );
 

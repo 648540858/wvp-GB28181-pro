@@ -187,11 +187,6 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
-    public void syncFromChannel() {
-
-    }
-
-    @Override
     @Transactional
     public boolean delete(int id) {
         Group group = groupManager.queryOne(id);
@@ -306,5 +301,10 @@ public class GroupServiceImpl implements IGroupService {
         }
         List<Group> all = groupManager.query(query, null, null);
         return new PageInfo<>(all);
+    }
+
+    @Override
+    public Group queryGroupByAlias(String groupAlias) {
+        return groupManager.queryGroupByAlias(groupAlias);
     }
 }

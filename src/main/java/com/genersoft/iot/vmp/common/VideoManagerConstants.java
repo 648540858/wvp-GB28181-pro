@@ -85,6 +85,11 @@ public class VideoManagerConstants {
      */
     public static final String VM_MSG_GROUP_LIST_RESPONSE = "VM_MSG_GROUP_LIST_RESPONSE";
 
+    /**
+     * 同步三方组织结构回复
+     */
+    public static final String VM_MSG_GROUP_LIST_CHANGE = "VM_MSG_GROUP_LIST_CHANGE";
+
 	/**
 	 * redis 消息通知设备推流到平台
 	 */

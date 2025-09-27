@@ -12,13 +12,13 @@ import java.util.Set;
 @Mapper
 public interface GroupMapper {
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time, civil_code) " +
-            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time, civil_code, alias) " +
+            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode}, #{alias})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(Group group);
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time, civil_code) " +
-            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time, civil_code, alias) " +
+            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode}, #{alias})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int addBusinessGroup(Group group);
 
@@ -27,7 +27,8 @@ public interface GroupMapper {
 
     @Update(" UPDATE wvp_common_group " +
             " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_id=#{parentId}, " +
-            " parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}, civil_code=#{civilCode}" +
+            " parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}, civil_code=#{civilCode}, " +
+            " alias=#{alias}" +
             " WHERE id = #{id}")
     int update(Group group);
 
@@ -55,10 +56,12 @@ public interface GroupMapper {
             " business_group," +
             " create_time," +
             " civil_code," +
+            " alias," +
             " update_time) " +
             " VALUES " +
             " <foreach collection='groupList' index='index' item='item' separator=','> " +
-            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup},#{item.createTime},#{item.civilCode},#{item.updateTime})" +
+            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup}," +
+            "#{item.createTime},#{item.civilCode},#{item.alias},#{item.updateTime})" +
             " </foreach> " +
             " </script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")

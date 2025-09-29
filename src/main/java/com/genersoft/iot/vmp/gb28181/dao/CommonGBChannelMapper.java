@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -603,4 +604,10 @@ public interface CommonGBChannelMapper {
             "</foreach> " +
             "</script>")
     void updateGps(List<CommonGBChannel> commonGBChannels);
+
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListForSy")
+    List<CameraChannel> queryListForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") String order,
+                                       @Param("groupDeviceId") String groupDeviceId, @Param("online") Boolean online, @Param("containMobileDevice") Boolean containMobileDevice);
+
 }

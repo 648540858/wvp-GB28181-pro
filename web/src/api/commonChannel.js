@@ -598,3 +598,14 @@ export function getAllForMap({ query, online, hasRecordPlan, channelType }) {
     }
   })
 }
+export function test() {
+  return request({
+    method: 'get',
+    url: '/api/sy/camera/list/ids',
+    params: {
+      deviceIds: ['a', 'b', 'c'].join(','),
+      geoCoordSys: 'GCJ02',
+      traditional: true
+    }
+  })
+}

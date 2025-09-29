@@ -26,4 +26,5 @@ public interface IGroupService {
     PageInfo<Group> queryList(Integer page, Integer count, String query);
 
     Group queryGroupByAlias(String groupAlias);
+
 }

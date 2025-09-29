@@ -43,10 +43,7 @@ import oshi.software.os.OperatingSystem;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
@@ -369,6 +366,9 @@ public class ServerController {
     @ResponseBody
     @Operation(summary = "获取地图配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MapConfig> getMapConfig() {
+        if (mapService == null) {
+            return Collections.emptyList();
+        }
         return mapService.getConfig();
     }
 }

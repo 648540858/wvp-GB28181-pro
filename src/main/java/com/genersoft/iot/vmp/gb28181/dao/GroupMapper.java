@@ -292,4 +292,7 @@ public interface GroupMapper {
 
     @Select("SELECT * from wvp_common_group WHERE alias = #{alias} ")
     Group queryGroupByAlias(@Param("alias") String alias);
+
+    @Select("SELECT * from wvp_common_group WHERE alias = #{alias} and  business_group = #{businessGroup}")
+    Group queryGroupByAliasAndBusinessGroup(@Param("alias") String alias, @Param("deviceId") String businessGroup);
 }

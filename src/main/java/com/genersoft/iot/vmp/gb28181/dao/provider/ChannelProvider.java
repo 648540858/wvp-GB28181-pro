@@ -484,4 +484,31 @@ public class ChannelProvider {
         sqlBuild.append(" AND wdc.channel_type = 0 ");
         return sqlBuild.toString();
     }
+
+    public String queryListForSy(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where channel_type = 0 ");
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
+            ;
+        }
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+        }
+        if (params.get("containMobileDevice") != null && !(Boolean)params.get("containMobileDevice")) {
+            sqlBuild.append(" AND gb_ptz_type ！= 99");
+        }
+        if (params.get("groupDeviceId") != null) {
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
+        }else {
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
+        }
+
+        return sqlBuild.toString();
+    }
 }

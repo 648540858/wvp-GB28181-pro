@@ -35,9 +35,9 @@
           <div class="map-tool-btn" title="图层抽稀">
             <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
           </div>
-<!--          <div class="map-tool-btn" title="位置编辑">-->
-<!--            <i class="el-icon-edit"></i> <span>位置编辑</span>-->
-<!--          </div>-->
+          <div class="map-tool-btn" title="位置编辑" @click="testArray">
+            <i class="el-icon-edit"></i> <span>位置编辑</span>
+          </div>
         </div>
       </div>
       <div class="map-tool-box-top-right">
@@ -385,6 +385,9 @@ export default {
       if (this.infoBoxId !== null) {
         this.$refs.mapComponent.closeInfoBox(this.infoBoxId)
       }
+    },
+    testArray: function (){
+      this.$store.dispatch('commonChanel/test')
     }
   }
 

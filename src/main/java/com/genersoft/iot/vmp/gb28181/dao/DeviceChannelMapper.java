@@ -248,8 +248,8 @@ public interface DeviceChannelMapper {
             ", status=#{item.status}" +
             ", longitude=#{item.longitude}" +
             ", latitude=#{item.latitude}" +
-            ", gb_longitude=#{gbLongitude}" +
-            ", gb_latitude=#{gbLatitude}" +
+            ", gb_longitude=#{item.gbLongitude}" +
+            ", gb_latitude=#{item.gbLatitude}" +
             ", ptz_type=#{item.ptzType}" +
             ", position_type=#{item.positionType}" +
             ", room_type=#{item.roomType}" +

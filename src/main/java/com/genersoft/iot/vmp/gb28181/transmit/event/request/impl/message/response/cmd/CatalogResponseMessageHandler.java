@@ -159,7 +159,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     channel.setChannelType(2);
                                     groupList.add(group);
                                 }
-                                if (channel.getLongitude() > 0 && channel.getLatitude() > 0) {
+                                if (channel.getLongitude() != null && channel.getLatitude() != null && channel.getLongitude() > 0 && channel.getLatitude() > 0) {
                                     Double[] wgs84Position = Coordtransform.GCJ02ToWGS84(channel.getLongitude(), channel.getLatitude());
                                     channel.setGbLongitude(wgs84Position[0]);
                                     channel.setGbLatitude(wgs84Position[1]);

@@ -610,4 +610,6 @@ public interface CommonGBChannelMapper {
     List<CameraChannel> queryListForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") String order,
                                        @Param("groupDeviceId") String groupDeviceId, @Param("online") Boolean online, @Param("containMobileDevice") Boolean containMobileDevice);
 
+
+    CommonGBChannel queryByDataIdAndDeviceID(Integer deviceDbId, String deviceId);
 }

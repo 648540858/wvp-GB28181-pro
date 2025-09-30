@@ -1,8 +1,14 @@
 package com.genersoft.iot.vmp.web.custom.service;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
+import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -21,6 +27,9 @@ public class CameraChannelService implements CommandLineRunner {
 
     @Autowired
     private CommonGBChannelMapper channelMapper;
+
+    @Autowired
+    private DeviceMapper deviceMapper;
 
     @Autowired
     private GroupMapper groupMapper;
@@ -61,5 +70,35 @@ public class CameraChannelService implements CommandLineRunner {
      */
     private List<CameraChannel> addIconPathForCameraChannelList(List<CameraChannel> channels) {
         return channels;
+    }
+
+    public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
+        CommonGBChannel channel = null;
+        if (deviceCode != null) {
+            Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+            Assert.notNull(device, "设备不存在：" + deviceCode);
+            Integer deviceDbId = device.getId();
+            channel = channelMapper.queryByDataIdAndDeviceID(deviceDbId, deviceId);
+        }else {
+            channel = channelMapper.queryByDeviceId(deviceId);
+        }
+
+        if (deviceDbId != null) {
+            channel.setDeviceCode(deviceCode);
+        }
+        if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
+         && channel.getGbLongitude() > 0 && channel.getGbLatitude() > 0) {
+            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
+                channel.setGbLongitude(position[0]);
+                channel.setGbLatitude(position[1]);
+            }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
+                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                channel.setGbLongitude(position[0]);
+                channel.setGbLatitude(position[1]);
+            }
+        }
+        return channel;
     }
 }

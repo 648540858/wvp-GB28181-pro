@@ -45,7 +45,7 @@ public class CameraChannelController {
                                         @RequestParam(required = false) String query,
                                         @RequestParam(required = false) String sortName,
                                         @RequestParam(required = false) String order,
-                                        @RequestParam(required = false) String groupAlias,
+                                        @RequestParam(required = true) String groupAlias,
                                         @RequestParam(required = false) Boolean status,
                                         @RequestParam(required = false) Boolean containMobileDevice){
         if (ObjectUtils.isEmpty(query)) {
@@ -106,9 +106,9 @@ public class CameraChannelController {
     @Parameter(name = "deviceId", description = "通道编号")
     @Parameter(name = "deviceCode", description = "摄像头设备国标编号, 对于非国标摄像头可以不设置此参数")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
-    public CameraChannel getOne(@RequestParam(required = true) String deviceId,
+    public CameraChannel getOne(@RequestParam(required = true) String deviceId, @RequestParam(required = true) String deviceCode,
                                   @RequestParam(required = false) String geoCoordSys) {
-        return null;
+        return channelService.queryOne(deviceId, deviceCode, geoCoordSys);
     }
 
     @GetMapping(value = "/camera/update")

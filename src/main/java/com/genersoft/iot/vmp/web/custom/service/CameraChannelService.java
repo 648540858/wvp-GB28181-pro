@@ -34,19 +34,12 @@ public class CameraChannelService implements CommandLineRunner {
 
     }
 
-    public PageInfo<CameraChannel> queryList(Integer page, Integer count, String query, String sortName, String order, String groupAlias, String topGroupAlias, Boolean status, Boolean containMobileDevice) {
+    public PageInfo<CameraChannel> queryList(Integer page, Integer count, String query, String sortName, String order, String groupAlias, Boolean status, Boolean containMobileDevice) {
 
         // 构建组织结构信息
-        String groupDeviceId = null;
-        if (topGroupAlias != null && groupAlias != null) {
-            // 根据别名获取分组信息
-            Group businessGroup = groupMapper.queryGroupByAlias(topGroupAlias);
-            Assert.notNull(businessGroup, "域信息未找到");
-
-            Group group = groupMapper.queryGroupByAliasAndBusinessGroup(groupAlias, businessGroup.getDeviceId());
-            Assert.notNull(businessGroup, "获取组织结构失败");
-            groupDeviceId = group.getDeviceId();
-        }
+        Group group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "获取组织结构失败");
+        String groupDeviceId = group.getDeviceId();
 
         // 构建分页
         PageHelper.startPage(page, count);

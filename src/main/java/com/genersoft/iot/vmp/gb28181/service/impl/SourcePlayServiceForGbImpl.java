@@ -40,10 +40,10 @@ public class SourcePlayServiceForGbImpl implements ISourcePlayService {
     }
 
     @Override
-    public void stopPlay(CommonGBChannel channel, String stream) {
+    public void stopPlay(CommonGBChannel channel) {
         // 国标通道
         try {
-            deviceChannelPlayService.stop(InviteSessionType.PLAY, channel, stream);
+            deviceChannelPlayService.stopPlay(InviteSessionType.PLAY, channel);
         }  catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }

@@ -42,7 +42,7 @@ public class SourcePlayServiceForStreamPushImpl implements ISourcePlayService {
     }
 
     @Override
-    public void stopPlay(CommonGBChannel channel, String stream) {
+    public void stopPlay(CommonGBChannel channel) {
         // 推流
         try {
             playService.stop(channel.getDataDeviceId());

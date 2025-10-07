@@ -31,7 +31,7 @@ public class SourcePlayServiceForStreamProxyImpl implements ISourcePlayService {
     }
 
     @Override
-    public void stopPlay(CommonGBChannel channel, String stream) {
+    public void stopPlay(CommonGBChannel channel) {
         // 拉流代理通道
         try {
             playService.stop(channel.getDataDeviceId());

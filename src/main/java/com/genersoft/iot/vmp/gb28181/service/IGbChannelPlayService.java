@@ -21,7 +21,7 @@ public interface IGbChannelPlayService {
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
                   ErrorCallback<StreamInfo> callback);
 
-    void stopPlay(CommonGBChannel channel, String stream);
+    void stopPlay(CommonGBChannel channel);
 
     void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback);
 

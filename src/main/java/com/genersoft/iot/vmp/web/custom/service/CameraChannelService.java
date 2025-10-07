@@ -1,14 +1,23 @@
 package com.genersoft.iot.vmp.web.custom.service;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.Coordtransform;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -18,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
 
@@ -36,6 +46,15 @@ public class CameraChannelService implements CommandLineRunner {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private IGbChannelPlayService channelPlayService;
+
+    @Autowired
+    private IGbChannelControlService channelControlService;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @Override
     public void run(String... args) throws Exception {
@@ -72,7 +91,7 @@ public class CameraChannelService implements CommandLineRunner {
         return channels;
     }
 
-    public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
+    private CommonGBChannel queryChannelByDeviceIdAndDeviceCode(String deviceId, String deviceCode) {
         CommonGBChannel channel = null;
         if (deviceCode != null) {
             Device device = deviceMapper.getDeviceByDeviceId(deviceId);
@@ -82,10 +101,13 @@ public class CameraChannelService implements CommandLineRunner {
         }else {
             channel = channelMapper.queryByDeviceId(deviceId);
         }
+        return channel;
+    }
 
-        if (deviceDbId != null) {
-            channel.setDeviceCode(deviceCode);
-        }
+    public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
+        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        Assert.notNull(channel, "通道不存在");
+
         if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
          && channel.getGbLongitude() > 0 && channel.getGbLatitude() > 0) {
             if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
@@ -99,6 +121,89 @@ public class CameraChannelService implements CommandLineRunner {
                 channel.setGbLatitude(position[1]);
             }
         }
-        return channel;
+        CameraChannel resultChannel = (CameraChannel)channel;
+        if (deviceCode != null) {
+            resultChannel.setDeviceCode(deviceCode);
+        }
+        return resultChannel;
+    }
+
+    /**
+     * 播放通道
+     * @param deviceId 通道编号
+     * @param deviceCode 通道对应的国标设备的编号
+     * @param callback 点播结果的回放
+     */
+    public void play(String deviceId, String deviceCode, ErrorCallback<StreamInfo> callback) {
+        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
+    }
+
+    /**
+     * 停止播放通道
+     * @param deviceId 通道编号
+     * @param deviceCode 通道对应的国标设备的编号
+     */
+    public void stopPlay(String deviceId, String deviceCode) {
+        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopPlay(channel);
+    }
+
+    public void ptz(String deviceId, String deviceCode, String command, Integer speed, ErrorCallback<String> callback) {
+        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        Assert.notNull(channel, "通道不存在");
+
+        if (speed == null) {
+            speed = 50;
+        }else if (speed < 0 || speed > 100) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "panSpeed 为 0-100的数字");
+        }
+
+        FrontEndControlCodeForPTZ controlCode = new FrontEndControlCodeForPTZ();
+        controlCode.setPanSpeed(speed);
+        controlCode.setTiltSpeed(speed);
+        controlCode.setZoomSpeed(speed);
+        switch (command){
+            case "left":
+                controlCode.setPan(0);
+                break;
+            case "right":
+                controlCode.setPan(1);
+                break;
+            case "up":
+                controlCode.setTilt(0);
+                break;
+            case "down":
+                controlCode.setTilt(1);
+                break;
+            case "upleft":
+                controlCode.setPan(0);
+                controlCode.setTilt(0);
+                break;
+            case "upright":
+                controlCode.setTilt(0);
+                controlCode.setPan(1);
+                break;
+            case "downleft":
+                controlCode.setPan(0);
+                controlCode.setTilt(1);
+                break;
+            case "downright":
+                controlCode.setTilt(1);
+                controlCode.setPan(1);
+                break;
+            case "zoomin":
+                controlCode.setZoom(1);
+                break;
+            case "zoomout":
+                controlCode.setZoom(0);
+                break;
+            default:
+                break;
+        }
+
+        channelControlService.ptz(channel, controlCode, callback);
     }
 }

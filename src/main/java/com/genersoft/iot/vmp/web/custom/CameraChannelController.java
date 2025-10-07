@@ -1,6 +1,16 @@
 package com.genersoft.iot.vmp.web.custom;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraStreamContent;
 import com.genersoft.iot.vmp.web.custom.bean.IdsQueryParam;
@@ -11,11 +21,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 @Tag(name  = "第三方接口")
@@ -26,6 +41,9 @@ public class CameraChannelController {
 
     @Autowired
     private CameraChannelService channelService;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @GetMapping(value = "/camera/list/group")
@@ -191,8 +209,42 @@ public class CameraChannelController {
     @Operation(summary = "播放摄像头", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "通道编号")
     @Parameter(name = "deviceCode", description = "摄像头设备国标编号, 对于非国标摄像头可以不设置此参数")
-    public CameraStreamContent play(String deviceId, @RequestParam(required = false) String deviceCode) {
-        return null;
+    public DeferredResult<WVPResult<CameraStreamContent>> play(HttpServletRequest request, String deviceId, @RequestParam(required = false) String deviceCode) {
+
+        log.info("[SY-播放摄像头] API调用，deviceId：{} ，deviceCode：{} ",deviceId, deviceCode);
+        DeferredResult<WVPResult<CameraStreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                WVPResult<CameraStreamContent> wvpResult = WVPResult.success();
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.changeStreamIp(host);
+                    }
+                    if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
+                            && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
+                    }
+                    wvpResult.setData(new CameraStreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+                result.setResult(wvpResult);
+            }else {
+                result.setResult(WVPResult.fail(code, msg));
+            }
+        };
+        channelService.play(deviceId, deviceCode, callback);
+        return result;
     }
 
     @GetMapping(value = "/camera/control/stop")
@@ -201,6 +253,8 @@ public class CameraChannelController {
     @Parameter(name = "deviceId", description = "通道编号")
     @Parameter(name = "deviceCode", description = "摄像头设备国标编号, 对于非国标摄像头可以不设置此参数")
     public void stopPlay(String deviceId, @RequestParam(required = false) String deviceCode) {
+        log.info("[SY-停止播放摄像头] API调用，deviceId：{} ，deviceCode：{} ",deviceId, deviceCode);
+        channelService.stopPlay(deviceId, deviceCode);
     }
 
     @Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -209,8 +263,25 @@ public class CameraChannelController {
     @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", required = true)
     @Parameter(name = "speed", description = "速度(0-100)", required = true)
     @GetMapping("/camera/control/ptz")
-    public void ptz(String deviceId, @RequestParam(required = false) String deviceCode, String command, Integer speed){
+    public DeferredResult<WVPResult<String>> ptz(String deviceId, @RequestParam(required = false) String deviceCode, String command, Integer speed){
 
+        log.info("[SY-云台控制] API调用，deviceId：{} ，deviceCode：{} ，command：{} ，speed：{} ",deviceId, deviceCode, command, speed);
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+
+        result.onTimeout(()->{
+            WVPResult<String> wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "请求超时");
+            result.setResult(wvpResult);
+        });
+
+        channelService.ptz(deviceId, deviceCode, command, speed, (code, msg, data) -> {
+            WVPResult<String> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            wvpResult.setData(data);
+            result.setResult(wvpResult);
+        });
+        return result;
 
     }
 

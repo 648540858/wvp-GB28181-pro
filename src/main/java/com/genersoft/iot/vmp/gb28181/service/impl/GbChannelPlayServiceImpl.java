@@ -70,7 +70,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     public void stopInvite(InviteSessionType type, CommonGBChannel channel, String stream) {
         switch (type) {
             case PLAY:
-                stopPlay(channel, stream);
+                stopPlay(channel);
                 break;
             case PLAYBACK:
                 stopPlayback(channel, stream);
@@ -135,7 +135,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void stopPlay(CommonGBChannel channel, String stream) {
+    public void stopPlay(CommonGBChannel channel) {
         Integer dataType = channel.getDataType();
         ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
         if (sourceChannelPlayService == null) {
@@ -143,7 +143,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             log.error("[点播通用通道] 类型编号： {} 不支持停止实时流", dataType);
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
-        sourceChannelPlayService.stopPlay(channel, stream);
+        sourceChannelPlayService.stopPlay(channel);
     }
 
     @Override

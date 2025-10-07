@@ -12,6 +12,6 @@ public interface ISourcePlayService {
 
     void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void stopPlay(CommonGBChannel channel, String stream);
+    void stopPlay(CommonGBChannel channel);
 
 }

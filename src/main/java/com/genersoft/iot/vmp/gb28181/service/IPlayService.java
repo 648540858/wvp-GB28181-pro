@@ -72,6 +72,8 @@ public interface IPlayService {
 
     void play(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
+    void stopPlay(InviteSessionType inviteSessionType, CommonGBChannel channel);
+
     void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream);
 
     void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);

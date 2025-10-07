@@ -612,4 +612,5 @@ public interface CommonGBChannelMapper {
 
 
     CommonGBChannel queryByDataIdAndDeviceID(Integer deviceDbId, String deviceId);
+
 }

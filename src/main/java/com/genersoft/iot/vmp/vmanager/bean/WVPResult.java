@@ -2,7 +2,11 @@ package com.genersoft.iot.vmp.vmanager.bean;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "统一返回结果")
 public class WVPResult<T> implements Cloneable{
 
@@ -28,7 +32,7 @@ public class WVPResult<T> implements Cloneable{
         return new WVPResult<>(ErrorCode.SUCCESS.getCode(), msg, t);
     }
 
-    public static WVPResult success() {
+    public static <T> WVPResult<T> success() {
         return new WVPResult<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
     }
 
@@ -42,30 +46,6 @@ public class WVPResult<T> implements Cloneable{
 
     public static <T> WVPResult<T> fail(ErrorCode errorCode) {
         return fail(errorCode.getCode(), errorCode.getMsg());
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
     }
 
     @Override

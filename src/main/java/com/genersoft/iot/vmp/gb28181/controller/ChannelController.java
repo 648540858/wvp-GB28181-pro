@@ -319,7 +319,7 @@ public class ChannelController {
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
-        channelPlayService.stopPlay(channel, channel.getStreamId());
+        channelPlayService.stopPlay(channel);
     }
 
     @Operation(summary = "录像查询", security = @SecurityRequirement(name = JwtUtils.HEADER))

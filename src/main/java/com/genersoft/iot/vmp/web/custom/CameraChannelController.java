@@ -46,7 +46,7 @@ public class CameraChannelController {
     private UserSetting userSetting;
 
 
-    @GetMapping(value = "/camera/list/group")
+    @GetMapping(value = "/camera/list")
     @ResponseBody
     @Operation(summary = "查询摄像机列表, 只查询当前虚拟组织下的", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页")
@@ -82,7 +82,7 @@ public class CameraChannelController {
         return channelService.queryList(page, count, query, sortName, order, groupAlias, status, containMobileDevice);
     }
 
-    @GetMapping(value = "/camera/list")
+    @GetMapping(value = "/camera/list-with-child")
     @ResponseBody
     @Operation(summary = "查询摄像机列表, 查询当前虚拟组织下以及全部子节点", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页")
@@ -139,17 +139,19 @@ public class CameraChannelController {
     @Parameter(name = "latitude", description = "纬度")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     public CameraChannel updateCamera(String deviceId,
+                                      @RequestParam(required = false) String deviceCode,
                                       @RequestParam(required = false) String name,
                                       @RequestParam(required = false) Double longitude,
-                                      @RequestParam(required = false) Double latitude) {
-        return null;
+                                      @RequestParam(required = false) Double latitude,
+                                      @RequestParam(required = false) String geoCoordSys) {
+        return channelService.updateCamera(deviceId, deviceCode, name, longitude, latitude, geoCoordSys);
     }
 
     @PostMapping(value = "/camera/list/ids")
     @ResponseBody
     @Operation(summary = "根据编号查询多个摄像头信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<CameraChannel> queryListByNos(@RequestBody IdsQueryParam param) {
-        return null;
+        return channelService.queryListByNos(deviceId, deviceCode, name, longitude, latitude, geoCoordSys);;
     }
 
     @GetMapping(value = "/camera/list/box")

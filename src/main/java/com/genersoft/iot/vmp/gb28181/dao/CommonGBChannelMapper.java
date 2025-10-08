@@ -611,6 +611,6 @@ public interface CommonGBChannelMapper {
                                        @Param("groupDeviceId") String groupDeviceId, @Param("online") Boolean online, @Param("containMobileDevice") Boolean containMobileDevice);
 
 
-    CommonGBChannel queryByDataIdAndDeviceID(Integer deviceDbId, String deviceId);
-
+    @SelectProvider(type = ChannelProvider.class, method = "queryGbChannelByChannelDeviceIdAndGbDeviceId")
+    CommonGBChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(String deviceId, String deviceCode);
 }

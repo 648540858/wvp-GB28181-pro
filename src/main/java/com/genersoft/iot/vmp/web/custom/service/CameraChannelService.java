@@ -94,10 +94,10 @@ public class CameraChannelService implements CommandLineRunner {
     private CommonGBChannel queryChannelByDeviceIdAndDeviceCode(String deviceId, String deviceCode) {
         CommonGBChannel channel = null;
         if (deviceCode != null) {
-            Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-            Assert.notNull(device, "设备不存在：" + deviceCode);
-            Integer deviceDbId = device.getId();
-            channel = channelMapper.queryByDataIdAndDeviceID(deviceDbId, deviceId);
+//            Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+//            Assert.notNull(device, "设备不存在：" + deviceCode);
+//            Integer deviceDbId = device.getId();
+            channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         }else {
             channel = channelMapper.queryByDeviceId(deviceId);
         }
@@ -205,5 +205,8 @@ public class CameraChannelService implements CommandLineRunner {
         }
 
         channelControlService.ptz(channel, controlCode, callback);
+    }
+
+    public CameraChannel updateCamera(String deviceId, String deviceCode, String name, Double longitude, Double latitude, String geoCoordSys) {
     }
 }

@@ -90,7 +90,8 @@ public class GroupServiceImpl implements IGroupService {
         groupManager.addBusinessGroup(group);
     }
 
-    private List<Group> queryAllChildren(Integer id) {
+    @Override
+    public List<Group> queryAllChildren(Integer id) {
         List<Group> children = groupManager.getChildren(id);
         if (ObjectUtils.isEmpty(children)) {
             return children;

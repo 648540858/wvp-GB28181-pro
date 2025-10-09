@@ -101,7 +101,7 @@ public class CommonGBChannel {
     @Schema(description = "国标-虚拟组织所属的业务分组ID")
     private String gbBusinessGroupId;
 
-    @Schema(description = "国标-摄像机结构类型,标识摄像机类型: 1-球机; 2-半球; 3-固定枪机; 4-遥控枪机;5-遥控半球;6-多目设备的全景/拼接通道;7-多目设备的分割通道")
+    @Schema(description = "国标-摄像机结构类型,标识摄像机类型: 1-球机; 2-半球; 3-固定枪机; 4-遥控枪机;5-遥控半球;6-多目设备的全景/拼接通道;7-多目设备的分割通道; 99-移动设备（非标）")
     private Integer gbPtzType;
 
     // 2016

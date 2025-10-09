@@ -106,4 +106,12 @@ public class SpringDocConfig {
                 .packagesToScan("com.genersoft.iot.vmp.jt1078.controller")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi publicApi99() {
+        return GroupedOpenApi.builder()
+                .group("99. 第三方接口")
+                .packagesToScan("com.genersoft.iot.vmp.web.custom")
+                .build();
+    }
 }

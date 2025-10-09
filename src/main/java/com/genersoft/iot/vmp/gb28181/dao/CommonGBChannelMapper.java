@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
+import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -607,10 +608,15 @@ public interface CommonGBChannelMapper {
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListForSy")
-    List<CameraChannel> queryListForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") String order,
-                                       @Param("groupDeviceId") String groupDeviceId, @Param("online") Boolean online, @Param("containMobileDevice") Boolean containMobileDevice);
+    List<CameraChannel> queryListForSy(@Param("groupDeviceId") String groupDeviceId, @Param("online") Boolean online);
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryGbChannelByChannelDeviceIdAndGbDeviceId")
-    CommonGBChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(String deviceId, String deviceCode);
+    CommonGBChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(@Param("channelDeviceId") String channelDeviceId, @Param("gbDeviceId") String gbDeviceId);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByDeviceIds")
+    List<CameraChannel> queryListByDeviceIds(List<String> deviceIds);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListWithChildForSy")
+    List<CameraChannel> queryListWithChildForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") String order, @Param("groupList") List<CameraGroup> groupList, @Param("status") Boolean status);
 }

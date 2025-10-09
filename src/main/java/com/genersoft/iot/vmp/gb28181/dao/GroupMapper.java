@@ -4,9 +4,11 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Mapper
@@ -119,6 +121,9 @@ public interface GroupMapper {
 
     @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup} ")
     List<Group> queryByBusinessGroup(@Param("businessGroup") String businessGroup);
+
+    @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup} ")
+    Map<Integer, CameraGroup> queryByBusinessGroupForMap(@Param("businessGroup") String businessGroup);
 
     @Delete("DELETE FROM wvp_common_group WHERE business_group = #{businessGroup}")
     int deleteByBusinessGroup(@Param("businessGroup") String businessGroup);
@@ -291,7 +296,7 @@ public interface GroupMapper {
     void deletePlatformGroup(@Param("groupId") int groupId);
 
     @Select("SELECT * from wvp_common_group WHERE alias = #{alias} ")
-    Group queryGroupByAlias(@Param("alias") String alias);
+    CameraGroup queryGroupByAlias(@Param("alias") String alias);
 
     @Select("SELECT * from wvp_common_group WHERE alias = #{alias} and  business_group = #{businessGroup}")
     Group queryGroupByAliasAndBusinessGroup(@Param("alias") String alias, @Param("deviceId") String businessGroup);

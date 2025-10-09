@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.dao.provider;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 
 import java.util.Collection;
 import java.util.List;
@@ -194,7 +195,7 @@ public class ChannelProvider {
                     "    coalesce(wdc.gb_svc_space_support_mod,  wdc.svc_space_support_mod) as gb_svc_space_support_mod,\n" +
                     "    coalesce(wdc.gb_svc_time_support_mode,  wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
                     " from wvp_device_channel wdc\n" +
-                    " left join wvp_device wd on wdc.data_type = 1 wd.id = wdc.data_device_id"
+                    " left join wvp_device wd on wdc.data_type = 1 AND wd.id = wdc.data_device_id"
             ;
 
     public String queryByDeviceId(Map<String, Object> params ){
@@ -536,55 +537,88 @@ public class ChannelProvider {
 
     public String queryListForSy(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(BASE_SQL);
-        sqlBuild.append(" where channel_type = 0 ");
-        if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
-                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
-            ;
-        }
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
         if (params.get("online") != null && (Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
         }
         if (params.get("online") != null && !(Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
-        if (params.get("containMobileDevice") != null && !(Boolean)params.get("containMobileDevice")) {
-            sqlBuild.append(" AND gb_ptz_type ！= 99");
+
+        return sqlBuild.toString();
+    }
+
+    public String queryListWithChildForSy(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) " +
+                "AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId} " +
+                "AND coalesce(gb_parent_id, parent_id) in (");
+
+        sqlBuild.append(" ");
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        boolean first = true;
+        for (CameraGroup group : groupList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(group.getId());
+            first = false;
         }
-        if (params.get("groupDeviceId") != null) {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
-        }else {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
+        sqlBuild.append(" )");
+
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(wdc.gb_device_id, wdc.device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(wdc.gb_name, wdc.name) LIKE concat('%',#{query},'%') escape '/' )")
+            ;
         }
 
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+        }
+
+
+        if (params.get("sortName") != null) {
+            if (params.get("order") == null) {
+                sqlBuild.append(" order by #{sortName} ");
+            }else {
+                sqlBuild.append(" order by #{sortName} #{order}");
+            }
+
+        }
         return sqlBuild.toString();
     }
 
     public String queryGbChannelByChannelDeviceIdAndGbDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where channel_type = 0 ");
-        if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
-                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
-            ;
+        sqlBuild.append(" where coalesce(wdc.gb_device_id, wdc.device_id) = #{channelDeviceId}");
+        if (params.get("gbDeviceId") != null) {
+            sqlBuild.append(" AND wdc.data_type = 1 and wd.device_id = #{gbDeviceId}");
         }
-        if (params.get("online") != null && (Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
-        }
-        if (params.get("online") != null && !(Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
-        }
-        if (params.get("containMobileDevice") != null && !(Boolean)params.get("containMobileDevice")) {
-            sqlBuild.append(" AND gb_ptz_type ！= 99");
-        }
-        if (params.get("groupDeviceId") != null) {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
-        }else {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
-        }
-
         return sqlBuild.toString();
+    }
+
+
+    public String queryListByDeviceIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where coalesce(wdc.gb_device_id,  wdc.device_id) in");
+
+        List<String> deviceIds = (List<String>)params.get("deviceIds");
+        boolean first = true;
+        for (String deviceId : deviceIds) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(deviceId);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
     }
 }

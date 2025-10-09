@@ -2,18 +2,13 @@ package com.genersoft.iot.vmp.web.custom;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraStreamContent;
-import com.genersoft.iot.vmp.web.custom.bean.IdsQueryParam;
 import com.genersoft.iot.vmp.web.custom.bean.PolygonQueryParam;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
 import com.github.pagehelper.PageInfo;
@@ -24,7 +19,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -51,35 +45,17 @@ public class CameraChannelController {
     @Operation(summary = "查询摄像机列表, 只查询当前虚拟组织下的", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
-    @Parameter(name = "query", description = "查询内容")
-    @Parameter(name = "sortName", description = "排序字段名")
-    @Parameter(name = "order", description = "排序方式（升序 asc 或降序 desc ）")
     @Parameter(name = "groupAlias", description = "分组别名")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     @Parameter(name = "status", description = "摄像头状态")
-    @Parameter(name = "containMobileDevice", description = "是否包含移动设备")
-    public PageInfo<CameraChannel> queryListInCurrentGroup(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
-                                        @RequestParam(required = false, value = "page", defaultValue = "100")Integer count,
-                                        @RequestParam(required = false) String query,
-                                        @RequestParam(required = false) String sortName,
-                                        @RequestParam(required = false) String order,
-                                        @RequestParam(required = true) String groupAlias,
-                                        @RequestParam(required = false) Boolean status,
-                                        @RequestParam(required = false) Boolean containMobileDevice){
-        if (ObjectUtils.isEmpty(query)) {
-            query = null;
-        }
-        if (ObjectUtils.isEmpty(sortName)) {
-            sortName = null;
-        }
-        if (ObjectUtils.isEmpty(order)) {
-            order = null;
-        }
-        if (ObjectUtils.isEmpty(groupAlias)) {
-            groupAlias = null;
-        }
+    public PageInfo<CameraChannel> queryList(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
+                                        @RequestParam(required = false, value = "count", defaultValue = "100")Integer count,
+                                        String groupAlias,
+                                        @RequestParam(required = false) String geoCoordSys,
+                                        @RequestParam(required = false) Boolean status){
 
-        return channelService.queryList(page, count, query, sortName, order, groupAlias, status, containMobileDevice);
+
+        return channelService.queryList(page, count, groupAlias, status, geoCoordSys);
     }
 
     @GetMapping(value = "/camera/list-with-child")
@@ -93,15 +69,14 @@ public class CameraChannelController {
     @Parameter(name = "groupAlias", description = "分组别名")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     @Parameter(name = "status", description = "摄像头状态")
-    @Parameter(name = "containMobileDevice", description = "是否包含移动设备")
-    public PageInfo<CameraChannel> list(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
+    public PageInfo<CameraChannel> queryListWithChild(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
                                         @RequestParam(required = false, value = "page", defaultValue = "100")Integer count,
                                         @RequestParam(required = false) String query,
                                         @RequestParam(required = false) String sortName,
                                         @RequestParam(required = false) String order,
-                                        @RequestParam(required = false) String groupAlias,
-                                        @RequestParam(required = false) Boolean status,
-                                        @RequestParam(required = false) Boolean containMobileDevice){
+                                        String groupAlias,
+                                        @RequestParam(required = false) String geoCoordSys,
+                                        @RequestParam(required = false) Boolean status){
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
@@ -115,7 +90,7 @@ public class CameraChannelController {
             groupAlias = null;
         }
 
-        return channelService.queryList(page, count, query, sortName, order, groupAlias, status, containMobileDevice);
+        return channelService.queryListWithChild(page, count, query, sortName, order, groupAlias, status, geoCoordSys);
     }
 
     @GetMapping(value = "/camera/one")
@@ -138,20 +113,20 @@ public class CameraChannelController {
     @Parameter(name = "longitude", description = "经度")
     @Parameter(name = "latitude", description = "纬度")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
-    public CameraChannel updateCamera(String deviceId,
+    public void updateCamera(String deviceId,
                                       @RequestParam(required = false) String deviceCode,
                                       @RequestParam(required = false) String name,
                                       @RequestParam(required = false) Double longitude,
                                       @RequestParam(required = false) Double latitude,
                                       @RequestParam(required = false) String geoCoordSys) {
-        return channelService.updateCamera(deviceId, deviceCode, name, longitude, latitude, geoCoordSys);
+        channelService.updateCamera(deviceId, deviceCode, name, longitude, latitude, geoCoordSys);
     }
 
     @PostMapping(value = "/camera/list/ids")
     @ResponseBody
     @Operation(summary = "根据编号查询多个摄像头信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public List<CameraChannel> queryListByNos(@RequestBody IdsQueryParam param) {
-        return channelService.queryListByNos(deviceId, deviceCode, name, longitude, latitude, geoCoordSys);;
+    public List<CameraChannel> queryListByDeviceIds(@RequestBody List<String> deviceIds) {
+        return channelService.queryListByDeviceIds(deviceIds);
     }
 
     @GetMapping(value = "/camera/list/box")

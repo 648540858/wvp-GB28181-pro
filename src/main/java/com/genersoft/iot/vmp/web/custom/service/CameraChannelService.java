@@ -1,24 +1,24 @@
 package com.genersoft.iot.vmp.web.custom.service;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
+import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.core.util.Assert;
@@ -27,9 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -43,6 +45,9 @@ public class CameraChannelService implements CommandLineRunner {
 
     @Autowired
     private GroupMapper groupMapper;
+
+    @Autowired
+    private IGroupService groupService;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -62,13 +67,31 @@ public class CameraChannelService implements CommandLineRunner {
 
     }
 
-    public PageInfo<CameraChannel> queryList(Integer page, Integer count, String query, String sortName, String order, String groupAlias, Boolean status, Boolean containMobileDevice) {
 
+    public PageInfo<CameraChannel> queryList(Integer page, Integer count, String groupAlias, Boolean status, String geoCoordSys) {
         // 构建组织结构信息
         Group group = groupMapper.queryGroupByAlias(groupAlias);
         Assert.notNull(group, "获取组织结构失败");
         String groupDeviceId = group.getDeviceId();
 
+        // 构建分页
+        PageHelper.startPage(page, count);
+
+        List<CameraChannel> all = channelMapper.queryListForSy(groupDeviceId, status);
+        PageInfo<CameraChannel> groupPageInfo = new PageInfo<>(all);
+        List<CameraChannel> list = addIconPathAndPositionForCameraChannelList(groupPageInfo.getList(), geoCoordSys);
+        groupPageInfo.setList(list);
+        return groupPageInfo;
+    }
+
+    public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, String order, String groupAlias, Boolean status, String geoCoordSys) {
+        // 构建组织结构信息
+        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "获取组织结构失败");
+        String groupDeviceId = group.getDeviceId();
+        // 获取所有子节点
+        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+        groupList.add(group);
         // 构建分页
         PageHelper.startPage(page, count);
         if (query != null) {
@@ -77,35 +100,70 @@ public class CameraChannelService implements CommandLineRunner {
                     .replaceAll("_", "/_");
         }
 
-        List<CameraChannel> all = channelMapper.queryListForSy(query, sortName, order, groupDeviceId, status, containMobileDevice);
+        List<CameraChannel> all = channelMapper.queryListWithChildForSy(query, sortName, order, groupList, status);
         PageInfo<CameraChannel> groupPageInfo = new PageInfo<>(all);
-        List<CameraChannel> list = addIconPathForCameraChannelList(groupPageInfo.getList());
+        List<CameraChannel> list = addIconPathAndPositionForCameraChannelList(groupPageInfo.getList(), geoCoordSys);
         groupPageInfo.setList(list);
         return groupPageInfo;
     }
 
+    // 获取所有子节点
+    private List<CameraGroup> queryAllGroupChildren(int groupId, String businessGroup) {
+        Map<Integer, CameraGroup> groupMap = groupMapper.queryByBusinessGroupForMap(businessGroup);
+        for (CameraGroup cameraGroup : groupMap.values()) {
+            cameraGroup.setParent(groupMap.get(cameraGroup.getParentId()));
+        }
+        CameraGroup cameraGroup = groupMap.get(groupId);
+        if (cameraGroup == null) {
+            return Collections.emptyList();
+        }else {
+            return cameraGroup.getChild();
+        }
+    }
+
     /**
-     * 为通道增加图片信息
+     * 为通道增加图片信息和转换坐标系
      */
-    private List<CameraChannel> addIconPathForCameraChannelList(List<CameraChannel> channels) {
+    private List<CameraChannel> addIconPathAndPositionForCameraChannelList(List<CameraChannel> channels, String geoCoordSys) {
+        // 读取redis 图标信息
+        JSONArray jsonArray = (JSONArray) redisTemplate.opsForValue().get("machineInfo");
+        Map<String, String> pathMap = new HashMap<>();
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String machineType = jsonObject.getString("machineType");
+                String imagesPath = jsonObject.getString("imagesPath");
+                if (machineType != null && imagesPath != null) {
+                    pathMap.put(machineType, imagesPath);
+                }
+            }
+        }else {
+            log.warn("[读取通道图标信息失败]");
+        }
+        for (CameraChannel channel : channels) {
+            if (channel.getGbModel() != null && pathMap.get(channel.getGbModel()) != null) {
+                channel.setIcon(pathMap.get(channel.getGbModel()));
+            }
+            // 坐标系转换
+            if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
+                    && channel.getGbLongitude() > 0 && channel.getGbLatitude() > 0) {
+                if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                    Double[] position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
+                    channel.setGbLongitude(position[0]);
+                    channel.setGbLatitude(position[1]);
+                }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                    Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
+                    Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                    channel.setGbLongitude(position[0]);
+                    channel.setGbLatitude(position[1]);
+                }
+            }
+        }
         return channels;
     }
 
-    private CommonGBChannel queryChannelByDeviceIdAndDeviceCode(String deviceId, String deviceCode) {
-        CommonGBChannel channel = null;
-        if (deviceCode != null) {
-//            Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-//            Assert.notNull(device, "设备不存在：" + deviceCode);
-//            Integer deviceDbId = device.getId();
-            channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        }else {
-            channel = channelMapper.queryByDeviceId(deviceId);
-        }
-        return channel;
-    }
-
     public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
-        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
 
         if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
@@ -135,7 +193,7 @@ public class CameraChannelService implements CommandLineRunner {
      * @param callback 点播结果的回放
      */
     public void play(String deviceId, String deviceCode, ErrorCallback<StreamInfo> callback) {
-        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
         channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
     }
@@ -146,13 +204,13 @@ public class CameraChannelService implements CommandLineRunner {
      * @param deviceCode 通道对应的国标设备的编号
      */
     public void stopPlay(String deviceId, String deviceCode) {
-        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
         channelPlayService.stopPlay(channel);
     }
 
     public void ptz(String deviceId, String deviceCode, String command, Integer speed, ErrorCallback<String> callback) {
-        CommonGBChannel channel = queryChannelByDeviceIdAndDeviceCode(deviceId, deviceCode);
+        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
 
         if (speed == null) {
@@ -207,6 +265,36 @@ public class CameraChannelService implements CommandLineRunner {
         channelControlService.ptz(channel, controlCode, callback);
     }
 
-    public CameraChannel updateCamera(String deviceId, String deviceCode, String name, Double longitude, Double latitude, String geoCoordSys) {
+    public void updateCamera(String deviceId, String deviceCode, String name, Double longitude, Double latitude, String geoCoordSys) {
+        CommonGBChannel commonGBChannel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.notNull(commonGBChannel, "通道不存在");
+        commonGBChannel.setGbName(name);
+        if (geoCoordSys != null && longitude != null && latitude != null
+                && longitude > 0 && latitude > 0) {
+            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] position = Coordtransform.WGS84ToGCJ02(longitude, latitude);
+                commonGBChannel.setGbLongitude(position[0]);
+                commonGBChannel.setGbLatitude(position[1]);
+            }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(longitude, latitude);
+                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                commonGBChannel.setGbLongitude(position[0]);
+                commonGBChannel.setGbLatitude(position[1]);
+            }else {
+                commonGBChannel.setGbLongitude(longitude);
+                commonGBChannel.setGbLatitude(latitude);
+            }
+        }else {
+            commonGBChannel.setGbLongitude(longitude);
+            commonGBChannel.setGbLatitude(latitude);
+        }
+        channelMapper.update(commonGBChannel);
     }
+
+    public List<CameraChannel> queryListByDeviceIds(List<String> deviceIds) {
+        return channelMapper.queryListByDeviceIds(deviceIds);
+    }
+
+
+
 }

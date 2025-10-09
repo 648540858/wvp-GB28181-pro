@@ -11,6 +11,8 @@ public interface IGroupService {
 
     void add(Group group);
 
+    List<Group> queryAllChildren(Integer id);
+
     void update(Group group);
 
     Group queryGroupByDeviceId(String regionDeviceId);

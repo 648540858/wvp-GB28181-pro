@@ -22,6 +22,7 @@ import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.core.util.Assert;
+import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -84,7 +85,7 @@ public class CameraChannelService implements CommandLineRunner {
         return groupPageInfo;
     }
 
-    public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, String order, String groupAlias, Boolean status, String geoCoordSys) {
+    public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, Boolean order, String groupAlias, Boolean status, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
         Assert.notNull(group, "获取组织结构失败");
@@ -99,7 +100,9 @@ public class CameraChannelService implements CommandLineRunner {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-
+        if (order == null) {
+            order = true;
+        }
         List<CameraChannel> all = channelMapper.queryListWithChildForSy(query, sortName, order, groupList, status);
         PageInfo<CameraChannel> groupPageInfo = new PageInfo<>(all);
         List<CameraChannel> list = addIconPathAndPositionForCameraChannelList(groupPageInfo.getList(), geoCoordSys);

@@ -618,5 +618,5 @@ public interface CommonGBChannelMapper {
     List<CameraChannel> queryListByDeviceIds(List<String> deviceIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListWithChildForSy")
-    List<CameraChannel> queryListWithChildForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") String order, @Param("groupList") List<CameraGroup> groupList, @Param("status") Boolean status);
+    List<CameraChannel> queryListWithChildForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") Boolean order, @Param("groupList") List<CameraGroup> groupList, @Param("online") Boolean online);
 }

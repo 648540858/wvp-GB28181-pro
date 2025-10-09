@@ -553,8 +553,7 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
         sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) " +
-                "AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId} " +
-                "AND coalesce(gb_parent_id, parent_id) in (");
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
         List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
@@ -563,7 +562,7 @@ public class ChannelProvider {
             if (!first) {
                 sqlBuild.append(",");
             }
-            sqlBuild.append(group.getId());
+            sqlBuild.append("'" + group.getDeviceId() + "'");
             first = false;
         }
         sqlBuild.append(" )");
@@ -575,22 +574,52 @@ public class ChannelProvider {
         }
 
         if (params.get("online") != null && (Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+            sqlBuild.append(" AND coalesce(wdc.gb_status, status) = 'ON'");
         }
         if (params.get("online") != null && !(Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+            sqlBuild.append(" AND coalesce(wdc.gb_status, status) = 'OFF'");
         }
-
 
         if (params.get("sortName") != null) {
-            if (params.get("order") == null) {
-                sqlBuild.append(" order by #{sortName} ");
-            }else {
-                sqlBuild.append(" order by #{sortName} #{order}");
+            StringBuilder sqlBuildForSort = new StringBuilder();
+            sqlBuildForSort.append("select * from ( ");
+            sqlBuildForSort.append(sqlBuild);
+            sqlBuildForSort.append(" ) as temp");
+            String sortName = (String)params.get("sortName");
+            switch (sortName) {
+                case "gbId":
+                    sqlBuildForSort.append(" order by gb_id ");
+                    break;
+                case "gbDeviceId":
+                    sqlBuildForSort.append(" order by gb_device_id ");
+                    break;
+                case "gbName":
+                    sqlBuildForSort.append(" order by gb_name ");
+                    break;
+                case "gbStatus":
+                    sqlBuildForSort.append(" order by gb_status ");
+                    break;
+                case "createTime":
+                    sqlBuildForSort.append(" order by create_time ");
+                    break;
+                case "updateTime":
+                    sqlBuildForSort.append(" order by update_time ");
+                    break;
+                case "deviceCode":
+                    sqlBuildForSort.append(" order by deviceCode ");
+                    break;
             }
 
+            if (params.get("order") != null && (Boolean)params.get("order")) {
+                sqlBuildForSort.append(" ASC");
+            }
+            if (params.get("order") != null && !(Boolean)params.get("order")) {
+                sqlBuildForSort.append(" DESC");
+            }
+            return sqlBuildForSort.toString();
+        }else {
+            return sqlBuild.toString();
         }
-        return sqlBuild.toString();
     }
 
     public String queryGbChannelByChannelDeviceIdAndGbDeviceId(Map<String, Object> params ){

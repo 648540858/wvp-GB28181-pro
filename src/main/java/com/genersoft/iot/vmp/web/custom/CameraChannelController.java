@@ -65,7 +65,7 @@ public class CameraChannelController {
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "sortName", description = "排序字段名")
-    @Parameter(name = "order", description = "排序方式（升序 asc 或降序 desc ）")
+    @Parameter(name = "order", description = "排序方式（true: 升序 或 false: 降序 ）")
     @Parameter(name = "groupAlias", description = "分组别名")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     @Parameter(name = "status", description = "摄像头状态")
@@ -73,7 +73,7 @@ public class CameraChannelController {
                                         @RequestParam(required = false, value = "page", defaultValue = "100")Integer count,
                                         @RequestParam(required = false) String query,
                                         @RequestParam(required = false) String sortName,
-                                        @RequestParam(required = false) String order,
+                                        @RequestParam(required = false) Boolean order,
                                         String groupAlias,
                                         @RequestParam(required = false) String geoCoordSys,
                                         @RequestParam(required = false) Boolean status){

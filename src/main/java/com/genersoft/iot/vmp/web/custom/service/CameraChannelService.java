@@ -19,6 +19,8 @@ import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
+import com.genersoft.iot.vmp.web.custom.bean.Point;
+import com.genersoft.iot.vmp.web.custom.bean.PolygonQueryParam;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.core.util.Assert;
@@ -166,7 +168,7 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
-        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        CameraChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
 
         if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
@@ -182,11 +184,10 @@ public class CameraChannelService implements CommandLineRunner {
                 channel.setGbLatitude(position[1]);
             }
         }
-        CameraChannel resultChannel = (CameraChannel)channel;
         if (deviceCode != null) {
-            resultChannel.setDeviceCode(deviceCode);
+            channel.setDeviceCode(deviceCode);
         }
-        return resultChannel;
+        return channel;
     }
 
     /**
@@ -294,10 +295,103 @@ public class CameraChannelService implements CommandLineRunner {
         channelMapper.update(commonGBChannel);
     }
 
-    public List<CameraChannel> queryListByDeviceIds(List<String> deviceIds) {
-        return channelMapper.queryListByDeviceIds(deviceIds);
+    public List<CameraChannel> queryListByDeviceIds(List<String> deviceIds, String geoCoordSys) {
+        List<CameraChannel> cameraChannels = channelMapper.queryListByDeviceIds(deviceIds);
+        return addIconPathAndPositionForCameraChannelList(cameraChannels, geoCoordSys);
+    }
+
+    public List<CameraChannel> queryListByAddressAndDirectionType(String address, Integer directionType, String geoCoordSys) {
+        List<CameraChannel> cameraChannels = channelMapper.queryListByAddressAndDirectionType(address, directionType);
+        return addIconPathAndPositionForCameraChannelList(cameraChannels, geoCoordSys);
     }
 
 
+    public List<CameraChannel> queryListInBox(Double minLongitude, Double maxLongitude, Double minLatitude, Double maxLatitude, Integer level, String groupAlias, String geoCoordSys) {
+        // 构建组织结构信息
+        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "获取组织结构失败");
+        // 获取所有子节点
+        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+        groupList.add(group);
+        // 参数坐标系列转换
+        if (geoCoordSys != null) {
+            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] minPosition = Coordtransform.WGS84ToGCJ02(minLongitude, minLatitude);
+                minLongitude = minPosition[0];
+                minLatitude = minPosition[1];
 
+                Double[] maxPosition = Coordtransform.WGS84ToGCJ02(maxLongitude, maxLatitude);
+                maxLongitude = maxPosition[0];
+                maxLatitude = maxPosition[1];
+            }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                Double[] gcj02MinPosition = Coordtransform.WGS84ToGCJ02(minLongitude, minLatitude);
+                Double[] minPosition = Coordtransform.GCJ02ToBD09(gcj02MinPosition[0], gcj02MinPosition[1]);
+                minLongitude = minPosition[0];
+                minLatitude = minPosition[1];
+
+                Double[] gcj02MaxPosition = Coordtransform.WGS84ToGCJ02(maxLongitude, maxLatitude);
+                Double[] maxPosition = Coordtransform.GCJ02ToBD09(gcj02MaxPosition[0], gcj02MaxPosition[1]);
+                maxLongitude = maxPosition[0];
+                maxLatitude = maxPosition[1];
+            }
+        }
+
+        List<CameraChannel> all = channelMapper.queryListInBox(minLongitude, maxLongitude, minLatitude, maxLatitude, level, groupList);
+        return addIconPathAndPositionForCameraChannelList(all, geoCoordSys);
+    }
+
+    public List<CameraChannel> queryListInCircle(Double centerLongitude, Double centerLatitude, Double radius, Integer level, String groupAlias, String geoCoordSys) {
+        // 构建组织结构信息
+        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "获取组织结构失败");
+        // 获取所有子节点
+        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+        groupList.add(group);
+
+        // 参数坐标系列转换
+        if (geoCoordSys != null) {
+            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] position = Coordtransform.WGS84ToGCJ02(centerLongitude, centerLatitude);
+                centerLongitude = position[0];
+                centerLatitude = position[1];
+
+            }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(centerLongitude, centerLatitude);
+                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                centerLongitude = position[0];
+                centerLatitude = position[1];
+            }
+        }
+
+        List<CameraChannel> all = channelMapper.queryListInCircle(centerLongitude, centerLatitude, radius, level, groupList);
+        return addIconPathAndPositionForCameraChannelList(all, geoCoordSys);
+    }
+
+    public List<CameraChannel> queryListInPolygon(List<Point> pointList, String groupAlias, Integer level, String geoCoordSys) {
+        // 构建组织结构信息
+        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "获取组织结构失败");
+        // 获取所有子节点
+        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+        groupList.add(group);
+
+        // 参数坐标系列转换
+        if (geoCoordSys != null) {
+            for (Point point : pointList) {
+                if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                    Double[] position = Coordtransform.WGS84ToGCJ02(point.getLng(), point.getLat());
+                    point.setLng(position[0]);
+                    point.setLat(position[1]);
+                }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
+                    Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(point.getLng(), point.getLat());
+                    Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                    point.setLng(position[0]);
+                    point.setLat(position[1]);
+                }
+            }
+        }
+
+        List<CameraChannel> all = channelMapper.queryListInPolygon(pointList, level, groupList);
+        return addIconPathAndPositionForCameraChannelList(all, geoCoordSys);
+    }
 }

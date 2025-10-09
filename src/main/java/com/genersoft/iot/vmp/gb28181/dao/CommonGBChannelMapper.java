@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
+import com.genersoft.iot.vmp.web.custom.bean.Point;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -612,11 +613,32 @@ public interface CommonGBChannelMapper {
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryGbChannelByChannelDeviceIdAndGbDeviceId")
-    CommonGBChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(@Param("channelDeviceId") String channelDeviceId, @Param("gbDeviceId") String gbDeviceId);
+    CameraChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(@Param("channelDeviceId") String channelDeviceId, @Param("gbDeviceId") String gbDeviceId);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByDeviceIds")
     List<CameraChannel> queryListByDeviceIds(List<String> deviceIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListWithChildForSy")
     List<CameraChannel> queryListWithChildForSy(@Param("query") String query, @Param("sortName") String sortName, @Param("order") Boolean order, @Param("groupList") List<CameraGroup> groupList, @Param("online") Boolean online);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByAddressAndDirectionType")
+    List<CameraChannel> queryListByAddressAndDirectionType(@Param("address") String address, @Param("directionType") Integer directionType);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInBox")
+    List<CameraChannel> queryListInBox(@Param("minLongitude") Double minLongitude, @Param("maxLongitude") Double maxLongitude,
+                                       @Param("minLatitude") Double minLatitude, @Param("maxLatitude") Double maxLatitude,
+                                       @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForMysql", databaseId = "mysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForH2", databaseId = "h2")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForKingBase", databaseId = "kingbase")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForPostgresql", databaseId = "postgresql")
+    List<CameraChannel> queryListInCircle(Double centerLongitude, Double centerLatitude, Double radius, Integer level, List<CameraGroup> groupList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForMysql", databaseId = "mysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForH2", databaseId = "h2")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "kingbase")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForPostgresql", databaseId = "postgresql")
+    List<CameraChannel> queryListInPolygon(@Param("pointList") List<Point> pointList, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
+
 }

@@ -10,7 +10,7 @@ import java.util.List;
 public class IdsQueryParam {
 
     @Schema(description = "通道编号列表")
-    private List<ChannelParam> deviceIds;
+    private List<String> deviceIds;
 
     @Schema(description = "坐标系类型：WGS84,GCJ02、BD09")
     private String geoCoordSys;

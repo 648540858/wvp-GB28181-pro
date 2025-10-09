@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraStreamContent;
+import com.genersoft.iot.vmp.web.custom.bean.IdsQueryParam;
 import com.genersoft.iot.vmp.web.custom.bean.PolygonQueryParam;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
 import com.github.pagehelper.PageInfo;
@@ -99,7 +100,7 @@ public class CameraChannelController {
     @Parameter(name = "deviceId", description = "通道编号")
     @Parameter(name = "deviceCode", description = "摄像头设备国标编号, 对于非国标摄像头可以不设置此参数")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
-    public CameraChannel getOne(@RequestParam(required = true) String deviceId, @RequestParam(required = true) String deviceCode,
+    public CameraChannel getOne(String deviceId, @RequestParam(required = false) String deviceCode,
                                   @RequestParam(required = false) String geoCoordSys) {
         return channelService.queryOne(deviceId, deviceCode, geoCoordSys);
     }
@@ -125,8 +126,8 @@ public class CameraChannelController {
     @PostMapping(value = "/camera/list/ids")
     @ResponseBody
     @Operation(summary = "根据编号查询多个摄像头信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public List<CameraChannel> queryListByDeviceIds(@RequestBody List<String> deviceIds) {
-        return channelService.queryListByDeviceIds(deviceIds);
+    public List<CameraChannel> queryListByDeviceIds(@RequestBody IdsQueryParam param) {
+        return channelService.queryListByDeviceIds(param.getDeviceIds(), param.getGeoCoordSys());
     }
 
     @GetMapping(value = "/camera/list/box")
@@ -144,18 +145,14 @@ public class CameraChannelController {
                                               @RequestParam(required = false) Integer level,
                                               String groupAlias,
                                               @RequestParam(required = false) String geoCoordSys) {
-        return null;
+        return channelService.queryListInBox(minLongitude, maxLongitude, minLatitude, maxLatitude, level, groupAlias, geoCoordSys);
     }
 
-    @GetMapping(value = "/camera/list/polygon")
+    @PostMapping(value = "/camera/list/polygon")
     @ResponseBody
     @Operation(summary = "根据多边形查询摄像头", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "position", description = "多边形位置，格式： [{'lng':116.32, 'lat': 39: 39.2}, {'lng':115.32, 'lat': 39: 38.2}, {'lng':125.32, 'lat': 39: 38.2}]")
-    @Parameter(name = "level", description = "地图级别")
-    @Parameter(name = "groupAlias", description = "分组别名")
-    @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     public List<CameraChannel> queryListInPolygon(@RequestBody PolygonQueryParam param) {
-        return null;
+        return channelService.queryListInPolygon(param.getPosition(), param.getGroupAlias(), param.getLevel(), param.getGeoCoordSys());
     }
 
     @GetMapping(value = "/camera/list/circle")
@@ -164,11 +161,12 @@ public class CameraChannelController {
     @Parameter(name = "centerLongitude", description = "圆心经度")
     @Parameter(name = "centerLatitude", description = "圆心纬度")
     @Parameter(name = "radius", description = "查询范围的半径，单位米")
+    @Parameter(name = "level", description = "地图级别")
     @Parameter(name = "groupAlias", description = "分组别名")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     public List<CameraChannel> queryListInCircle(Double centerLongitude, Double centerLatitude, Double radius, String groupAlias,
-                                                 String geoCoordSys) {
-        return null;
+                                                 @RequestParam(required = false) String geoCoordSys, @RequestParam(required = false) Integer level) {
+        return channelService.queryListInCircle(centerLongitude, centerLatitude, radius, level, groupAlias, geoCoordSys);
     }
 
     @GetMapping(value = "/camera/list/address")
@@ -177,8 +175,8 @@ public class CameraChannelController {
     @Parameter(name = "address", description = "安装地址")
     @Parameter(name = "directionType", description = "监视方位")
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
-    public List<CameraChannel> queryListByAddressAndDirectionType(String address, Integer directionType, String geoCoordSys) {
-        return null;
+    public List<CameraChannel> queryListByAddressAndDirectionType(String address, Integer directionType, @RequestParam(required = false) String geoCoordSys) {
+        return channelService.queryListByAddressAndDirectionType(address, directionType, geoCoordSys);
     }
 
     @GetMapping(value = "/camera/control/play")

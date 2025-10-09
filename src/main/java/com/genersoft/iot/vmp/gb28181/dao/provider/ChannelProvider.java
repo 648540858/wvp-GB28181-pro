@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
+import com.genersoft.iot.vmp.web.custom.bean.Point;
 
 import java.util.Collection;
 import java.util.List;
@@ -622,6 +623,99 @@ public class ChannelProvider {
         }
     }
 
+    public String queryListInBox(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        sqlBuild.append(" ");
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        boolean first = true;
+        for (CameraGroup group : groupList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("'" + group.getDeviceId() + "'");
+            first = false;
+        }
+        sqlBuild.append(" )");
+
+        sqlBuild.append(" AND coalesce(wdc.gb_longitude, wdc.longitude) >= #{minLongitude} AND coalesce(wdc.gb_longitude, wdc.longitude) <= #{maxLongitude}");
+        sqlBuild.append(" AND coalesce(wdc.gb_latitude,  wdc.latitude) >= #{minLatitude} AND coalesce(wdc.gb_latitude,  wdc.latitude) <= #{maxLatitude}");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} || map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
+    public String queryListInCircleForMysql(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        sqlBuild.append(" ");
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        boolean first = true;
+        for (CameraGroup group : groupList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("'" + group.getDeviceId() + "'");
+            first = false;
+        }
+        sqlBuild.append(" )");
+
+        sqlBuild.append(" AND coalesce(wdc.gb_longitude, wdc.longitude) >= #{minLongitude} AND coalesce(wdc.gb_longitude, wdc.longitude) <= #{maxLongitude}");
+        sqlBuild.append(" AND coalesce(wdc.gb_latitude,  wdc.latitude) >= #{minLatitude} AND coalesce(wdc.gb_latitude,  wdc.latitude) <= #{maxLatitude}");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} || map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
+    public String queryListInPolygonForMysql(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        sqlBuild.append(" ");
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        boolean first = true;
+        for (CameraGroup group : groupList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("'" + group.getDeviceId() + "'");
+            first = false;
+        }
+        sqlBuild.append(" )");
+
+        StringBuilder geomTextBuilder = new StringBuilder();
+        geomTextBuilder.append("POLYGON((");
+        List<Point> pointList = (List<Point>)params.get("pointList");
+        for (int i = 0; i < pointList.size(); i++) {
+            if (i > 0) {
+                geomTextBuilder.append(", ");
+            }
+            Point point = pointList.get(i);
+            geomTextBuilder.append(point.getLng()).append(" ").append(point.getLat());
+        }
+        sqlBuild.append("AND ST_Within(point(coalesce(wdc.gb_longitude, wdc.longitude), coalesce(wdc.gb_latitude, wdc.latitude)), ST_GeomFromText('").append(geomTextBuilder).append("))'))");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} || map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
     public String queryGbChannelByChannelDeviceIdAndGbDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
@@ -632,11 +726,18 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    public String queryListByAddressAndDirectionType(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where coalesce(wdc.gb_address, wdc.address) = #{address} and coalesce(wdc.gb_direction_type,  wdc.direction_type) = #{directionType}");
+        return sqlBuild.toString();
+    }
+
 
     public String queryListByDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where coalesce(wdc.gb_device_id,  wdc.device_id) in");
+        sqlBuild.append(" where coalesce(wdc.gb_device_id,  wdc.device_id) in ( ");
 
         List<String> deviceIds = (List<String>)params.get("deviceIds");
         boolean first = true;

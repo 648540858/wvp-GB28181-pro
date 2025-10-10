@@ -5,6 +5,7 @@
 <script>
 import 'ol/ol.css'
 import Map from 'ol/Map'
+import ZoomSlider from 'ol/control/ZoomSlider'
 import OSM from 'ol/source/OSM'
 import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
@@ -17,17 +18,15 @@ import View from 'ol/View'
 import Feature from 'ol/Feature'
 import Overlay from 'ol/Overlay'
 import { Point, LineString } from 'ol/geom'
-import { get as getProj, toLonLat as projToLonLat } from 'ol/proj'
+import { get as getProj } from 'ol/proj'
 import { containsCoordinate } from 'ol/extent'
-import {
-  defaults as defaultInteractions
-} from 'ol/interaction'
+import { defaults as defaultInteractions } from 'ol/interaction'
 import DragInteraction from './map/DragInteraction'
 import { fromLonLat, toLonLat } from './map/TransformLonLat'
 
 import { v4 } from 'uuid'
 import { getUid } from 'ol'
-import gcoord from 'gcoord'
+import {Fill} from "ol/style";
 
 let olMap, tileLayer = null
 export default {
@@ -107,6 +106,9 @@ export default {
         controls: [ // 控件
         ]
       })
+      olMap.addControl(new ZoomSlider({
+        className: 'zoom-slider'
+      }))
       olMap.once('loadend', event => {
         this.$emit('loaded')
       })
@@ -254,13 +256,14 @@ export default {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
           feature.setId(data[i].id)
           feature.customData = data[i].data
-          const cloneStyle = new Style()
-          cloneStyle.setImage(new Icon({
+          const style = new Style()
+          style.setImage(new Icon({
             anchor: data[i].image.anchor,
             crossOrigin: 'Anonymous',
-            src: data[i].image.src
+            src: data[i].image.src,
+            opacity: 1
           }))
-          feature.setStyle(cloneStyle)
+          feature.setStyle(style)
           features.push(feature)
         }
         const source = new VectorSource()
@@ -393,5 +396,24 @@ export default {
 </script>
 
 <style>
+#mapContainer .zoom-slider {
+  width: 14px;
+  height: 200px;
+  right: 20px;
+  bottom: 400px;
+  border-bottom: 1px #dfdfdf solid;
+  border-right: 1px #dfdfdf solid;
+  cursor: pointer;
+  background-color: #FFFFFF;
+  border-radius: 3px;
 
+}
+#mapContainer .zoom-slider button {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  margin: 0;
+  background-color: #606266;
+}
 </style>

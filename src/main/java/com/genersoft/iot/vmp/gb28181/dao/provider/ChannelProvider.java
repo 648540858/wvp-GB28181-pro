@@ -669,8 +669,9 @@ public class ChannelProvider {
         }
         sqlBuild.append(" )");
 
-        sqlBuild.append(" AND coalesce(wdc.gb_longitude, wdc.longitude) >= #{minLongitude} AND coalesce(wdc.gb_longitude, wdc.longitude) <= #{maxLongitude}");
-        sqlBuild.append(" AND coalesce(wdc.gb_latitude,  wdc.latitude) >= #{minLatitude} AND coalesce(wdc.gb_latitude,  wdc.latitude) <= #{maxLatitude}");
+        String geomTextBuilder = "point(" + params.get("centerLongitude") + " " + params.get("centerLatitude") + ")";
+
+        sqlBuild.append("AND ST_Distance_Sphere(point(coalesce(wdc.gb_longitude, wdc.longitude), coalesce(wdc.gb_latitude, wdc.latitude)), ST_GeomFromText('").append(geomTextBuilder).append("')) < #{radius}");
 
         if (params.get("level") != null) {
             sqlBuild.append(" AND ( map_level <= #{level} || map_level is null )");
@@ -707,7 +708,8 @@ public class ChannelProvider {
             Point point = pointList.get(i);
             geomTextBuilder.append(point.getLng()).append(" ").append(point.getLat());
         }
-        sqlBuild.append("AND ST_Within(point(coalesce(wdc.gb_longitude, wdc.longitude), coalesce(wdc.gb_latitude, wdc.latitude)), ST_GeomFromText('").append(geomTextBuilder).append("))'))");
+        geomTextBuilder.append("))");
+        sqlBuild.append("AND ST_Within(point(coalesce(wdc.gb_longitude, wdc.longitude), coalesce(wdc.gb_latitude, wdc.latitude)), ST_GeomFromText('").append(geomTextBuilder).append("'))");
 
         if (params.get("level") != null) {
             sqlBuild.append(" AND ( map_level <= #{level} || map_level is null )");

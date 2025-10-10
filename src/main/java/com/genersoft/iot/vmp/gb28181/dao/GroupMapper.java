@@ -122,7 +122,7 @@ public interface GroupMapper {
     @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup} ")
     List<Group> queryByBusinessGroup(@Param("businessGroup") String businessGroup);
 
-    @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup} ")
+    @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup}")
     @MapKey("id")
     Map<Integer, CameraGroup> queryByBusinessGroupForMap(@Param("businessGroup") String businessGroup);
 

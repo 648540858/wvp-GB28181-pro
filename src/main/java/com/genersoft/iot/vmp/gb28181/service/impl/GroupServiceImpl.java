@@ -44,12 +44,12 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public void add(Group group) {
         Assert.notNull(group, "参数不可为NULL");
-        Assert.notNull(group.getDeviceId(), "设备编号不可为NULL");
-        Assert.isTrue(group.getDeviceId().trim().length() == 20, "设备编号必须为20位");
-        Assert.notNull(group.getName(), "设备编号不可为NULL");
+        Assert.notNull(group.getDeviceId(), "分组编号不可为NULL");
+        Assert.isTrue(group.getDeviceId().trim().length() == 20, "分组编号必须为20位");
+        Assert.notNull(group.getName(), "分组名称不可为NULL");
 
         GbCode gbCode = GbCode.decode(group.getDeviceId());
-        Assert.notNull(gbCode, "设备编号不满足国标定义");
+        Assert.notNull(gbCode, "分组编号不满足国标定义");
 
         // 查询数据库中已经存在的.
         List<Group> groupListInDb = groupManager.queryInGroupListByDeviceId(Lists.newArrayList(group));

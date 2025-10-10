@@ -277,6 +277,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 (channelIdArrayFromSub != null? channelIdArrayFromSub[0]: null);
         String requesterId = SipUtils.getUserIdFromFromHeader(request);
         CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+
         if (requesterId == null || channelId == null) {
             log.warn("[解析INVITE消息] 无法从请求中获取到来源id，返回400错误");
             throw new InviteDecodeException(Response.BAD_REQUEST, "request decode fail");

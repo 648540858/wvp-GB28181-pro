@@ -3,38 +3,33 @@ package com.genersoft.iot.vmp.web.custom.service;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
-import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import com.genersoft.iot.vmp.web.custom.bean.Point;
-import com.genersoft.iot.vmp.web.custom.bean.PolygonQueryParam;
+import com.genersoft.iot.vmp.web.custom.conf.SyTokenManager;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.core.util.Assert;
-import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -44,16 +39,13 @@ public class CameraChannelService implements CommandLineRunner {
     private CommonGBChannelMapper channelMapper;
 
     @Autowired
-    private DeviceMapper deviceMapper;
-
-    @Autowired
     private GroupMapper groupMapper;
 
     @Autowired
-    private IGroupService groupService;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, String> redisTemplateForString;
 
     @Autowired
     private IGbChannelPlayService channelPlayService;
@@ -64,10 +56,53 @@ public class CameraChannelService implements CommandLineRunner {
     @Autowired
     private UserSetting userSetting;
 
-    @Override
-    public void run(String... args) throws Exception {
-        // 启动时获取全局token
+    @Autowired
+    private DynamicTask dynamicTask;
 
+    @Override
+    public void run(String... args) {
+        // 启动时获取全局token
+        String taskKey = UUID.randomUUID().toString();
+        if (!refreshToken()) {
+            log.info("[SY-读取Token]失败，30秒后重试");
+            dynamicTask.startDelay(taskKey, ()->{
+                this.run(args);
+            }, 30000);
+        }else {
+            log.info("[SY-读取Token] 成功");
+        }
+    }
+
+    private boolean refreshToken() {
+        String adminToken = redisTemplateForString.opsForValue().get("SYSTEM_ACCESS_TOKEN");
+        if (adminToken == null) {
+            log.warn("[SY读取TOKEN] SYSTEM_ACCESS_TOKEN 读取失败");
+            return false;
+        }
+        SyTokenManager.INSTANCE.adminToken = adminToken;
+
+        String sm4Key = redisTemplateForString.opsForValue().get("SYSTEM_SM4_KEY");
+        if (sm4Key == null) {
+            log.warn("[SY读取TOKEN] SYSTEM_SM4_KEY 读取失败");
+            return false;
+        }
+        SyTokenManager.INSTANCE.sm4Key = sm4Key;
+
+        JSONObject appJson = (JSONObject)redisTemplate.opsForValue().get("SYSTEM_APPKEY");
+        if (appJson == null) {
+            log.warn("[SY读取TOKEN] SYSTEM_APPKEY 读取失败");
+            return false;
+        }
+        SyTokenManager.INSTANCE.appMap.put(appJson.getString("appKey"), appJson.getString("appSecret"));
+
+        JSONObject timeJson = (JSONObject)redisTemplate.opsForValue().get("sys_INTERFACE_VALID_TIME");
+        if (timeJson == null) {
+            log.warn("[SY读取TOKEN] sys_INTERFACE_VALID_TIME 读取失败");
+            return false;
+        }
+        SyTokenManager.INSTANCE.expires = timeJson.getLong("systemValue");
+
+        return true;
     }
 
 

@@ -16,7 +16,7 @@
         type="info"
         style="text-align: left"
       />
-      <div v-if="edit" style="float: right;margin-right: 24px;margin-top: 18px; font-size: 14px" >
+      <div v-if="edit" style="margin-top: 18px;font-size: 14px;position: absolute;left: 309px;z-index: 100;" >
         显示编号： <el-checkbox v-model="showCode" />
       </div>
 

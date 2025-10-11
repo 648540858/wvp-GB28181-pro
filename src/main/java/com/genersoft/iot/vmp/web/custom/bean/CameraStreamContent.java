@@ -13,12 +13,10 @@ public class CameraStreamContent extends StreamContent {
         super(streamInfo);
     }
 
-
     private String name;
 
-
     // 0不可动，1可动
-    private Integer controltype;
+    private Integer controlType;
 
 
 }

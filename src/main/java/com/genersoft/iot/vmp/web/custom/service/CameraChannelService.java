@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.web.custom.service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -18,6 +17,7 @@ import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
+import com.genersoft.iot.vmp.web.custom.bean.CameraStreamInfo;
 import com.genersoft.iot.vmp.web.custom.bean.Point;
 import com.genersoft.iot.vmp.web.custom.conf.SyTokenManager;
 import com.github.pagehelper.PageHelper;
@@ -231,10 +231,12 @@ public class CameraChannelService implements CommandLineRunner {
      * @param deviceCode 通道对应的国标设备的编号
      * @param callback 点播结果的回放
      */
-    public void play(String deviceId, String deviceCode, ErrorCallback<StreamInfo> callback) {
+    public void play(String deviceId, String deviceCode, ErrorCallback<CameraStreamInfo> callback) {
         CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.notNull(channel, "通道不存在");
-        channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
+        channelPlayService.play(channel, null, userSetting.getRecordSip(), (code, msg, data) -> {
+            callback.run(code, msg, new CameraStreamInfo(channel, data));
+        });
     }
 
     /**

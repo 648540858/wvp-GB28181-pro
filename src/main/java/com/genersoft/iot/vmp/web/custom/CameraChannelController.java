@@ -3,14 +3,12 @@ package com.genersoft.iot.vmp.web.custom;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
-import com.genersoft.iot.vmp.web.custom.bean.CameraStreamContent;
-import com.genersoft.iot.vmp.web.custom.bean.IdsQueryParam;
-import com.genersoft.iot.vmp.web.custom.bean.PolygonQueryParam;
+import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -189,10 +187,12 @@ public class CameraChannelController {
         log.info("[SY-播放摄像头] API调用，deviceId：{} ，deviceCode：{} ",deviceId, deviceCode);
         DeferredResult<WVPResult<CameraStreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
-        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
+        ErrorCallback<CameraStreamInfo> callback = (code, msg, cameraStreamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo = cameraStreamInfo.getStreamInfo();
+                CommonGBChannel channel = cameraStreamInfo.getChannel();
                 WVPResult<CameraStreamContent> wvpResult = WVPResult.success();
-                if (streamInfo != null) {
+                if (cameraStreamInfo.getStreamInfo() != null) {
                     if (userSetting.getUseSourceIpAsStreamIp()) {
                         streamInfo=streamInfo.clone();//深拷贝
                         String host;
@@ -208,7 +208,12 @@ public class CameraChannelController {
                             && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
                         streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
                     }
-                    wvpResult.setData(new CameraStreamContent(streamInfo));
+                    CameraStreamContent cameraStreamContent = new CameraStreamContent(streamInfo);
+                    cameraStreamContent.setName(channel.getGbName());
+                    cameraStreamContent.setControlType(
+                            (channel.getGbPtzType() == 1 || channel.getGbPtzType() == 4 || channel.getGbPtzType() == 5) ? 1 : 0);
+
+                    wvpResult.setData(cameraStreamContent);
                 }else {
                     wvpResult.setCode(code);
                     wvpResult.setMsg(msg);

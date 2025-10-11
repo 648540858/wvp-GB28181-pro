@@ -111,6 +111,9 @@ public class StreamContent {
     @Schema(description = "拉流代理返回的KEY")
     private String key;
 
+    @Schema(description = "使用的WVP ID")
+    private String serverId;
+
     public StreamContent(StreamInfo streamInfo) {
         if (streamInfo == null) {
             return;
@@ -190,6 +193,7 @@ public class StreamContent {
         this.progress = streamInfo.getProgress();
         this.duration = streamInfo.getDuration();
         this.key = streamInfo.getKey();
+        this.serverId = streamInfo.getServerId();
 
         if (streamInfo.getDownLoadFilePath() != null) {
             this.downLoadFilePath = streamInfo.getDownLoadFilePath();

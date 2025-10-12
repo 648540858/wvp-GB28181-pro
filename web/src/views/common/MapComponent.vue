@@ -234,22 +234,23 @@ export default {
       }
     },
     /**
-       * 添加图层， 数据坐标系由控件内完成，输入和输出永远是wgs84
-       * @param data
-       * [
-       *     {
-       *
-       *         position: [119.1212,45,122],
-       *             image: {
-       *                 src:"/images/123.png",
-       *                 anchor: [0.5, 0.5]
-       *
-       *             }
-       *     }
-       *
-       * ]
-       */
-    addLayer(data, clickEvent) {
+     * 添加图层， 数据坐标系由控件内完成，输入和输出永远是wgs84
+     * [
+     *     {
+     *
+     *         position: [119.1212,45,122],
+     *             image: {
+     *                 src:"/images/123.png",
+     *                 anchor: [0.5, 0.5]
+     *
+     *             }
+     *     }
+     *
+     * ]
+     * @param data
+     * @param clickEvent
+     */
+    addPointLayer(data, clickEvent) {
       if (data.length > 0) {
         const features = []
         for (let i = 0; i < data.length; i++) {
@@ -290,7 +291,7 @@ export default {
         return vectorLayer
       }
     },
-    updateLayer(layer, data, postponement) {
+    updatePointLayer(layer, data, postponement) {
       layer.getSource().clear(true)
       const features = []
       for (let i = 0; i < data.length; i++) {
@@ -310,7 +311,7 @@ export default {
       if (postponement) {
         olMap.removeLayer(layer)
         setTimeout(() => {
-          olMap.addLayer(layer)
+          olMap.addPointLayer(layer)
         }, 100)
       }
       return layer
@@ -371,7 +372,7 @@ export default {
         const vectorLayer = new VectorLayer({
           source: source
         })
-        olMap.addLayer(vectorLayer)
+        olMap.addPointLayer(vectorLayer)
         return vectorLayer
       }
     },
@@ -390,6 +391,27 @@ export default {
         // 修正地图的中心点
         olMap.getView().setCenter(fromLonLat(center))
       }
+    },
+    /**
+     * 根据距离计算经纬度差值，方便前端抽稀计算
+     * @param distance 距离， 单位：像素值
+     * @param zoom 地图层级，默认取值当前层级
+     */
+    computeDiff(distance, zoom) {
+      if (!distance) {
+        return []
+      }
+      let resolution;
+      if (!zoom) {
+        resolution = olMap.getView().getResolution()
+      }else {
+        resolution = olMap.getView().getResolutionForZoom(zoom)
+      }
+      let diff = resolution * distance
+      let position = toLonLat([diff, diff])
+      console.log(position)
+      
+
     }
   }
 }

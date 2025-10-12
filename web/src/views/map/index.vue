@@ -32,7 +32,7 @@
       </div>
       <div class="map-tool-box-top-left">
         <div class="map-tool-btn-group">
-          <div class="map-tool-btn" title="图层抽稀">
+          <div class="map-tool-btn" title="图层抽稀" @click="drawThin">
             <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
           </div>
           <div class="map-tool-btn" title="位置编辑" @click="testArray">
@@ -214,9 +214,9 @@ export default {
     },
     updateChannelLayer: function(array) {
       if (this.channelLayer) {
-        this.channelLayer = this.$refs.mapComponent.updateLayer(this.channelLayer, array, true)
+        this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, array, true)
       }else {
-        this.channelLayer = this.$refs.mapComponent.addLayer(array, data => {
+        this.channelLayer = this.$refs.mapComponent.addPointLayer(array, data => {
           this.closeInfoBox()
           this.$nextTick(() => {
             if (data[0].edit) {
@@ -388,6 +388,13 @@ export default {
     },
     testArray: function (){
       this.$store.dispatch('commonChanel/test')
+    },
+    drawThin: function (){
+      // 假设抽稀的距离
+      let distance = 1000
+      // 根据距离计算经纬度差值
+      let diff = this.$refs.mapComponent.computeDiff(distance)
+
     }
   }
 

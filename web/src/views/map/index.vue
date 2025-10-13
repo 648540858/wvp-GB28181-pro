@@ -467,7 +467,11 @@ export default {
         cameraArray.push(value)
 
       }
-      this.addZoomLayer(cameraArray, zoomExtent[1])
+      setTimeout(() =>{
+        this.addZoomLayer(cameraArray, zoomExtent[1])
+      }, 30)
+
+
     },
 
     addZoomLayer(cameraArray, zoom) {

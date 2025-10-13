@@ -109,7 +109,7 @@ public class CameraChannelService implements CommandLineRunner {
     public PageInfo<CameraChannel> queryList(Integer page, Integer count, String groupAlias, Boolean status, String geoCoordSys) {
         // 构建组织结构信息
         Group group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "获取组织结构失败");
+        Assert.notNull(group, "组织结构不存在");
         String groupDeviceId = group.getDeviceId();
 
         // 构建分页
@@ -125,7 +125,7 @@ public class CameraChannelService implements CommandLineRunner {
     public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, Boolean order, String groupAlias, Boolean status, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "获取组织结构失败");
+        Assert.notNull(group, "组织结构不存在");
         String groupDeviceId = group.getDeviceId();
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
@@ -346,7 +346,7 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInBox(Double minLongitude, Double maxLongitude, Double minLatitude, Double maxLatitude, Integer level, String groupAlias, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "获取组织结构失败");
+        Assert.notNull(group, "组织结构不存在");
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -380,7 +380,7 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInCircle(Double centerLongitude, Double centerLatitude, Double radius, Integer level, String groupAlias, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "获取组织结构失败");
+        Assert.notNull(group, "组织结构不存在");
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -407,7 +407,7 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInPolygon(List<Point> pointList, String groupAlias, Integer level, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "获取组织结构失败");
+        Assert.notNull(group, "组织结构不存在");
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -430,5 +430,20 @@ public class CameraChannelService implements CommandLineRunner {
 
         List<CameraChannel> all = channelMapper.queryListInPolygon(pointList, level, groupList);
         return addIconPathAndPositionForCameraChannelList(all, geoCoordSys);
+    }
+
+    public PageInfo<CameraChannel> queryListForMobile(Integer page, Integer count, String topGroupAlias) {
+
+        CameraGroup cameraGroup = groupMapper.queryGroupByAlias(topGroupAlias);
+        Assert.notNull(cameraGroup, "组织结构不存在");
+
+        // 构建分页
+        PageHelper.startPage(page, count);
+
+        List<CameraChannel> all = channelMapper.queryListForSyMobile(cameraGroup.getDeviceId());
+        PageInfo<CameraChannel> groupPageInfo = new PageInfo<>(all);
+        List<CameraChannel> list = addIconPathAndPositionForCameraChannelList(groupPageInfo.getList(), null);
+        groupPageInfo.setList(list);
+        return groupPageInfo;
     }
 }

@@ -32,27 +32,31 @@
       </div>
       <div class="map-tool-box-top-left">
         <div class="map-tool-btn-group">
-          <div class="map-tool-btn" title="图层抽稀" @click="drawThin">
-            <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
-          </div>
-          <div class="map-tool-btn" title="位置编辑" @click="testArray">
-            <i class="el-icon-edit"></i> <span>位置编辑</span>
-          </div>
+          <el-dropdown >
+            <div class="map-tool-btn" title="图层抽稀">
+              <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
+            </div>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="quicklyDrawThin">快速抽稀</el-dropdown-item>
+              <el-dropdown-item>局部抽稀</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
         </div>
       </div>
-      <div class="map-tool-box-top-right">
-        <div class="map-tool-btn-group">
-          <div class="map-tool-btn" title="抽稀">
-            <i class="iconfont icon-mti-sandian"></i>
-          </div>
-          <div class="map-tool-btn" title="聚合">
-            <i class="iconfont icon-mti-jutai"></i>
-          </div>
-          <div class="map-tool-btn" title="默认">
-            <i class="iconfont icon-mti-jutai"></i>
-          </div>
-        </div>
-      </div>
+<!--      <div class="map-tool-box-top-right">-->
+<!--        <div class="map-tool-btn-group">-->
+<!--          <div class="map-tool-btn" title="抽稀">-->
+<!--            <i class="iconfont icon-mti-sandian"></i>-->
+<!--          </div>-->
+<!--          <div class="map-tool-btn" title="聚合">-->
+<!--            <i class="iconfont icon-mti-jutai"></i>-->
+<!--          </div>-->
+<!--          <div class="map-tool-btn" title="默认">-->
+<!--            <i class="iconfont icon-mti-jutai"></i>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
       <div ref="infobox">
         <transition name="el-zoom-in-center">
           <div class="infobox-content" v-if="channel">
@@ -93,8 +97,9 @@ import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
 import devicePlayer from '../common/channelPlayer/index.vue'
-import gcoord from 'gcoord'
 
+let cameraLayerList = []
+let cameraLayerExtent = []
 export default {
   name: 'Map',
   components: {
@@ -118,7 +123,8 @@ export default {
       isLoging: false,
       longitudeStr: 'longitude',
       latitudeStr: 'latitude',
-      mapTileList: []
+      mapTileList: [],
+      diffPixels: 40
     }
   },
   created() {
@@ -190,9 +196,30 @@ export default {
       // 获取所有有位置的通道
       this.closeInfoBox()
       this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
+        cameraLayerList = data
+        let minLng, minLat, maxLng, maxLat
         let array = []
         for (let i = 0; i < data.length; i++) {
           let item = data[i]
+          if (i === 0) {
+            minLng = item.gbLongitude
+            maxLng = item.gbLongitude
+            minLat = item.gbLatitude
+            maxLat = item.gbLatitude
+          }else {
+            if (item.gbLongitude < minLng) {
+              minLng = item.gbLongitude
+            }
+            if (item.gbLongitude > maxLng) {
+              maxLng = item.gbLongitude
+            }
+            if (item.gbLatitude < minLat) {
+              minLat = item.gbLatitude
+            }
+            if (item.gbLatitude > maxLat) {
+              maxLat = item.gbLatitude
+            }
+          }
           if (item.gbLongitude && item.gbLatitude) {
             let position = [item.gbLongitude, item.gbLatitude]
             array.push({
@@ -206,7 +233,8 @@ export default {
             })
           }
         }
-        this.updateChannelLayer(array)
+        cameraLayerExtent = [minLng, minLat, maxLng, maxLat]
+        // this.updateChannelLayer(array)
       })
     },
     changeMapTile: function (index) {
@@ -259,7 +287,6 @@ export default {
         }).finally(() => {
           loading.close()
         })
-
     },
     edit: function (channel) {
       this.closeInfoBox()
@@ -389,12 +416,80 @@ export default {
     testArray: function (){
       this.$store.dispatch('commonChanel/test')
     },
-    drawThin: function (){
-      // 假设抽稀的距离
-      let distance = 1000
-      // 根据距离计算经纬度差值
-      let diff = this.$refs.mapComponent.computeDiff(distance)
+    quicklyDrawThin: function (){
+      console.log(cameraLayerList.length)
+      let allCameraList = cameraLayerList.slice()
+      // 获取全部层级
+      let zoomExtent = this.$refs.mapComponent.getZoomExtent()
 
+      let zoom = zoomExtent[0]
+      let zoomCameraMap = new Map()
+      let useCameraMap = new Map()
+
+      while (zoom < zoomExtent[1]) {
+
+        // 计算经纬度差值
+        let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
+        let cameraMap = new Map()
+
+        for (let i = 0; i < allCameraList.length; i++) {
+          let value = allCameraList[i]
+          if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
+            continue
+          }
+          let lngGrid = Math.trunc(value.gbLongitude / diff)
+          let latGrid = Math.trunc(value.gbLatitude / diff)
+          let gridKey = latGrid + ':' + lngGrid
+          if (cameraMap.has(gridKey)) {
+            let oldValue = cameraMap.get(gridKey)
+            if (value.gbLongitude % diff < oldValue.gbLongitude % diff) {
+              cameraMap.set(gridKey, value)
+              useCameraMap.set(value.gbId, value)
+              useCameraMap.delete(oldValue.gbId)
+            }
+          }else {
+            cameraMap.set(gridKey, value)
+            useCameraMap.set(value.gbId, value)
+          }
+        }
+
+        let cameraArray = Array.from(cameraMap.values())
+        zoomCameraMap.set(zoom, cameraArray)
+        this.addZoomLayer(cameraArray, zoom)
+        zoom += 1
+      }
+      let cameraArray = []
+      for (let i = 0; i < allCameraList.length; i++) {
+        let value = allCameraList[i]
+        if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
+          continue
+        }
+        cameraArray.push(value)
+
+      }
+      this.addZoomLayer(cameraArray, zoomExtent[1])
+    },
+
+    addZoomLayer(cameraArray, zoom) {
+      let dataArray = []
+      for (let i = 0; i < cameraArray.length; i++) {
+        let item = cameraArray[i]
+        let position = [item.gbLongitude, item.gbLatitude]
+        dataArray.push({
+          id: item.gbId,
+          position: position,
+          data: item,
+          image: {
+            anchor: [0.5, 1],
+            src: this.getImageByChannel(item)
+          }
+        })
+      }
+      this.$refs.mapComponent.addPointLayer(dataArray, data => {
+
+      }, {
+        minZoom: zoom
+      })
     }
   }
 

@@ -148,6 +148,8 @@ public class VideoManagerConstants {
 	public static final String VM_MSG_SUBSCRIBE_DEVICE_STATUS = "device";
 
 
+
+
 	//**************************    第三方  ****************************************
 
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";

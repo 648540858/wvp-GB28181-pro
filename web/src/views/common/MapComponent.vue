@@ -138,6 +138,9 @@ export default {
         features = {}
         layer = {}
       })
+      olMap.getView().on('change:resolution', ()=> {
+        console.log(olMap.getView().getZoom())
+      })
     },
     setCenter(point) {
 
@@ -250,9 +253,12 @@ export default {
      * @param data
      * @param clickEvent
      */
-    addPointLayer(data, clickEvent) {
+    addPointLayer(data, clickEvent, option) {
+      console.log(option.minZoom + ' ========= ' + data.length)
       if (data.length > 0) {
         const features = []
+        let maxZoom = option.maxZoom | olMap.getView().getMaxZoom()
+        let minZoom = option.minZoom | olMap.getView().getMinZoom()
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
           feature.setId(data[i].id)
@@ -272,7 +278,9 @@ export default {
         const vectorLayer = new VectorLayer({
           source: source,
           renderMode: 'image',
-          declutter: false
+          declutter: false,
+          maxZoom: maxZoom,
+          minZoom: minZoom
         })
         olMap.addLayer(vectorLayer)
         if (typeof clickEvent === 'function') {
@@ -311,7 +319,7 @@ export default {
       if (postponement) {
         olMap.removeLayer(layer)
         setTimeout(() => {
-          olMap.addPointLayer(layer)
+          olMap.addLayer(layer)
         }, 100)
       }
       return layer
@@ -372,7 +380,7 @@ export default {
         const vectorLayer = new VectorLayer({
           source: source
         })
-        olMap.addPointLayer(vectorLayer)
+        olMap.addLayer(vectorLayer)
         return vectorLayer
       }
     },
@@ -392,6 +400,9 @@ export default {
         olMap.getView().setCenter(fromLonLat(center))
       }
     },
+    getZoomExtent(){
+      return [olMap.getView().getMinZoom(), olMap.getView().getMaxZoom()]
+    },
     /**
      * 根据距离计算经纬度差值，方便前端抽稀计算
      * @param distance 距离， 单位：像素值
@@ -401,17 +412,58 @@ export default {
       if (!distance) {
         return []
       }
-      let resolution;
+      let resolution
       if (!zoom) {
         resolution = olMap.getView().getResolution()
       }else {
         resolution = olMap.getView().getResolutionForZoom(zoom)
       }
       let diff = resolution * distance
-      let position = toLonLat([diff, diff])
-      console.log(position)
-      
+      return toLonLat([diff, diff])[0]
 
+
+      // let extent = olMap.getView().calculateExtent(olMap.getSize())
+      //
+      //
+      // let minLng = extent[0]
+      // let maxLng = extent[2]
+      // let minLat = extent[1]
+      // let maxLat = extent[3]
+      //
+      // let style = new Style({
+      //   stroke: new Stroke({
+      //     width: 1,
+      //     color: 'rgba(65,65,65,0.8)'
+      //   })
+      // })
+      // const source = new VectorSource()
+      // let lng = minLng
+      // while (lng <= maxLng) {
+      //
+      //   const points = [[lng, minLat], [lng, maxLat]]
+      //   const line = new LineString(points)
+      //   const lineFeature = new Feature(line)
+      //   lineFeature.setStyle(style)
+      //   source.addFeature(lineFeature)
+      //   lng += diff
+      // }
+      //
+      // let lat = minLat
+      // while (lat <= maxLat) {
+      //
+      //   const points = [[minLng, lat], [maxLng, lat]]
+      //   console.log(points)
+      //   const line = new LineString(points)
+      //   const lineFeature = new Feature(line)
+      //   lineFeature.setStyle(style)
+      //   source.addFeature(lineFeature)
+      //   lat += diff
+      // }
+      //
+      // const vectorLayer = new VectorLayer({
+      //   source: source
+      // })
+      // olMap.addLayer(vectorLayer)
     }
   }
 }

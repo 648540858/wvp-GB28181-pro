@@ -69,7 +69,7 @@ public class CameraChannelController {
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
     @Parameter(name = "status", description = "摄像头状态")
     public PageInfo<CameraChannel> queryListWithChild(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
-                                        @RequestParam(required = false, value = "page", defaultValue = "100")Integer count,
+                                        @RequestParam(required = false, value = "count", defaultValue = "100")Integer count,
                                         @RequestParam(required = false) String query,
                                         @RequestParam(required = false) String sortName,
                                         @RequestParam(required = false) Boolean order,
@@ -262,10 +262,19 @@ public class CameraChannelController {
             result.setResult(wvpResult);
         });
         return result;
-
     }
 
+    @GetMapping(value = "/camera/list-for-mobile")
+    @ResponseBody
+    @Operation(summary = "查询移动设备摄像机列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页")
+    @Parameter(name = "count", description = "每页查询数量")
+    @Parameter(name = "topGroupAlias", description = "分组别名")
+    public PageInfo<CameraChannel> queryListForMobile(@RequestParam(required = false, value = "page", defaultValue = "1" )Integer page,
+                                                      @RequestParam(required = false, value = "count", defaultValue = "100")Integer count,
+                                                      String topGroupAlias){
 
-
+        return channelService.queryListForMobile(page, count, topGroupAlias);
+    }
 
 }

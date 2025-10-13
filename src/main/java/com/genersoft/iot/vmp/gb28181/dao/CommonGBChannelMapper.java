@@ -642,4 +642,6 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "postgresql")
     List<CameraChannel> queryListInPolygon(@Param("pointList") List<Point> pointList, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryListForSyMobile")
+    List<CameraChannel> queryListForSyMobile(@Param("business") String business);
 }

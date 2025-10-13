@@ -820,4 +820,9 @@ public class ChannelProvider {
         sqlBuild.append(" )");
         return sqlBuild.toString() ;
     }
+
+    public String queryListForSyMobile(Map<String, Object> params ){
+        return BASE_SQL_FOR_CAMERA_DEVICE +
+                " WHERE wdc.gb_ptz_type = 99 AND coalesce(gb_business_group_id, business_group_id) = #{business}";
+    }
 }

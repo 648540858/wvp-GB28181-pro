@@ -2,10 +2,11 @@
     <div id="devicePosition" style="height: calc(100vh - 84px);width: 100%;">
       <div style="height: 100%; display: grid; grid-template-columns: 360px auto">
         <DeviceTree ref="deviceTree" @clickEvent="treeChannelClickEvent" :showPosition="true" :contextmenu="getContextmenu()"/>
-        <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer"></MapComponent>
+        <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer" @zoomChange="zoomChange"></MapComponent>
       </div>
       <div class="map-tool-box-bottom-right">
-        <div class="map-tool-btn-group">
+
+        <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
           <el-dropdown placement="top"  @command="changeMapTile">
             <div class="el-dropdown-link map-tool-btn">
               <i class="iconfont icon-tuceng"></i>
@@ -14,7 +15,6 @@
               <el-dropdown-item  v-for="(item,index) in mapTileList" :key="index" :command="index">{{item.name}}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-
         </div>
         <div class="map-tool-btn-group">
           <div class="map-tool-btn" @click="initChannelLayer">
@@ -33,17 +33,23 @@
       <div class="map-tool-box-top-left">
         <div class="map-tool-btn-group">
           <el-dropdown >
-            <div class="map-tool-btn" title="图层抽稀">
-              <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
-            </div>
+
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="quicklyDrawThin">快速抽稀</el-dropdown-item>
               <el-dropdown-item>局部抽稀</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
 
+          <div class="map-tool-btn" title="图层抽稀" @click="showDrawThinBox">
+            <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
+          </div>
+
         </div>
       </div>
+      <div class="map-tool-draw-thin">
+
+      </div>
+
 <!--      <div class="map-tool-box-top-right">-->
 <!--        <div class="map-tool-btn-group">-->
 <!--          <div class="map-tool-btn" title="抽稀">-->
@@ -124,7 +130,8 @@ export default {
       longitudeStr: 'longitude',
       latitudeStr: 'latitude',
       mapTileList: [],
-      diffPixels: 40
+      diffPixels: 60,
+      zoomValue: 10
     }
   },
   created() {
@@ -189,6 +196,9 @@ export default {
       this.channel = data
       let position = [data.gbLongitude, data.gbLatitude]
       this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
+    },
+    zoomChange: function(zoom) {
+
     },
 
     initChannelLayer: function () {
@@ -430,7 +440,16 @@ export default {
 
         // 计算经纬度差值
         let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
-        let cameraMap = new Map()
+        let cameraMapForZoom = new Map()
+        let useCameraMapForZoom = new Map()
+        let useCameraList = Array.from(useCameraMap.values())
+        for (let i = 0; i < useCameraList.length; i++) {
+          let value = useCameraList[i]
+          let lngGrid = Math.trunc(value.gbLongitude / diff)
+          let latGrid = Math.trunc(value.gbLatitude / diff)
+          let gridKey = latGrid + ':' + lngGrid
+          useCameraMapForZoom.set(gridKey, value)
+        }
 
         for (let i = 0; i < allCameraList.length; i++) {
           let value = allCameraList[i]
@@ -440,20 +459,23 @@ export default {
           let lngGrid = Math.trunc(value.gbLongitude / diff)
           let latGrid = Math.trunc(value.gbLatitude / diff)
           let gridKey = latGrid + ':' + lngGrid
-          if (cameraMap.has(gridKey)) {
-            let oldValue = cameraMap.get(gridKey)
+          if (useCameraMapForZoom.has(gridKey)) {
+            continue
+          }
+          if (cameraMapForZoom.has(gridKey)) {
+            let oldValue = cameraMapForZoom.get(gridKey)
             if (value.gbLongitude % diff < oldValue.gbLongitude % diff) {
-              cameraMap.set(gridKey, value)
+              cameraMapForZoom.set(gridKey, value)
               useCameraMap.set(value.gbId, value)
               useCameraMap.delete(oldValue.gbId)
             }
           }else {
-            cameraMap.set(gridKey, value)
+            cameraMapForZoom.set(gridKey, value)
             useCameraMap.set(value.gbId, value)
           }
         }
 
-        let cameraArray = Array.from(cameraMap.values())
+        let cameraArray = Array.from(cameraMapForZoom.values())
         zoomCameraMap.set(zoom, cameraArray)
         this.addZoomLayer(cameraArray, zoom)
         zoom += 1
@@ -475,6 +497,7 @@ export default {
     },
 
     addZoomLayer(cameraArray, zoom) {
+      console.log(zoom)
       let dataArray = []
       for (let i = 0; i < cameraArray.length; i++) {
         let item = cameraArray[i]

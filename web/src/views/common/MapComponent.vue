@@ -106,9 +106,9 @@ export default {
         controls: [ // 控件
         ]
       })
-      olMap.addControl(new ZoomSlider({
-        className: 'zoom-slider'
-      }))
+      // olMap.addControl(new ZoomSlider({
+      //   className: 'zoom-slider'
+      // }))
       olMap.once('loadend', event => {
         this.$emit('loaded')
       })
@@ -138,8 +138,8 @@ export default {
         features = {}
         layer = {}
       })
-      olMap.getView().on('change:resolution', ()=> {
-        console.log(olMap.getView().getZoom())
+      olMap.getView().on('change:resolution', () => {
+        this.$emit('zoomChange', olMap.getView().getZoom())
       })
     },
     setCenter(point) {
@@ -147,6 +147,9 @@ export default {
     },
     getCenter() {
       return toLonLat(olMap.getView().getCenter())
+    },
+    getZoom() {
+      return olMap.getView().getZoom()
     },
     zoomIn(zoom) {
 
@@ -252,13 +255,14 @@ export default {
      * ]
      * @param data
      * @param clickEvent
+     * @param option
      */
     addPointLayer(data, clickEvent, option) {
-      console.log(option.minZoom + ' ========= ' + data.length)
       if (data.length > 0) {
         const features = []
-        let maxZoom = option.maxZoom | olMap.getView().getMaxZoom()
-        let minZoom = option.minZoom | olMap.getView().getMinZoom()
+        let maxZoom = option.maxZoom || olMap.getView().getMaxZoom()
+        let minZoom = option.minZoom || olMap.getView().getMinZoom()
+
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
           feature.setId(data[i].id)

@@ -171,9 +171,9 @@ public class CameraChannelController {
     @ResponseBody
     @Operation(summary = "根据安装地址和监视方位获取摄像头", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "address", description = "安装地址")
-    @Parameter(name = "directionType", description = "监视方位")
+    @Parameter(name = "directionType", description = "监视方位", required = false)
     @Parameter(name = "geoCoordSys", description = "坐标系类型：WGS84,GCJ02、BD09")
-    public List<CameraChannel> queryListByAddressAndDirectionType(String address, Integer directionType, @RequestParam(required = false) String geoCoordSys) {
+    public List<CameraChannel> queryListByAddressAndDirectionType(String address, @RequestParam(required = false) Integer directionType, @RequestParam(required = false) String geoCoordSys) {
         return channelService.queryListByAddressAndDirectionType(address, directionType, geoCoordSys);
     }
 
@@ -276,5 +276,6 @@ public class CameraChannelController {
 
         return channelService.queryListForMobile(page, count, topGroupAlias);
     }
+
 
 }

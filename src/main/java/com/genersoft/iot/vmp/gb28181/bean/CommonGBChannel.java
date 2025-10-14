@@ -156,6 +156,9 @@ public class CommonGBChannel {
     @Schema(description = "是否支持对讲 1支持,0不支持")
     private Integer enableBroadcast;
 
+    @Schema(description = "抽稀后的图层层级")
+    private Integer mapLevel;
+
     public String encode(String serverDeviceId) {
         return encode(null, serverDeviceId);
     }

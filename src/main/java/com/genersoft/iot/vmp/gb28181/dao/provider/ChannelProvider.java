@@ -798,7 +798,10 @@ public class ChannelProvider {
     public String queryListByAddressAndDirectionType(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where coalesce(wdc.gb_address, wdc.address) = #{address} and coalesce(wdc.gb_direction_type,  wdc.direction_type) = #{directionType}");
+        sqlBuild.append(" where coalesce(wdc.gb_address, wdc.address) = #{address}");
+        if (params.get("directionType") != null) {
+            sqlBuild.append(" and coalesce(wdc.gb_direction_type,  wdc.direction_type) = #{directionType}");
+        }
         return sqlBuild.toString();
     }
 

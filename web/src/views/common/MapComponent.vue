@@ -21,6 +21,7 @@ import { Point, LineString } from 'ol/geom'
 import { get as getProj } from 'ol/proj'
 import { containsCoordinate } from 'ol/extent'
 import { defaults as defaultInteractions } from 'ol/interaction'
+import Draw, { createBox } from 'ol/interaction/Draw'
 import DragInteraction from './map/DragInteraction'
 import { fromLonLat, toLonLat } from './map/TransformLonLat'
 
@@ -260,8 +261,8 @@ export default {
     addPointLayer(data, clickEvent, option) {
       if (data.length > 0) {
         const features = []
-        let maxZoom = option.maxZoom || olMap.getView().getMaxZoom()
-        let minZoom = option.minZoom || olMap.getView().getMinZoom()
+        let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
+        let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
 
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
@@ -328,6 +329,13 @@ export default {
       }
       return layer
     },
+    addPointLayerGroup(data, clickEvent, option) {
+
+    },
+    updatePointLayerGroup(layer, data, postponement) {
+
+    },
+
     removeLayer(layer) {
       olMap.removeLayer(layer)
     },
@@ -468,6 +476,54 @@ export default {
       //   source: source
       // })
       // olMap.addLayer(vectorLayer)
+    },
+    startDrawBox(callback) {
+
+      const source = new VectorSource({ wrapX: false })
+
+      const vectorLayer = new VectorLayer({
+        source: source,
+        style: new Style({
+          fill: new Fill({
+            color: 'rgba(255, 97, 97, 0.24)'
+          }),
+          stroke: new Stroke({
+            color: 'rgba(255, 97, 97, 0.84)',
+            width: 0
+          })
+        })
+      })
+      olMap.addLayer(vectorLayer)
+      let draw = new Draw({
+        source: source,
+        type: 'Circle',
+        geometryFunction: createBox(),
+        style: new Style({
+          fill: new Fill({
+            color: 'rgba(255, 97, 97, 0.24)'
+          }),
+          stroke: new Stroke({
+            color: 'rgba(255, 97, 97, 0.84)',
+            width: 0
+          }),
+          freehand: true
+        })
+      })
+      olMap.addInteraction(draw)
+      // 添加事件
+      draw.on('drawstart', function (event) {
+        source.clear()
+      })
+      draw.on('drawend', function (event) {
+        let geometry = event.feature.getGeometry()
+        let extent = geometry.getExtent()
+        let min = toLonLat([extent[0], extent[1]])
+        let max = toLonLat([extent[2], extent[3]])
+
+        callback([min[0], min[1], max[0], max[1]])
+        draw.abortDrawing()
+        olMap.removeInteraction(draw)
+      })
     }
   }
 }

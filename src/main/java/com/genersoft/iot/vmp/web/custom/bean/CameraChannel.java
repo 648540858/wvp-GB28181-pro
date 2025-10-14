@@ -18,4 +18,9 @@ public class CameraChannel extends CommonGBChannel {
     @Setter
     @Schema(description = "图标路径")
     private String icon;
+
+    @Getter
+    @Setter
+    @Schema(description = "移动设备唯一编号")
+    private Long unitNo;
 }

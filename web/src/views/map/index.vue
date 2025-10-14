@@ -7,6 +7,31 @@
       <div class="map-tool-box-bottom-right">
 
         <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
+          <el-dropdown placement="top"  @command="changeLayerStyle">
+            <div class="el-dropdown-link map-tool-btn">
+              <i class="iconfont icon-mti-jutai"></i>
+            </div>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item :command="1" >
+                <span v-if="layerStyle !== 1">直接展示</span>
+                <span v-if="layerStyle === 1" style="color: rgb(64, 158, 255);">直接展示</span>
+              </el-dropdown-item>
+              <el-dropdown-item :command="2">
+                <span v-if="layerStyle !== 2">碰撞检测</span>
+                <span v-if="layerStyle === 2" style="color: rgb(64, 158, 255);">碰撞检测</span>
+              </el-dropdown-item>
+              <el-dropdown-item :command="3">
+                <span v-if="layerStyle !== 3">抽稀图层</span>
+                <span v-if="layerStyle === 3" style="color: rgb(64, 158, 255);">抽稀图层</span>
+              </el-dropdown-item>
+              <el-dropdown-item :command="4">
+                <span v-if="layerStyle !== 4">聚合图层</span>
+                <span v-if="layerStyle === 4" style="color: rgb(64, 158, 255);">聚合图层</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+        <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
           <el-dropdown placement="top"  @command="changeMapTile">
             <div class="el-dropdown-link map-tool-btn">
               <i class="iconfont icon-tuceng"></i>
@@ -32,23 +57,25 @@
       </div>
       <div class="map-tool-box-top-left">
         <div class="map-tool-btn-group">
-          <el-dropdown >
-
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="quicklyDrawThin">快速抽稀</el-dropdown-item>
-              <el-dropdown-item>局部抽稀</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-
-          <div class="map-tool-btn" title="图层抽稀" @click="showDrawThinBox">
+          <div class="map-tool-btn" title="图层抽稀" @click="showDrawThinBox(true)">
             <i class="iconfont icon-mti-sandian"></i> <span>图层抽稀</span>
           </div>
-
         </div>
       </div>
-      <div class="map-tool-draw-thin">
-
-      </div>
+      <transition name="el-zoom-in-top">
+        <div v-show="showDrawThin"  class="map-tool-draw-thin">
+          <div class="map-tool-draw-thin-density">
+            <span style="line-height: 36px; font-size: 15px">密度： </span>
+            <el-slider v-model="diffPixels" show-input :min="10" :max="200" input-size="mini"></el-slider>
+            <div style="margin-left: 10px; line-height: 38px;">
+              <el-button type="primary" plain @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
+              <el-button type="primary" plain size="mini" @click="boxDrawThin" >局部抽稀</el-button>
+              <el-button type="primary" size="mini" @click="saveDrawThin()">保存</el-button>
+              <el-button type="warning" size="mini" @click="showDrawThinBox(false)">取消</el-button>
+            </div>
+          </div>
+        </div>
+      </transition>
 
 <!--      <div class="map-tool-box-top-right">-->
 <!--        <div class="map-tool-btn-group">-->
@@ -58,9 +85,7 @@
 <!--          <div class="map-tool-btn" title="聚合">-->
 <!--            <i class="iconfont icon-mti-jutai"></i>-->
 <!--          </div>-->
-<!--          <div class="map-tool-btn" title="默认">-->
-<!--            <i class="iconfont icon-mti-jutai"></i>-->
-<!--          </div>-->
+
 <!--        </div>-->
 <!--      </div>-->
       <div ref="infobox">
@@ -104,7 +129,9 @@ import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
 import devicePlayer from '../common/channelPlayer/index.vue'
 
-let cameraLayerList = []
+let cameraListForSource = []
+let cameraList = []
+let cameraListForLevelMap = new Map()
 let cameraLayerExtent = []
 export default {
   name: 'Map',
@@ -131,7 +158,9 @@ export default {
       latitudeStr: 'latitude',
       mapTileList: [],
       diffPixels: 60,
-      zoomValue: 10
+      zoomValue: 10,
+      showDrawThin: false,
+      layerStyle: 1
     }
   },
   created() {
@@ -206,9 +235,8 @@ export default {
       // 获取所有有位置的通道
       this.closeInfoBox()
       this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
-        cameraLayerList = data
+        cameraListForSource = data
         let minLng, minLat, maxLng, maxLat
-        let array = []
         for (let i = 0; i < data.length; i++) {
           let item = data[i]
           if (i === 0) {
@@ -232,7 +260,7 @@ export default {
           }
           if (item.gbLongitude && item.gbLatitude) {
             let position = [item.gbLongitude, item.gbLatitude]
-            array.push({
+            let cameraData = {
               id: item.gbId,
               position: position,
               data: item,
@@ -240,32 +268,64 @@ export default {
                 anchor: [0.5, 1],
                 src: this.getImageByChannel(item)
               }
-            })
+            }
+            cameraList.push(cameraData)
+            if (item.mapLevel) {
+              if (cameraListForLevelMap.has(item.mapLevel)) {
+                let list = cameraListForLevelMap.get(item.mapLevel)
+                list.push(cameraData)
+              }else {
+                cameraListForLevelMap.set(item.mapLevel, [cameraData])
+              }
+            }else {
+              cameraListForLevelMap.set(0, [cameraData])
+            }
           }
         }
         cameraLayerExtent = [minLng, minLat, maxLng, maxLat]
-        // this.updateChannelLayer(array)
+        this.updateChannelLayer()
       })
     },
     changeMapTile: function (index) {
       this.$refs.mapComponent.changeMapTile(index)
     },
-    updateChannelLayer: function(array) {
-      if (this.channelLayer) {
-        this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, array, true)
-      }else {
-        this.channelLayer = this.$refs.mapComponent.addPointLayer(array, data => {
-          this.closeInfoBox()
-          this.$nextTick(() => {
-            if (data[0].edit) {
-              this.showEditInfo(data[0])
-            }else {
-              this.showChannelInfo(data[0])
-            }
-
+    changeLayerStyle: function (index) {
+      this.layerStyle = index
+    },
+    updateChannelLayer: function() {
+      if (this.layerStyle === 3) {
+        // 按图层展示结果
+        if (this.channelLayer) {
+          this.channelLayer = this.$refs.mapComponent.updatePointLayerGroup(this.channelLayer, cameraList, true)
+        }else {
+          this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraList, data => {
+            this.closeInfoBox()
+            this.$nextTick(() => {
+              if (data[0].edit) {
+                this.showEditInfo(data[0])
+              }else {
+                this.showChannelInfo(data[0])
+              }
+            })
           })
-        })
+        }
+      }else {
+        if (this.channelLayer) {
+          this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
+        }else {
+          this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, data => {
+            this.closeInfoBox()
+            this.$nextTick(() => {
+              if (data[0].edit) {
+                this.showEditInfo(data[0])
+              }else {
+                this.showChannelInfo(data[0])
+              }
+            })
+          })
+        }
       }
+
     },
     getImageByChannel: function (channel) {
       if (channel.gbStatus === 'ON') {
@@ -426,18 +486,45 @@ export default {
     testArray: function (){
       this.$store.dispatch('commonChanel/test')
     },
+    showDrawThinBox: function(show){
+      this.showDrawThin = show
+    },
     quicklyDrawThin: function (){
-      console.log(cameraLayerList.length)
-      let allCameraList = cameraLayerList.slice()
+      this.drawThin(cameraLayerExtent)
+    },
+    boxDrawThin: function (){
+      this.$refs.mapComponent.startDrawBox((extent) => {
+          this.drawThin(extent)
+      })
+    },
+    drawThin: function (extent){
+      console.log(cameraListForSource.length)
+      let cameraListInExtent = []
+      let cameraListOutExtent = []
+      if (!extent) {
+        cameraListInExtent = cameraListForSource.slice()
+      }else {
+        for (let i = 0; i < cameraListForSource.length; i++) {
+          let value = cameraListForSource[i]
+          if (!value.gbLongitude || !value.gbLatitude) {
+            continue
+          }
+          if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
+            && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
+            cameraListInExtent.push(value)
+          }else {
+            cameraListOutExtent.push(value)
+          }
+        }
+      }
+
       // 获取全部层级
       let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-
       let zoom = zoomExtent[0]
       let zoomCameraMap = new Map()
       let useCameraMap = new Map()
 
       while (zoom < zoomExtent[1]) {
-
         // 计算经纬度差值
         let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
         let cameraMapForZoom = new Map()
@@ -451,8 +538,8 @@ export default {
           useCameraMapForZoom.set(gridKey, value)
         }
 
-        for (let i = 0; i < allCameraList.length; i++) {
-          let value = allCameraList[i]
+        for (let i = 0; i < cameraListInExtent.length; i++) {
+          let value = cameraListInExtent[i]
           if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
             continue
           }
@@ -481,23 +568,22 @@ export default {
         zoom += 1
       }
       let cameraArray = []
-      for (let i = 0; i < allCameraList.length; i++) {
-        let value = allCameraList[i]
+      for (let i = 0; i < cameraListInExtent.length; i++) {
+        let value = cameraListInExtent[i]
         if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
           continue
         }
         cameraArray.push(value)
-
       }
-      setTimeout(() =>{
-        this.addZoomLayer(cameraArray, zoomExtent[1])
-      }, 30)
-
-
+      this.addZoomLayer(cameraArray, zoomExtent[1])
+      if (cameraListOutExtent.length > 0) {
+        console.log("cameraListOutExtent --  " + cameraListOutExtent.length)
+        this.addZoomLayer(cameraListOutExtent, zoomExtent[0])
+      }
     },
 
     addZoomLayer(cameraArray, zoom) {
-      console.log(zoom)
+      console.log(zoom + ' ===== ' + cameraArray.length)
       let dataArray = []
       for (let i = 0; i < cameraArray.length; i++) {
         let item = cameraArray[i]
@@ -515,8 +601,11 @@ export default {
       this.$refs.mapComponent.addPointLayer(dataArray, data => {
 
       }, {
-        minZoom: zoom
+        minZoom: zoom - 1
       })
+    },
+    saveDrawThin: function(){
+
     }
   }
 
@@ -575,6 +664,21 @@ export default {
 .map-tool-btn-group:last-child {
   border-bottom: none;
   border-right: none;
+}
+.map-tool-draw-thin {
+  position: absolute;
+  top: 63px;
+  left: 380px;
+  border: 1px solid #dfdfdf;
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 0 10px;
+}
+.map-tool-draw-thin-density {
+  display: grid;
+  grid-template-columns: 50px 400px auto;
+  padding: 0;
+  margin: 0;
 }
 
 .infobox-content{

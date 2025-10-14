@@ -11,6 +11,7 @@ import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
 import Tile from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
+import LayerGroup from 'ol/layer/Group'
 import Style from 'ol/style/Style'
 import Stroke from 'ol/style/Stroke'
 import Icon from 'ol/style/Icon'
@@ -260,9 +261,17 @@ export default {
      */
     addPointLayer(data, clickEvent, option) {
       if (data.length > 0) {
+        let vectorLayer = this.createPointLayer(data, clickEvent, option)
+        olMap.addLayer(vectorLayer)
+        return vectorLayer
+      }
+    },
+    createPointLayer(data, clickEvent, option){
+      if (data.length > 0) {
         const features = []
         let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
         let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
+        let declutter = option && option.declutter
 
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
@@ -283,12 +292,11 @@ export default {
         const vectorLayer = new VectorLayer({
           source: source,
           renderMode: 'image',
-          declutter: false,
+          declutter: declutter,
           maxZoom: maxZoom,
           minZoom: minZoom
         })
-        olMap.addLayer(vectorLayer)
-        if (typeof clickEvent === 'function') {
+        if (clickEvent && typeof clickEvent === 'function') {
           vectorLayer.on('click', (event) => {
 
             if (event.features.length > 0) {
@@ -329,8 +337,26 @@ export default {
       }
       return layer
     },
-    addPointLayerGroup(data, clickEvent, option) {
+    addPointLayerGroup(data, clickEvent) {
 
+      let keys = Array.from(data.keys())
+
+      let layers = []
+      for (let i = 0; i < keys.length; i++) {
+        let zoom = keys[i]
+        console.log(zoom)
+        let vectorLayer = this.createPointLayer(data.get(zoom), clickEvent, {
+          minZoom : zoom
+        })
+        if (vectorLayer) {
+          layers.push(vectorLayer)
+        }
+      }
+      let groupLayer = new LayerGroup({
+        layers: layers
+      })
+      olMap.addLayer(groupLayer)
+      return groupLayer
     },
     updatePointLayerGroup(layer, data, postponement) {
 

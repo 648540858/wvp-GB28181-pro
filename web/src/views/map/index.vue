@@ -24,10 +24,10 @@
                 <span v-if="layerStyle !== 3">抽稀图层</span>
                 <span v-if="layerStyle === 3" style="color: rgb(64, 158, 255);">抽稀图层</span>
               </el-dropdown-item>
-              <el-dropdown-item :command="4">
-                <span v-if="layerStyle !== 4">聚合图层</span>
-                <span v-if="layerStyle === 4" style="color: rgb(64, 158, 255);">聚合图层</span>
-              </el-dropdown-item>
+<!--              <el-dropdown-item :command="4">-->
+<!--                <span v-if="layerStyle !== 4">聚合图层</span>-->
+<!--                <span v-if="layerStyle === 4" style="color: rgb(64, 158, 255);">聚合图层</span>-->
+<!--              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -291,41 +291,54 @@ export default {
     },
     changeLayerStyle: function (index) {
       this.layerStyle = index
+      this.$refs.mapComponent.removeLayer(this.channelLayer)
+      this.channelLayer = null
+      this.updateChannelLayer()
     },
     updateChannelLayer: function() {
-      if (this.layerStyle === 3) {
-        // 按图层展示结果
-        if (this.channelLayer) {
-          this.channelLayer = this.$refs.mapComponent.updatePointLayerGroup(this.channelLayer, cameraList, true)
-        }else {
-          this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraList, data => {
-            this.closeInfoBox()
-            this.$nextTick(() => {
-              if (data[0].edit) {
-                this.showEditInfo(data[0])
-              }else {
-                this.showChannelInfo(data[0])
-              }
-            })
-          })
-        }
-      }else {
-        if (this.channelLayer) {
-          this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
-        }else {
-          this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, data => {
-            this.closeInfoBox()
-            this.$nextTick(() => {
-              if (data[0].edit) {
-                this.showEditInfo(data[0])
-              }else {
-                this.showChannelInfo(data[0])
-              }
-            })
-          })
-        }
+      let clientEvent = data => {
+        this.closeInfoBox()
+        this.$nextTick(() => {
+          if (data[0].edit) {
+            this.showEditInfo(data[0])
+          }else {
+            this.showChannelInfo(data[0])
+          }
+        })
       }
 
+      switch (this.layerStyle) {
+        case 1:
+          // 直接展示
+          if (this.channelLayer) {
+            this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
+          }else {
+            this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
+          }
+          break
+        case 2:
+          // 碰撞检测
+          if (this.channelLayer) {
+            this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
+          }else {
+            this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
+              declutter: true
+            })
+          }
+          break
+        case 3:
+          // 抽稀图层
+          if (this.channelLayer) {
+            this.channelLayer = this.$refs.mapComponent.updatePointLayerGroup(this.channelLayer, cameraListForLevelMap, true)
+          }else {
+            this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
+          }
+          break
+        // case 4:
+        //   // 聚合图层
+        //
+        //   break
+      }
     },
     getImageByChannel: function (channel) {
       if (channel.gbStatus === 'ON') {
@@ -488,6 +501,11 @@ export default {
     },
     showDrawThinBox: function(show){
       this.showDrawThin = show
+      if (!show) {
+        this.updateChannelLayer()
+      }else {
+
+      }
     },
     quicklyDrawThin: function (){
       this.drawThin(cameraLayerExtent)
@@ -498,7 +516,9 @@ export default {
       })
     },
     drawThin: function (extent){
-      console.log(cameraListForSource.length)
+      let layerGroupSource = new Map()
+
+      this.$refs.mapComponent.removeLayer(this.channelLayer)
       let cameraListInExtent = []
       let cameraListOutExtent = []
       if (!extent) {
@@ -564,7 +584,8 @@ export default {
 
         let cameraArray = Array.from(cameraMapForZoom.values())
         zoomCameraMap.set(zoom, cameraArray)
-        this.addZoomLayer(cameraArray, zoom)
+        let layerSource = this.createZoomLayerSource(cameraArray)
+        layerGroupSource.set(zoom - 1, layerSource)
         zoom += 1
       }
       let cameraArray = []
@@ -575,15 +596,25 @@ export default {
         }
         cameraArray.push(value)
       }
-      this.addZoomLayer(cameraArray, zoomExtent[1])
+      let layerSource = this.createZoomLayerSource(cameraArray)
+      layerGroupSource.set(zoomExtent[1] - 1, layerSource)
       if (cameraListOutExtent.length > 0) {
-        console.log("cameraListOutExtent --  " + cameraListOutExtent.length)
-        this.addZoomLayer(cameraListOutExtent, zoomExtent[0])
+        let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
+        layerGroupSource.set(zoomExtent[0] - 1, layerSourceForOutExtent)
       }
+      this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+        this.closeInfoBox()
+        this.$nextTick(() => {
+          if (data[0].edit) {
+            this.showEditInfo(data[0])
+          }else {
+            this.showChannelInfo(data[0])
+          }
+        })
+      })
     },
 
-    addZoomLayer(cameraArray, zoom) {
-      console.log(zoom + ' ===== ' + cameraArray.length)
+    createZoomLayerSource(cameraArray) {
       let dataArray = []
       for (let i = 0; i < cameraArray.length; i++) {
         let item = cameraArray[i]
@@ -598,11 +629,7 @@ export default {
           }
         })
       }
-      this.$refs.mapComponent.addPointLayer(dataArray, data => {
-
-      }, {
-        minZoom: zoom - 1
-      })
+     return dataArray
     },
     saveDrawThin: function(){
 

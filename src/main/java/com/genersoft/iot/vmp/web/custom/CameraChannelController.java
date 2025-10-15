@@ -2,11 +2,16 @@ package com.genersoft.iot.vmp.web.custom;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
@@ -18,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -37,6 +43,12 @@ public class CameraChannelController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
 
     @GetMapping(value = "/camera/list")
@@ -275,6 +287,36 @@ public class CameraChannelController {
                                                       String topGroupAlias){
 
         return channelService.queryListForMobile(page, count, topGroupAlias);
+    }
+
+
+    @Operation(summary = "获取推流播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    @Parameter(name = "callId", description = "推流时携带的自定义鉴权ID", required = true)
+    @GetMapping(value = "/push/play")
+    @ResponseBody
+    public StreamContent getStreamInfoByAppAndStream(HttpServletRequest request,
+                                                                                String app,
+                                                                                String stream,
+                                                                                String callId){
+        // 权限校验
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+        if (streamAuthorityInfo == null
+                || streamAuthorityInfo.getCallId() == null
+                || !streamAuthorityInfo.getCallId().equals(callId)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "播放地址鉴权失败");
+        }
+        String host;
+        try {
+            URL url=new URL(request.getRequestURL().toString());
+            host=url.getHost();
+        } catch (MalformedURLException e) {
+            host=request.getLocalAddr();
+        }
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, null, host, true);
+        Assert.notNull(streamInfo, "地址不存在");
+        return new StreamContent(streamInfo);
     }
 
 

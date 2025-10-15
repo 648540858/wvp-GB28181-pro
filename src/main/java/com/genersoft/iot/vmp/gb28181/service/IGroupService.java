@@ -29,4 +29,6 @@ public interface IGroupService {
 
     Group queryGroupByAlias(String groupAlias);
 
+    void sync();
+
 }

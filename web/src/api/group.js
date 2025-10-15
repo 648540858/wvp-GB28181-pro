@@ -60,3 +60,9 @@ export function queryTree(params) {
     }
   })
 }
+export function sync() {
+  return request({
+    method: 'get',
+    url: `/api/group/sync`,
+  })
+}

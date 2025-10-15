@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -15,6 +16,8 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -27,7 +30,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
-public class GroupServiceImpl implements IGroupService {
+public class GroupServiceImpl implements IGroupService, CommandLineRunner {
 
     @Autowired
     private GroupMapper groupManager;
@@ -40,6 +43,17 @@ public class GroupServiceImpl implements IGroupService {
 
     @Autowired
     private EventPublisher eventPublisher;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
+
+    // 启动后请求组织结构同步
+    @Override
+    public void run(String... args) throws Exception {
+        String key = VideoManagerConstants.VM_MSG_GROUP_LIST_REQUEST;
+        log.info("[redis发送通知] 发送 同步组织结构请求 {}", key);
+        redisTemplate.convertAndSend(key, "");
+    }
 
     @Override
     public void add(Group group) {
@@ -307,5 +321,14 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public Group queryGroupByAlias(String groupAlias) {
         return groupManager.queryGroupByAlias(groupAlias);
+    }
+
+    @Override
+    public void sync() {
+        try {
+            this.run();
+        }catch (Exception e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "同步失败: " + e.getMessage());
+        }
     }
 }

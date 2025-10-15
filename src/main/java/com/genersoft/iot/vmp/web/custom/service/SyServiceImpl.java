@@ -2,12 +2,10 @@ package com.genersoft.iot.vmp.web.custom.service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.IMapService;
 import com.genersoft.iot.vmp.vmanager.bean.MapConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,18 +17,10 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class SyServiceImpl implements IMapService, CommandLineRunner {
+public class SyServiceImpl implements IMapService {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-    // 启动后请求组织结构同步
-    @Override
-    public void run(String... args) throws Exception {
-        String key = VideoManagerConstants.VM_MSG_GROUP_LIST_REQUEST;
-        log.info("[redis发送通知] 发送 同步组织结构请求 {}", key);
-        redisTemplate.convertAndSend(key, "");
-    }
 
     @Override
     public List<MapConfig> getConfig() {

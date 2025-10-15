@@ -1,7 +1,7 @@
 import {
   getTreeList,
   update,
-  add, deleteGroup, getPath, queryTree
+  add, deleteGroup, getPath, queryTree, sync
 } from '@/api/group'
 
 const actions = {
@@ -58,6 +58,16 @@ const actions = {
   queryTree({ commit }, param) {
     return new Promise((resolve, reject) => {
       queryTree(param).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  sync({ commit }) {
+    return new Promise((resolve, reject) => {
+      sync().then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

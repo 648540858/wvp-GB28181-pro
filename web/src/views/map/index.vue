@@ -12,6 +12,10 @@
               <i class="iconfont icon-mti-jutai"></i>
             </div>
             <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item :command="0" >
+                <span v-if="layerStyle !== 0">图层关闭</span>
+                <span v-if="layerStyle === 0" style="color: rgb(64, 158, 255);">图层关闭</span>
+              </el-dropdown-item>
               <el-dropdown-item :command="1" >
                 <span v-if="layerStyle !== 1">直接展示</span>
                 <span v-if="layerStyle === 1" style="color: rgb(64, 158, 255);">直接展示</span>
@@ -162,9 +166,10 @@ export default {
       showDrawThin: false,
       quicklyDrawThinLoading: false,
       saveDrawThinLoading: false,
-      layerStyle: 1,
+      layerStyle: 0,
       drawThinLayer: null,
-      layerGroupSource: null
+      layerGroupSource: null,
+      infoBoxTempLayer: null
     }
   },
   created() {
@@ -230,12 +235,28 @@ export default {
     },
     showChannelInfo: function(data) {
       this.channel = data
+      if (this.infoBoxTempLayer) {
+        this.$refs.mapComponent.removeLayer(this.infoBoxTempLayer)
+        this.infoBoxTempLayer = null
+      }
+      if (this.layerStyle === 0 || this.layerStyle === 2) {
+        // 此时增加临时图标
+        let position = [data.gbLongitude, data.gbLatitude]
+        let cameraData = {
+          id: data.gbId,
+          position: position,
+          data: data,
+          image: {
+            anchor: [0.5, 1],
+            src: this.getImageByChannel(data)
+          }
+        }
+        this.infoBoxTempLayer = this.$refs.mapComponent.addPointLayer([cameraData])
+      }
       let position = [data.gbLongitude, data.gbLatitude]
       this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
     },
-    zoomChange: function(zoom) {
-
-    },
+    zoomChange: function(zoom) {},
 
     initChannelLayer: function () {
       this.mapTileList = this.$refs.mapComponent.mapTileList
@@ -243,27 +264,23 @@ export default {
       this.closeInfoBox()
       this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
         cameraListForSource = data
-        let minLng, minLat, maxLng, maxLat
-        for (let i = 0; i < data.length; i++) {
+        let minLng = data[0].gbLongitude
+        let maxLng = data[0].gbLongitude
+        let minLat = data[0].gbLatitude
+        let maxLat = data[0].gbLatitude
+        for (let i = 1; i < data.length; i++) {
           let item = data[i]
-          if (i === 0) {
+          if (item.gbLongitude < minLng) {
             minLng = item.gbLongitude
+          }
+          if (item.gbLongitude > maxLng) {
             maxLng = item.gbLongitude
+          }
+          if (item.gbLatitude < minLat) {
             minLat = item.gbLatitude
+          }
+          if (item.gbLatitude > maxLat) {
             maxLat = item.gbLatitude
-          }else {
-            if (item.gbLongitude < minLng) {
-              minLng = item.gbLongitude
-            }
-            if (item.gbLongitude > maxLng) {
-              maxLng = item.gbLongitude
-            }
-            if (item.gbLatitude < minLat) {
-              minLat = item.gbLatitude
-            }
-            if (item.gbLatitude > maxLat) {
-              maxLat = item.gbLatitude
-            }
           }
           if (item.gbLongitude && item.gbLatitude) {
             let position = [item.gbLongitude, item.gbLatitude]
@@ -313,6 +330,9 @@ export default {
       this.updateChannelLayer()
     },
     updateChannelLayer: function() {
+      if (this.layerStyle === 0) {
+        return
+      }
       let clientEvent = data => {
         this.closeInfoBox()
         this.$nextTick(() => {
@@ -370,6 +390,10 @@ export default {
       }
       this.channel = null
       this.dragChannel = null
+      if (this.infoBoxTempLayer) {
+        this.$refs.mapComponent.removeLayer(this.infoBoxTempLayer)
+        this.infoBoxTempLayer = null
+      }
     },
     play: function (channel) {
       const loading = this.$loading({
@@ -518,18 +542,20 @@ export default {
     },
     showDrawThinBox: function(show){
       this.showDrawThin = show
-      if (!show) {
-        // 关闭抽稀预览
-        if (this.drawThinLayer !== null) {
-          this.$refs.mapComponent.removeLayer(this.drawThinLayer)
-          this.drawThinLayer = null
+      setTimeout(() => {
+        if (!show) {
+          // 关闭抽稀预览
+          if (this.drawThinLayer !== null) {
+            this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+            this.drawThinLayer = null
+          }
+          // 清空预览数据
+          this.layerGroupSource = null
+          this.updateChannelLayer()
+        }else {
+          //
         }
-        // 清空预览数据
-        this.layerGroupSource = null
-        this.updateChannelLayer()
-      }else {
-        //
-      }
+      }, 1)
     },
     quicklyDrawThin: function (){
       if (this.channelLayer) {

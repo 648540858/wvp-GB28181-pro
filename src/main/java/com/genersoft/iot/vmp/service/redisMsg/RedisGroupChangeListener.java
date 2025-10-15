@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @Auther: JiangFeng
  * @Date: 2022/8/16 11:32
  * @Description: 接收redis发送的推流设备列表更新通知
- * 监听：  SUBSCRIBE VM_MSG_PUSH_STREAM_LIST_CHANGE
- * 发布 PUBLISH VM_MSG_PUSH_STREAM_LIST_CHANGE '[{"app":1000,"stream":10000000,"gbId":"12345678901234567890","name":"A6","status":false},{"app":1000,"stream":10000021,"gbId":"24212345671381000021","name":"终端9273","status":false},{"app":1000,"stream":10000022,"gbId":"24212345671381000022","name":"终端9434","status":true},{"app":1000,"stream":10000025,"gbId":"24212345671381000025","name":"华为M10","status":false},{"app":1000,"stream":10000051,"gbId":"11111111111381111122","name":"终端9720","status":false}]'
+ * 监听：  SUBSCRIBE VM_MSG_GROUP_LIST_CHANGE
+ * 发布 PUBLISH VM_MSG_GROUP_LIST_CHANGE  '[{"groupName":"测试域修改新","topGroupGAlias":3,"messageType":"update","groupAlias":3}]'
  */
 @Slf4j
 @Component
@@ -50,7 +50,7 @@ public class RedisGroupChangeListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        log.info("[REDIS: 分组信息更新] key： {}， ： {}", VideoManagerConstants.VM_MSG_GROUP_LIST_CHANGE, new String(message.getBody()));
+        log.info("[REDIS-分组信息改变] key： {}， ： {}", VideoManagerConstants.VM_MSG_GROUP_LIST_CHANGE, new String(message.getBody()));
         taskQueue.offer(message);
     }
 
@@ -90,7 +90,7 @@ public class RedisGroupChangeListener implements MessageListener {
                                 }
                                 if (ObjectUtils.isEmpty(groupMessage.getGroupName())
                                         || ObjectUtils.isEmpty(groupMessage.getTopGroupGbId()) ){
-                                    log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
+                                    log.info("[REDIS消息-分组信息新增] 消息关键字段缺失， {}", groupMessage.toString());
                                     continue;
                                 }
                                 group = new Group();
@@ -119,27 +119,29 @@ public class RedisGroupChangeListener implements MessageListener {
                                 String deviceId = buildGroupDeviceId(isTop);
                                 group.setDeviceId(deviceId);
                                 group.setAlias(groupMessage.getGroupAlias());
-
+                                group.setName(groupMessage.getGroupName());
                                 if (!isTop) {
-                                    if (ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias()) || ObjectUtils.isEmpty(groupMessage.getParentGAlias())) {
-                                        log.info("[REDIS消息-业务分组同步回复] 消息缺失业务分组别名或者父节点别名， {}", groupMessage.toString());
+                                    if (ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias()) ) {
+                                        log.info("[REDIS消息-分组信息新增] 消息缺失业务分组别名或者父节点别名， {}", groupMessage.toString());
                                         continue;
                                     }
 
                                     Group topGroup = groupService.queryGroupByAlias(groupMessage.getTopGroupGAlias());
                                     if (topGroup == null) {
-                                        log.info("[REDIS消息-业务分组同步回复] 业务分组信息未入库， {}", groupMessage.toString());
+                                        log.info("[REDIS消息-分组信息新增] 业务分组信息未入库， {}", groupMessage.toString());
                                         continue;
                                     }
-                                    group.setBusinessGroup(groupMessage.getTopGroupGbId());
+                                    group.setBusinessGroup(topGroup.getDeviceId());
+                                    group.setParentId(topGroup.getId());
+                                }
+                                if (groupMessage.getParentGAlias() != null) {
                                     Group parentGroup = groupService.queryGroupByAlias(groupMessage.getParentGAlias());
                                     if (parentGroup == null) {
-                                        log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
+                                        log.info("[REDIS消息-分组信息新增] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
                                         continue;
                                     }
                                     group.setParentId(parentGroup.getId());
                                     group.setParentDeviceId(parentGroup.getDeviceId());
-
                                 }
                                 group.setCreateTime(DateUtil.getNow());
                                 group.setUpdateTime(DateUtil.getNow());
@@ -166,9 +168,8 @@ public class RedisGroupChangeListener implements MessageListener {
                                 groupService.update(group);
                             }else {
                                 // 此处使用别名作为判断依据，别名此处常常是分组在第三方系统里的唯一ID
-                                if (groupMessage.getGroupAlias() == null || ObjectUtils.isEmpty(groupMessage.getGroupName())
-                                        || ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
-                                    log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
+                                if (groupMessage.getGroupAlias() == null) {
+                                    log.info("[REDIS消息-分组信息更新] 消息关键字段缺失， {}", groupMessage.toString());
                                     continue;
                                 }
                                 Group group = groupService.queryGroupByAlias(groupMessage.getGroupAlias());
@@ -176,33 +177,25 @@ public class RedisGroupChangeListener implements MessageListener {
                                     log.info("[REDIS消息-分组信息更新] 失败 {}，别名不存在", groupMessage.getGroupAlias());
                                     continue;
                                 }
-                                boolean isTop = groupMessage.getTopGroupGAlias().equals(groupMessage.getGroupAlias());
-                                String deviceId = buildGroupDeviceId(isTop);
-                                group.setDeviceId(deviceId);
-                                group.setAlias(groupMessage.getGroupAlias());
-
-                                if (!isTop) {
-                                    if (ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias()) || ObjectUtils.isEmpty(groupMessage.getParentGAlias())) {
-                                        log.info("[REDIS消息-业务分组同步回复] 消息缺失业务分组别名或者父节点别名， {}", groupMessage.toString());
-                                        continue;
-                                    }
-
-                                    Group topGroup = groupService.queryGroupByDeviceId(group.getBusinessGroup());
-                                    if (topGroup == null) {
-                                        log.info("[REDIS消息-业务分组同步回复] 业务分组不存在， {}", groupMessage.toString());
-                                        continue;
-                                    }
-                                    group.setBusinessGroup(topGroup.getDeviceId());
+                                group.setName(groupMessage.getGroupName());
+                                group.setUpdateTime(DateUtil.getNow());
+                                if (groupMessage.getParentGAlias() != null) {
                                     Group parentGroup = groupService.queryGroupByAlias(groupMessage.getParentGAlias());
                                     if (parentGroup == null) {
-                                        log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
+                                        log.info("[REDIS消息-分组信息更新] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
                                         continue;
                                     }
                                     group.setParentId(parentGroup.getId());
                                     group.setParentDeviceId(parentGroup.getDeviceId());
-
+                                }else {
+                                    Group businessGroup = groupService.queryGroupByDeviceId(group.getBusinessGroup());
+                                    if (businessGroup == null ) {
+                                        log.info("[REDIS消息-分组信息更新] 失败 {}，业务分组不存在", groupMessage.getGroupAlias());
+                                        continue;
+                                    }
+                                    group.setParentId(businessGroup.getId());
+                                    group.setParentDeviceId(null);
                                 }
-                                group.setUpdateTime(DateUtil.getNow());
                                 groupService.update(group);
                             }
                             break;
@@ -220,21 +213,20 @@ public class RedisGroupChangeListener implements MessageListener {
                                 groupService.delete(group.getId());
                             }else {
                                 // 此处使用别名作为判断依据，别名此处常常是分组在第三方系统里的唯一ID
-                                if (groupMessage.getGroupAlias() == null || ObjectUtils.isEmpty(groupMessage.getGroupName())
-                                        || ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
-                                    log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
+                                if (groupMessage.getGroupAlias() == null) {
+                                    log.info("[REDIS消息-分组信息删除] 消息关键字段缺失， {}", groupMessage.toString());
                                     continue;
                                 }
                                 Group group = groupService.queryGroupByAlias(groupMessage.getGroupAlias());
                                 if (group == null) {
-                                    log.info("[REDIS消息-分组信息更新] 失败 {}，别名不存在", groupMessage.getGroupAlias());
+                                    log.info("[REDIS消息-分组信息删除] 失败 {}，别名不存在", groupMessage.getGroupAlias());
                                     continue;
                                 }
                                 groupService.delete(group.getId());
                             }
                             break;
                         default:
-                            log.info("[REDIS消息-分组信息更新] 未识别的消息类型 {}，目前支持的消息类型为 add、update、delete", groupMessage.getMessageType());
+                            log.info("[REDIS消息-分组信息改变] 未识别的消息类型 {}，目前支持的消息类型为 add、update、delete", groupMessage.getMessageType());
                     }
                 }
 

@@ -104,6 +104,15 @@ public class CameraChannelController {
         return channelService.queryListWithChild(page, count, query, sortName, order, groupAlias, status, geoCoordSys);
     }
 
+    @GetMapping(value = "/camera/cont-with-child")
+    @ResponseBody
+    @Operation(summary = "查询摄像机列表的总数和在线数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "groupAlias", description = "分组别名")
+    public CameraCont queryCountWithChild(String groupAlias){
+
+        return channelService.queryCountWithChild(groupAlias);
+    }
+
     @GetMapping(value = "/camera/one")
     @ResponseBody
     @Operation(summary = "查询单个摄像头信息", security = @SecurityRequirement(name = JwtUtils.HEADER))

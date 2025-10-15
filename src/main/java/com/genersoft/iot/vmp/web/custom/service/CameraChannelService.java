@@ -15,10 +15,7 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
-import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
-import com.genersoft.iot.vmp.web.custom.bean.CameraStreamInfo;
-import com.genersoft.iot.vmp.web.custom.bean.Point;
+import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.conf.SyTokenManager;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -159,6 +156,18 @@ public class CameraChannelService implements CommandLineRunner {
         }else {
             return cameraGroup.getChild();
         }
+    }
+
+    public CameraCont queryCountWithChild(String groupAlias) {
+        // 构建组织结构信息
+        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+        Assert.notNull(group, "组织结构不存在");
+        String groupDeviceId = group.getDeviceId();
+        // 获取所有子节点
+        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+        groupList.add(group);
+
+        return null;
     }
 
     /**
@@ -446,4 +455,6 @@ public class CameraChannelService implements CommandLineRunner {
         groupPageInfo.setList(list);
         return groupPageInfo;
     }
+
+
 }

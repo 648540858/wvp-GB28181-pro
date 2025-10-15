@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -548,7 +547,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public void updateBusinessGroup(String oldBusinessGroup, String newBusinessGroup) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(oldBusinessGroup);
-        Assert.notEmpty(channelList, "旧的业务分组的通道不存在");
+        if (channelList.isEmpty()) {
+            log.info("[更新业务分组] 发现未关联任何通道： {}", oldBusinessGroup);
+            return;
+        }
 
         int result = commonGBChannelMapper.updateBusinessGroupByChannelList(newBusinessGroup, channelList);
         if (result > 0) {

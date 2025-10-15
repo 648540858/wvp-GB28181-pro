@@ -166,7 +166,7 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public Group queryGroupByDeviceId(String regionDeviceId) {
-        return null;
+        return groupManager.queryOneByOnlyDeviceId(regionDeviceId);
     }
 
     @Override

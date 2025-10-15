@@ -79,7 +79,7 @@ public class RedisGroupMsgListener implements MessageListener {
                     log.info("[REDIS消息-业务分组同步回复] {}", groupMessage.toString());
                     if (!userSetting.isUseAliasForGroupSync()) {
                         if (groupMessage.getGroupGbId() == null) {
-                            log.info("[REDIS消息-业务分组同步回复] 分组编号未设置，{}", groupMessage.toString());
+                            log.warn("[REDIS消息-业务分组同步回复] 分组编号未设置，{}", groupMessage.toString());
                             continue;
                         }
                         Group group = groupService.queryGroupByDeviceId(groupMessage.getGroupGbId());
@@ -122,7 +122,6 @@ public class RedisGroupMsgListener implements MessageListener {
                             group.setAlias(groupMessage.getGroupAlias());
                             group.setName(groupMessage.getGroupName());
                             group.setCreateTime(DateUtil.getNow());
-
                         }
 
                         if (!isTop) {
@@ -137,16 +136,23 @@ public class RedisGroupMsgListener implements MessageListener {
                                 continue;
                             }
                             group.setBusinessGroup(topGroup.getDeviceId());
-                        }
-                        if (groupMessage.getParentGAlias() != null) {
-                            Group parentGroup = groupService.queryGroupByAlias(groupMessage.getParentGAlias());
-                            if (parentGroup == null) {
-                                log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
-                                continue;
+                            if (groupMessage.getParentGAlias() != null) {
+                                Group parentGroup = groupService.queryGroupByAlias(groupMessage.getParentGAlias());
+                                if (parentGroup == null) {
+                                    log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
+                                    continue;
+                                }
+                                group.setParentId(parentGroup.getId());
+                                group.setParentDeviceId(parentGroup.getDeviceId());
+                            }else {
+                                group.setParentId(topGroup.getId());
+                                group.setParentDeviceId(null);
                             }
-                            group.setParentId(parentGroup.getId());
-                            group.setParentDeviceId(parentGroup.getDeviceId());
+                        }else {
+                            group.setParentId(null);
+                            group.setParentDeviceId(null);
                         }
+
                         group.setUpdateTime(DateUtil.getNow());
                         if (group.getId() > 0) {
                             groupService.update(group);

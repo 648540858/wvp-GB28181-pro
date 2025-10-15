@@ -110,6 +110,9 @@ public interface GroupMapper {
     @Select("SELECT * from wvp_common_group WHERE device_id = #{deviceId} and business_group = #{businessGroup}")
     Group queryOneByDeviceId(@Param("deviceId") String deviceId, @Param("businessGroup") String businessGroup);
 
+    @Select("SELECT * from wvp_common_group WHERE device_id = #{deviceId}")
+    Group queryOneByOnlyDeviceId(@Param("deviceId") String deviceId);
+
     @Delete("<script>" +
             " DELETE FROM wvp_common_group WHERE id in " +
             " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +

@@ -55,7 +55,7 @@
         <el-form-item label="纬度">
           <el-input v-model="form.gbLatitude" placeholder="请输入纬度" />
         </el-form-item>
-        <el-form-item label="云台类型">
+        <el-form-item label="摄像机类型">
           <el-select v-model="form.gbPtzType" style="width: 100%" placeholder="请选择云台类型">
             <el-option label="球机" :value="1" />
             <el-option label="半球" :value="2" />
@@ -64,6 +64,7 @@
             <el-option label="遥控半球" :value="5" />
             <el-option label="多目设备的全景/拼接通道" :value="6" />
             <el-option label="多目设备的分割通道" :value="7" />
+            <el-option label="移动设备（非标）" :value="99" />
           </el-select>
         </el-form-item>
       </div>
@@ -175,6 +176,14 @@
             <el-option label="东北(西南到东北)" :value="6" />
             <el-option label="西南(东北到西南)" :value="7" />
             <el-option label="西北(东南到西北)" :value="8" />
+            <el-option label="左(非标)" :value="91" />
+            <el-option label="后(非标)" :value="92" />
+            <el-option label="前(非标)" :value="93" />
+            <el-option label="右(非标)" :value="94" />
+            <el-option label="左前(非标)" :value="95" />
+            <el-option label="右前(非标)" :value="96" />
+            <el-option label="左后(非标)" :value="97" />
+            <el-option label="右后(非标)" :value="98" />
           </el-select>
         </el-form-item>
         <el-form-item label="分辨率">

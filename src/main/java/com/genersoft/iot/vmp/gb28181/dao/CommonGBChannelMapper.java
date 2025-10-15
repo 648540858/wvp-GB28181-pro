@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -644,4 +645,12 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListForSyMobile")
     List<CameraChannel> queryListForSyMobile(@Param("business") String business);
+
+    @Update("<script> " +
+            "<foreach collection='channels' index='index' item='item' separator=';'> " +
+            "UPDATE wvp_device_channel SET map_level=#{item.mapLevel} " +
+            "WHERE id = #{item.gbId}" +
+            "</foreach> " +
+            "</script>")
+    void saveLevel(List<ChannelForThin> channels);
 }

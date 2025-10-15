@@ -21,6 +21,7 @@ public class ChannelProvider {
             "    stream_id,\n" +
             "    record_plan_id,\n" +
             "    enable_broadcast,\n" +
+            "    map_level,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +

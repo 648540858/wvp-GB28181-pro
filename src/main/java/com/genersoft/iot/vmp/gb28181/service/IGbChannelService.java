@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.github.pagehelper.PageInfo;
@@ -99,4 +100,6 @@ public interface IGbChannelService {
     void updateGPS(List<CommonGBChannel> channelList);
 
     List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType);
+
+    void saveLevel(List<ChannelForThin> channels);
 }

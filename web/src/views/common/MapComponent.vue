@@ -153,11 +153,25 @@ export default {
     getZoom() {
       return olMap.getView().getZoom()
     },
-    zoomIn(zoom) {
-
+    zoomIn() {
+      let zoom = olMap.getView().getZoom()
+      if (zoom >= olMap.getView().getMaxZoom()) {
+        return
+      }
+      olMap.getView().animate({
+        zoom: Math.trunc(zoom) + 1,
+        duration: 600
+      })
     },
-    zoomOut(zoom) {
-
+    zoomOut() {
+      let zoom = olMap.getView().getZoom()
+      if (zoom <= olMap.getView().getMinZoom()) {
+        return
+      }
+      olMap.getView().animate({
+        zoom: Math.trunc(zoom) - 1,
+        duration: 400
+      })
     },
     centerAndZoom(point, zoom, callback) {
       var zoom_ = olMap.getView().getZoom()
@@ -177,6 +191,9 @@ export default {
       var coordinate = fromLonLat(point)
       if (containsCoordinate(olMap.getView().calculateExtent(), coordinate)) {
         olMap.getView().setCenter(coordinate)
+        if (zoom !== olMap.getView().getZoom()) {
+          olMap.getView().setZoom(zoom)
+        }
         if (endCallback) {
           endCallback()
         }
@@ -189,7 +206,7 @@ export default {
         duration: duration
       })
       olMap.getView().animate({
-        zoom: 12,
+        zoom: zoom -2,
         duration: duration / 2
       }, {
         zoom: zoom || olMap.getView().getZoom(),
@@ -549,6 +566,8 @@ export default {
         callback([min[0], min[1], max[0], max[1]])
         draw.abortDrawing()
         olMap.removeInteraction(draw)
+        source.clear(true)
+        olMap.removeLayer(vectorLayer)
       })
     }
   }

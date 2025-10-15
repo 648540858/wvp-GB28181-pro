@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
@@ -790,5 +791,22 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
         return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType);
+    }
+
+    @Override
+    @Transactional
+    public void saveLevel(List<ChannelForThin> channels) {
+        int limitCount = 1000;
+        if (channels.size() > limitCount) {
+            for (int i = 0; i < channels.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > channels.size()) {
+                    toIndex = channels.size();
+                }
+                commonGBChannelMapper.saveLevel(channels.subList(i, toIndex));
+            }
+        } else {
+            commonGBChannelMapper.saveLevel(channels);
+        }
     }
 }

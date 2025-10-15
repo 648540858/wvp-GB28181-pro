@@ -5,10 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupByGbDeviceParam;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupParam;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionByGbDeviceParam;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionParam;
+import com.genersoft.iot.vmp.gb28181.controller.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -477,5 +474,11 @@ public class ChannelController {
             query = null;
         }
         return channelService.queryListForMap(query, online, hasRecordPlan, channelType);
+    }
+
+    @Operation(summary = "为地图保存抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/map/save-level")
+    public void saveLevel(@RequestBody List<ChannelForThin> channels){
+        channelService.saveLevel(channels);
     }
 }

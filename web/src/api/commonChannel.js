@@ -598,6 +598,13 @@ export function getAllForMap({ query, online, hasRecordPlan, channelType }) {
     }
   })
 }
+export function saveLevel(data) {
+  return request({
+    method: 'post',
+    url: '/api/common/channel/map/save-level',
+    data: data
+  })
+}
 export function test() {
   return request({
     method: 'get',

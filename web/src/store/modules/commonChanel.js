@@ -48,7 +48,7 @@ import {
   stopPlayback,
   pausePlayback,
   resumePlayback,
-  seekPlayback, speedPlayback, getAllForMap, test
+  seekPlayback, speedPlayback, getAllForMap, test, saveLevel
 } from '@/api/commonChannel'
 
 const actions = {
@@ -565,6 +565,16 @@ const actions = {
   getAllForMap({ commit }, params) {
     return new Promise((resolve, reject) => {
       getAllForMap(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  saveLevel({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      saveLevel(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

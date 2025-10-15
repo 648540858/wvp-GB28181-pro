@@ -47,10 +47,10 @@
           </div>
         </div>
         <div class="map-tool-btn-group">
-          <div class="map-tool-btn">
+          <div class="map-tool-btn" @click="zoomIn">
             <i class="iconfont icon-plus1"></i>
           </div>
-          <div class="map-tool-btn">
+          <div class="map-tool-btn" @click="zoomOut">
             <i class="iconfont icon-minus1"></i>
           </div>
         </div>
@@ -65,12 +65,12 @@
       <transition name="el-zoom-in-top">
         <div v-show="showDrawThin"  class="map-tool-draw-thin">
           <div class="map-tool-draw-thin-density">
-            <span style="line-height: 36px; font-size: 15px">密度： </span>
-            <el-slider v-model="diffPixels" show-input :min="10" :max="200" input-size="mini"></el-slider>
+            <span style="line-height: 36px; font-size: 15px">间隔： </span>
+            <el-slider v-model="diffPixels" show-input :min="10" :max="200" input-size="mini" ></el-slider>
             <div style="margin-left: 10px; line-height: 38px;">
-              <el-button type="primary" plain @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
-              <el-button type="primary" plain size="mini" @click="boxDrawThin" >局部抽稀</el-button>
-              <el-button type="primary" size="mini" @click="saveDrawThin()">保存</el-button>
+              <el-button :loading="quicklyDrawThinLoading" @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
+              <el-button size="mini" @click="boxDrawThin" >局部抽稀</el-button>
+              <el-button :loading="saveDrawThinLoading" type="primary" :disabled="!layerGroupSource" size="mini" @click="saveDrawThin()">保存</el-button>
               <el-button type="warning" size="mini" @click="showDrawThinBox(false)">取消</el-button>
             </div>
           </div>
@@ -160,7 +160,11 @@ export default {
       diffPixels: 60,
       zoomValue: 10,
       showDrawThin: false,
-      layerStyle: 1
+      quicklyDrawThinLoading: false,
+      saveDrawThinLoading: false,
+      layerStyle: 1,
+      drawThinLayer: null,
+      layerGroupSource: null
     }
   },
   created() {
@@ -177,14 +181,17 @@ export default {
           if (!data.gbLongitude || data.gbLongitude < 0) {
             return
           }
-          if (this.$refs.mapComponent.coordinateInView([data.gbLongitude, data.gbLatitude])) {
+          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+          this.$refs.mapComponent.panTo([data.gbLongitude, data.gbLatitude], zoomExtent[1], () => {
             this.showChannelInfo(data)
-          }else {
-            this.$refs.mapComponent.panTo([data.gbLongitude, data.gbLatitude], 16, () => {
-              this.showChannelInfo(data)
-            })
-          }
+          })
         })
+    },
+    zoomIn: function() {
+      this.$refs.mapComponent.zoomIn()
+    },
+    zoomOut: function() {
+      this.$refs.mapComponent.zoomOut()
     },
     getContextmenu: function (event) {
         return [
@@ -287,9 +294,19 @@ export default {
       })
     },
     changeMapTile: function (index) {
+      if (this.showDrawThin) {
+        this.$message.warning({
+          showClose: true,
+          message: '抽稀操作进行中，禁止切换图层'
+        })
+        return
+      }
       this.$refs.mapComponent.changeMapTile(index)
     },
     changeLayerStyle: function (index) {
+      if (this.layerStyle === index) {
+        return
+      }
       this.layerStyle = index
       this.$refs.mapComponent.removeLayer(this.channelLayer)
       this.channelLayer = null
@@ -502,115 +519,199 @@ export default {
     showDrawThinBox: function(show){
       this.showDrawThin = show
       if (!show) {
+        // 关闭抽稀预览
+        if (this.drawThinLayer !== null) {
+          this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+          this.drawThinLayer = null
+        }
+        // 清空预览数据
+        this.layerGroupSource = null
         this.updateChannelLayer()
       }else {
-
+        //
       }
     },
     quicklyDrawThin: function (){
-      this.drawThin(cameraLayerExtent)
-    },
-    boxDrawThin: function (){
-      this.$refs.mapComponent.startDrawBox((extent) => {
-          this.drawThin(extent)
+      if (this.channelLayer) {
+        this.$refs.mapComponent.removeLayer(this.channelLayer)
+      }
+      if (this.drawThinLayer !== null) {
+        this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+        this.drawThinLayer = null
+      }
+      // 获取待抽稀数据
+      let cameraList = cameraListForSource.slice()
+
+      this.quicklyDrawThinLoading = true
+      this.drawThin(cameraList).then((layerGroupSource) => {
+        this.layerGroupSource = layerGroupSource
+        this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+          this.closeInfoBox()
+          this.$nextTick(() => {
+            if (data[0].edit) {
+              this.showEditInfo(data[0])
+            }else {
+              this.showChannelInfo(data[0])
+            }
+          })
+        })
+        this.quicklyDrawThinLoading = false
+        this.$message.success({
+          showClose: true,
+          message: '抽稀完成，请预览无误后保存抽稀结果'
+        })
       })
     },
-    drawThin: function (extent){
-      let layerGroupSource = new Map()
+    boxDrawThin: function (){
+      // 绘制框
+      this.$refs.mapComponent.startDrawBox((extent) => {
 
-      this.$refs.mapComponent.removeLayer(this.channelLayer)
-      let cameraListInExtent = []
-      let cameraListOutExtent = []
-      if (!extent) {
-        cameraListInExtent = cameraListForSource.slice()
-      }else {
-        for (let i = 0; i < cameraListForSource.length; i++) {
-          let value = cameraListForSource[i]
-          if (!value.gbLongitude || !value.gbLatitude) {
-            continue
-          }
-          if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
-            && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
-            cameraListInExtent.push(value)
-          }else {
-            cameraListOutExtent.push(value)
-          }
-        }
-      }
-
-      // 获取全部层级
-      let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-      let zoom = zoomExtent[0]
-      let zoomCameraMap = new Map()
-      let useCameraMap = new Map()
-
-      while (zoom < zoomExtent[1]) {
-        // 计算经纬度差值
-        let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
-        let cameraMapForZoom = new Map()
-        let useCameraMapForZoom = new Map()
-        let useCameraList = Array.from(useCameraMap.values())
-        for (let i = 0; i < useCameraList.length; i++) {
-          let value = useCameraList[i]
-          let lngGrid = Math.trunc(value.gbLongitude / diff)
-          let latGrid = Math.trunc(value.gbLatitude / diff)
-          let gridKey = latGrid + ':' + lngGrid
-          useCameraMapForZoom.set(gridKey, value)
+        // 清理默认的摄像头图层
+        if (this.channelLayer) {
+          this.$refs.mapComponent.removeLayer(this.channelLayer)
         }
 
-        for (let i = 0; i < cameraListInExtent.length; i++) {
-          let value = cameraListInExtent[i]
-          if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
-            continue
+        let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+        let cameraListInExtent = []
+        let cameraListOutExtent = []
+        if (this.layerGroupSource !== null) {
+          // 从当前预览的数据里，获取待抽稀的数据
+          let sourceCameraList = this.layerGroupSource.get(0)
+          console.log(sourceCameraList)
+          if (!sourceCameraList) {
+            this.$message.warning({
+              showClose: true,
+              message: '数据已经全部抽稀'
+            })
+            return
           }
-          let lngGrid = Math.trunc(value.gbLongitude / diff)
-          let latGrid = Math.trunc(value.gbLatitude / diff)
-          let gridKey = latGrid + ':' + lngGrid
-          if (useCameraMapForZoom.has(gridKey)) {
-            continue
-          }
-          if (cameraMapForZoom.has(gridKey)) {
-            let oldValue = cameraMapForZoom.get(gridKey)
-            if (value.gbLongitude % diff < oldValue.gbLongitude % diff) {
-              cameraMapForZoom.set(gridKey, value)
-              useCameraMap.set(value.gbId, value)
-              useCameraMap.delete(oldValue.gbId)
+          for (let i = 0; i < sourceCameraList.length; i++) {
+            let value = sourceCameraList[i]
+            if (!value.data.gbLongitude || !value.data.gbLatitude) {
+              continue
             }
-          }else {
-            cameraMapForZoom.set(gridKey, value)
-            useCameraMap.set(value.gbId, value)
+            if (value.data.gbLongitude >= extent[0] && value.data.gbLongitude <= extent[2]
+              && value.data.gbLatitude >= extent[1] && value.data.gbLatitude <= extent[3]) {
+              cameraListInExtent.push(value.data)
+            }else {
+              cameraListOutExtent.push(value.data)
+            }
+          }
+        }else {
+          for (let i = 0; i < cameraListForSource.length; i++) {
+            let value = cameraListForSource[i]
+            if (!value.gbLongitude || !value.gbLatitude) {
+              continue
+            }
+            if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
+              && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
+              cameraListInExtent.push(value)
+            }else {
+              cameraListOutExtent.push(value)
+            }
           }
         }
-
-        let cameraArray = Array.from(cameraMapForZoom.values())
-        zoomCameraMap.set(zoom, cameraArray)
-        let layerSource = this.createZoomLayerSource(cameraArray)
-        layerGroupSource.set(zoom - 1, layerSource)
-        zoom += 1
-      }
-      let cameraArray = []
-      for (let i = 0; i < cameraListInExtent.length; i++) {
-        let value = cameraListInExtent[i]
-        if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
-          continue
+        // 如果已经在预览，清理预览图层
+        if (this.drawThinLayer !== null) {
+          this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+          this.drawThinLayer = null
         }
-        cameraArray.push(value)
-      }
-      let layerSource = this.createZoomLayerSource(cameraArray)
-      layerGroupSource.set(zoomExtent[1] - 1, layerSource)
-      if (cameraListOutExtent.length > 0) {
-        let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
-        layerGroupSource.set(zoomExtent[0] - 1, layerSourceForOutExtent)
-      }
-      this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
-        this.closeInfoBox()
-        this.$nextTick(() => {
-          if (data[0].edit) {
-            this.showEditInfo(data[0])
-          }else {
-            this.showChannelInfo(data[0])
+        this.drawThin(cameraListInExtent).then((layerGroupSource) => {
+          if (this.layerGroupSource !== null) {
+            let zoom = zoomExtent[0]
+            // 按照层级合并每次的抽稀结果
+            while (zoom < zoomExtent[1]) {
+              Array.prototype.push.apply(layerGroupSource.get(zoom), this.layerGroupSource.get(zoom))
+              zoom += 1
+            }
           }
+          if (cameraListOutExtent.length > 0) {
+            let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
+            layerGroupSource.set(0, layerSourceForOutExtent)
+          }
+          this.layerGroupSource = layerGroupSource
+          this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+            this.closeInfoBox()
+            this.$nextTick(() => {
+              if (data[0].edit) {
+                this.showEditInfo(data[0])
+              }else {
+                this.showChannelInfo(data[0])
+              }
+            })
+          })
         })
+      })
+    },
+    drawThin: function (cameraListInExtent){
+      return new Promise((resolve, reject) => {
+        try {
+          let layerGroupSource = new Map()
+          // 获取全部层级
+          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+          let zoom = zoomExtent[0]
+          let zoomCameraMap = new Map()
+          let useCameraMap = new Map()
+
+          while (zoom < zoomExtent[1]) {
+            // 计算经纬度差值
+            let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
+            let cameraMapForZoom = new Map()
+            let useCameraMapForZoom = new Map()
+            let useCameraList = Array.from(useCameraMap.values())
+            for (let i = 0; i < useCameraList.length; i++) {
+              let value = useCameraList[i]
+              let lngGrid = Math.trunc(value.gbLongitude / diff)
+              let latGrid = Math.trunc(value.gbLatitude / diff)
+              let gridKey = latGrid + ':' + lngGrid
+              useCameraMapForZoom.set(gridKey, value)
+            }
+
+            for (let i = 0; i < cameraListInExtent.length; i++) {
+              let value = cameraListInExtent[i]
+              if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
+                continue
+              }
+              let lngGrid = Math.trunc(value.gbLongitude / diff)
+              let latGrid = Math.trunc(value.gbLatitude / diff)
+              let gridKey = latGrid + ':' + lngGrid
+              if (useCameraMapForZoom.has(gridKey)) {
+                continue
+              }
+              if (cameraMapForZoom.has(gridKey)) {
+                let oldValue = cameraMapForZoom.get(gridKey)
+                if (value.gbLongitude % diff < oldValue.gbLongitude % diff) {
+                  cameraMapForZoom.set(gridKey, value)
+                  useCameraMap.set(value.gbId, value)
+                  useCameraMap.delete(oldValue.gbId)
+                }
+              }else {
+                cameraMapForZoom.set(gridKey, value)
+                useCameraMap.set(value.gbId, value)
+              }
+            }
+
+            let cameraArray = Array.from(cameraMapForZoom.values())
+            zoomCameraMap.set(zoom, cameraArray)
+            let layerSource = this.createZoomLayerSource(cameraArray)
+            layerGroupSource.set(zoom - 1, layerSource)
+            zoom += 1
+          }
+          let cameraArray = []
+          for (let i = 0; i < cameraListInExtent.length; i++) {
+            let value = cameraListInExtent[i]
+            if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
+              continue
+            }
+            cameraArray.push(value)
+          }
+          let layerSource = this.createZoomLayerSource(cameraArray)
+          layerGroupSource.set(zoomExtent[1] - 1, layerSource)
+
+          resolve(layerGroupSource)
+        }catch (error) {
+          reject(error)
+        }
       })
     },
 
@@ -632,6 +733,39 @@ export default {
      return dataArray
     },
     saveDrawThin: function(){
+      if (!this.layerGroupSource) {
+        return
+      }
+      this.saveDrawThinLoading = true
+      let param = []
+      let keys = Array.from(this.layerGroupSource.keys())
+      for (let i = 0; i < keys.length; i++) {
+        let zoom = keys[i]
+        let values = this.layerGroupSource.get(zoom)
+        for (let j = 0; j < values.length; j++) {
+          let value = values[j]
+          if (zoom === 0) {
+            param.push({
+              gbId: value.id
+            })
+          }else {
+            param.push({
+              gbId: value.id,
+              mapLevel: zoom
+            })
+          }
+        }
+      }
+      this.$store.dispatch('commonChanel/saveLevel', param)
+        .then((data) => {
+          this.$message.success({
+            showClose: true,
+            message: '保存成功'
+          })
+        })
+        .finally(() => {
+          this.saveDrawThinLoading = false
+        })
 
     }
   }

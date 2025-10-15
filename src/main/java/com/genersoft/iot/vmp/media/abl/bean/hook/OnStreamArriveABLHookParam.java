@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.abl.bean.hook;
 
-import com.genersoft.iot.vmp.media.abl.bean.AblUrls;
+import com.genersoft.iot.vmp.media.abl.bean.ABLUrls;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -108,5 +108,5 @@ public class OnStreamArriveABLHookParam extends ABLHookParam{
     private Integer audioBitrate;
 
 
-    private AblUrls url;
+    private ABLUrls url;
 }

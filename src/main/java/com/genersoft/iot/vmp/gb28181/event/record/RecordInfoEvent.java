@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
+import java.io.Serial;
+
 /**
  * @description: 录像查询结束时间
  * @author: pan
@@ -14,9 +16,8 @@ import org.springframework.context.ApplicationEvent;
 @Setter
 @Getter
 public class RecordInfoEvent extends ApplicationEvent {
-    /**
-     *
-     */
+
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public RecordInfoEvent(Object source) {

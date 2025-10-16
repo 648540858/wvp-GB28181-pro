@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.header.SIPDate;
 
+import java.io.Serial;
 import java.util.*;
 
 /**
@@ -10,11 +11,9 @@ import java.util.*;
  */
 public class GbSipDate extends SIPDate {
 
-    /**
-     *
-     */
+    @Serial
     private static final long serialVersionUID = 1L;
-    
+
     private Calendar javaCal;
 
     public GbSipDate(long timeMillis) {

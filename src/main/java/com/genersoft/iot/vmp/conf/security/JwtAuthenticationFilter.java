@@ -152,7 +152,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             Map<String, String[]> parameterMap = request.getParameterMap();
-            parameterMap.remove("sign");
             // 参数排序
             Set<String> paramKeys = new TreeSet<>(parameterMap.keySet());
 
@@ -160,6 +159,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 参数拼接
             StringBuilder beforeSign = new StringBuilder();
             for (String paramKey : paramKeys) {
+                if (paramKey.equals("sign")) {
+                    continue;
+                }
                 beforeSign.append(paramKey).append(parameterMap.get(paramKey)[0]);
             }
             // 如果是post请求的json消息，拼接body字符串
@@ -182,15 +184,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return false;
             }
             // 验证请求时间戳
-            Long timestamp = Long.getLong(timestampStr);
+            long timestamp = Long.parseLong(timestampStr);
             Instant timeInstant = Instant.ofEpochMilli(timestamp + SyTokenManager.INSTANCE.expires * 60 * 1000);
-            if (timeInstant.isAfter(Instant.now())) {
+            if (timeInstant.isBefore(Instant.now())) {
                 log.info("[SY-接口验签] 时间戳已经过期");
                 return false;
             }
             // accessToken校验
             if (accessToken.equals(SyTokenManager.INSTANCE.adminToken)) {
-                log.info("[SY-接口验签] 时间戳已经过期");
+                log.info("[SY-接口验签] adminToken已经默认放行");
                 return true;
             }else {
                 // 对token进行解密

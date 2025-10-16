@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.event.alarm;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import org.springframework.context.ApplicationEvent;
 
+import java.io.Serial;
+
 /**
  * @description: 报警事件
  * @author: lawrencehj
@@ -10,9 +12,8 @@ import org.springframework.context.ApplicationEvent;
  */
 
 public class AlarmEvent extends ApplicationEvent {
-    /**
-     *
-     */
+
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public AlarmEvent(Object source) {
@@ -24,7 +25,7 @@ public class AlarmEvent extends ApplicationEvent {
     public DeviceAlarm getAlarmInfo() {
         return deviceAlarm;
     }
-    
+
     public void setAlarmInfo(DeviceAlarm deviceAlarm) {
         this.deviceAlarm = deviceAlarm;
     }

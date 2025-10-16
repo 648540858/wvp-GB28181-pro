@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
+import java.io.Serial;
 import java.time.Clock;
 
 /**
@@ -15,6 +16,7 @@ import java.time.Clock;
 @Getter
 public class ConnectChangeEvent extends ApplicationEvent {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public ConnectChangeEvent(Object source) {

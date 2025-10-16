@@ -67,7 +67,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         commonGBChannel.setCreateTime(DateUtil.getNow());
         commonGBChannel.setUpdateTime(DateUtil.getNow());
-        return commonGBChannelMapper.insert(commonGBChannel);
+        int result = commonGBChannelMapper.insert(commonGBChannel);
+        // 发送通道新增通知
+
+        return result;
     }
 
     @Override

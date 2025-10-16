@@ -264,6 +264,7 @@ export default {
       this.closeInfoBox()
       this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
         cameraListForSource = data
+        console.log(data.length)
         let minLng = data[0].gbLongitude
         let maxLng = data[0].gbLongitude
         let minLat = data[0].gbLatitude
@@ -294,7 +295,7 @@ export default {
               }
             }
             cameraList.push(cameraData)
-            if (item.mapLevel) {
+            if (item.mapLevel) { 
               if (cameraListForLevelMap.has(item.mapLevel)) {
                 let list = cameraListForLevelMap.get(item.mapLevel)
                 list.push(cameraData)
@@ -350,6 +351,7 @@ export default {
           if (this.channelLayer) {
             this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
           }else {
+            console.log(cameraList.length)
             this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
           }
           break

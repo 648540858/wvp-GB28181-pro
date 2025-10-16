@@ -108,8 +108,7 @@ public class CameraChannelController {
     @ResponseBody
     @Operation(summary = "查询摄像机列表的总数和在线数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "groupAlias", description = "分组别名")
-    public CameraCont queryCountWithChild(String groupAlias){
-
+    public List<CameraCount> queryCountWithChild(String groupAlias){
         return channelService.queryCountWithChild(groupAlias);
     }
 

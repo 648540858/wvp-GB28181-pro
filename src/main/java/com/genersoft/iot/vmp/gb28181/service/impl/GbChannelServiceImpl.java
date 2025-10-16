@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -51,9 +50,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private GroupMapper groupMapper;
-
-    @Autowired
-    private IDeviceChannelService deviceChannelService;
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {

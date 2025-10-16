@@ -158,16 +158,34 @@ public class CameraChannelService implements CommandLineRunner {
         }
     }
 
-    public CameraCont queryCountWithChild(String groupAlias) {
+    public List<CameraCount> queryCountWithChild(String groupAlias) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
         Assert.notNull(group, "组织结构不存在");
-        String groupDeviceId = group.getDeviceId();
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
 
-        return null;
+        // TODO 此处整理可优化，尽量让sql直接返回对应的结构 无需二次整理
+        List<CameraCount> cameraCounts = groupMapper.queryCountWithChild(groupList);
+        if (cameraCounts.isEmpty()) {
+            return Collections.emptyList();
+        }else {
+           Map<String, String> cameraGroupMap = new HashMap<>();
+            for (CameraGroup cameraGroup : groupList) {
+                cameraGroupMap.put(cameraGroup.getDeviceId(), cameraGroup.getAlias());
+            }
+            List<CameraCount> result = new ArrayList<>();
+            for (CameraCount cameraCount : cameraCounts) {
+                String alias = cameraGroupMap.get(cameraCount.getDeviceId());
+                if (alias == null) {
+                    continue;
+                }
+                cameraCount.setGroupAlias(alias);
+                result.add(cameraCount);
+            }
+            return result;
+        }
     }
 
     /**

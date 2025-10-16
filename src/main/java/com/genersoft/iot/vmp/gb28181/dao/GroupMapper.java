@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.web.custom.bean.CameraCount;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
 import org.apache.ibatis.annotations.*;
 
@@ -304,4 +305,17 @@ public interface GroupMapper {
 
     @Select("SELECT * from wvp_common_group WHERE alias = #{alias} and  business_group = #{businessGroup}")
     Group queryGroupByAliasAndBusinessGroup(@Param("alias") String alias, @Param("deviceId") String businessGroup);
+
+
+    @Select(" <script>" +
+            " SELECT " +
+            "    coalesce( wdc.gb_parent_id, wdc.parent_id) as deviceId," +
+            "    COUNT(*) AS allCount," +
+            "    SUM(CASE WHEN coalesce( wdc.gb_status, wdc.status) = 'ON' THEN 1 ELSE 0 END) AS onlineCount" +
+            " FROM " +
+            "    wvp_device_channel wdc " +
+            " where coalesce( wdc.gb_parent_id, wdc.parent_id) in " +
+            " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            "</script>")
+    List<CameraCount> queryCountWithChild(List<CameraGroup> groupList);
 }

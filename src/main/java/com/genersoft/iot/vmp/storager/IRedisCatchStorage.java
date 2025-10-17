@@ -97,8 +97,6 @@ public interface IRedisCatchStorage {
 
     void addNetInfo(Map<String, Double> networkInterfaces);
 
-    void sendMobilePositionMsg(JSONObject jsonObject);
-
     void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
 
     /**

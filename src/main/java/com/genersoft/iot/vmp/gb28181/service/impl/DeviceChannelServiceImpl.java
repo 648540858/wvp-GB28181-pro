@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -367,17 +366,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }catch (Exception e) {
                 log.error("[向上级转发移动位置失败] ", e);
             }
-            // 发送redis消息。 通知位置信息的变化
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-            jsonObject.put("serial", mobilePosition.getDeviceId());
-            jsonObject.put("code", channel.getDeviceId());
-            jsonObject.put("longitude", mobilePosition.getLongitude());
-            jsonObject.put("latitude", mobilePosition.getLatitude());
-            jsonObject.put("altitude", mobilePosition.getAltitude());
-            jsonObject.put("direction", mobilePosition.getDirection());
-            jsonObject.put("speed", mobilePosition.getSpeed());
-            redisCatchStorage.sendMobilePositionMsg(jsonObject);
         }
     }
 

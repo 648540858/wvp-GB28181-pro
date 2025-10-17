@@ -345,13 +345,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendMobilePositionMsg(JSONObject jsonObject) {
-        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_MOBILE_POSITION;
-        log.debug("[redis发送通知] 发送 移动位置 {}: {}", key, jsonObject.toString());
-        redisTemplate.convertAndSend(key, jsonObject);
-    }
-
-    @Override
     public void sendStreamPushRequestedMsg(MessageForPushChannel msg) {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_REQUESTED;
         log.info("[redis发送通知] 发送 推流被请求 {}: {}/{}", key, msg.getApp(), msg.getStream());

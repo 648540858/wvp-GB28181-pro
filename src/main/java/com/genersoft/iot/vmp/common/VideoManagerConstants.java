@@ -127,11 +127,6 @@ public class VideoManagerConstants {
 	public static final String VM_MSG_GET_ALL_ONLINE_REQUESTED = "VM_MSG_GET_ALL_ONLINE_REQUESTED";
 
 	/**
-	 * 移动位置订阅通知
-	 */
-	public static final String VM_MSG_SUBSCRIBE_MOBILE_POSITION = "mobileposition";
-
-	/**
 	 * 报警订阅的通知（收到报警向redis发出通知）
 	 */
 	public static final String VM_MSG_SUBSCRIBE_ALARM = "alarm";

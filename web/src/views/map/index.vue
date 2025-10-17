@@ -295,7 +295,7 @@ export default {
               }
             }
             cameraList.push(cameraData)
-            if (item.mapLevel) { 
+            if (item.mapLevel) {
               if (cameraListForLevelMap.has(item.mapLevel)) {
                 let list = cameraListForLevelMap.get(item.mapLevel)
                 list.push(cameraData)

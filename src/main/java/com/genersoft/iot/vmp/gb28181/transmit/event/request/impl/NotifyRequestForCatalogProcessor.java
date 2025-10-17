@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
 //	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
 //	public void showSize(){
@@ -145,6 +150,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								log.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								channel.setStatus("ON");
 								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+
+                                // 发送通道修改消息
+                                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOnline(this, channel));
+
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
 									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
@@ -158,6 +167,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								} else {
 									channel.setStatus("OFF");
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOffline(this, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -172,6 +184,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								} else {
 									channel.setStatus("OFF");
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOffline(this, channel));
+
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -186,6 +202,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								} else {
 									channel.setStatus("OFF");
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOffline(this, channel));
+
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -203,10 +223,17 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setHasAudio(deviceChannel.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdate(this, channel));
+
 								} else {
 									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
 									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForAdd(this, channel));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
@@ -218,6 +245,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								// 删除
 								log.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.DELETE, channel));
+
+                                // 发送通道修改消息
+                                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForDelete(this, channel));
+
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
 									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -234,10 +265,17 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setUpdateTime(DateUtil.getNow());
 									channel.setUpdateTime(DateUtil.getNow());
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdate(this, channel));
+
 								} else {
 									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
 									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
 									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
+
+                                    // 发送通道修改消息
+                                    applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForAdd(this, channel));
+
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);

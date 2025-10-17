@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
@@ -20,6 +21,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -51,6 +53,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Autowired
     private GroupMapper groupMapper;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
         return commonGBChannelMapper.queryByDeviceId(gbDeviceId);
@@ -69,7 +74,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.insert(commonGBChannel);
         // 发送通道新增通知
-
+        // 发送通知
+        applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForAdd(this, commonGBChannel));
         return result;
     }
 
@@ -92,6 +98,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             } catch (Exception e) {
                 log.warn("[通道移除通知] 发送失败，{}", channel.getGbDeviceId(), e);
             }
+            // 发送通知
+            applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForDelete(this, channel));
         }
         return 1;
     }
@@ -109,6 +117,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelListInDb.isEmpty()) {
             return;
         }
+        // 发送通知
+        applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForDeleteList(this, channelListInDb));
         commonGBChannelMapper.batchDelete(channelListInDb);
     }
 
@@ -123,6 +133,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
         int result = commonGBChannelMapper.update(commonGBChannel);
         if (result > 0) {
             try {
+                // 发送通知
+                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdate(this, commonGBChannel));
+
                 // 发送通知
                 eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.UPDATE);
             } catch (Exception e) {
@@ -142,6 +155,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送通知
+                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOffline(this, commonGBChannel));
+                // 发送通知
                 eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.OFF);
             } catch (Exception e) {
                 log.warn("[通道离线通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
@@ -158,6 +173,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             return 0;
         }
         log.info("[通道离线] 共 {} 个", commonGBChannelList.size());
+        // 发送通知
+        applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOfflineList(this, commonGBChannelList));
         int limitCount = 1000;
         int result = 0;
         if (commonGBChannelList.size() > limitCount) {
@@ -192,6 +209,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送通知
+                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOnline(this, commonGBChannel));
+                // 发送通知
                 eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.ON);
             } catch (Exception e) {
                 log.warn("[通道上线通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
@@ -222,6 +241,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "ON");
         }
         try {
+            // 发送通知
+            applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForOnlineList(this, commonGBChannelList));
             // 发送catalog
             eventPublisher.catalogEventPublish(null, commonGBChannelList, CatalogEvent.ON);
         } catch (Exception e) {
@@ -252,6 +273,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         } else {
             result += commonGBChannelMapper.batchAdd(commonGBChannels);
         }
+        // 发送通知
+        applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForAddList(this, commonGBChannels));
         log.warn("[新增多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
     }
 
@@ -278,6 +301,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         log.info("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
         // 发送通过更新通知
         try {
+            // 发送通知
+            applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdateList(this, commonGBChannels));
             // 发送通知
             eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
         } catch (Exception e) {
@@ -308,6 +333,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         log.warn("[更新多个通道状态] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
         // 发送通过更新通知
         try {
+            // 发送通知
+            applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdateList(this, commonGBChannels));
             // 发送通知
             eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
         } catch (Exception e) {
@@ -372,6 +399,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
         CommonGBChannel channelNew = getOne(id);
         // 发送通过更新通知
         try {
+
+            // 发送通知
+            applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdate(this, channelNew));
+
             // 发送通知
             eventPublisher.catalogEventPublish(null, channelNew, CatalogEvent.UPDATE);
         } catch (Exception e) {
@@ -558,6 +589,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
             // 发送catalog
             try {
+                // 发送通知
+                applicationEventPublisher.publishEvent(ChannelEvent.getInstanceForUpdateList(this, channelList));
                 eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
             } catch (Exception e) {
                 log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);

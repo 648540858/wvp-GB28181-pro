@@ -646,6 +646,9 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryListForSyMobile")
     List<CameraChannel> queryListForSyMobile(@Param("business") String business);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelById")
+    CameraChannel queryCameraChannelById(@Param("gbId") Integer id);
+
     @Update("<script> " +
             "<foreach collection='channels' index='index' item='item' separator=';'> " +
             "UPDATE wvp_device_channel SET map_level=#{item.mapLevel} " +
@@ -653,4 +656,7 @@ public interface CommonGBChannelMapper {
             "</foreach> " +
             "</script>")
     void saveLevel(List<ChannelForThin> channels);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelByIds")
+    List<CameraChannel> queryCameraChannelByIds(List<Integer> ids);
 }

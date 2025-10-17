@@ -130,7 +130,7 @@ public class PlayServiceImpl implements IPlayService {
      * 流到来的处理
      */
     @Async("taskExecutor")
-    @org.springframework.context.event.EventListener
+    @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("broadcast".equals(event.getApp()) || "talk".equals(event.getApp())) {
             if (event.getStream().indexOf("_") > 0) {

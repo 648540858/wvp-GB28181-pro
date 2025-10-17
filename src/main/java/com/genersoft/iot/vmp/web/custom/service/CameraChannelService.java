@@ -8,8 +8,11 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.FrontEndControlCodeForPTZ;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -23,6 +26,7 @@ import com.github.xiaoymin.knife4j.core.util.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +35,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class CameraChannelService implements CommandLineRunner {
+
+    private final String REDIS_GPS_MESSAGE = "VM_MSG_MOBILE_GPS";
+    private final String REDIS_CHANNEL_MESSAGE = "VM_MSG_MOBILE_CHANNEL";
 
     @Autowired
     private CommonGBChannelMapper channelMapper;
@@ -100,6 +107,77 @@ public class CameraChannelService implements CommandLineRunner {
         SyTokenManager.INSTANCE.expires = timeJson.getLong("systemValue");
 
         return true;
+    }
+
+    // 监听通道变化，如果是移动设备则发送redis消息
+    @EventListener
+    public void onApplicationEvent(CatalogEvent event) {
+        List<CommonGBChannel> channels = event.getChannels();
+        if (channels.isEmpty()) {
+            return;
+        }
+
+        List<CameraChannel> mobilechannelList = null;
+        if (event.getType().equals(CatalogEvent.DEL)) {
+            mobilechannelList = new ArrayList<>();
+            for (CommonGBChannel channel : channels) {
+                if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                    CameraChannel cameraChannel = new CameraChannel();
+                    cameraChannel.setGbDeviceId(channel.getGbDeviceId());
+                    mobilechannelList.add(cameraChannel);
+                }
+            }
+        }else {
+            List<Integer> ids = new ArrayList<>();
+            channels.forEach((channel -> {
+                if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                    ids.add(channel.getGbId());
+                }
+            }));
+            if (ids.isEmpty()) {
+                return;
+            }
+            mobilechannelList = channelMapper.queryCameraChannelByIds(ids);
+        }
+        if (mobilechannelList == null || mobilechannelList.isEmpty()) {
+            return;
+        }
+        String type = event.getType();
+        if (type.equals(CatalogEvent.VLOST) || type.equals(CatalogEvent.DEFECT)) {
+            type = CatalogEvent.OFF;
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", type);
+        jsonObject.put("list", mobilechannelList);
+        log.info("[SY-redis发送通知] 发送 通道信息变化 {}: {}", REDIS_CHANNEL_MESSAGE, jsonObject.toString());
+        redisTemplate.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject);
+
+
+    }
+
+    // 监听GPS消息，如果是移动设备则发送redis消息
+    @EventListener
+    public void onApplicationEvent(MobilePositionEvent event) {
+        MobilePosition mobilePosition = event.getMobilePosition();
+        Integer channelId = mobilePosition.getChannelId();
+        CameraChannel cameraChannel = channelMapper.queryCameraChannelById(channelId);
+
+        // 非移动设备类型 不发送
+        if (cameraChannel == null || cameraChannel.getGbPtzType() != 99) {
+            return;
+        }
+        // 发送redis消息
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("time", mobilePosition.getTime());
+        jsonObject.put("deviceId", mobilePosition.getDeviceId());
+        jsonObject.put("longitude", mobilePosition.getLongitude());
+        jsonObject.put("latitude", mobilePosition.getLatitude());
+        jsonObject.put("altitude", mobilePosition.getAltitude());
+        jsonObject.put("direction", mobilePosition.getDirection());
+        jsonObject.put("speed", mobilePosition.getSpeed());
+        log.debug("[redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
+        redisTemplate.convertAndSend(REDIS_GPS_MESSAGE, jsonObject);
     }
 
 

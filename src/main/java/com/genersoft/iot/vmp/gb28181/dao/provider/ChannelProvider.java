@@ -162,6 +162,8 @@ public class ChannelProvider {
                     "    wdc.record_plan_id,\n" +
                     "    wdc.enable_broadcast,\n" +
                     "    wd.device_id as deviceCode,\n" +
+                    "    wcg.alias as groupAlias,\n" +
+                    "    wcg2.alias as topGroupGAlias,\n" +
                     "    coalesce(wdc.gb_device_id,  wdc.device_id) as gb_device_id,\n" +
                     "    coalesce(wdc.gb_name,  wdc.name) as gb_name,\n" +
                     "    coalesce(wdc.gb_manufacturer,  wdc.manufacturer) as gb_manufacturer,\n" +
@@ -197,7 +199,9 @@ public class ChannelProvider {
                     "    coalesce(wdc.gb_svc_space_support_mod,  wdc.svc_space_support_mod) as gb_svc_space_support_mod,\n" +
                     "    coalesce(wdc.gb_svc_time_support_mode,  wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
                     " from wvp_device_channel wdc\n" +
-                    " left join wvp_device wd on wdc.data_type = 1 AND wd.id = wdc.data_device_id"
+                    " left join wvp_device wd on wdc.data_type = 1 AND wd.id = wdc.data_device_id" +
+                    " left join wvp_common_group wcg on wcg.device_id = coalesce(wdc.gb_parent_id,  wdc.parent_id)" +
+                    " left join wvp_common_group wcg2 on wcg2.device_id = wcg.business_group"
             ;
 
     public String queryByDeviceId(Map<String, Object> params ){
@@ -210,6 +214,10 @@ public class ChannelProvider {
 
     public String queryByDataId(Map<String, Object> params ){
         return BASE_SQL + " where channel_type = 0 and data_type = #{dataType} and data_device_id = #{dataDeviceId}";
+    }
+
+    public String queryCameraChannelById(Map<String, Object> params ){
+        return BASE_SQL + " where id = #{gbId}";
     }
 
     public String queryListByCivilCode(Map<String, Object> params ){
@@ -819,6 +827,23 @@ public class ChannelProvider {
                 sqlBuild.append(",");
             }
             sqlBuild.append(deviceId);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
+    }
+    public String queryCameraChannelByIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.id in ( ");
+
+        List<Integer> ids = (List<Integer>)params.get("ids");
+        boolean first = true;
+        for (Integer id : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(id);
             first = false;
         }
         sqlBuild.append(" )");

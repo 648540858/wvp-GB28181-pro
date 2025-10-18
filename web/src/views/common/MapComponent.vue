@@ -5,13 +5,13 @@
 <script>
 import 'ol/ol.css'
 import Map from 'ol/Map'
-import ZoomSlider from 'ol/control/ZoomSlider'
 import OSM from 'ol/source/OSM'
 import XYZ from 'ol/source/XYZ'
 import VectorSource from 'ol/source/Vector'
 import Tile from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import LayerGroup from 'ol/layer/Group'
+import WebGLPointslayer from 'ol/layer/WebGLPoints'
 import Style from 'ol/style/Style'
 import Stroke from 'ol/style/Stroke'
 import Icon from 'ol/style/Icon'
@@ -284,6 +284,61 @@ export default {
       }
     },
     createPointLayer(data, clickEvent, option){
+      if (data.length > 0) {
+        const features = []
+        let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
+        let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
+        let declutter = option && option.declutter
+
+        for (let i = 0; i < data.length; i++) {
+          const feature = new Feature(new Point(fromLonLat(data[i].position)))
+          feature.setId(data[i].id)
+          feature.customData = data[i].data
+          // const style = new Style()
+          // style.setImage(new Icon({
+          //   anchor: data[i].image.anchor,
+          //   crossOrigin: 'Anonymous',
+          //   src: data[i].image.src,
+          //   opacity: 1
+          // }))
+          // feature.setStyle(style)
+          features.push(feature)
+        }
+        const source = new VectorSource()
+        source.addFeatures(features)
+        const vectorLayer = new WebGLPointslayer({
+          source: source,
+          maxZoom: maxZoom,
+          minZoom: minZoom,
+          style: {
+            // 必须提供 style 配置，可以是对象或函数
+            // 'circle-radius': 3,
+            // 'circle-fill-color': 'red',
+            // 'circle-stroke-color': 'white',
+            // 'circle-stroke-width': 0.5
+            'icon-src': 'static/images/gis/camera1.png',
+            'icon-offset': [0, 12],
+            'icon-width': 40,
+            'icon-height': 40
+          }
+        })
+        if (clickEvent && typeof clickEvent === 'function') {
+          vectorLayer.on('click', (event) => {
+
+            if (event.features.length > 0) {
+              const items = []
+              for (let i = 0; i < event.features.length; i++) {
+                items.push(event.features[i].customData)
+              }
+              clickEvent(items)
+            }
+          })
+        }
+
+        return vectorLayer
+      }
+    },
+    createPointLayer2(data, clickEvent, option){
       if (data.length > 0) {
         const features = []
         let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()

@@ -28,6 +28,7 @@ module.exports = {
   assetsDir: "static",
   lintOnSave: false, // Disable ESLint to avoid warnings
   productionSourceMap: false,
+  transpileDependencies: ["ol"],
   devServer: {
     public: "localhost:" + port,
     host: "localhost",

@@ -27,7 +27,7 @@
     "moment-duration-format": "^2.3.2",
     "normalize.css": "7.0.0",
     "nprogress": "0.2.0",
-    "ol": "^6.14.1",
+    "ol": "^10.6.1",
     "path-to-regexp": "2.4.0",
     "screenfull": "5.1.0",
     "strip-ansi": "^7.1.0",

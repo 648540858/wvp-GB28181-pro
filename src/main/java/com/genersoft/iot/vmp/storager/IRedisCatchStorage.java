@@ -101,10 +101,8 @@ public interface IRedisCatchStorage {
 
     /**
      * 判断设备状态
-     * @param deviceId 设备ID
-     * @return
      */
-    public boolean deviceIsOnline(String deviceId);
+    boolean deviceIsOnline(String deviceId);
 
     /**
      * 存储推流的鉴权信息

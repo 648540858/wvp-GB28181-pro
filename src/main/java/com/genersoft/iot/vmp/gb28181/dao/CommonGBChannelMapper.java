@@ -20,7 +20,7 @@ public interface CommonGBChannelMapper {
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByDeviceId")
-    CommonGBChannel queryByDeviceId(@Param("gbDeviceId") String gbDeviceId);
+    List<CommonGBChannel> queryByDeviceId(@Param("gbDeviceId") String gbDeviceId);
 
     @Insert(" <script>" +
             "INSERT INTO wvp_device_channel (" +

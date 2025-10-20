@@ -53,7 +53,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
-        return commonGBChannelMapper.queryByDeviceId(gbDeviceId);
+        List<CommonGBChannel> commonGBChannels = commonGBChannelMapper.queryByDeviceId(gbDeviceId);
+        if (commonGBChannels.isEmpty()) {
+            return null;
+        }else {
+            return commonGBChannels.get(0);
+        }
     }
 
     @Override
@@ -128,6 +133,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (commonGBChannel.getGbId() <= 0) {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
+        }
+        // 确定编号是否重复
+        if (commonGBChannelMapper.queryByDeviceId(commonGBChannel.getGbDeviceId()).size() > 1) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "国标编号重复，请修改编号后保存");
         }
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.update(commonGBChannel);

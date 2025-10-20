@@ -295,14 +295,18 @@ export default {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
           feature.setId(data[i].id)
           feature.customData = data[i].data
-          const style = new Style()
-          style.setImage(new Icon({
-            anchor: data[i].image.anchor,
-            crossOrigin: 'Anonymous',
-            src: data[i].image.src,
-            opacity: 1
-          }))
-          feature.setStyle(style)
+          feature.setProperties({
+            status: 'offline',
+            iconSrc: 'static/images/gis/camera1-offline.png'
+          })
+          // const style = new Style()
+          // style.setImage(new Icon({
+          //   anchor: data[i].image.anchor,
+          //   crossOrigin: 'Anonymous',
+          //   src: data[i].image.src,
+          //   opacity: 1
+          // }))
+          // feature.setStyle(style)
           features.push(feature)
         }
         const source = new VectorSource()
@@ -313,14 +317,21 @@ export default {
           minZoom: minZoom,
           style: {
             // 必须提供 style 配置，可以是对象或函数
-            'circle-radius': 3,
-            'circle-fill-color': 'red',
-            'circle-stroke-color': 'white',
-            'circle-stroke-width': 0.5
-            // 'icon-src': 'static/images/gis/camera1.png',
-            // 'icon-offset': [0, 12],
-            // 'icon-width': 40,
-            // 'icon-height': 40
+            // 'circle-radius': 10,
+            // 'circle-fill-color': 'red',
+            // 'circle-stroke-color': 'white',
+            // 'circle-stroke-width': 0.5
+            'icon-src': 'static/images/gis/camera1.png',
+            // 'icon-src': [
+            //   'case',
+            //   ['==', ['get', 'status'], 'online'], 'static/images/gis/camera1.png',
+            //   ['==', ['get', 'status'], 'offline'], 'static/images/gis/camera1-offline.png',
+            //   ['==', ['get', 'status'], 'checked'], 'static/images/gis/camera1-red.png',
+            //   'static/images/gis/camera1.png'
+            // ],
+            // 'icon-src': ['get', 'iconSrc'],
+            'icon-width': 40,
+            'icon-height': 40
           }
         })
         if (clickEvent && typeof clickEvent === 'function') {
@@ -470,179 +481,6 @@ export default {
       }))
       feature.setStyle(style)
       layer.getSource().addFeature(feature)
-    },
-
-    // 新增：支持多种图标类型的点图层创建方法
-    createMultiIconPointLayer(data, clickEvent, option) {
-      if (data.length > 0) {
-        const features = []
-        let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
-        let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
-        let declutter = option && option.declutter
-
-        for (let i = 0; i < data.length; i++) {
-          const feature = new Feature(new Point(fromLonLat(data[i].position)))
-          feature.setId(data[i].id)
-          feature.customData = data[i].data
-          
-          // 根据数据类型或状态选择不同的图标
-          const iconConfig = this.getIconConfig(data[i])
-          
-          const style = new Style()
-          style.setImage(new Icon({
-            anchor: iconConfig.anchor,
-            crossOrigin: 'Anonymous',
-            src: iconConfig.src,
-            opacity: iconConfig.opacity || 1,
-            scale: iconConfig.scale || 1
-          }))
-          feature.setStyle(style)
-          features.push(feature)
-        }
-        
-        const source = new VectorSource()
-        source.addFeatures(features)
-        const vectorLayer = new VectorLayer({
-          source: source,
-          renderMode: 'image',
-          declutter: declutter,
-          maxZoom: maxZoom,
-          minZoom: minZoom
-        })
-        
-        if (clickEvent && typeof clickEvent === 'function') {
-          vectorLayer.on('click', (event) => {
-            if (event.features.length > 0) {
-              const items = []
-              for (let i = 0; i < event.features.length; i++) {
-                items.push(event.features[i].customData)
-              }
-              clickEvent(items)
-            }
-          })
-        }
-
-        return vectorLayer
-      }
-    },
-
-    // 新增：根据数据属性获取图标配置
-    getIconConfig(data) {
-      const baseConfig = {
-        anchor: [0.5, 1],
-        opacity: 1,
-        scale: 1
-      }
-
-      // 根据设备类型选择图标
-      if (data.dataType) {
-        switch (data.dataType) {
-          case 1: // 国标设备
-            return {
-              ...baseConfig,
-              src: data.gbStatus === 'ON' ? 'static/images/gis/camera1.png' : 'static/images/gis/camera1-offline.png'
-            }
-          case 2: // 推流设备
-            return {
-              ...baseConfig,
-              src: data.gbStatus === 'ON' ? 'static/images/gis/camera2.png' : 'static/images/gis/camera2-offline.png'
-            }
-          case 3: // 拉流代理
-            return {
-              ...baseConfig,
-              src: data.gbStatus === 'ON' ? 'static/images/gis/camera3.png' : 'static/images/gis/camera3-offline.png'
-            }
-          case 200: // 部标设备
-            return {
-              ...baseConfig,
-              src: data.gbStatus === 'ON' ? 'static/images/gis/camera1-red.png' : 'static/images/gis/camera1-offline.png'
-            }
-          default:
-            return {
-              ...baseConfig,
-              src: 'static/images/gis/camera.png'
-            }
-        }
-      }
-
-      // 根据状态选择图标
-      if (data.gbStatus) {
-        return {
-          ...baseConfig,
-          src: data.gbStatus === 'ON' ? 'static/images/gis/camera1.png' : 'static/images/gis/camera1-offline.png'
-        }
-      }
-
-      // 默认图标
-      return {
-        ...baseConfig,
-        src: 'static/images/gis/camera.png'
-      }
-    },
-
-    // 新增：批量更新图标类型
-    updateIconType(layer, iconType) {
-      const source = layer.getSource()
-      const features = source.getFeatures()
-      
-      features.forEach(feature => {
-        const data = feature.customData
-        if (data) {
-          // 临时修改数据类型来获取新图标
-          const originalType = data.dataType
-          data.dataType = iconType
-          
-          const iconConfig = this.getIconConfig(data)
-          const style = new Style()
-          style.setImage(new Icon({
-            anchor: iconConfig.anchor,
-            crossOrigin: 'Anonymous',
-            src: iconConfig.src,
-            opacity: iconConfig.opacity || 1,
-            scale: iconConfig.scale || 1
-          }))
-          feature.setStyle(style)
-          
-          // 恢复原始类型
-          data.dataType = originalType
-        }
-      })
-      
-      olMap.render()
-    },
-
-    // 新增：根据条件动态切换图标
-    switchIconsByCondition(layer, condition, iconMap) {
-      const source = layer.getSource()
-      const features = source.getFeatures()
-      
-      features.forEach(feature => {
-        const data = feature.customData
-        if (data && condition(data)) {
-          const iconKey = this.getIconKey(data)
-          const iconConfig = iconMap[iconKey] || iconMap.default
-          
-          const style = new Style()
-          style.setImage(new Icon({
-            anchor: iconConfig.anchor,
-            crossOrigin: 'Anonymous',
-            src: iconConfig.src,
-            opacity: iconConfig.opacity || 1,
-            scale: iconConfig.scale || 1
-          }))
-          feature.setStyle(style)
-        }
-      })
-      
-      olMap.render()
-    },
-
-    // 新增：获取图标键值
-    getIconKey(data) {
-      if (data.dataType && data.gbStatus) {
-        return `${data.dataType}_${data.gbStatus}`
-      }
-      return data.gbStatus || 'default'
     },
 
     addLineLayer(positions) {

@@ -604,9 +604,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Override
     public List<Platform> queryByPlatformBySharChannelId(String channelDeviceId) {
-        CommonGBChannel commonGBChannel = commonGBChannelMapper.queryByDeviceId(channelDeviceId);
+        List<CommonGBChannel> commonGBChannels = commonGBChannelMapper.queryByDeviceId(channelDeviceId);
         ArrayList<Integer> ids = new ArrayList<>();
-        ids.add(commonGBChannel.getGbId());
+        for (CommonGBChannel commonGBChannel : commonGBChannels) {
+            ids.add(commonGBChannel.getGbId());
+        }
         return platformChannelMapper.queryPlatFormListByChannelList(ids);
     }
 }

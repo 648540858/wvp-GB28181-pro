@@ -242,7 +242,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     }
                 }
             }
-
             // 发送消息
             try {
                 // 发送catalog

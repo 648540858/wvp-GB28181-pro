@@ -216,10 +216,6 @@ public class ChannelProvider {
         return BASE_SQL + " where channel_type = 0 and data_type = #{dataType} and data_device_id = #{dataDeviceId}";
     }
 
-    public String queryCameraChannelById(Map<String, Object> params ){
-        return BASE_SQL + " where id = #{gbId}";
-    }
-
     public String queryListByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
@@ -548,12 +544,12 @@ public class ChannelProvider {
     public String queryListForSy(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
+        sqlBuild.append(" where wdc.channel_type = 0 AND (wdc.gb_ptz_type is null ||  wdc.gb_ptz_type != 99) AND coalesce(wdc.gb_parent_id, wdc.parent_id) = #{groupDeviceId}");
         if (params.get("online") != null && (Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+            sqlBuild.append(" AND coalesce(wdc.gb_status, wdc.status) = 'ON'");
         }
         if (params.get("online") != null && !(Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+            sqlBuild.append(" AND coalesce(wdc.gb_status, wdc.status) = 'OFF'");
         }
 
         return sqlBuild.toString();
@@ -851,7 +847,17 @@ public class ChannelProvider {
     }
 
     public String queryListForSyMobile(Map<String, Object> params ){
-        return BASE_SQL_FOR_CAMERA_DEVICE +
-                " WHERE wdc.gb_ptz_type = 99 AND coalesce(gb_business_group_id, business_group_id) = #{business}";
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" WHERE wdc.gb_ptz_type = 99 ");
+        if (params.get("business") != null) {
+            sqlBuild.append(" AND coalesce(gb_business_group_id, business_group_id) = #{business}");
+        }
+        return sqlBuild.toString();
+    }
+
+
+    public String queryCameraChannelById(Map<String, Object> params ){
+        return BASE_SQL_FOR_CAMERA_DEVICE + " where wdc.id = #{gbId}";
     }
 }

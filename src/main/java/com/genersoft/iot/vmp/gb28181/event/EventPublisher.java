@@ -60,11 +60,16 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-	public void channelEventPublish(CommonGBChannel deviceChannel, ChannelEvent.ChannelEventMessageType type) {
-		catalogEventPublish(Collections.singletonList(deviceChannel), type);
+	public void channelEventPublish(CommonGBChannel commonGBChannel, ChannelEvent.ChannelEventMessageType type) {
+        channelEventPublish(Collections.singletonList(commonGBChannel), type);
 	}
 
-	private void catalogEventPublish(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
+	public void channelEventPublishForUpdate(CommonGBChannel commonGBChannel, CommonGBChannel deviceChannelForOld) {
+        ChannelEvent channelEvent = ChannelEvent.getInstanceForUpdate(this, Collections.singletonList(commonGBChannel), Collections.singletonList(deviceChannelForOld));
+        applicationEventPublisher.publishEvent(channelEvent);
+	}
+
+    public void channelEventPublish(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
 		ChannelEvent channelEvent = ChannelEvent.getInstance(this, type, channelList);
 		applicationEventPublisher.publishEvent(channelEvent);
 	}

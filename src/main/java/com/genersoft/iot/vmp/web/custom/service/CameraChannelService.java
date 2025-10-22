@@ -26,6 +26,7 @@ import com.github.xiaoymin.knife4j.core.util.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import java.util.*;
 
 @Slf4j
 @Service
+@ConditionalOnProperty(value = "sy.enable", havingValue = "true")
 public class CameraChannelService implements CommandLineRunner {
 
     private final String REDIS_GPS_MESSAGE = "VM_MSG_MOBILE_GPS";
@@ -176,6 +178,8 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("altitude", mobilePosition.getAltitude());
         jsonObject.put("direction", mobilePosition.getDirection());
         jsonObject.put("speed", mobilePosition.getSpeed());
+        jsonObject.put("topGroupGAlias", cameraChannel.getTopGroupGAlias());
+        jsonObject.put("groupAlias", cameraChannel.getGroupAlias());
         log.debug("[redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
         redisTemplate.convertAndSend(REDIS_GPS_MESSAGE, jsonObject);
     }
@@ -308,9 +312,9 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
-        CameraChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        Assert.notNull(channel, "通道不存在");
-
+        List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
+        CameraChannel channel = cameraChannels.get(0);
         if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
          && channel.getGbLongitude() > 0 && channel.getGbLatitude() > 0) {
             if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
@@ -337,8 +341,9 @@ public class CameraChannelService implements CommandLineRunner {
      * @param callback 点播结果的回放
      */
     public void play(String deviceId, String deviceCode, ErrorCallback<CameraStreamInfo> callback) {
-        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        Assert.notNull(channel, "通道不存在");
+        List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
+        CameraChannel channel = cameraChannels.get(0);
         channelPlayService.play(channel, null, userSetting.getRecordSip(), (code, msg, data) -> {
             callback.run(code, msg, new CameraStreamInfo(channel, data));
         });
@@ -350,14 +355,16 @@ public class CameraChannelService implements CommandLineRunner {
      * @param deviceCode 通道对应的国标设备的编号
      */
     public void stopPlay(String deviceId, String deviceCode) {
-        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        Assert.notNull(channel, "通道不存在");
+        List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
+        CameraChannel channel = cameraChannels.get(0);
         channelPlayService.stopPlay(channel);
     }
 
     public void ptz(String deviceId, String deviceCode, String command, Integer speed, ErrorCallback<String> callback) {
-        CommonGBChannel channel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        Assert.notNull(channel, "通道不存在");
+        List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
+        CameraChannel channel = cameraChannels.get(0);
 
         if (speed == null) {
             speed = 50;
@@ -412,8 +419,9 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     public void updateCamera(String deviceId, String deviceCode, String name, Double longitude, Double latitude, String geoCoordSys) {
-        CommonGBChannel commonGBChannel = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
-        Assert.notNull(commonGBChannel, "通道不存在");
+        List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
+        Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
+        CameraChannel commonGBChannel = cameraChannels.get(0);
         commonGBChannel.setGbName(name);
         if (geoCoordSys != null && longitude != null && latitude != null
                 && longitude > 0 && latitude > 0) {
@@ -540,12 +548,15 @@ public class CameraChannelService implements CommandLineRunner {
     public PageInfo<CameraChannel> queryListForMobile(Integer page, Integer count, String topGroupAlias) {
 
         CameraGroup cameraGroup = groupMapper.queryGroupByAlias(topGroupAlias);
-        Assert.notNull(cameraGroup, "组织结构不存在");
 
+        String business = null;
+        if (cameraGroup != null) {
+            business = cameraGroup.getDeviceId();
+        }
         // 构建分页
         PageHelper.startPage(page, count);
+        List<CameraChannel> all = channelMapper.queryListForSyMobile(business);
 
-        List<CameraChannel> all = channelMapper.queryListForSyMobile(cameraGroup.getDeviceId());
         PageInfo<CameraChannel> groupPageInfo = new PageInfo<>(all);
         List<CameraChannel> list = addIconPathAndPositionForCameraChannelList(groupPageInfo.getList(), null);
         groupPageInfo.setList(list);

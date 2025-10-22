@@ -614,7 +614,7 @@ public interface CommonGBChannelMapper {
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryGbChannelByChannelDeviceIdAndGbDeviceId")
-    CameraChannel queryGbChannelByChannelDeviceIdAndGbDeviceId(@Param("channelDeviceId") String channelDeviceId, @Param("gbDeviceId") String gbDeviceId);
+    List<CameraChannel> queryGbChannelByChannelDeviceIdAndGbDeviceId(@Param("channelDeviceId") String channelDeviceId, @Param("gbDeviceId") String gbDeviceId);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByDeviceIds")
     List<CameraChannel> queryListByDeviceIds(List<String> deviceIds);
@@ -659,4 +659,6 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelByIds")
     List<CameraChannel> queryCameraChannelByIds(List<Integer> ids);
+
+
 }

@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
@@ -75,7 +76,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         int result = commonGBChannelMapper.insert(commonGBChannel);
         try {
             // 发送通知
-            eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.ADD);
+            eventPublisher.channelEventPublish(commonGBChannel, ChannelEvent.ChannelEventMessageType.ADD);
         } catch (Exception e) {
             log.warn("[通道移除通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
         }
@@ -97,7 +98,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             commonGBChannelMapper.delete(gbId);
             try {
                 // 发送通知
-                eventPublisher.catalogEventPublish(null, channel, CatalogEvent.DEL);
+                eventPublisher.channelEventPublish(channel, ChannelEvent.ChannelEventMessageType.DELETE);
             } catch (Exception e) {
                 log.warn("[通道移除通知] 发送失败，{}", channel.getGbDeviceId(), e);
             }
@@ -139,14 +140,30 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channels.size() > 1) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "国标编号重复，请修改编号后保存");
         }
+        CommonGBChannel oldChannel = commonGBChannelMapper.queryById(commonGBChannel.getGbId());
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.update(commonGBChannel);
         if (result > 0) {
             try {
                 // 发送通知
-                eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(commonGBChannel, oldChannel);
             } catch (Exception e) {
                 log.warn("[更新通道通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
+            }
+            MobilePosition mobilePosition = new MobilePosition();
+            mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
+            mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
+            mobilePosition.setCreateTime(DateUtil.getNow());
+            mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
+            mobilePosition.setTime(DateUtil.getNow());
+            mobilePosition.setAltitude(0.0);
+            mobilePosition.setDirection(0.0);
+            mobilePosition.setSpeed(0.0);
+            mobilePosition.setChannelId(commonGBChannel.getGbId());
+            try {
+                eventPublisher.mobilePositionEventPublish(mobilePosition);
+            }catch (Exception e) {
+                log.error("[向上级转发移动位置失败] ", e);
             }
         }
         return result;
@@ -162,7 +179,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送通知
-                eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.OFF);
+                eventPublisher.channelEventPublish(commonGBChannel, ChannelEvent.ChannelEventMessageType.OFFLINE);
             } catch (Exception e) {
                 log.warn("[通道离线通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
             }
@@ -194,7 +211,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, commonGBChannelList, CatalogEvent.OFF);
+                eventPublisher.channelEventPublish(commonGBChannelList, ChannelEvent.ChannelEventMessageType.OFFLINE);
             } catch (Exception e) {
                 log.warn("[多个通道离线] 发送失败，数量：{}", commonGBChannelList.size(), e);
             }
@@ -212,7 +229,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送通知
-                eventPublisher.catalogEventPublish(null, commonGBChannel, CatalogEvent.ON);
+                eventPublisher.channelEventPublish(commonGBChannel, ChannelEvent.ChannelEventMessageType.ONLINE);
             } catch (Exception e) {
                 log.warn("[通道上线通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
             }
@@ -243,7 +260,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         try {
             // 发送catalog
-            eventPublisher.catalogEventPublish(null, commonGBChannelList, CatalogEvent.ON);
+            eventPublisher.channelEventPublish(commonGBChannelList, ChannelEvent.ChannelEventMessageType.ONLINE);
         } catch (Exception e) {
             log.warn("[多个通道上线] 发送失败，数量：{}", commonGBChannelList.size(), e);
         }
@@ -274,7 +291,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         try {
             // 发送catalog
-            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.ADD);
+            eventPublisher.channelEventPublish(commonGBChannels, ChannelEvent.ChannelEventMessageType.ADD);
         } catch (Exception e) {
             log.warn("[多个通道新增] 发送失败，数量：{}", commonGBChannels.size(), e);
         }
@@ -306,6 +323,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         try {
             // 发送通知
             eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
+//            eventPublisher.channelEventPublishForUpdate(commonGBChannels, ChannelEvent.ChannelEventMessageType.ADD);
         } catch (Exception e) {
             log.warn("[更新多个通道] 发送失败，{}个", commonGBChannels.size(), e);
         }

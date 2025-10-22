@@ -258,22 +258,27 @@ public class ZLMRESTfulUtils {
             param.put("schema",schema);
         }
         param.put("vhost","__defaultVhost__");
-        String response = sendPost(mediaServer, "getMediaList",param, (responseStr -> {
-            if (callback == null) {
-                return;
-            }
-            if (responseStr == null) {
-                callback.run(ZLMResult.getFailForMediaServer());
-            }else {
-                ZLMResult<JSONArray> zlmResult = JSON.parseObject(responseStr, new TypeReference<ZLMResult<JSONArray>>() {});
-                if (zlmResult == null) {
+        RequestCallback requestCallback = null;
+        if (callback != null) {
+            requestCallback =  (responseStr -> {
+                if (callback == null) {
+                    return;
+                }
+                if (responseStr == null) {
                     callback.run(ZLMResult.getFailForMediaServer());
                 }else {
-                    callback.run(zlmResult);
-                }
+                    ZLMResult<JSONArray> zlmResult = JSON.parseObject(responseStr, new TypeReference<ZLMResult<JSONArray>>() {});
+                    if (zlmResult == null) {
+                        callback.run(ZLMResult.getFailForMediaServer());
+                    }else {
+                        callback.run(zlmResult);
+                    }
 
-            }
-        }));
+                }
+            });
+        }
+
+        String response = sendPost(mediaServer, "getMediaList",param, requestCallback);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {

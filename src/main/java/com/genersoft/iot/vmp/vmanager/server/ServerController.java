@@ -81,7 +81,7 @@ public class ServerController {
     private IStreamProxyService proxyService;
 
 
-    @Autowired
+    @Autowired(required = false)
     private IMapService mapService;
 
     @Value("${server.port}")

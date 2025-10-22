@@ -6,7 +6,6 @@ import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.Serial;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,6 +25,8 @@ public class ChannelEvent extends ApplicationEvent {
 
     private List<CommonGBChannel> channels;
 
+    private List<CommonGBChannel> oldChannels;
+
     private ChannelEventMessageType messageType;
 
 
@@ -38,6 +39,14 @@ public class ChannelEvent extends ApplicationEvent {
         ChannelEvent channelEvent = new ChannelEvent(source);
         channelEvent.setMessageType(messageType);
         channelEvent.setChannels(channelList);
+        return channelEvent;
+    }
+
+    public static ChannelEvent getInstanceForUpdate(Object source, List<CommonGBChannel> channelList, List<CommonGBChannel> channelListForOld) {
+        ChannelEvent channelEvent = new ChannelEvent(source);
+        channelEvent.setMessageType(ChannelEventMessageType.UPDATE);
+        channelEvent.setChannels(channelList);
+        channelEvent.setOldChannels(channelListForOld);
         return channelEvent;
     }
 

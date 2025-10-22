@@ -35,7 +35,7 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
+        <div class="map-tool-btn-group" v-if="mapTileList && mapTileList.length > 1">
           <el-dropdown placement="top"  @command="changeMapTile">
             <div class="el-dropdown-link map-tool-btn">
               <i class="iconfont icon-tuceng"></i>
@@ -259,6 +259,7 @@ export default {
     zoomChange: function(zoom) {},
 
     initChannelLayer: function () {
+
       this.mapTileList = this.$refs.mapComponent.mapTileList
       // 获取所有有位置的通道
       this.closeInfoBox()

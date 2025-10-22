@@ -309,13 +309,14 @@ public interface GroupMapper {
 
     @Select(" <script>" +
             " SELECT " +
-            "    coalesce( wdc.gb_parent_id, wdc.parent_id) as deviceId," +
+            "    ANY_VALUE(coalesce( wdc.gb_parent_id, wdc.parent_id)) as deviceId," +
             "    COUNT(*) AS allCount," +
             "    SUM(CASE WHEN coalesce( wdc.gb_status, wdc.status) = 'ON' THEN 1 ELSE 0 END) AS onlineCount" +
             " FROM " +
             "    wvp_device_channel wdc " +
             " where coalesce( wdc.gb_parent_id, wdc.parent_id) in " +
             " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            " GROUP BY coalesce(wdc.gb_parent_id, wdc.parent_id)" +
             "</script>")
     List<CameraCount> queryCountWithChild(List<CameraGroup> groupList);
 }

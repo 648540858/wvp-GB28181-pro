@@ -549,6 +549,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
+    @Transactional
     public void batchUpdate(List<StreamPush> streamPushItemForUpdate) {
         streamPushMapper.batchUpdate(streamPushItemForUpdate);
         List<CommonGBChannel> commonGBChannels = new ArrayList<>();

@@ -102,4 +102,6 @@ public interface IGbChannelService {
     List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType);
 
     void saveLevel(List<ChannelForThin> channels);
+
+    CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel);
 }

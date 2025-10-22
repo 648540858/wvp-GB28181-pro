@@ -69,6 +69,11 @@ public class EventPublisher {
         applicationEventPublisher.publishEvent(channelEvent);
 	}
 
+	public void channelEventPublishForUpdate(List<CommonGBChannel> channelList, List<CommonGBChannel> channelListForOld) {
+        ChannelEvent channelEvent = ChannelEvent.getInstanceForUpdate(this, channelList, channelListForOld);
+        applicationEventPublisher.publishEvent(channelEvent);
+	}
+
     public void channelEventPublish(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
 		ChannelEvent channelEvent = ChannelEvent.getInstance(this, type, channelList);
 		applicationEventPublisher.publishEvent(channelEvent);

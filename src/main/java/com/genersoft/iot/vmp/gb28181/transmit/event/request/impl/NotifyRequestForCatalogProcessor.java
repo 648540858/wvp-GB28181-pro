@@ -3,8 +3,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -49,6 +51,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
+
+	@Autowired
+	private IGbChannelService channelService;
 
 //	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
 //	public void showSize(){
@@ -256,8 +261,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								log.warn("[ NotifyCatalog ] event not found ： {}", catalogChannelEvent.getEvent());
 
 						}
-						// 转发变化信息
-						eventPublisher.catalogEventPublish(null, catalogChannelEvent.getChannel(), catalogChannelEvent.getEvent());
 					}
 				}
 
@@ -283,15 +286,28 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				switch (notifyCatalogChannel.getType()) {
 					case STATUS_CHANGED:
 						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
+						CommonGBChannel channelForStatus = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+						if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
+							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
+						}else {
+							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.OFF);
+						}
 						break;
 					case ADD:
 						deviceChannelService.addChannel(notifyCatalogChannel.getChannel());
+						CommonGBChannel channelForAdd = channelService.getOne(notifyCatalogChannel.getChannel().getId());
+						eventPublisher.channelEventPublish(channelForAdd, ChannelEvent.ChannelEventMessageType.ADD);
 						break;
 					case UPDATE:
+						CommonGBChannel oldCommonChannel = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
 						deviceChannelService.updateChannelForNotify(notifyCatalogChannel.getChannel());
+						CommonGBChannel channel = channelService.getOne(oldCommonChannel.getGbId());
+						eventPublisher.channelEventPublishForUpdate(channel, oldCommonChannel);
 						break;
 					case DELETE:
-						deviceChannelService.delete(notifyCatalogChannel.getChannel());
+						CommonGBChannel oldCommonChannelForDelete = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+						deviceChannelService.deleteForNotify(notifyCatalogChannel.getChannel());
+						eventPublisher.channelEventPublish(oldCommonChannelForDelete, ChannelEvent.ChannelEventMessageType.DEL);
 						break;
 				}
 			}catch (Exception e) {

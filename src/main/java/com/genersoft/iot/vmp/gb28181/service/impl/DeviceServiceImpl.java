@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
@@ -422,7 +423,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
         deviceChannelMapper.offlineByDeviceId(device.getId());
         // 发送通道离线通知
-        eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.OFF);
+        eventPublisher.channelEventPublish(channelList, ChannelEvent.ChannelEventMessageType.OFF);
     }
 
     private boolean isDevice(String deviceId) {
@@ -827,7 +828,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
         try {
             // 发送catalog
-            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.DEL);
+            eventPublisher.channelEventPublish(commonGBChannels, ChannelEvent.ChannelEventMessageType.DEL);
         } catch (Exception e) {
             log.warn("[多个通道删除] 发送失败，数量：{}", commonGBChannels.size(), e);
         }

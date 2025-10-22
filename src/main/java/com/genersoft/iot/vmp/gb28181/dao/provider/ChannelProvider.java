@@ -516,11 +516,34 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    public String queryCommonChannelByDeviceChannel(Map<String, Object> params ){
+        return BASE_SQL +
+                " where data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}";
+    }
+
     public String queryOnlineListsByGbDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_TABLE_NAME);
         sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 AND data_device_id = #{deviceId}");
         return sqlBuild.toString();
+    }
+
+    public String queryOldChanelListByChannels(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where id in ( ");
+
+        List<CommonGBChannel> channelList = (List<CommonGBChannel>)params.get("channelList");
+        boolean first = true;
+        for (CommonGBChannel channel : channelList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(channel.getGbId());
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
     }
 
     public String queryAllForUnusualCivilCode(Map<String, Object> params ){
@@ -828,6 +851,7 @@ public class ChannelProvider {
         sqlBuild.append(" )");
         return sqlBuild.toString() ;
     }
+
     public String queryCameraChannelByIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);

@@ -105,8 +105,8 @@ public interface DeviceChannelMapper {
     @Delete("DELETE FROM wvp_device_channel WHERE data_type =1 and data_device_id=#{dataDeviceId}")
     int cleanChannelsByDeviceId(@Param("dataDeviceId") int dataDeviceId);
 
-    @Delete("DELETE FROM wvp_device_channel WHERE id=#{id}")
-    int del(@Param("id") int id);
+    @Delete("DELETE FROM wvp_device_channel WHERE WHERE data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}")
+    int deleteForNotify(DeviceChannel channel);
 
     @Select(value = {" <script>" +
             " SELECT " +
@@ -511,7 +511,6 @@ public interface DeviceChannelMapper {
     @Update("UPDATE wvp_device_channel SET status=#{status} WHERE data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}")
     void updateStatus(DeviceChannel channel);
 
-
     @Update({"<script>" +
             " UPDATE" +
             " wvp_device_channel" +
@@ -619,5 +618,6 @@ public interface DeviceChannelMapper {
 
     @Update(value = {"UPDATE wvp_device_channel SET status = 'OFF' WHERE data_type = 1 and data_device_id=#{deviceId}"})
     void offlineByDeviceId(@Param("deviceId") int deviceId);
+
 
 }

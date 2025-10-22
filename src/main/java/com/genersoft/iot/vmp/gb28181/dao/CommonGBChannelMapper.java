@@ -591,6 +591,9 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceId")
     List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryCommonChannelByDeviceChannel")
+    CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel);
+
     @Update("UPDATE wvp_device_channel SET stream_id = #{stream} where id = #{gbId}")
     void updateStream(int gbId, String stream);
 
@@ -660,5 +663,6 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelByIds")
     List<CameraChannel> queryCameraChannelByIds(List<CommonGBChannel> channelList);
 
-
+    @SelectProvider(type = ChannelProvider.class, method = "queryOldChanelListByChannels")
+    List<CommonGBChannel> queryOldChanelListByChannels(List<CommonGBChannel> channelList);
 }

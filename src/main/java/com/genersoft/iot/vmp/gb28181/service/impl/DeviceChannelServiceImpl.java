@@ -219,8 +219,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void delete(DeviceChannel channel) {
-        channelMapper.del(channel.getId());
+    public void deleteForNotify(DeviceChannel channel) {
+        channelMapper.deleteForNotify(channel);
     }
 
     @Override

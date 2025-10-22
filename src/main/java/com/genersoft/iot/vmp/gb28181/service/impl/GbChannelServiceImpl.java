@@ -122,7 +122,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         commonGBChannelMapper.batchDelete(channelListInDb);
         try {
             // 发送通知
-            eventPublisher.catalogEventPublish(null, channelListInDb, CatalogEvent.DEL);
+            eventPublisher.channelEventPublish(channelListInDb, ChannelEvent.ChannelEventMessageType.DEL);
         } catch (Exception e) {
             log.warn("[通道移除通知] 发送失败", e);
         }
@@ -289,6 +289,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[更新多个通道] 通道数量为0，更新失败");
             return;
         }
+        List<CommonGBChannel> oldCommonGBChannelList = commonGBChannelMapper.queryOldChanelListByChannels(commonGBChannels);
         // 批量保存
         int limitCount = 1000;
         int result = 0;
@@ -307,8 +308,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         // 发送通过更新通知
         try {
             // 发送通知
-            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
-//            eventPublisher.channelEventPublishForUpdate(commonGBChannels, ChannelEvent.ChannelEventMessageType.ADD);
+            eventPublisher.channelEventPublishForUpdate(commonGBChannels, oldCommonGBChannelList);
         } catch (Exception e) {
             log.warn("[更新多个通道] 发送失败，{}个", commonGBChannels.size(), e);
         }
@@ -321,6 +321,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[更新多个通道状态] 通道数量为0，更新失败");
             return;
         }
+        List<CommonGBChannel> oldChanelListByChannels = commonGBChannelMapper.queryOldChanelListByChannels(commonGBChannels);
         int limitCount = 1000;
         int result = 0;
         if (commonGBChannels.size() > limitCount) {
@@ -338,7 +339,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         // 发送通过更新通知
         try {
             // 发送通知
-            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
+            eventPublisher.channelEventPublishForUpdate(commonGBChannels, oldChanelListByChannels);
         } catch (Exception e) {
             log.warn("[更新多个通道] 发送失败，{}个", commonGBChannels.size(), e);
         }
@@ -445,6 +446,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
+        List<CommonGBChannel> channelListForOld = new ArrayList<>(channelList);
         for (CommonGBChannel channel : channelList) {
             channel.setGbCivilCode(civilCode);
         }
@@ -454,7 +456,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             platformChannelService.checkRegionAdd(channelList);
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -524,6 +526,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
+        List<CommonGBChannel> channelListForOld = new ArrayList<>(channelList);
         for (CommonGBChannel channel : channelList) {
             channel.setGbCivilCode(civilCode);
         }
@@ -532,7 +535,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (result > 0) {
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -579,7 +582,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.info("[更新业务分组] 发现未关联任何通道： {}", oldBusinessGroup);
             return;
         }
-
+        List<CommonGBChannel> channelListForOld = new ArrayList<>(channelList);
         int result = commonGBChannelMapper.updateBusinessGroupByChannelList(newBusinessGroup, channelList);
         if (result > 0) {
             for (CommonGBChannel channel : channelList) {
@@ -587,7 +590,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
             // 发送catalog
             try {
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -600,7 +603,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             return;
         }
-
+        List<CommonGBChannel> channelListForOld = new ArrayList<>(channelList);
         int result = commonGBChannelMapper.updateParentIdByChannelList(newParentId, channelList);
         if (result > 0) {
             for (CommonGBChannel channel : channelList) {
@@ -608,7 +611,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
             // 发送catalog
             try {
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -622,6 +625,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
+        List<CommonGBChannel> channelListForOld = new ArrayList<>(channelList);
         int result = commonGBChannelMapper.updateGroup(parentId, businessGroup, channelList);
         for (CommonGBChannel commonGBChannel : channelList) {
             commonGBChannel.setGbParentId(parentId);
@@ -633,7 +637,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             platformChannelService.checkGroupAdd(channelList);
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -665,6 +669,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
+        List<CommonGBChannel>  channelListForOld = new ArrayList<>(channelList);
+
         for (CommonGBChannel channel : channelList) {
             channel.setGbParentId(parentId);
             channel.setGbBusinessGroupId(businessGroup);
@@ -680,7 +686,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             platformChannelService.checkGroupAdd(channelList);
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -714,7 +720,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             return;
         }
-
+        List<CommonGBChannel>  channelListForOld = new ArrayList<>(channelList);
         int result = commonGBChannelMapper.updateCivilCodeByChannelList(newCivilCode, channelList);
         if (result > 0) {
             for (CommonGBChannel channel : channelList) {
@@ -722,7 +728,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
             // 发送catalog
             try {
-                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+                eventPublisher.channelEventPublishForUpdate(channelList, channelListForOld);
             } catch (Exception e) {
                 log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
             }
@@ -838,5 +844,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
         } else {
             commonGBChannelMapper.saveLevel(channels);
         }
+    }
+
+    @Override
+    public CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel) {
+        return commonGBChannelMapper.queryCommonChannelByDeviceChannel(channel);
     }
 }

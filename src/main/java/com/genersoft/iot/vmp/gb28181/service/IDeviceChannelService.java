@@ -52,7 +52,7 @@ public interface IDeviceChannelService {
 
     void offline(DeviceChannel channel);
 
-    void delete(DeviceChannel channel);
+    void deleteForNotify(DeviceChannel channel);
 
     void cleanChannelsForDevice(int deviceId);
 

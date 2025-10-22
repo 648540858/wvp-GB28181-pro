@@ -148,7 +148,7 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
                        CommonGBChannel channel = CommonGBChannel.build(chjildGroup);
                        try {
                            // 发送catalog
-                           eventPublisher.catalogEventPublish(null, channel, CatalogEvent.UPDATE);
+                           eventPublisher.channelEventPublishForUpdate(channel, null);
                        }catch (Exception e) {
                            log.warn("[业务分组/虚拟组织变化] 发送失败，{}", group.getDeviceId(), e);
                        }
@@ -160,7 +160,7 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
         CommonGBChannel channel = CommonGBChannel.build(group);
         try {
             // 发送catalog
-            eventPublisher.catalogEventPublish(null, channel, CatalogEvent.UPDATE);
+            eventPublisher.channelEventPublishForUpdate(channel, null);
         }catch (Exception e) {
             log.warn("[业务分组/虚拟组织变化] 发送失败，{}", group.getDeviceId(), e);
         }

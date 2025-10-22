@@ -10,7 +10,7 @@
       :add-channel-to-group="addChannelToGroup"
     />
     <div style="padding: 0 20px">
-      <el-form :inline="true" size="mini">
+      <el-form :inline="true" size="mini" ref="queryForm">
         <el-form-item>
           <el-breadcrumb v-if="regionParents.length > 0" separator="/" style="display: ruby">
             <el-breadcrumb-item v-for="key in regionParents" :key="key">{{ key }}</el-breadcrumb-item>
@@ -74,7 +74,7 @@
         ref="channelListTable"
         size="medium"
         :data="channelList"
-        height="calc(100vh - 190px)"
+        :height="tableHeight"
         style="width: 100%"
         header-row-class-name="table-header"
         @selection-change="handleSelectionChange"
@@ -132,6 +132,7 @@ export default {
   data() {
     return {
       channelList: [],
+      tableHeight: `calc(100vh - ${this.$refs.queryForm.offsetHeight}px)`,
       searchStr: '',
       channelType: '',
       online: '',

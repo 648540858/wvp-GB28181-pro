@@ -613,7 +613,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void updateChannelStatus(DeviceChannel channel) {
+    public void updateChannelStatusForNotify(DeviceChannel channel) {
         channelMapper.updateStatus(channel);
     }
 

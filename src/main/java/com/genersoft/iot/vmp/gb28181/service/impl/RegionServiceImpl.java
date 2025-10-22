@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
@@ -125,7 +124,7 @@ public class RegionServiceImpl implements IRegionService {
         // 发送变化通知
         try {
             // 发送catalog
-            eventPublisher.catalogEventPublish(null, CommonGBChannel.build(region), CatalogEvent.UPDATE);
+            eventPublisher.channelEventPublishForUpdate(CommonGBChannel.build(region), null);
         }catch (Exception e) {
             log.warn("[行政区划变化] 发送失败，{}", region.getDeviceId(), e);
         }

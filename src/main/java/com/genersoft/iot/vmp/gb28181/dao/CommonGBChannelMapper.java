@@ -658,7 +658,7 @@ public interface CommonGBChannelMapper {
     void saveLevel(List<ChannelForThin> channels);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelByIds")
-    List<CameraChannel> queryCameraChannelByIds(List<Integer> ids);
+    List<CameraChannel> queryCameraChannelByIds(List<CommonGBChannel> channelList);
 
 
 }

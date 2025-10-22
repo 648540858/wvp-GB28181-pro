@@ -833,13 +833,13 @@ public class ChannelProvider {
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
         sqlBuild.append(" where wdc.id in ( ");
 
-        List<Integer> ids = (List<Integer>)params.get("ids");
+        List<CommonGBChannel> channelList = (List<CommonGBChannel>)params.get("channelList");
         boolean first = true;
-        for (Integer id : ids) {
+        for (CommonGBChannel channel : channelList) {
             if (!first) {
                 sqlBuild.append(",");
             }
-            sqlBuild.append(id);
+            sqlBuild.append(channel.getGbId());
             first = false;
         }
         sqlBuild.append(" )");

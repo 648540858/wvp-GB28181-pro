@@ -49,7 +49,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
-    
+
 //	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
 //	public void showSize(){
 //		log.warn("[notify-目录订阅] 待处理消息数量： {}", taskQueue.size() );
@@ -282,7 +282,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			try {
 				switch (notifyCatalogChannel.getType()) {
 					case STATUS_CHANGED:
-						deviceChannelService.updateChannelStatus(notifyCatalogChannel.getChannel());
+						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
 						break;
 					case ADD:
 						deviceChannelService.addChannel(notifyCatalogChannel.getChannel());

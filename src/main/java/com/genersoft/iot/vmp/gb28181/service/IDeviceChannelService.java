@@ -78,7 +78,7 @@ public interface IDeviceChannelService {
 
     void changeAudio(Integer channelId, Boolean audio);
 
-    void updateChannelStatus(DeviceChannel channel);
+    void updateChannelStatusForNotify(DeviceChannel channel);
 
     void addChannel(DeviceChannel channel);
 

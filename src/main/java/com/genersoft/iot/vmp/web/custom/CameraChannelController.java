@@ -5,14 +5,20 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.cloudRecord.bean.CloudRecordUrl;
 import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
 import com.github.pagehelper.PageInfo;
@@ -21,6 +27,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,9 +36,15 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Tag(name  = "第三方接口")
 @Slf4j
@@ -51,6 +64,12 @@ public class CameraChannelController {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ICloudRecordService cloudRecordService;
+
+    @Autowired
+    private IStreamPushPlayService streamPushPlayService;
 
 
     @GetMapping(value = "/camera/list")
@@ -330,5 +349,228 @@ public class CameraChannelController {
         return new StreamContent(streamInfo);
     }
 
+    @ResponseBody
+    @GetMapping("/record/collect/add")
+    @Operation(summary = "添加收藏")
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+    @Parameter(name = "startTime", description = "鉴权ID", required = false)
+    @Parameter(name = "endTime", description = "鉴权ID", required = false)
+    @Parameter(name = "callId", description = "鉴权ID", required = false)
+    @Parameter(name = "recordId", description = "录像记录的ID，用于精准收藏一个视频文件", required = false)
+    public int addCollect(@RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String callId, @RequestParam(required = false) Integer recordId) {
+        log.info("[云端录像] 添加收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}", app, stream, mediaServerId, startTime, endTime, callId, recordId);
+        if (recordId != null) {
+            return cloudRecordService.changeCollectById(recordId, true);
+        } else {
+            return cloudRecordService.changeCollect(true, app, stream, mediaServerId, startTime, endTime, callId);
+        }
+    }
 
+    @ResponseBody
+    @GetMapping("/record/collect/delete")
+    @Operation(summary = "移除收藏")
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+    @Parameter(name = "startTime", description = "鉴权ID", required = false)
+    @Parameter(name = "endTime", description = "鉴权ID", required = false)
+    @Parameter(name = "callId", description = "鉴权ID", required = false)
+    @Parameter(name = "recordId", description = "录像记录的ID，用于精准精准移除一个视频文件的收藏", required = false)
+    public int deleteCollect(@RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String callId, @RequestParam(required = false) Integer recordId) {
+        log.info("[云端录像] 移除收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}", app, stream, mediaServerId, startTime, endTime, callId, recordId);
+        if (recordId != null) {
+            return cloudRecordService.changeCollectById(recordId, false);
+        } else {
+            return cloudRecordService.changeCollect(false, app, stream, mediaServerId, startTime, endTime, callId);
+        }
+    }
+
+    /************************* 以下这些接口只适合wvp和zlm部署在同一台服务器的情况，且wvp只有一个zlm节点的情况 ***************************************/
+
+    /**
+     * 下载指定录像文件的压缩包
+     * @param query 检索内容
+     * @param app 应用名
+     * @param stream 流ID
+     * @param startTime 开始时间(yyyy-MM-dd HH:mm:ss)
+     * @param endTime 结束时间(yyyy-MM-dd HH:mm:ss)
+     * @param mediaServerId 流媒体ID，置空则查询全部流媒体
+     * @param callId 每次录像的唯一标识，置空则查询全部流媒体
+     * @param ids 指定的Id
+     */
+    @ResponseBody
+    @GetMapping("/record/zip")
+    public void downloadZipFile(HttpServletResponse response, @RequestParam(required = false) String query, @RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String callId, @RequestParam(required = false) List<Integer> ids
+
+    ) {
+        log.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, startTime, endTime, callId);
+
+        List<MediaServer> mediaServers;
+        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(mediaServerId)) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
+            }
+            mediaServers.add(mediaServer);
+        } else {
+            mediaServers = mediaServerService.getAll();
+        }
+        if (mediaServers.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
+        }
+        if (query != null && org.apache.commons.lang3.ObjectUtils.isEmpty(query.trim())) {
+            query = null;
+        }
+        if (app != null && org.apache.commons.lang3.ObjectUtils.isEmpty(app.trim())) {
+            app = null;
+        }
+        if (stream != null && org.apache.commons.lang3.ObjectUtils.isEmpty(stream.trim())) {
+            stream = null;
+        }
+        if (startTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(startTime.trim())) {
+            startTime = null;
+        }
+        if (endTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(endTime.trim())) {
+            endTime = null;
+        }
+        if (callId != null && org.apache.commons.lang3.ObjectUtils.isEmpty(callId.trim())) {
+            callId = null;
+        }
+        if (stream != null && callId != null) {
+            response.addHeader("Content-Disposition", "attachment;filename=" + stream + "_" + callId + ".zip");
+        }
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordService.getAllList(query, app, stream, startTime, endTime, mediaServers, callId, ids);
+        if (org.apache.commons.lang3.ObjectUtils.isEmpty(cloudRecordItemList)) {
+            return;
+        }
+        try {
+            ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+            for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
+                zos.putNextEntry(new ZipEntry(DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss((long)cloudRecordItem.getStartTime()) + ".mp4"));
+                File file = new File(cloudRecordItem.getFilePath());
+                if (!file.exists() || file.isDirectory()) {
+                    continue;
+                }
+                FileInputStream fis = new FileInputStream(cloudRecordItem.getFilePath());
+                byte[] buf = new byte[2 * 1024];
+                int len;
+                while ((len = fis.read(buf)) != -1) {
+                    zos.write(buf, 0, len);
+                }
+                zos.closeEntry();
+                fis.close();
+            }
+            zos.close();
+        } catch (IOException e) {
+            log.error("[下载指定录像文件的压缩包] 失败： 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, startTime, endTime, callId, e);
+        }
+    }
+
+    /**
+     *
+     * @param query 检索内容
+     * @param app 应用名
+     * @param stream 流ID
+     * @param startTime 开始时间(yyyy-MM-dd HH:mm:ss)
+     * @param endTime 结束时间(yyyy-MM-dd HH:mm:ss)
+     * @param mediaServerId 流媒体ID，置空则查询全部流媒体
+     * @param callId 每次录像的唯一标识，置空则查询全部流媒体
+     * @param remoteHost 拼接播放地址时使用的远程地址
+     */
+    @ResponseBody
+    @GetMapping("/record/list-url")
+    @Operation(summary = "分页查询云端录像", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "query", description = "检索内容", required = false)
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = false)
+    @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
+    @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
+    @Parameter(name = "callId", description = "每次录像的唯一标识，置空则查询全部流媒体", required = false)
+    public PageInfo<CloudRecordUrl> getListWithUrl(HttpServletRequest request, @RequestParam(required = false) String query, @RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam int page, @RequestParam int count, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String callId, @RequestParam(required = false) String remoteHost
+
+    ) {
+        log.info("[云端录像] 查询URL app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, page, count, startTime, endTime, callId);
+
+        List<MediaServer> mediaServers;
+        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(mediaServerId)) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
+            }
+            mediaServers.add(mediaServer);
+        } else {
+            mediaServers = null;
+        }
+        if (query != null && org.apache.commons.lang3.ObjectUtils.isEmpty(query.trim())) {
+            query = null;
+        }
+        if (app != null && org.apache.commons.lang3.ObjectUtils.isEmpty(app.trim())) {
+            app = null;
+        }
+        if (stream != null && org.apache.commons.lang3.ObjectUtils.isEmpty(stream.trim())) {
+            stream = null;
+        }
+        if (startTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(startTime.trim())) {
+            startTime = null;
+        }
+        if (endTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(endTime.trim())) {
+            endTime = null;
+        }
+        if (callId != null && org.apache.commons.lang3.ObjectUtils.isEmpty(callId.trim())) {
+            callId = null;
+        }
+        MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体节点");
+        }
+        if (remoteHost == null) {
+            remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" + (request.getScheme().equals("https") ? mediaServer.getHttpSSlPort() : mediaServer.getHttpPort());
+        }
+        PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId, null);
+        PageInfo<CloudRecordUrl> cloudRecordUrlPageInfo = new PageInfo<>();
+        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(cloudRecordItemPageInfo)) {
+            cloudRecordUrlPageInfo.setPageNum(cloudRecordItemPageInfo.getPageNum());
+            cloudRecordUrlPageInfo.setPageSize(cloudRecordItemPageInfo.getPageSize());
+            cloudRecordUrlPageInfo.setSize(cloudRecordItemPageInfo.getSize());
+            cloudRecordUrlPageInfo.setEndRow(cloudRecordItemPageInfo.getEndRow());
+            cloudRecordUrlPageInfo.setStartRow(cloudRecordItemPageInfo.getStartRow());
+            cloudRecordUrlPageInfo.setPages(cloudRecordItemPageInfo.getPages());
+            cloudRecordUrlPageInfo.setPrePage(cloudRecordItemPageInfo.getPrePage());
+            cloudRecordUrlPageInfo.setNextPage(cloudRecordItemPageInfo.getNextPage());
+            cloudRecordUrlPageInfo.setIsFirstPage(cloudRecordItemPageInfo.isIsFirstPage());
+            cloudRecordUrlPageInfo.setIsLastPage(cloudRecordItemPageInfo.isIsLastPage());
+            cloudRecordUrlPageInfo.setHasPreviousPage(cloudRecordItemPageInfo.isHasPreviousPage());
+            cloudRecordUrlPageInfo.setHasNextPage(cloudRecordItemPageInfo.isHasNextPage());
+            cloudRecordUrlPageInfo.setNavigatePages(cloudRecordItemPageInfo.getNavigatePages());
+            cloudRecordUrlPageInfo.setNavigateFirstPage(cloudRecordItemPageInfo.getNavigateFirstPage());
+            cloudRecordUrlPageInfo.setNavigateLastPage(cloudRecordItemPageInfo.getNavigateLastPage());
+            cloudRecordUrlPageInfo.setNavigatepageNums(cloudRecordItemPageInfo.getNavigatepageNums());
+            cloudRecordUrlPageInfo.setTotal(cloudRecordItemPageInfo.getTotal());
+            List<CloudRecordUrl> cloudRecordUrlList = new ArrayList<>(cloudRecordItemPageInfo.getList().size());
+            List<CloudRecordItem> cloudRecordItemList = cloudRecordItemPageInfo.getList();
+            for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
+                CloudRecordUrl cloudRecordUrl = new CloudRecordUrl();
+                cloudRecordUrl.setId(cloudRecordItem.getId());
+                cloudRecordUrl.setDownloadUrl(remoteHost + "/index/api/downloadFile?file_path=" + cloudRecordItem.getFilePath() + "&save_name=" + cloudRecordItem.getStream() + "_" + cloudRecordItem.getCallId() + "_" + DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss((long)cloudRecordItem.getStartTime()));
+                cloudRecordUrl.setPlayUrl(remoteHost + "/index/api/downloadFile?file_path=" + cloudRecordItem.getFilePath());
+                cloudRecordUrlList.add(cloudRecordUrl);
+            }
+            cloudRecordUrlPageInfo.setList(cloudRecordUrlList);
+        }
+        return cloudRecordUrlPageInfo;
+    }
+
+    @GetMapping(value = "/forceClose")
+    @ResponseBody
+    @Operation(summary = "强制停止推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void stop(String app, String stream){
+        streamPushPlayService.stop(app, stream);
+    }
 }

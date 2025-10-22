@@ -32,7 +32,7 @@ public class ChannelEvent extends ApplicationEvent {
 
 
     public enum ChannelEventMessageType {
-        ADD, UPDATE, DELETE, ONLINE, OFFLINE, VLOST, DEFECT
+        ADD, UPDATE, DEL, ON, OFF, VLOST, DEFECT
     }
 
     public static ChannelEvent getInstance(Object source, ChannelEventMessageType messageType, List<CommonGBChannel> channelList) {

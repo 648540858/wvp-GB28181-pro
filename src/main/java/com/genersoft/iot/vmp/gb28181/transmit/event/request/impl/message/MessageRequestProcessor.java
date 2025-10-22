@@ -81,7 +81,8 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
-        Platform parentPlatform = platformService.queryPlatformByServerGBId(deviceId);
+//        Platform parentPlatform = platformService.queryPlatformByServerGBId(deviceId);
+        Platform parentPlatform = null;
         try {
             if (device != null && parentPlatform != null) {
                 String hostAddress = request.getRemoteAddress().getHostAddress();

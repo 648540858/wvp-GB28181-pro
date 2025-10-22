@@ -74,7 +74,6 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(channelEvent);
 	}
 
-
 	public void catalogEventPublish(Platform platform, CommonGBChannel deviceChannel, String type) {
 		catalogEventPublish(platform, Collections.singletonList(deviceChannel), type);
 	}

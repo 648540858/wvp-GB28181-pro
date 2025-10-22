@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
@@ -113,49 +113,120 @@ public class CameraChannelService implements CommandLineRunner {
 
     // 监听通道变化，如果是移动设备则发送redis消息
     @EventListener
-    public void onApplicationEvent(CatalogEvent event) {
+    public void onApplicationEvent(ChannelEvent event) {
         List<CommonGBChannel> channels = event.getChannels();
         if (channels.isEmpty()) {
             return;
         }
+        List<CommonGBChannel> resultListForAdd = new ArrayList<>();
+        List<CameraChannel> resultListForDelete = new ArrayList<>();
+        List<CommonGBChannel> resultListForUpdate = new ArrayList<>();
+        List<CommonGBChannel> resultListForOnline = new ArrayList<>();
+        List<CommonGBChannel> resultListForOffline = new ArrayList<>();
 
-        List<CameraChannel> mobilechannelList = null;
-        if (event.getType().equals(CatalogEvent.DEL)) {
-            mobilechannelList = new ArrayList<>();
-            for (CommonGBChannel channel : channels) {
-                if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
-                    CameraChannel cameraChannel = new CameraChannel();
-                    cameraChannel.setGbDeviceId(channel.getGbDeviceId());
-                    mobilechannelList.add(cameraChannel);
+        switch (event.getMessageType()) {
+            case UPDATE:
+                List<CommonGBChannel> oldChannelList = event.getOldChannels();
+                List<CommonGBChannel> channelList = event.getChannels();
+                // 更新操作
+                if (oldChannelList == null || oldChannelList.isEmpty()) {
+                    // 无旧设备则不需要判断， 目前只有分组或行政区划转换为通道信息时没有旧的通道信息，这两个类型也是不需要发送通知的，直接忽略即可
+                    break;
                 }
-            }
-        }else {
-            List<Integer> ids = new ArrayList<>();
-            channels.forEach((channel -> {
-                if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
-                    ids.add(channel.getGbId());
+                // 需要比对旧数据，看看是否是新增的移动设备或者取消的移动设备
+                // 将 channelList 转为以 gbDeviceId 为 key 的 Map
+                Map<String, CommonGBChannel> oldChannelMap = new HashMap<>();
+                for (CommonGBChannel channel : oldChannelList) {
+                    if (channel != null && channel.getGbDeviceId() != null) {
+                        oldChannelMap.put(channel.getGbDeviceId(), channel);
+                    }
                 }
-            }));
-            if (ids.isEmpty()) {
-                return;
-            }
-            mobilechannelList = channelMapper.queryCameraChannelByIds(ids);
+                for (CommonGBChannel channel : channelList) {
+                    if (channel.getGbPtzType() != null && channel.getGbPtzType() == 99) {
+                        CommonGBChannel oldChannel = oldChannelMap.get(channel.getGbDeviceId());
+                        if (oldChannel != null) {
+                            if (oldChannel.getGbPtzType() != null && oldChannel.getGbPtzType() == 99) {
+                                resultListForUpdate.add(channel);
+                            }else {
+                                resultListForAdd.add(channel);
+                            }
+                        }else {
+                            resultListForAdd.add(channel);
+                        }
+                    }else {
+                        CommonGBChannel oldChannel = oldChannelMap.get(channel.getGbDeviceId());
+                        if (oldChannel != null && oldChannel.getGbPtzType() != null && oldChannel.getGbPtzType() == 99) {
+                            CameraChannel cameraChannel = new CameraChannel();
+                            cameraChannel.setGbDeviceId(channel.getGbDeviceId());
+                            resultListForDelete.add(cameraChannel);
+                        }
+                    }
+                }
+
+                break;
+            case DEL:
+                for (CommonGBChannel channel : channels) {
+                    if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                        CameraChannel cameraChannel = new CameraChannel();
+                        cameraChannel.setGbDeviceId(channel.getGbDeviceId());
+                        resultListForDelete.add(cameraChannel);
+                    }
+                }
+                break;
+            case ON:
+            case OFF:
+            case DEFECT:
+            case VLOST:
+                for (CommonGBChannel channel : channels) {
+                    if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                        if (event.getMessageType() == ChannelEvent.ChannelEventMessageType.ON) {
+                            resultListForOnline.add(channel);
+                        }else {
+                            resultListForOffline.add(channel);
+                        }
+
+                    }
+                }
+                break;
+            case ADD:
+                for (CommonGBChannel channel : channels) {
+                    if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                        resultListForAdd.add(channel);
+                    }
+                }
+                break;
         }
-        if (mobilechannelList == null || mobilechannelList.isEmpty()) {
+        if (!resultListForDelete.isEmpty()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type", ChannelEvent.ChannelEventMessageType.DEL);
+            jsonObject.put("list", resultListForDelete);
+            log.info("[SY-redis发送通知-DEL] 发送 通道信息变化 {}: {}", REDIS_CHANNEL_MESSAGE, jsonObject.toString());
+            redisTemplate.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject);
+        }
+        if (!resultListForAdd.isEmpty()) {
+            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ADD);
+        }
+        if (!resultListForUpdate.isEmpty()) {
+            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.UPDATE);
+        }
+        if (!resultListForOnline.isEmpty()) {
+            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ON);
+        }
+        if (!resultListForOffline.isEmpty()) {
+            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.OFF);
+        }
+    }
+
+    private void sendChannelMessage(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
+        if (channelList.isEmpty()) {
             return;
         }
-        String type = event.getType();
-        if (type.equals(CatalogEvent.VLOST) || type.equals(CatalogEvent.DEFECT)) {
-            type = CatalogEvent.OFF;
-        }
-
+        List<CameraChannel> cameraChannelList = channelMapper.queryCameraChannelByIds(channelList);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("type", type);
-        jsonObject.put("list", mobilechannelList);
-        log.info("[SY-redis发送通知] 发送 通道信息变化 {}: {}", REDIS_CHANNEL_MESSAGE, jsonObject.toString());
+        jsonObject.put("list", cameraChannelList);
+        log.info("[SY-redis发送通知-{}] 发送 通道信息变化 {}: {}", type, REDIS_CHANNEL_MESSAGE, jsonObject.toString());
         redisTemplate.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject);
-
-
     }
 
     // 监听GPS消息，如果是移动设备则发送redis消息

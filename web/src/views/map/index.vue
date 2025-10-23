@@ -251,6 +251,7 @@ export default {
             src: this.getImageByChannel(data)
           }
         }
+
         this.infoBoxTempLayer = this.$refs.mapComponent.addPointLayer([cameraData])
       }
       let position = [data.gbLongitude, data.gbLatitude]
@@ -353,7 +354,9 @@ export default {
             this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
           }else {
             console.log(cameraList.length)
-            this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
+            setTimeout(()=>{
+              this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
+            })
           }
           break
         case 2:
@@ -361,8 +364,10 @@ export default {
           if (this.channelLayer) {
             this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
           }else {
-            this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
-              declutter: true
+            setTimeout(()=>{
+              this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
+                declutter: true
+              })
             })
           }
           break
@@ -371,7 +376,9 @@ export default {
           if (this.channelLayer) {
             this.channelLayer = this.$refs.mapComponent.updatePointLayerGroup(this.channelLayer, cameraListForLevelMap, true)
           }else {
-            this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
+            setTimeout(() => {
+              this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
+            })
           }
           break
         // case 4:
@@ -572,26 +579,32 @@ export default {
       let cameraList = cameraListForSource.slice()
 
       this.quicklyDrawThinLoading = true
-      this.drawThin(cameraList).then((layerGroupSource) => {
-        this.layerGroupSource = layerGroupSource
-        this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
-          this.closeInfoBox()
-          this.$nextTick(() => {
-            if (data[0].edit) {
-              this.showEditInfo(data[0])
-            }else {
-              this.showChannelInfo(data[0])
-            }
+      setTimeout(() => {
+        this.drawThin(cameraList).then((layerGroupSource) => {
+          this.layerGroupSource = layerGroupSource
+          this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+            this.closeInfoBox()
+            this.$nextTick(() => {
+              if (data[0].edit) {
+                this.showEditInfo(data[0])
+              }else {
+                this.showChannelInfo(data[0])
+              }
+            })
           })
-        })
-        this.quicklyDrawThinLoading = false
-        this.$message.success({
-          showClose: true,
-          message: '抽稀完成，请预览无误后保存抽稀结果'
+          this.quicklyDrawThinLoading = false
+          this.$message.success({
+            showClose: true,
+            message: '抽稀完成，请预览无误后保存抽稀结果'
+          })
         })
       })
     },
     boxDrawThin: function (){
+      this.$message.info({
+        showClose: true,
+        message: '点击地图进行框选'
+      })
       // 绘制框
       this.$refs.mapComponent.startDrawBox((extent) => {
 

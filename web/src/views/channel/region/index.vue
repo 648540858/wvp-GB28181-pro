@@ -73,7 +73,7 @@
         ref="channelListTable"
         size="medium"
         :data="channelList"
-        height="calc(100vh - 190px)"
+        :height="tableHeight"
         style="width: 100%"
         header-row-class-name="table-header"
         @selection-change="handleSelectionChange"
@@ -130,6 +130,7 @@ export default {
   data() {
     return {
       channelList: [],
+      tableHeight: `calc(100vh - ${this.$refs.queryForm.offsetHeight}px)`,
       searchStr: '',
       channelType: '',
       online: '',

@@ -6,14 +6,12 @@ import cn.hutool.crypto.SmUtil;
 import cn.hutool.crypto.symmetric.SM4;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -35,12 +33,6 @@ import java.util.TreeSet;
 @Component
 @ConditionalOnProperty(value = "sy.enable", havingValue = "true")
 public class SignAuthenticationFilter extends OncePerRequestFilter {
-
-    private final static String WSHeader = "sec-websocket-protocol";
-
-
-    @Autowired
-    private UserSetting userSetting;
 
 
     @Override

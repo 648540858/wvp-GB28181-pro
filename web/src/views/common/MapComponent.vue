@@ -296,8 +296,7 @@ export default {
           feature.setId(data[i].id)
           feature.customData = data[i].data
           feature.setProperties({
-            status: 'offline',
-            iconSrc: 'static/images/gis/camera1-offline.png'
+            status: data[i].status,
           })
           // const style = new Style()
           // style.setImage(new Icon({
@@ -321,17 +320,23 @@ export default {
             // 'circle-fill-color': 'red',
             // 'circle-stroke-color': 'white',
             // 'circle-stroke-width': 0.5
-            'icon-src': 'static/images/gis/camera1.png',
-            // 'icon-src': [
-            //   'case',
-            //   ['==', ['get', 'status'], 'online'], 'static/images/gis/camera1.png',
-            //   ['==', ['get', 'status'], 'offline'], 'static/images/gis/camera1-offline.png',
-            //   ['==', ['get', 'status'], 'checked'], 'static/images/gis/camera1-red.png',
-            //   'static/images/gis/camera1.png'
-            // ],
-            // 'icon-src': ['get', 'iconSrc'],
-            'icon-width': 40,
-            'icon-height': 40
+            'icon-src': 'static/images/gis/sprite.png',
+            'icon-width': 120,
+            'icon-height': 40,
+            'icon-size': [40, 40],
+            'icon-anchor': [0.5, 1],
+            'icon-offset-origin': 'bottom-left',
+            'icon-offset': [
+              'match',
+              ['get', 'status'],
+              'ON',
+              [0, 0],
+              'OFF',
+              [40, 0],
+              'checked',
+              [80, 0],
+              [120, 60]
+            ]
           }
         })
         if (clickEvent && typeof clickEvent === 'function') {
@@ -473,13 +478,9 @@ export default {
       const feature = new Feature(new Point(fromLonLat(data.position)))
       feature.setId(data.id)
       feature.customData = data.data
-      const style = new Style()
-      style.setImage(new Icon({
-        anchor: data.image.anchor,
-        crossOrigin: 'Anonymous',
-        src: data.image.src
-      }))
-      feature.setStyle(style)
+      feature.setProperties({
+        status: data.status
+      })
       layer.getSource().addFeature(feature)
     },
 

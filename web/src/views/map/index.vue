@@ -246,6 +246,7 @@ export default {
           id: data.gbId,
           position: position,
           data: data,
+          status: data.gbStatus,
           image: {
             anchor: [0.5, 1],
             src: this.getImageByChannel(data)
@@ -290,6 +291,7 @@ export default {
             let cameraData = {
               id: item.gbId,
               position: position,
+              status: item.gbStatus,
               data: item,
               image: {
                 anchor: [0.5, 1],
@@ -465,6 +467,7 @@ export default {
         id: channel.gbId,
         position: position,
         data: channel,
+        status: 'checked',
         image: {
           anchor: [0.5, 1],
           src: 'static/images/gis/camera1-red.png'
@@ -485,6 +488,7 @@ export default {
         id: channel.gbId,
         position: [channel.gbLongitude, channel.gbLatitude],
         data: channel,
+        status: channel.gbStatus,
         image: {
           anchor: [0.5, 1],
           src: this.getImageByChannel(channel)
@@ -506,6 +510,7 @@ export default {
             id: channel.gbId,
             position: position,
             data: channel,
+            status: channel.gbStatus,
             image: {
               anchor: [0.5, 1],
               src: this.getImageByChannel(channel)
@@ -766,6 +771,7 @@ export default {
           id: item.gbId,
           position: position,
           data: item,
+          status: item.gbStatus,
           image: {
             anchor: [0.5, 1],
             src: this.getImageByChannel(item)

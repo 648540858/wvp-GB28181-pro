@@ -4,8 +4,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Mapper
 public interface CloudRecordServiceMapper {
@@ -159,5 +159,14 @@ public interface CloudRecordServiceMapper {
             " from wvp_cloud_record where id in " +
             " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </script>")
-    List<CloudRecordItem> queryRecordByIds(Set<Integer> ids);
+    List<CloudRecordItem> queryRecordByIds(Collection<Integer> ids);
+
+    @Select(" <script>" +
+            "select * " +
+            " from wvp_cloud_record where 0=0 " +
+            " <if test= 'app != null '> and app=#{app}</if>" +
+            " <if test= 'stream != null '> and stream=#{stream}</if>" +
+            " <if test= 'callId != null '> and call_id=#{callId}</if>" +
+            " </script>")
+    List<CloudRecordItem> queryRecordByAppStreamAndCallId(String app, String stream, String callId);
 }

@@ -1,32 +1,16 @@
 package com.genersoft.iot.vmp.vmanager.cloudRecord.bean;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class CloudRecordUrl {
 
+    private String filePath;
     private String playUrl;
     private String downloadUrl;
+    private String fileName;
     private int id;
 
-    public String getPlayUrl() {
-        return playUrl;
-    }
-
-    public void setPlayUrl(String playUrl) {
-        this.playUrl = playUrl;
-    }
-
-    public String getDownloadUrl() {
-        return downloadUrl;
-    }
-
-    public void setDownloadUrl(String downloadUrl) {
-        this.downloadUrl = downloadUrl;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 }

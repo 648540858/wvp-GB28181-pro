@@ -20,6 +20,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.cloudRecord.bean.CloudRecordUrl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -384,5 +385,47 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             stringBuilder.append(" 删除失败");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), stringBuilder.toString());
         }
+    }
+
+    @Override
+    public List<CloudRecordUrl> getUrlListByIds(List<Integer> ids) {
+        List<CloudRecordItem> cloudRecordItems = cloudRecordServiceMapper.queryRecordByIds(ids);
+        if (cloudRecordItems.isEmpty()) {
+            return List.of();
+        }
+        return getCloudRecordUrl(cloudRecordItems);
+    }
+
+    @Override
+    public List<CloudRecordUrl> getUrlList(String app, String stream, String callId) {
+        List<CloudRecordItem> cloudRecordItems = cloudRecordServiceMapper.queryRecordByAppStreamAndCallId(app, stream, callId);
+        if (cloudRecordItems.isEmpty()) {
+            return List.of();
+        }
+        return getCloudRecordUrl(cloudRecordItems);
+    }
+
+    private List<CloudRecordUrl> getCloudRecordUrl(List<CloudRecordItem> cloudRecordItems) {
+        if (cloudRecordItems.isEmpty()) {
+            return List.of();
+        }
+        List<CloudRecordUrl> resultList = new ArrayList<>();
+        for (CloudRecordItem cloudRecordItem : cloudRecordItems) {
+            CloudRecordUrl cloudRecordUrl = new CloudRecordUrl();
+            cloudRecordUrl.setId(cloudRecordItem.getId());
+            cloudRecordUrl.setFileName(cloudRecordItem.getStartTime() + ".mp4");
+            cloudRecordUrl.setFilePath(cloudRecordItem.getFilePath());
+            if (!userSetting.getServerId().equals(cloudRecordItem.getServerId())) {
+                cloudRecordUrl.setDownloadUrl(redisRpcPlayService.getRecordPlayUrl(cloudRecordItem.getServerId(), cloudRecordItem.getId()).getHttpPath());
+            }else {
+                MediaServer mediaServer = mediaServerService.getOne(cloudRecordItem.getMediaServerId());
+                mediaServer.setStreamIp(mediaServer.getIp());
+                DownloadFileInfo downloadFilePath = mediaServerService.getDownloadFilePath(mediaServer, RecordInfo.getInstance(cloudRecordItem));
+                cloudRecordUrl.setDownloadUrl(downloadFilePath.getHttpPath());
+            }
+            resultList.add(cloudRecordUrl);
+        }
+
+        return resultList;
     }
 }

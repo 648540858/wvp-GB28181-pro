@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.HttpUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -36,8 +37,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -391,81 +390,59 @@ public class CameraChannelController {
 
     /**
      * 下载指定录像文件的压缩包
-     * @param query 检索内容
      * @param app 应用名
      * @param stream 流ID
-     * @param startTime 开始时间(yyyy-MM-dd HH:mm:ss)
-     * @param endTime 结束时间(yyyy-MM-dd HH:mm:ss)
-     * @param mediaServerId 流媒体ID，置空则查询全部流媒体
      * @param callId 每次录像的唯一标识，置空则查询全部流媒体
-     * @param ids 指定的Id
      */
     @ResponseBody
     @GetMapping("/record/zip")
-    public void downloadZipFile(HttpServletResponse response, @RequestParam(required = false) String query, @RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String callId, @RequestParam(required = false) List<Integer> ids
+    public void downloadZipFile(HttpServletResponse response,
+                                @RequestParam(required = false) String app,
+                                @RequestParam(required = false) String stream,
+                                @RequestParam(required = false) String callId
 
     ) {
-        log.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, startTime, endTime, callId);
+        log.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, callId->{}", app, stream, callId);
 
-        List<MediaServer> mediaServers;
-        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(mediaServerId)) {
-            mediaServers = new ArrayList<>();
-            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
-            if (mediaServer == null) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
-            }
-            mediaServers.add(mediaServer);
-        } else {
-            mediaServers = mediaServerService.getAll();
-        }
-        if (mediaServers.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
-        }
-        if (query != null && org.apache.commons.lang3.ObjectUtils.isEmpty(query.trim())) {
-            query = null;
-        }
-        if (app != null && org.apache.commons.lang3.ObjectUtils.isEmpty(app.trim())) {
+        if (app != null && ObjectUtils.isEmpty(app.trim())) {
             app = null;
         }
-        if (stream != null && org.apache.commons.lang3.ObjectUtils.isEmpty(stream.trim())) {
+        if (stream != null && ObjectUtils.isEmpty(stream.trim())) {
             stream = null;
         }
-        if (startTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(startTime.trim())) {
-            startTime = null;
-        }
-        if (endTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(endTime.trim())) {
-            endTime = null;
-        }
-        if (callId != null && org.apache.commons.lang3.ObjectUtils.isEmpty(callId.trim())) {
+        if (callId != null && ObjectUtils.isEmpty(callId.trim())) {
             callId = null;
         }
+        // 设置响应头
+        response.setContentType("application/zip");
+        response.setCharacterEncoding("UTF-8");
         if (stream != null && callId != null) {
             response.addHeader("Content-Disposition", "attachment;filename=" + stream + "_" + callId + ".zip");
         }
-        List<CloudRecordItem> cloudRecordItemList = cloudRecordService.getAllList(query, app, stream, startTime, endTime, mediaServers, callId, ids);
-        if (org.apache.commons.lang3.ObjectUtils.isEmpty(cloudRecordItemList)) {
+        List<CloudRecordUrl> cloudRecordItemList = cloudRecordService.getUrlList(app, stream, callId);
+        if (ObjectUtils.isEmpty(cloudRecordItemList)) {
+            log.warn("[下载指定录像文件的压缩包] 未找到录像文件，app->{}, stream->{}, callId->{}", app, stream, callId);
             return;
         }
-        try {
-            ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-            for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
-                zos.putNextEntry(new ZipEntry(DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss((long)cloudRecordItem.getStartTime()) + ".mp4"));
-                File file = new File(cloudRecordItem.getFilePath());
-                if (!file.exists() || file.isDirectory()) {
-                    continue;
+
+        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            for (CloudRecordUrl recordUrl : cloudRecordItemList) {
+                try {
+                    zos.putNextEntry(new ZipEntry(recordUrl.getFileName()));
+                    boolean downloadSuccess = HttpUtils.downLoadFile(recordUrl.getDownloadUrl(), zos);
+                    if (!downloadSuccess) {
+                        log.warn("[下载指定录像文件的压缩包] 下载文件失败: {}", recordUrl.getDownloadUrl());
+                        zos.closeEntry();
+                        continue;
+                    }
+                    zos.closeEntry();
+                } catch (Exception e) {
+                    log.error("[下载指定录像文件的压缩包] 处理文件失败: {}, 错误: {}", recordUrl.getFileName(), e.getMessage());
+                    // 继续处理下一个文件
                 }
-                FileInputStream fis = new FileInputStream(cloudRecordItem.getFilePath());
-                byte[] buf = new byte[2 * 1024];
-                int len;
-                while ((len = fis.read(buf)) != -1) {
-                    zos.write(buf, 0, len);
-                }
-                zos.closeEntry();
-                fis.close();
             }
-            zos.close();
         } catch (IOException e) {
-            log.error("[下载指定录像文件的压缩包] 失败： 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, startTime, endTime, callId, e);
+            log.error("[下载指定录像文件的压缩包] 创建压缩包失败，查询 app->{}, stream->{}, callId->{}", app, stream, callId, e);
         }
     }
 
@@ -498,7 +475,7 @@ public class CameraChannelController {
         log.info("[云端录像] 查询URL app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, page, count, startTime, endTime, callId);
 
         List<MediaServer> mediaServers;
-        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(mediaServerId)) {
+        if (!ObjectUtils.isEmpty(mediaServerId)) {
             mediaServers = new ArrayList<>();
             MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
             if (mediaServer == null) {
@@ -508,22 +485,22 @@ public class CameraChannelController {
         } else {
             mediaServers = null;
         }
-        if (query != null && org.apache.commons.lang3.ObjectUtils.isEmpty(query.trim())) {
+        if (query != null && ObjectUtils.isEmpty(query.trim())) {
             query = null;
         }
-        if (app != null && org.apache.commons.lang3.ObjectUtils.isEmpty(app.trim())) {
+        if (app != null && ObjectUtils.isEmpty(app.trim())) {
             app = null;
         }
-        if (stream != null && org.apache.commons.lang3.ObjectUtils.isEmpty(stream.trim())) {
+        if (stream != null && ObjectUtils.isEmpty(stream.trim())) {
             stream = null;
         }
-        if (startTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(startTime.trim())) {
+        if (startTime != null && ObjectUtils.isEmpty(startTime.trim())) {
             startTime = null;
         }
-        if (endTime != null && org.apache.commons.lang3.ObjectUtils.isEmpty(endTime.trim())) {
+        if (endTime != null && ObjectUtils.isEmpty(endTime.trim())) {
             endTime = null;
         }
-        if (callId != null && org.apache.commons.lang3.ObjectUtils.isEmpty(callId.trim())) {
+        if (callId != null && ObjectUtils.isEmpty(callId.trim())) {
             callId = null;
         }
         MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
@@ -535,7 +512,7 @@ public class CameraChannelController {
         }
         PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId, null);
         PageInfo<CloudRecordUrl> cloudRecordUrlPageInfo = new PageInfo<>();
-        if (!org.apache.commons.lang3.ObjectUtils.isEmpty(cloudRecordItemPageInfo)) {
+        if (!ObjectUtils.isEmpty(cloudRecordItemPageInfo)) {
             cloudRecordUrlPageInfo.setPageNum(cloudRecordItemPageInfo.getPageNum());
             cloudRecordUrlPageInfo.setPageSize(cloudRecordItemPageInfo.getPageSize());
             cloudRecordUrlPageInfo.setSize(cloudRecordItemPageInfo.getSize());

@@ -110,7 +110,7 @@ export function deleteRecord(ids) {
 }
 
 export function queryList(params) {
-  const { app, stream, query, startTime, endTime, mediaServerId, page, count, ascOrder } = params
+  const { app, stream, query, callId, startTime, endTime, mediaServerId, page, count, ascOrder } = params
   return request({
     method: 'get',
     url: `/api/cloud/record/list`,
@@ -118,6 +118,7 @@ export function queryList(params) {
       app: app,
       stream: stream,
       query: query,
+      callId: callId,
       startTime: startTime,
       endTime: endTime,
       mediaServerId: mediaServerId,

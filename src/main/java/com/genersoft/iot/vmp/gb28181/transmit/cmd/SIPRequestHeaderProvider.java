@@ -269,12 +269,15 @@ public class SIPRequestHeaderProvider {
 		ExpiresHeader expireHeader = SipFactory.getInstance().createHeaderFactory().createExpiresHeader(expires);
 		request.addHeader(expireHeader);
 
-		// Event
-		EventHeader eventHeader = SipFactory.getInstance().createHeaderFactory().createEventHeader(event);
-
-		int random = (int) Math.floor(Math.random() * 10000);
-		eventHeader.setEventId(random + "");
-		request.addHeader(eventHeader);
+        // Event
+        EventHeader eventHeader = SipFactory.getInstance().createHeaderFactory().createEventHeader(event);
+        if (sipTransactionInfo != null && sipTransactionInfo.getEventId() != null) {
+            eventHeader.setEventId(sipTransactionInfo.getEventId());
+        }else {
+            int random = (int) Math.floor(Math.random() * 10000);
+            eventHeader.setEventId(random + "");
+        }
+        request.addHeader(eventHeader);
 
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);

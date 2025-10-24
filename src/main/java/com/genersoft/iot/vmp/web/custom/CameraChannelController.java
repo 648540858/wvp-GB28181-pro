@@ -110,7 +110,7 @@ public class CameraChannelController {
                                         @RequestParam(required = false) String query,
                                         @RequestParam(required = false) String sortName,
                                         @RequestParam(required = false) Boolean order,
-                                        String groupAlias,
+                                        @RequestParam(required = false) String groupAlias,
                                         @RequestParam(required = false) String geoCoordSys,
                                         @RequestParam(required = false) Boolean status){
         if (ObjectUtils.isEmpty(query)) {

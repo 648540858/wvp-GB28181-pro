@@ -273,13 +273,18 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, Boolean order, String groupAlias, Boolean status, String geoCoordSys) {
+
+        List<CameraGroup> groupList = null;
         // 构建组织结构信息
-        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
-        String groupDeviceId = group.getDeviceId();
-        // 获取所有子节点
-        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
-        groupList.add(group);
+        if (groupAlias != null) {
+            CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+            Assert.notNull(group, "组织结构不存在");
+            String groupDeviceId = group.getDeviceId();
+            // 获取所有子节点
+            groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+            groupList.add(group);
+        }
+
         // 构建分页
         PageHelper.startPage(page, count);
         if (query != null) {

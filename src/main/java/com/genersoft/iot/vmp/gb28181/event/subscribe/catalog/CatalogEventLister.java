@@ -25,7 +25,7 @@ import java.util.Map;
  * catalog事件
  */
 @Slf4j
-@Component
+//@Component
 public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired

@@ -557,7 +557,7 @@ public class CameraChannelController {
 
     @GetMapping(value = "/camera/meeting/list")
     @ResponseBody
-    @Operation(summary = "查询拉流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "查询会议设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "topGroupAlias", description = "分组别名")
     public List<CameraChannel> queryMeetingChannelList(String topGroupAlias){
         return channelService.queryMeetingChannelList(topGroupAlias);

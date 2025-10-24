@@ -357,6 +357,8 @@ export default {
     },
     chooseGroup: function() {
       this.$refs.chooseGroup.openDialog((deviceId, businessGroupId) => {
+        console.log(deviceId)
+        console.log(businessGroupId)
         this.form.gbBusinessGroupId = businessGroupId
         this.form.gbParentId = deviceId
       })

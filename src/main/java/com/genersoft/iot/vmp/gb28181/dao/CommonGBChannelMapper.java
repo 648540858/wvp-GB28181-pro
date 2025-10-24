@@ -667,5 +667,5 @@ public interface CommonGBChannelMapper {
     List<CommonGBChannel> queryOldChanelListByChannels(List<CommonGBChannel> channelList);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryMeetingChannelList")
-    List<CameraChannel> queryMeetingChannelList(String business);
+    List<CameraChannel> queryMeetingChannelList(@Param("business") String business);
 }

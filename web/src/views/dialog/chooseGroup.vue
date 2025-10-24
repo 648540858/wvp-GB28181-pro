@@ -16,7 +16,7 @@
         :show-header="true"
         :edit="true"
         :enable-add-channel="false"
-        :click-event="treeNodeClickEvent"
+        @clickEvent="treeNodeClickEvent"
         :on-channel-change="onChannelChange"
         :tree-height="'45vh'"
       />
@@ -67,6 +67,8 @@ export default {
       this.showDialog = false
     },
     treeNodeClickEvent: function(group) {
+      console.log(111)
+      console.log(group)
       if (group.deviceId === '' || group.deviceId === group.businessGroup) {
         return
       }

@@ -56,7 +56,7 @@
           <el-input v-model="form.gbLatitude" placeholder="请输入纬度" />
         </el-form-item>
         <el-form-item label="摄像机类型">
-          <el-select v-model="form.gbPtzType" style="width: 100%" placeholder="请选择云台类型">
+          <el-select v-model="form.gbPtzType" style="width: 100%" placeholder="请选择摄像机类型">
             <el-option label="球机" :value="1" />
             <el-option label="半球" :value="2" />
             <el-option label="固定枪机" :value="3" />
@@ -65,6 +65,7 @@
             <el-option label="多目设备的全景/拼接通道" :value="6" />
             <el-option label="多目设备的分割通道" :value="7" />
             <el-option label="移动设备（非标）" :value="99" />
+            <el-option label="会议设备（非标）" :value="98" />
           </el-select>
         </el-form-item>
       </div>
@@ -151,14 +152,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="用途">
-          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择用途类型">
             <el-option label="治安" :value="1" />
             <el-option label="交通" :value="2" />
             <el-option label="重点" :value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="补光">
-          <el-select v-model="form.gbSupplyLightType" style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbSupplyLightType" style="width: 100%" placeholder="请选择补光类型">
             <el-option label="无补光" :value="1" />
             <el-option label="红外补光" :value="2" />
             <el-option label="白光补光" :value="3" />
@@ -167,7 +168,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="监视方位">
-          <el-select v-model="form.gbDirectionType" style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbDirectionType" style="width: 100%" placeholder="请选择监视方位">
             <el-option label="东(西向东)" :value="1" />
             <el-option label="西(东向西)" :value="2" />
             <el-option label="南(北向南)" :value="3" />
@@ -190,7 +191,7 @@
           <el-input v-model="form.gbResolution" placeholder="请输入分辨率" />
         </el-form-item>
         <el-form-item label="下载倍速">
-          <el-select v-model="form.gbDownloadSpeedArray" multiple style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbDownloadSpeedArray" multiple style="width: 100%" placeholder="请选择下载倍速">
             <el-option label="1倍速" value="1" />
             <el-option label="2倍速" value="2" />
             <el-option label="4倍速" value="4" />
@@ -206,7 +207,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="时域编码能力">
-          <el-select v-model="form.gbSvcTimeSupportMode" style="width: 100%" placeholder="请选择空域编码能力">
+          <el-select v-model="form.gbSvcTimeSupportMode" style="width: 100%" placeholder="请选择时域编码能力">
             <el-option label="1级增强" value="1" />
             <el-option label="2级增强" value="2" />
             <el-option label="3级增强" value="3" />

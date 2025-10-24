@@ -207,13 +207,13 @@ public class CameraChannelService implements CommandLineRunner {
             sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ADD);
         }
         if (!resultListForUpdate.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.UPDATE);
+            sendChannelMessage(resultListForUpdate, ChannelEvent.ChannelEventMessageType.UPDATE);
         }
         if (!resultListForOnline.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ON);
+            sendChannelMessage(resultListForOnline, ChannelEvent.ChannelEventMessageType.ON);
         }
         if (!resultListForOffline.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.OFF);
+            sendChannelMessage(resultListForOffline, ChannelEvent.ChannelEventMessageType.OFF);
         }
     }
 

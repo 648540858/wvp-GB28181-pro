@@ -132,7 +132,7 @@ export default {
   data() {
     return {
       channelList: [],
-      tableHeight: `calc(100vh - ${this.$refs.queryForm.offsetHeight}px)`,
+      tableHeight: `calc(100vh - 190px)`,
       searchStr: '',
       channelType: '',
       online: '',
@@ -152,6 +152,7 @@ export default {
 
   created() {
     this.initData()
+    this.tableHeight = `calc(100vh - ${this.$refs.queryForm.offsetHeight}px)`
   },
   destroyed() {
   },

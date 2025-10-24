@@ -45,6 +45,10 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
+//        if (request.getParameter("ccerty") != null) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
         // 设置响应内容类型
         response.setContentType("application/json;charset=UTF-8");
 
@@ -150,9 +154,11 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
         }catch (Exception e) {
             log.info("[SY-接口验签] 读取body失败, 请求地址: {}  ", requestURI, e);
             response.setStatus(Response.OK);
-            PrintWriter out = response.getWriter();
-            out.println(getErrorResult(6017, "接口鉴权异常"));
-            out.close();
+            if (!response.isCommitted()) {
+                PrintWriter out = response.getWriter();
+                out.println(getErrorResult(6017, "接口鉴权异常"));
+                out.close();
+            }
             return;
         }
         chain.doFilter(request, response);

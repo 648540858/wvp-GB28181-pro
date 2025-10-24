@@ -635,4 +635,12 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
 
+    public List<CameraChannel> queryMeetingChannelList(String topGroupAlias) {
+        CameraGroup cameraGroup = groupMapper.queryGroupByAlias(topGroupAlias);
+        Assert.notNull(cameraGroup, "域不存在");
+        String business = cameraGroup.getDeviceId();
+        Assert.notNull(business, "域不存在");
+
+        return channelMapper.queryMeetingChannelList(business);
+    }
 }

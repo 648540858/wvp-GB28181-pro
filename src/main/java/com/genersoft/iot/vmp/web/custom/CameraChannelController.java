@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.HttpUtils;
@@ -69,6 +70,9 @@ public class CameraChannelController {
 
     @Autowired
     private IStreamPushPlayService streamPushPlayService;
+
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
 
     @GetMapping(value = "/camera/list")
@@ -550,4 +554,14 @@ public class CameraChannelController {
     public void stop(String app, String stream){
         streamPushPlayService.stop(app, stream);
     }
+
+    @GetMapping(value = "/camera/meeting/list")
+    @ResponseBody
+    @Operation(summary = "查询拉流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "topGroupAlias", description = "分组别名")
+    public List<CameraChannel> queryMeetingChannelList(String topGroupAlias){
+        return channelService.queryMeetingChannelList(topGroupAlias);
+    }
+
+
 }

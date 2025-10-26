@@ -20,6 +20,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/index/hook/abl")
+@Hidden
 public class ABLHttpHookListener {
 
     private final static Logger logger = LoggerFactory.getLogger(ABLHttpHookListener.class);

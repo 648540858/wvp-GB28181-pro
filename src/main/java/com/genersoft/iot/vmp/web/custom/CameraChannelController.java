@@ -23,6 +23,7 @@ import com.genersoft.iot.vmp.vmanager.cloudRecord.bean.CloudRecordUrl;
 import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.service.CameraChannelService;
 import com.github.pagehelper.PageInfo;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -50,6 +51,7 @@ import java.util.zip.ZipOutputStream;
 @RestController
 @RequestMapping(value = "/api/sy")
 @ConditionalOnProperty(value = "sy.enable", havingValue = "true")
+@Hidden
 public class CameraChannelController {
 
     @Autowired

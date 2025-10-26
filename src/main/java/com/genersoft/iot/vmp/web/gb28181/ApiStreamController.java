@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ import java.text.ParseException;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/stream")
+@Hidden
 public class ApiStreamController {
 
     @Autowired

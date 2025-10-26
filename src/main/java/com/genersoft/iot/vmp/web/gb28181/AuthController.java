@@ -2,12 +2,14 @@ package com.genersoft.iot.vmp.web.gb28181;
 
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping(value = "/auth")
+@Hidden
 public class AuthController {
 
     @Autowired

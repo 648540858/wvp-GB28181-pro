@@ -17,5 +17,8 @@ public class ABLUrls {
     @JSONField(name = "http-mp4")
     private String httpMp4;
 
+    @JSONField(name = "http-hls")
+    private String httpHls;
+
     private String download;
 }

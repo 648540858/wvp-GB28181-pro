@@ -15,7 +15,7 @@
         :show-header="true"
         :edit="true"
         :enable-add-channel="false"
-        :click-event="treeNodeClickEvent"
+        @clickEvent="treeNodeClickEvent"
         :on-channel-change="onChannelChange"
         :tree-height="'45vh'"
       />

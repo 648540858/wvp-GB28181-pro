@@ -322,7 +322,7 @@ export default {
       link.click()
     },
     deleteOneRecord(row) {
-      this.$confirm(`确定删除?`, '提示', {
+      this.$confirm('确定删除?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

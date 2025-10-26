@@ -589,13 +589,13 @@ export default {
           this.layerGroupSource = layerGroupSource
           this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
             this.closeInfoBox()
-            this.$nextTick(() => {
-              if (data[0].edit) {
-                this.showEditInfo(data[0])
-              }else {
-                this.showChannelInfo(data[0])
-              }
-            })
+            // this.$nextTick(() => {
+            //   if (data[0].edit) {
+            //     this.showEditInfo(data[0])
+            //   }else {
+            //     this.showChannelInfo(data[0])
+            //   }
+            // })
           })
           this.quicklyDrawThinLoading = false
           this.$message.success({
@@ -617,77 +617,88 @@ export default {
         if (this.channelLayer) {
           this.$refs.mapComponent.removeLayer(this.channelLayer)
         }
-
-        let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-        let cameraListInExtent = []
-        let cameraListOutExtent = []
-        if (this.layerGroupSource !== null) {
-          // 从当前预览的数据里，获取待抽稀的数据
-          let sourceCameraList = this.layerGroupSource.get(0)
-          console.log(sourceCameraList)
-          if (!sourceCameraList) {
-            this.$message.warning({
-              showClose: true,
-              message: '数据已经全部抽稀'
-            })
-            return
-          }
-          for (let i = 0; i < sourceCameraList.length; i++) {
-            let value = sourceCameraList[i]
-            if (!value.data.gbLongitude || !value.data.gbLatitude) {
-              continue
-            }
-            if (value.data.gbLongitude >= extent[0] && value.data.gbLongitude <= extent[2]
-              && value.data.gbLatitude >= extent[1] && value.data.gbLatitude <= extent[3]) {
-              cameraListInExtent.push(value.data)
-            }else {
-              cameraListOutExtent.push(value.data)
-            }
-          }
-        }else {
-          for (let i = 0; i < cameraListForSource.length; i++) {
-            let value = cameraListForSource[i]
-            if (!value.gbLongitude || !value.gbLatitude) {
-              continue
-            }
-            if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
-              && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
-              cameraListInExtent.push(value)
-            }else {
-              cameraListOutExtent.push(value)
-            }
-          }
-        }
-        // 如果已经在预览，清理预览图层
-        if (this.drawThinLayer !== null) {
-          this.$refs.mapComponent.removeLayer(this.drawThinLayer)
-          this.drawThinLayer = null
-        }
-        this.drawThin(cameraListInExtent).then((layerGroupSource) => {
+        this.$message.info({
+          showClose: true,
+          message: '正在抽稀，请稍等'
+        })
+        setTimeout(() => {
+          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+          let cameraListInExtent = []
+          let cameraListOutExtent = []
           if (this.layerGroupSource !== null) {
-            let zoom = zoomExtent[0]
-            // 按照层级合并每次的抽稀结果
-            while (zoom < zoomExtent[1]) {
-              Array.prototype.push.apply(layerGroupSource.get(zoom), this.layerGroupSource.get(zoom))
-              zoom += 1
+            // 从当前预览的数据里，获取待抽稀的数据
+            let sourceCameraList = this.layerGroupSource.get(0)
+            console.log(sourceCameraList)
+            if (!sourceCameraList) {
+              this.$message.warning({
+                showClose: true,
+                message: '数据已经全部抽稀'
+              })
+              return
+            }
+            for (let i = 0; i < sourceCameraList.length; i++) {
+              let value = sourceCameraList[i]
+              if (!value.data.gbLongitude || !value.data.gbLatitude) {
+                continue
+              }
+              if (value.data.gbLongitude >= extent[0] && value.data.gbLongitude <= extent[2]
+                && value.data.gbLatitude >= extent[1] && value.data.gbLatitude <= extent[3]) {
+                cameraListInExtent.push(value.data)
+              }else {
+                cameraListOutExtent.push(value.data)
+              }
+            }
+          }else {
+            for (let i = 0; i < cameraListForSource.length; i++) {
+              let value = cameraListForSource[i]
+              if (!value.gbLongitude || !value.gbLatitude) {
+                continue
+              }
+              if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
+                && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
+                cameraListInExtent.push(value)
+              }else {
+                cameraListOutExtent.push(value)
+              }
             }
           }
-          if (cameraListOutExtent.length > 0) {
-            let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
-            layerGroupSource.set(0, layerSourceForOutExtent)
+          // 如果已经在预览，清理预览图层
+          if (this.drawThinLayer !== null) {
+            this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+            this.drawThinLayer = null
           }
-          this.layerGroupSource = layerGroupSource
-          this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
-            this.closeInfoBox()
-            this.$nextTick(() => {
-              if (data[0].edit) {
-                this.showEditInfo(data[0])
-              }else {
-                this.showChannelInfo(data[0])
+          this.drawThin(cameraListInExtent).then((layerGroupSource) => {
+            if (this.layerGroupSource !== null) {
+              let zoom = zoomExtent[0]
+              // 按照层级合并每次的抽稀结果
+              while (zoom < zoomExtent[1]) {
+                Array.prototype.push.apply(layerGroupSource.get(zoom), this.layerGroupSource.get(zoom))
+                zoom += 1
               }
+            }
+            if (cameraListOutExtent.length > 0) {
+              let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
+              layerGroupSource.set(0, layerSourceForOutExtent)
+            }
+            this.layerGroupSource = layerGroupSource
+            this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+              this.closeInfoBox()
+              // this.$nextTick(() => {
+              //   if (data[0].edit) {
+              //     this.showEditInfo(data[0])
+              //   }else {
+              //     this.showChannelInfo(data[0])
+              //   }
+              // })
+            })
+            this.$message.success({
+              showClose: true,
+              message: '抽稀完成，请预览无误后保存抽稀结果,如需继续，请再次点击局部抽稀按钮'
             })
           })
-        })
+        }, 100)
+
+
       })
     },
     drawThin: function (cameraListInExtent){
@@ -810,6 +821,7 @@ export default {
             showClose: true,
             message: '保存成功'
           })
+          this.showDrawThin = false
         })
         .finally(() => {
           this.saveDrawThinLoading = false

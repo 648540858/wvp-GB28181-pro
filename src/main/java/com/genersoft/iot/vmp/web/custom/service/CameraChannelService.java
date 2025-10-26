@@ -207,13 +207,13 @@ public class CameraChannelService implements CommandLineRunner {
             sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ADD);
         }
         if (!resultListForUpdate.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.UPDATE);
+            sendChannelMessage(resultListForUpdate, ChannelEvent.ChannelEventMessageType.UPDATE);
         }
         if (!resultListForOnline.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ON);
+            sendChannelMessage(resultListForOnline, ChannelEvent.ChannelEventMessageType.ON);
         }
         if (!resultListForOffline.isEmpty()) {
-            sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.OFF);
+            sendChannelMessage(resultListForOffline, ChannelEvent.ChannelEventMessageType.OFF);
         }
     }
 
@@ -273,13 +273,18 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     public PageInfo<CameraChannel> queryListWithChild(Integer page, Integer count, String query, String sortName, Boolean order, String groupAlias, Boolean status, String geoCoordSys) {
+
+        List<CameraGroup> groupList = null;
         // 构建组织结构信息
-        CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
-        String groupDeviceId = group.getDeviceId();
-        // 获取所有子节点
-        List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
-        groupList.add(group);
+        if (groupAlias != null) {
+            CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
+            Assert.notNull(group, "组织结构不存在");
+            String groupDeviceId = group.getDeviceId();
+            // 获取所有子节点
+            groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
+            groupList.add(group);
+        }
+
         // 构建分页
         PageHelper.startPage(page, count);
         if (query != null) {
@@ -635,4 +640,12 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
 
+    public List<CameraChannel> queryMeetingChannelList(String topGroupAlias) {
+        CameraGroup cameraGroup = groupMapper.queryGroupByAlias(topGroupAlias);
+        Assert.notNull(cameraGroup, "域不存在");
+        String business = cameraGroup.getDeviceId();
+        Assert.notNull(business, "域不存在");
+
+        return channelMapper.queryMeetingChannelList(business);
+    }
 }

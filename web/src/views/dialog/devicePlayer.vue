@@ -425,6 +425,13 @@ export default {
       console.log(this.player[tab.name][0])
       this.activePlayer = tab.name
       this.videoUrl = this.getUrlByStreamInfo()
+      if (this.$refs[this.activePlayer]) {
+        this.$refs[this.activePlayer].play(this.videoUrl)
+      } else {
+        this.$nextTick(() => {
+          this.$refs[this.activePlayer].play(this.videoUrl)
+        })
+      }
     },
     openDialog: function(tab, deviceId, channelId, param) {
       if (this.showVideoDialog) {

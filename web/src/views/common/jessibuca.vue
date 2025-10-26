@@ -54,29 +54,13 @@ export default {
       forceNoOffscreen: false
     }
   },
-  watch: {
-    // videoUrl: {
-    //   handler(val, _) {
-    //     if (typeof val !== 'undefined' && val !== 'undefined') {
-    //       console.log(22222111)
-    //       console.log(val)
-    //       this.$nextTick(() => {
-    //
-    //         this.play(val)
-    //       })
-    //     }
-    //   },
-    //   immediate: true
-    // }
-  },
   created() {
     const paramUrl = decodeURIComponent(this.$route.params.url)
-    this.$nextTick(() => {
-      if (typeof (this.videoUrl) === 'undefined' || typeof (paramUrl) !== 'undefined') {
-        this.videoUrl = paramUrl
-      }
-      this.btnDom = document.getElementById('buttonsBox')
-    })
+    console.log(paramUrl)
+    if (!this.videoUrl && paramUrl) {
+      this.videoUrl = paramUrl
+    }
+    this.btnDom = document.getElementById('buttonsBox')
   },
   mounted() {},
   destroyed() {
@@ -94,8 +78,6 @@ export default {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].destroy()
       }
-      console.log(1111)
-      console.log(this.$refs.container.dataset['jessibuca'])
       if (this.$refs.container.dataset['jessibuca']) {
         this.$refs.container.dataset['jessibuca'] = undefined
       }
@@ -214,26 +196,24 @@ export default {
         this.quieting = jessibuca.quieting
       })
     },
-    playBtnClick: function(event) {
+    playBtnClick: function() {
       this.play(this.videoUrl)
     },
     play: function(url) {
+      this.videoUrl = url
       console.log('Jessibuca -> url: ', url)
-      if (jessibucaPlayer[this._uid]) {
-        this.destroy()
+      if (!jessibucaPlayer[this._uid]) {
+        this.create()
       }
-      this.create()
-      this.$nextTick(() => {
-        jessibucaPlayer[this._uid].play(url)
+      jessibucaPlayer[this._uid].play(url)
 
-        if (jessibucaPlayer[this._uid].hasLoaded()) {
+      if (jessibucaPlayer[this._uid].hasLoaded()) {
+        // jessibucaPlayer[this._uid].play(url)
+      } else {
+        jessibucaPlayer[this._uid].on('load', () => {
           // jessibucaPlayer[this._uid].play(url)
-        } else {
-          jessibucaPlayer[this._uid].on('load', () => {
-            // jessibucaPlayer[this._uid].play(url)
-          })
-        }
-      })
+        })
+      }
 
     },
     pause: function() {

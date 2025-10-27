@@ -102,6 +102,25 @@ DROP PROCEDURE wvp_20250924;
 DELIMITER ;
 
 
+/*
+* 20251027
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20251027`()
+BEGIN
+    IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_stream_proxy' and column_name = 'enable_remove_none_reader')
+    THEN
+        ALTER TABLE wvp_stream_proxy DROP enable_remove_none_reader;
+    END IF;
+END; //
+call wvp_20251027();
+DROP PROCEDURE wvp_20251027;
+DELIMITER ;
+
+
+
+
 
 
 

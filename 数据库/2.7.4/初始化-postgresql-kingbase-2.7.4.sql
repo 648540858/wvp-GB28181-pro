@@ -326,7 +326,6 @@ create table IF NOT EXISTS wvp_stream_proxy
     enable_mp4                 bool default false,
     pulling                    bool default false,
     enable                     bool default false,
-    enable_remove_none_reader  bool default false,
     create_time                character varying(50),
     name                       character varying(255),
     update_time                character varying(50),

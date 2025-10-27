@@ -219,8 +219,6 @@ export default {
     edit: function(row) {
       if (row.enableDisableNoneReader) {
         this.$set(row, 'noneReader', 1)
-      } else if (row.enableRemoveNoneReader) {
-        this.$set(row, 'noneReader', 2)
       } else {
         this.$set(row, 'noneReader', 0)
       }

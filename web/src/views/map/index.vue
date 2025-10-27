@@ -46,7 +46,7 @@
           </el-dropdown>
         </div>
         <div class="map-tool-btn-group">
-          <div class="map-tool-btn" @click="initChannelLayer">
+          <div class="map-tool-btn" @click="refreshLayer">
             <i class="iconfont icon-shuaxin3"></i>
           </div>
         </div>
@@ -137,6 +137,7 @@ let cameraListForSource = []
 let cameraList = []
 let cameraListForLevelMap = new Map()
 let cameraLayerExtent = []
+let channelLayer = null
 export default {
   name: 'Map',
   components: {
@@ -153,7 +154,6 @@ export default {
       feature: null,
       device: null,
       infoBoxId: null,
-      channelLayer: null,
       labelStyle: {
         width: '56px'
       },
@@ -168,8 +168,7 @@ export default {
       saveDrawThinLoading: false,
       layerStyle: 0,
       drawThinLayer: null,
-      layerGroupSource: null,
-      infoBoxTempLayer: null
+      layerGroupSource: null
     }
   },
   created() {
@@ -179,87 +178,6 @@ export default {
 
   },
   methods: {
-    treeChannelClickEvent: function (id) {
-      this.closeInfoBox()
-      this.$store.dispatch('commonChanel/queryOne', id)
-        .then(data => {
-          if (!data.gbLongitude || data.gbLongitude < 0) {
-            return
-          }
-          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-          this.$refs.mapComponent.panTo([data.gbLongitude, data.gbLatitude], zoomExtent[1], () => {
-            this.showChannelInfo(data)
-          })
-        })
-    },
-    zoomIn: function() {
-      this.$refs.mapComponent.zoomIn()
-    },
-    zoomOut: function() {
-      this.$refs.mapComponent.zoomOut()
-    },
-    getContextmenu: function (event) {
-        return [
-          {
-            label: '播放通道',
-            icon: 'el-icon-video-play',
-            type: 1,
-            onClick: (event, data, node) => {
-              this.$store.dispatch('commonChanel/queryOne', data.id)
-                .then(data => {
-                  this.play(data)
-                })
-            }
-          },
-          {
-            label: '编辑位置',
-            icon: 'el-icon-edit',
-            type: 1,
-            onClick: (event, data, node) => {
-              this.$store.dispatch('commonChanel/queryOne', data.id)
-                .then(data => {
-                  this.edit(data)
-                })
-            }
-          }
-          // ,
-          // {
-          //   label: '轨迹查询',
-          //   icon: 'el-icon-map-location',
-          //   type: 1,
-          //   onClick: (event, data, node) => {
-          //
-          //   }
-          // }
-        ]
-    },
-    showChannelInfo: function(data) {
-      this.channel = data
-      if (this.infoBoxTempLayer) {
-        this.$refs.mapComponent.removeLayer(this.infoBoxTempLayer)
-        this.infoBoxTempLayer = null
-      }
-      if (this.layerStyle === 0 || this.layerStyle === 2) {
-        // 此时增加临时图标
-        let position = [data.gbLongitude, data.gbLatitude]
-        let cameraData = {
-          id: data.gbId,
-          position: position,
-          data: data,
-          status: data.gbStatus,
-          image: {
-            anchor: [0.5, 1],
-            src: this.getImageByChannel(data)
-          }
-        }
-
-        this.infoBoxTempLayer = this.$refs.mapComponent.addPointLayer([cameraData])
-      }
-      let position = [data.gbLongitude, data.gbLatitude]
-      this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
-    },
-    zoomChange: function(zoom) {},
-
     initChannelLayer: function () {
 
       this.mapTileList = this.$refs.mapComponent.mapTileList
@@ -315,6 +233,87 @@ export default {
         this.updateChannelLayer()
       })
     },
+    refreshLayer(){
+      this.closeInfoBox()
+      this.$refs.mapComponent.clearLayer(channelLayer)
+      this.initChannelLayer()
+    },
+    treeChannelClickEvent: function (id) {
+      this.closeInfoBox()
+      this.$store.dispatch('commonChanel/queryOne', id)
+        .then(data => {
+          if (!data.gbLongitude || data.gbLongitude < 0 || !data.gbLatitude || data.gbLatitude < 0) {
+            this.$message.warning({
+              showClose: true,
+              message: '无位置信息'
+            })
+            return
+          }
+          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+          this.$refs.mapComponent.panTo([data.gbLongitude, data.gbLatitude], zoomExtent[1], () => {
+            this.showChannelInfo(data)
+          })
+        })
+    },
+    zoomIn: function() {
+      this.$refs.mapComponent.zoomIn()
+    },
+    zoomOut: function() {
+      this.$refs.mapComponent.zoomOut()
+    },
+    getContextmenu: function (event) {
+        return [
+          {
+            label: '播放通道',
+            icon: 'el-icon-video-play',
+            type: 1,
+            onClick: (event, data, node) => {
+              console.log(data)
+              this.$store.dispatch('commonChanel/queryOne', data.id)
+                .then(data => {
+                  this.play(data)
+                })
+            }
+          },
+          {
+            label: '编辑位置',
+            icon: 'el-icon-edit',
+            type: 1,
+            onClick: (event, data, node) => {
+              this.$store.dispatch('commonChanel/queryOne', data.id)
+                .then(data => {
+                  this.edit(data)
+                })
+            }
+          }
+          // ,
+          // {
+          //   label: '轨迹查询',
+          //   icon: 'el-icon-map-location',
+          //   type: 1,
+          //   onClick: (event, data, node) => {
+          //
+          //   }
+          // }
+        ]
+    },
+    showChannelInfo: function(data) {
+      this.channel = data
+      // 此时增加临时图标
+      let position = [data.gbLongitude, data.gbLatitude]
+      let cameraData = {
+        id: data.gbId,
+        position: position,
+        data: data,
+        status: data.gbStatus
+      }
+      if (!this.$refs.mapComponent.hasFeature(channelLayer, data.gbId)) {
+        this.$refs.mapComponent.addFeature(channelLayer, cameraData, )
+      }
+      this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
+    },
+    zoomChange: function(zoom) {},
+
     changeMapTile: function (index) {
       if (this.showDrawThin) {
         this.$message.warning({
@@ -330,14 +329,11 @@ export default {
         return
       }
       this.layerStyle = index
-      this.$refs.mapComponent.removeLayer(this.channelLayer)
+      this.$refs.mapComponent.removeLayer(channelLayer)
       this.channelLayer = null
       this.updateChannelLayer()
     },
     updateChannelLayer: function() {
-      if (this.layerStyle === 0) {
-        return
-      }
       let clientEvent = data => {
         this.closeInfoBox()
         this.$nextTick(() => {
@@ -350,24 +346,30 @@ export default {
       }
 
       switch (this.layerStyle) {
+        case 0:
+          channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, null)
+          console.log(22222)
+          console.log(channelLayer)
+          break
         case 1:
+
           // 直接展示
-          if (this.channelLayer) {
-            this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
+          if (channelLayer) {
+            channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
           }else {
             console.log(cameraList.length)
             setTimeout(()=>{
-              this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
+              channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
             })
           }
           break
         case 2:
           // 碰撞检测
-          if (this.channelLayer) {
-            this.channelLayer = this.$refs.mapComponent.updatePointLayer(this.channelLayer, cameraList, true)
+          if (channelLayer) {
+            channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
           }else {
             setTimeout(()=>{
-              this.channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
+              channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
                 declutter: true
               })
             })
@@ -375,13 +377,8 @@ export default {
           break
         case 3:
           // 抽稀图层
-          if (this.channelLayer) {
-            this.channelLayer = this.$refs.mapComponent.updatePointLayerGroup(this.channelLayer, cameraListForLevelMap, true)
-          }else {
-            setTimeout(() => {
-              this.channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
-            })
-          }
+          this.$refs.mapComponent.removeLayer(channelLayer)
+          channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
           break
         // case 4:
         //   // 聚合图层
@@ -402,10 +399,6 @@ export default {
       }
       this.channel = null
       this.dragChannel = null
-      if (this.infoBoxTempLayer) {
-        this.$refs.mapComponent.removeLayer(this.infoBoxTempLayer)
-        this.infoBoxTempLayer = null
-      }
     },
     play: function (channel) {
       const loading = this.$loading({
@@ -461,17 +454,12 @@ export default {
       }else {
         this.showEditInfo(channel)
       }
-
       // 标记可编辑图标为红色
-      this.$refs.mapComponent.setFeaturePositionById(this.channelLayer, channel.gbId, {
+      this.$refs.mapComponent.setFeaturePositionById(channelLayer, channel.gbId, {
         id: channel.gbId,
         position: position,
         data: channel,
-        status: 'checked',
-        image: {
-          anchor: [0.5, 1],
-          src: 'static/images/gis/camera1-red.png'
-        }
+        status: 'checked'
       })
     },
     showEditInfo: function(data) {
@@ -484,15 +472,11 @@ export default {
       channel.gbLongitude = channel.oldLongitude
       channel.gbLatitude = channel.oldLatitude
       channel['edit'] = false
-      this.$refs.mapComponent.setFeaturePositionById(this.channelLayer, channel.gbId, {
+      this.$refs.mapComponent.setFeaturePositionById(channelLayer, channel.gbId, {
         id: channel.gbId,
         position: [channel.gbLongitude, channel.gbLatitude],
         data: channel,
-        status: channel.gbStatus,
-        image: {
-          anchor: [0.5, 1],
-          src: this.getImageByChannel(channel)
-        }
+        status: channel.gbStatus
       })
     },
     submitEdit: function(channel) {
@@ -506,15 +490,12 @@ export default {
           this.closeInfoBox()
           channel['edit'] = false
           this.$refs.mapComponent.dragInteraction.removeFeatureId(channel.gbId)
-          this.$refs.mapComponent.setFeaturePositionById(this.channelLayer, channel.gbId, {
+
+          this.$refs.mapComponent.setFeaturePositionById(channelLayer, channel.gbId, {
             id: channel.gbId,
             position: position,
             data: channel,
-            status: channel.gbStatus,
-            image: {
-              anchor: [0.5, 1],
-              src: this.getImageByChannel(channel)
-            }
+            status: channel.gbStatus
           })
           // 刷星树菜单
           this.$refs.deviceTree.refresh('channel' + channel.gbId)
@@ -574,7 +555,7 @@ export default {
     },
     quicklyDrawThin: function (){
       if (this.channelLayer) {
-        this.$refs.mapComponent.removeLayer(this.channelLayer)
+        this.$refs.mapComponent.removeLayer(channelLayer)
       }
       if (this.drawThinLayer !== null) {
         this.$refs.mapComponent.removeLayer(this.drawThinLayer)
@@ -614,8 +595,8 @@ export default {
       this.$refs.mapComponent.startDrawBox((extent) => {
 
         // 清理默认的摄像头图层
-        if (this.channelLayer) {
-          this.$refs.mapComponent.removeLayer(this.channelLayer)
+        if (channelLayer) {
+          this.$refs.mapComponent.clearLayer(channelLayer)
         }
         this.$message.info({
           showClose: true,

@@ -200,16 +200,7 @@ export default {
     },
     noneReaderHandler: function() {
       console.log(this.streamProxy)
-      if (!this.streamProxy.noneReader || this.streamProxy.noneReader === 0) {
-        this.streamProxy.enableDisableNoneReader = false
-        this.streamProxy.enableRemoveNoneReader = false
-      } else if (this.streamProxy.noneReader === 1) {
-        this.streamProxy.enableDisableNoneReader = true
-        this.streamProxy.enableRemoveNoneReader = false
-      } else if (this.streamProxy.noneReader === 2) {
-        this.streamProxy.enableDisableNoneReader = false
-        this.streamProxy.enableRemoveNoneReader = true
-      }
+      this.streamProxy.enableDisableNoneReader = this.streamProxy.noneReader && this.streamProxy.noneReader === 1
     }
   }
 }

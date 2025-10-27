@@ -72,7 +72,7 @@ export default {
   },
   data() {
     return {
-      showRegion: true,
+      showRegion: false,
       defaultProps: {
         children: 'children',
         label: 'name',
@@ -149,7 +149,6 @@ export default {
       }
     },
     refresh: function(id) {
-      console.log(id)
       if (this.showRegion) {
         this.$refs.regionTree.refresh(id)
       }else {

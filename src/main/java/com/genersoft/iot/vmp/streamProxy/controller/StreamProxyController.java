@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -21,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -28,7 +28,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -87,54 +86,6 @@ public class StreamProxyController {
     public StreamProxy one(String app, String stream){
 
         return streamProxyService.getStreamProxyByAppAndStream(app, stream);
-    }
-
-    @Operation(summary = "保存代理(已存在会覆盖)", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
-            @Parameter(name = "param", description = "代理参数", required = true),
-    })
-    @PostMapping(value = "/save")
-    @ResponseBody
-    public DeferredResult<WVPResult<StreamContent>> save(HttpServletRequest request, @RequestBody StreamProxyParam param){
-        log.info("添加代理： " + JSONObject.toJSONString(param));
-        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
-            param.setMediaServerId("auto");
-        }
-        if (ObjectUtils.isEmpty(param.getType())) {
-            param.setType("default");
-        }
-        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
-            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                WVPResult<StreamContent> wvpResult = WVPResult.success();
-                if (streamInfo != null) {
-                    if (userSetting.getUseSourceIpAsStreamIp()) {
-                        streamInfo=streamInfo.clone();//深拷贝
-                        String host;
-                        try {
-                            URL url=new URL(request.getRequestURL().toString());
-                            host=url.getHost();
-                        } catch (MalformedURLException e) {
-                            host=request.getLocalAddr();
-                        }
-                        streamInfo.changeStreamIp(host);
-                    }
-                    if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
-                            && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
-                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
-                    }
-                    wvpResult.setData(new StreamContent(streamInfo));
-                }else {
-                    wvpResult.setCode(code);
-                    wvpResult.setMsg(msg);
-                }
-
-                result.setResult(wvpResult);
-            }else {
-                result.setResult(WVPResult.fail(code, msg));
-            }
-        };
-        streamProxyService.save(param, callback);
-        return result;
     }
 
     @Operation(summary = "新增代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {

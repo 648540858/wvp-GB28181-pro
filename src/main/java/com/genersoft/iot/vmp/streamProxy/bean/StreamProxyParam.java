@@ -46,9 +46,6 @@ public class StreamProxyParam {
     @Schema(description = "是否启用MP4")
     private boolean enableMp4;
 
-    @Schema(description = "是否 无人观看时删除")
-    private boolean enableRemoveNoneReader;
-
     @Schema(description = "是否 无人观看时自动停用")
     private boolean enableDisableNoneReader;
 
@@ -65,7 +62,6 @@ public class StreamProxyParam {
         streamProxy.setEnable(enable);
         streamProxy.setEnableAudio(enableAudio);
         streamProxy.setEnableMp4(enableMp4);
-        streamProxy.setEnableRemoveNoneReader(enableRemoveNoneReader);
         streamProxy.setEnableDisableNoneReader(enableDisableNoneReader);
         streamProxy.setFfmpegCmdKey(ffmpegCmdKey);
         streamProxy.setGbName(name);

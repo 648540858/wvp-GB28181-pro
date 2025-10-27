@@ -86,7 +86,7 @@
       </ul>
 
       <ul v-if="channelList.length > 0" style="list-style: none; margin: 0; padding: 10px; overflow: auto">
-        <li v-for="item in channelList" :key="item.id" class="channel-list-li" @click="channelLstClickHandler(item)">
+        <li v-for="item in channelList" :key="item.id" class="channel-list-li" @click="channelLstClickHandler(item)" @contextmenu.prevent="contextmenuEventHandlerForLi($event, item)">
           <span
             v-if="item.gbStatus === 'ON'"
             style="color: #409EFF; font-size: 20px"
@@ -236,89 +236,86 @@ export default {
         return
       }
       const allMenuItem = []
-      if (node.data.type === 0) {
-        if (this.edit) {
+      if (this.edit && node.data.type === 0) {
+        const menuItem = [
+          {
+            label: '刷新节点',
+            icon: 'el-icon-refresh',
+            disabled: false,
+            onClick: () => {
+              this.refreshNode(node)
+            }
+          },
+          {
+            label: '新建节点',
+            icon: 'el-icon-plus',
+            disabled: false,
+            onClick: () => {
+              this.addRegion(data.id, node)
+            }
+          },
+          {
+            label: '编辑节点',
+            icon: 'el-icon-edit',
+            disabled: node.level === 1,
+            onClick: () => {
+              this.editCatalog(data, node)
+            }
+          },
+          {
+            label: '删除节点',
+            icon: 'el-icon-delete',
+            disabled: node.level === 1,
+            divided: true,
+            onClick: () => {
+              this.$confirm('确定删除?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.removeRegion(data.id, node)
+              }).catch(() => {
 
-          const menuItem = [
+              })
+            }
+          }
+        ]
+        if (this.enableAddChannel) {
+          menuItem.push(
             {
-              label: '刷新节点',
-              icon: 'el-icon-refresh',
-              disabled: false,
-              onClick: () => {
-                this.refreshNode(node)
-              }
-            },
-            {
-              label: '新建节点',
+              label: '添加设备',
               icon: 'el-icon-plus',
-              disabled: false,
-              onClick: () => {
-                this.addRegion(data.id, node)
-              }
-            },
-            {
-              label: '编辑节点',
-              icon: 'el-icon-edit',
               disabled: node.level === 1,
               onClick: () => {
-                this.editCatalog(data, node)
+                this.addChannelFormDevice(data.id, node)
               }
-            },
+            }
+          )
+          menuItem.push(
             {
-              label: '删除节点',
+              label: '移除设备',
               icon: 'el-icon-delete',
               disabled: node.level === 1,
               divided: true,
               onClick: () => {
-                this.$confirm('确定删除?', '提示', {
-                  confirmButtonText: '确定',
-                  cancelButtonText: '取消',
-                  type: 'warning'
-                }).then(() => {
-                  this.removeRegion(data.id, node)
-                }).catch(() => {
-
-                })
+                this.removeChannelFormDevice(data.id, node)
               }
             }
-          ]
-          if (this.enableAddChannel) {
-            menuItem.push(
-              {
-                label: '添加设备',
-                icon: 'el-icon-plus',
-                disabled: node.level === 1,
-                onClick: () => {
-                  this.addChannelFormDevice(data.id, node)
-                }
+          )
+          menuItem.push(
+            {
+              label: '添加通道',
+              icon: 'el-icon-plus',
+              disabled: node.level === 1,
+              onClick: () => {
+                this.addChannel(data.id, node)
               }
-            )
-            menuItem.push(
-              {
-                label: '移除设备',
-                icon: 'el-icon-delete',
-                disabled: node.level === 1,
-                divided: true,
-                onClick: () => {
-                  this.removeChannelFormDevice(data.id, node)
-                }
-              }
-            )
-            menuItem.push(
-              {
-                label: '添加通道',
-                icon: 'el-icon-plus',
-                disabled: node.level === 1,
-                onClick: () => {
-                  this.addChannel(data.id, node)
-                }
-              }
-            )
-          }
-          allMenuItem.push(...menuItem)
+            }
+          )
         }
+        allMenuItem.push(...menuItem)
       }
-      if (this.contextmenu) {
+      if (this.contextmenu && node.data.type === 1) {
         for (let i = 0; i < this.contextmenu.length; i++) {
           let item = this.contextmenu[i]
           if (item.type === node.data.type) {
@@ -457,32 +454,43 @@ export default {
         leaf: true,
         id: data.gbId
       })
+    },
+    contextmenuEventHandlerForLi(event, data) {
+      console.log(data)
+      const allMenuItem = []
+      if (this.contextmenu) {
+        for (let i = 0; i < this.contextmenu.length; i++) {
+          let item = this.contextmenu[i]
+          allMenuItem.push({
+            label: item.label,
+            icon: item.icon,
+            onClick: () => {
+              item.onClick(event, {
+                id: data.gbId
+              })
+            }
+          })
+        }
+      }
+      if (allMenuItem.length === 0) {
+        return
+      }
+
+      this.$contextmenu({
+        items: allMenuItem,
+        event, // 鼠标事件信息
+        customClass: 'custom-class', // 自定义菜单 class
+        zIndex: 3000 // 菜单样式 z-index
+      })
     }
   }
 }
 </script>
 
-<style>
-.device-tree-main-box {
-  text-align: left;
-}
-
-.device-online {
-  color: #252525;
-}
-
-.device-offline {
-  color: #727272;
-}
+<style scoped>
 
 .custom-tree-node .el-radio__label {
   padding-left: 4px !important;
-}
-
-.tree-scroll{
-  width: 200px;
-  border: 1px solid #E7E7E7;
-  height: 100%;
 }
 
 .flow-tree {
@@ -494,11 +502,11 @@ export default {
   overflow-x: auto;
 }
 .channel-list-li {
-  height: 24px;
+  height: 40px;
   align-items: center;
   cursor: pointer;
   display: grid;
   grid-template-columns: 26px 1fr;
-  margin-bottom: 18px
+  margin-bottom: 10px;
 }
 </style>

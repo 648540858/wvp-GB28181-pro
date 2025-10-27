@@ -351,6 +351,17 @@ public class CameraChannelService implements CommandLineRunner {
      */
     private List<CameraChannel> addIconPathAndPositionForCameraChannelList(List<CameraChannel> channels, String geoCoordSys) {
         // 读取redis 图标信息
+        /*
+          {
+              "brand": "三永",
+              "createdTime": 1715845840000,
+              "displayInSelect": true,
+              "id": 12,
+              "imagesPath": "images/lt132",
+              "machineName": "图传对讲单兵",
+              "machineType": "LT132"
+           },
+         */
         JSONArray jsonArray = (JSONArray) redisTemplate.opsForValue().get("machineInfo");
         Map<String, String> pathMap = new HashMap<>();
         if (jsonArray != null && !jsonArray.isEmpty()) {

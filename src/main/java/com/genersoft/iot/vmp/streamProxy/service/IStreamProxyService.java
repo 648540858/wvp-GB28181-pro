@@ -4,19 +4,12 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
 
 import java.util.Map;
 
 public interface IStreamProxyService {
-
-    /**
-     * 保存视频代理
-     * @param param
-     */
-    void save(StreamProxyParam param, ErrorCallback<StreamInfo> callback);
 
     /**
      * 分页查询

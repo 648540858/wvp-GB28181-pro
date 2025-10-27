@@ -588,11 +588,6 @@ public class ZLMRESTfulUtils {
     }
 
     public ZLMResult<StreamProxyResult> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
-        try {
-            url = URLEncoder.encode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"url编码失败");
-        }
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);

@@ -254,7 +254,7 @@ export default {
       if (overlay) {
         olMap.removeOverlay(overlay)
       }
-      var element = document.getElementById(id)
+      let element = document.getElementById(id)
       if (element) {
         element.remove()
       }
@@ -278,82 +278,73 @@ export default {
      * @param option
      */
     addPointLayer(data, clickEvent, option) {
-      if (data.length > 0) {
-        let vectorLayer = this.createPointLayer(data, clickEvent, option)
-        olMap.addLayer(vectorLayer)
-        return vectorLayer
-      }
+      let vectorLayer = this.createPointLayer(data, clickEvent, option)
+      olMap.addLayer(vectorLayer)
+      return vectorLayer
     },
     createPointLayer(data, clickEvent, option){
+      const features = []
+      let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
+      let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
+      let declutter = option && option.declutter
       if (data.length > 0) {
-        const features = []
-        let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
-        let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
-        let declutter = option && option.declutter
-
         for (let i = 0; i < data.length; i++) {
           const feature = new Feature(new Point(fromLonLat(data[i].position)))
           feature.setId(data[i].id)
           feature.customData = data[i].data
           feature.setProperties({
-            status: data[i].status,
+            status: data[i].status
           })
-          // const style = new Style()
-          // style.setImage(new Icon({
-          //   anchor: data[i].image.anchor,
-          //   crossOrigin: 'Anonymous',
-          //   src: data[i].image.src,
-          //   opacity: 1
-          // }))
-          // feature.setStyle(style)
           features.push(feature)
         }
-        const source = new VectorSource()
+      }
+      const source = new VectorSource()
+      if (features.length > 0) {
         source.addFeatures(features)
-        const vectorLayer = new WebGLVectorLayer({
-          source: source,
-          maxZoom: maxZoom,
-          minZoom: minZoom,
-          style: {
-            // 必须提供 style 配置，可以是对象或函数
-            // 'circle-radius': 10,
-            // 'circle-fill-color': 'red',
-            // 'circle-stroke-color': 'white',
-            // 'circle-stroke-width': 0.5
-            'icon-src': 'static/images/gis/sprite.png',
-            'icon-width': 120,
-            'icon-height': 40,
-            'icon-size': [40, 40],
-            'icon-anchor': [0.5, 1],
-            'icon-offset-origin': 'bottom-left',
-            'icon-offset': [
-              'match',
-              ['get', 'status'],
-              'ON',
-              [0, 0],
-              'OFF',
-              [40, 0],
-              'checked',
-              [80, 0],
-              [120, 60]
-            ]
+      }
+      const vectorLayer = new WebGLVectorLayer({
+        source: source,
+        maxZoom: maxZoom,
+        minZoom: minZoom,
+        style: {
+          // 必须提供 style 配置，可以是对象或函数
+          // 'circle-radius': 10,
+          // 'circle-fill-color': 'red',
+          // 'circle-stroke-color': 'white',
+          // 'circle-stroke-width': 0.5
+          'icon-src': 'static/images/gis/sprite.png',
+          'icon-width': 120,
+          'icon-height': 40,
+          'icon-size': [40, 40],
+          'icon-anchor': [0.5, 1],
+          'icon-offset-origin': 'bottom-left',
+          'icon-offset': [
+            'match',
+            ['get', 'status'],
+            'ON',
+            [0, 0],
+            'OFF',
+            [40, 0],
+            'checked',
+            [80, 0],
+            [120, 60]
+          ]
+        }
+      })
+      if (clickEvent && typeof clickEvent === 'function') {
+        vectorLayer.on('click', (event) => {
+
+          if (event.features.length > 0) {
+            const items = []
+            for (let i = 0; i < event.features.length; i++) {
+              items.push(event.features[i].customData)
+            }
+            clickEvent(items)
           }
         })
-        if (clickEvent && typeof clickEvent === 'function') {
-          vectorLayer.on('click', (event) => {
-
-            if (event.features.length > 0) {
-              const items = []
-              for (let i = 0; i < event.features.length; i++) {
-                items.push(event.features[i].customData)
-              }
-              clickEvent(items)
-            }
-          })
-        }
-
-        return vectorLayer
       }
+      return vectorLayer
+
     },
     createPointLayer2(data, clickEvent, option){
       if (data.length > 0) {
@@ -401,20 +392,44 @@ export default {
         return vectorLayer
       }
     },
+    hasFeature (layer, id) {
+      if (layer instanceof LayerGroup) {
+        // 目前LayerGroup的情况肯定含有这个
+        return true
+      }else {
+        if (layer.getSource().getFeatureById(id)) {
+          return true
+        }
+      }
+      return false
+    },
+    addFeature (layer, data) {
+
+      const feature = new Feature(new Point(fromLonLat(data.position)))
+      feature.setId(data.id)
+      feature.customData = data.data
+      feature.setProperties({
+        status: data.status
+      })
+      layer.getSource().addFeature(feature)
+    },
     updatePointLayer(layer, data, postponement) {
       layer.getSource().clear(true)
+      if (!data || data.length == 0) {
+        return
+      }
       const features = []
       for (let i = 0; i < data.length; i++) {
         const feature = new Feature(new Point(fromLonLat(data[i].position)))
         feature.setId(data[i].id)
         feature.customData = data[i].data
-        const cloneStyle = new Style()
-        cloneStyle.setImage(new Icon({
-          anchor: data[i].image.anchor,
-          crossOrigin: 'Anonymous',
-          src: data[i].image.src
-        }))
-        feature.setStyle(cloneStyle)
+        // const cloneStyle = new Style()
+        // cloneStyle.setImage(new Icon({
+        //   anchor: data[i].image.anchor,
+        //   crossOrigin: 'Anonymous',
+        //   src: data[i].image.src
+        // }))
+        // feature.setStyle(cloneStyle)
         features.push(feature)
       }
       layer.getSource().addFeatures(features)
@@ -437,6 +452,7 @@ export default {
         let vectorLayer = this.createPointLayer(data.get(zoom), clickEvent, {
           minZoom : zoom
         })
+        vectorLayer.setProperties('layerId', zoom)
         if (vectorLayer) {
           layers.push(vectorLayer)
         }
@@ -454,6 +470,9 @@ export default {
     removeLayer(layer) {
       olMap.removeLayer(layer)
     },
+    clearLayer(layer) {
+      layer.getSource().clear(true)
+    },
     setFeatureImageById(layer, featureId, image) {
       let feature = layer.getSource().getFeatureById(featureId)
       if (!feature) {
@@ -470,6 +489,11 @@ export default {
       olMap.render()
     },
     setFeaturePositionById(layer, featureId, data) {
+      if (layer instanceof LayerGroup) {
+
+      }else {
+
+      }
       let featureOld = layer.getSource().getFeatureById(featureId)
       if (featureOld) {
         layer.getSource().removeFeature(featureOld)

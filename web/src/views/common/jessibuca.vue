@@ -9,7 +9,7 @@
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
-        <i class="iconfont icon-stop jessibuca-btn" @click="destroy" />
+        <i class="iconfont icon-stop jessibuca-btn" @click="stop" />
         <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="mute()" />
         <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="cancelMute()" />
       </div>
@@ -219,6 +219,15 @@ export default {
     pause: function() {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].pause()
+      }
+      this.playing = false
+      this.err = ''
+      this.performance = ''
+    },
+    stop: function() {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].pause()
+        jessibucaPlayer[this._uid].clearView()
       }
       this.playing = false
       this.err = ''

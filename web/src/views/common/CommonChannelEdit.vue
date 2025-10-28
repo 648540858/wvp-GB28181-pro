@@ -16,7 +16,17 @@
           <el-input v-model="form.gbManufacturer" placeholder="请输入设备厂商" />
         </el-form-item>
         <el-form-item label="设备型号">
-          <el-input v-model="form.gbModel" placeholder="请输入设备型号" />
+          <el-autocomplete
+            style="width: 100%;"
+            v-model="form.gbModel"
+            value-key="name"
+            :fetch-suggestions="queryModel"
+            placeholder="请输入内容"
+          >
+            <template slot-scope="{ item }">
+              <span class="addr">{{ item.name }}（{{ item.alias }}）</span>
+            </template>
+          </el-autocomplete>
         </el-form-item>
 
         <el-form-item label="行政区域">
@@ -247,8 +257,16 @@ export default {
   data() {
     return {
       loading: false,
+      modelList: [],
       form: {}
     }
+  },
+  mounted() {
+    this.$store.dispatch('server/getModelList')
+      .then((data) => {
+        console.log(data)
+        this.modelList = data
+      })
   },
   created() {
     // 获取完整信息
@@ -263,6 +281,13 @@ export default {
     }
   },
   methods: {
+    queryModel(queryString, callback) {
+      let modelList = this.modelList
+      var results = queryString ? modelList.filter(((state) => {
+        return (state.alias.toLowerCase().indexOf(queryString.toLowerCase()) === 0 || state.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
+      })) : modelList
+      callback(results)
+    },
     onSubmit: function() {
       this.loading = true
       if (this.form.gbDownloadSpeedArray) {

@@ -62,7 +62,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 log.info("[SY-接口验签] 缺少关键参数：sign/appKey/accessToken/timestamp, 请求地址: {} ", requestURI);
                 response.setStatus(Response.OK);
                 PrintWriter out = response.getWriter();
-                out.println(getErrorResult(6017, "缺少关键参数"));
+                out.println(getErrorResult(1, "参数非法"));
                 out.close();
                 return;
             }
@@ -70,7 +70,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 log.info("[SY-接口验签] appKey {} 对应的 secret 不存在, 请求地址: {} ", appKey, requestURI);
                 response.setStatus(Response.OK);
                 PrintWriter out = response.getWriter();
-                out.println(getErrorResult(6017, "缺少关键参数"));
+                out.println(getErrorResult(1, "参数非法"));
                 out.close();
                 return;
             }
@@ -108,7 +108,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 log.info("[SY-接口验签] 失败，加密前内容： {}, 请求地址: {} ", beforeSign, requestURI);
                 response.setStatus(Response.OK);
                 PrintWriter out = response.getWriter();
-                out.println(getErrorResult(6017, "接口鉴权失败"));
+                out.println(getErrorResult(2, "签名错误"));
                 out.close();
                 return;
             }
@@ -119,7 +119,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 log.info("[SY-接口验签] 时间戳已经过期, 请求时间戳：{}， 当前时间： {}, 过期时间： {}, 请求地址: {} ", timestamp, currentTimeMillis, timestamp + SyTokenManager.INSTANCE.expires * 60 * 1000, requestURI);
                 response.setStatus(Response.OK);
                 PrintWriter out = response.getWriter();
-                out.println(getErrorResult(6016, "接口过期"));
+                out.println(getErrorResult(3, "接口己过期"));
                 out.close();
                 return;
             }
@@ -136,7 +136,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                     log.info("[SY-接口验签] accessToken解密失败, 请求地址: {} ", requestURI);
                     response.setStatus(Response.OK);
                     PrintWriter out = response.getWriter();
-                    out.println(getErrorResult(6017, "接口鉴权失败"));
+                    out.println(getErrorResult(2, "签名错误"));
                     out.close();
                     return;
                 }
@@ -146,7 +146,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                     log.info("[SY-接口验签] accessToken 已经过期, 请求地址: {} ", requestURI);
                     response.setStatus(Response.OK);
                     PrintWriter out = response.getWriter();
-                    out.println(getErrorResult(6018, "Token已过期"));
+                    out.println(getErrorResult(4, "token已过期或错误"));
                     out.close();
                     return;
                 }
@@ -156,7 +156,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(Response.OK);
             if (!response.isCommitted()) {
                 PrintWriter out = response.getWriter();
-                out.println(getErrorResult(6017, "接口鉴权异常"));
+                out.println(getErrorResult(2, "签名错误"));
                 out.close();
             }
             return;

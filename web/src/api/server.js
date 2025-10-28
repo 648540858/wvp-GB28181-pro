@@ -121,4 +121,10 @@ export function getMapConfig() {
     url: `/api/server/map/config`
   })
 }
+export function getModelList() {
+  return request({
+    method: 'get',
+    url: `/api/server/map/model-icon/list`
+  })
+}
 

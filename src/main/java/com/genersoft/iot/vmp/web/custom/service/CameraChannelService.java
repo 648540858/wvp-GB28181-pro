@@ -353,7 +353,7 @@ public class CameraChannelService implements CommandLineRunner {
         // 读取redis 图标信息
         /*
           {
-              "brand": "三永",
+              "brand": "WVP",
               "createdTime": 1715845840000,
               "displayInSelect": true,
               "id": 12,
@@ -553,21 +553,21 @@ public class CameraChannelService implements CommandLineRunner {
         // 参数坐标系列转换
         if (geoCoordSys != null) {
             if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
-                Double[] minPosition = Coordtransform.WGS84ToGCJ02(minLongitude, minLatitude);
+                Double[] minPosition = Coordtransform.GCJ02ToWGS84(minLongitude, minLatitude);
                 minLongitude = minPosition[0];
                 minLatitude = minPosition[1];
 
-                Double[] maxPosition = Coordtransform.WGS84ToGCJ02(maxLongitude, maxLatitude);
+                Double[] maxPosition = Coordtransform.GCJ02ToWGS84(maxLongitude, maxLatitude);
                 maxLongitude = maxPosition[0];
                 maxLatitude = maxPosition[1];
             }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
-                Double[] gcj02MinPosition = Coordtransform.WGS84ToGCJ02(minLongitude, minLatitude);
-                Double[] minPosition = Coordtransform.GCJ02ToBD09(gcj02MinPosition[0], gcj02MinPosition[1]);
+                Double[] gcj02MinPosition = Coordtransform.BD09ToGCJ02(minLongitude, minLatitude);
+                Double[] minPosition = Coordtransform.GCJ02ToWGS84(gcj02MinPosition[0], gcj02MinPosition[1]);
                 minLongitude = minPosition[0];
                 minLatitude = minPosition[1];
 
-                Double[] gcj02MaxPosition = Coordtransform.WGS84ToGCJ02(maxLongitude, maxLatitude);
-                Double[] maxPosition = Coordtransform.GCJ02ToBD09(gcj02MaxPosition[0], gcj02MaxPosition[1]);
+                Double[] gcj02MaxPosition = Coordtransform.BD09ToGCJ02(maxLongitude, maxLatitude);
+                Double[] maxPosition = Coordtransform.GCJ02ToWGS84(gcj02MaxPosition[0], gcj02MaxPosition[1]);
                 maxLongitude = maxPosition[0];
                 maxLatitude = maxPosition[1];
             }
@@ -588,13 +588,13 @@ public class CameraChannelService implements CommandLineRunner {
         // 参数坐标系列转换
         if (geoCoordSys != null) {
             if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
-                Double[] position = Coordtransform.WGS84ToGCJ02(centerLongitude, centerLatitude);
+                Double[] position = Coordtransform.GCJ02ToWGS84(centerLongitude, centerLatitude);
                 centerLongitude = position[0];
                 centerLatitude = position[1];
 
             }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
-                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(centerLongitude, centerLatitude);
-                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                Double[] gcj02Position = Coordtransform.BD09ToGCJ02(centerLongitude, centerLatitude);
+                Double[] position = Coordtransform.GCJ02ToWGS84(gcj02Position[0], gcj02Position[1]);
                 centerLongitude = position[0];
                 centerLatitude = position[1];
             }
@@ -616,12 +616,12 @@ public class CameraChannelService implements CommandLineRunner {
         if (geoCoordSys != null) {
             for (Point point : pointList) {
                 if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
-                    Double[] position = Coordtransform.WGS84ToGCJ02(point.getLng(), point.getLat());
+                    Double[] position = Coordtransform.GCJ02ToWGS84(point.getLng(), point.getLat());
                     point.setLng(position[0]);
                     point.setLat(position[1]);
                 }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
-                    Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(point.getLng(), point.getLat());
-                    Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                    Double[] gcj02Position = Coordtransform.BD09ToGCJ02(point.getLng(), point.getLat());
+                    Double[] position = Coordtransform.GCJ02ToWGS84(gcj02Position[0], gcj02Position[1]);
                     point.setLng(position[0]);
                     point.setLat(position[1]);
                 }

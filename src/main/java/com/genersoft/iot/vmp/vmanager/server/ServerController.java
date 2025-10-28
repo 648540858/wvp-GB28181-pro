@@ -371,4 +371,14 @@ public class ServerController {
         }
         return mapService.getConfig();
     }
+
+    @GetMapping(value = "/map/model-icon/list")
+    @ResponseBody
+    @Operation(summary = "获取地图配置图标", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public List<MapModelIcon> getMapModelIconList() {
+        if (mapService == null) {
+            return Collections.emptyList();
+        }
+        return mapService.getModelList();
+    }
 }

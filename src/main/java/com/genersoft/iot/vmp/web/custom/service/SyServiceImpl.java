@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.service.IMapService;
 import com.genersoft.iot.vmp.vmanager.bean.MapConfig;
+import com.genersoft.iot.vmp.vmanager.bean.MapModelIcon;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -75,5 +76,34 @@ public class SyServiceImpl implements IMapService {
         mapConfig.setTilesUrl(tileUrl);
         return mapConfig;
 
+    }
+
+    @Override
+    public List<MapModelIcon> getModelList() {
+        // 读取redis 图标信息
+        /*
+          {
+              "brand": "WVP",
+              "createdTime": 1715845840000,
+              "displayInSelect": true,
+              "id": 12,
+              "imagesPath": "images/lt132",
+              "machineName": "图传对讲单兵",
+              "machineType": "LT132"
+           },
+         */
+        List<MapModelIcon> mapModelIconList = new ArrayList<>();
+        JSONArray jsonArray = (JSONArray) redisTemplate.opsForValue().get("machineInfo");
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String machineType = jsonObject.getString("machineType");
+                String machineName = jsonObject.getString("machineName");
+                String imagesPath = jsonObject.getString("imagesPath");
+
+                mapModelIconList.add(MapModelIcon.getInstance(machineType, machineName, imagesPath));
+            }
+        }
+        return mapModelIconList;
     }
 }

@@ -6,9 +6,10 @@ import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
-import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.ISourceDownloadService;
+import com.genersoft.iot.vmp.gb28181.service.ISourcePlayService;
+import com.genersoft.iot.vmp.gb28181.service.ISourcePlaybackService;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -89,12 +90,12 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
-        log.info("[通用通道] 播放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        log.info("[通用通道] 播放， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
         if (sourceChannelPlayService == null) {
             // 通道数据异常
-            log.error("[点播通用通道] 类型编号： {} 不支持实时流预览", dataType);
+            log.error("[点播通用通道] 类型编号： {} 不支持实时流预览", ChannelDataType.getDateTypeDesc(channel.getDataType()));
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         sourceChannelPlayService.play(channel, platform, record, (code, msg, data) -> {
@@ -109,7 +110,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
     @Override
     public void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
-        log.info("[通用通道] 回放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        log.info("[通用通道] 回放， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -123,7 +124,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     @Override
     public void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
                          ErrorCallback<StreamInfo> callback){
-        log.info("[通用通道] 录像下载， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        log.info("[通用通道] 录像下载， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourceDownloadService downloadService = sourceDownloadServiceMap.get(ChannelDataType.DOWNLOAD_SERVICE + dataType);
         if (downloadService == null) {
@@ -148,7 +149,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void stopPlayback(CommonGBChannel channel, String stream) {
-        log.info("[通用通道] 停止回放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        log.info("[通用通道] 停止回放， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -161,7 +162,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void stopDownload(CommonGBChannel channel, String stream) {
-        log.info("[通用通道] 停止录像下载， 类型： {}， 编号：{} stream: {}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        log.info("[通用通道] 停止录像下载， 类型： {}， 编号：{} stream: {}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId(), stream);
         Integer dataType = channel.getDataType();
         ISourceDownloadService downloadService = sourceDownloadServiceMap.get(ChannelDataType.DOWNLOAD_SERVICE + dataType);
         if (downloadService == null) {
@@ -174,7 +175,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void playbackPause(CommonGBChannel channel, String stream) {
-        log.info("[通用通道] 回放暂停， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        log.info("[通用通道] 回放暂停， 类型： {}， 编号：{} stream：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId(), stream);
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -187,7 +188,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void playbackResume(CommonGBChannel channel, String stream) {
-        log.info("[通用通道] 回放暂停恢复， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        log.info("[通用通道] 回放暂停恢复， 类型： {}， 编号：{} stream：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId(), stream);
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -200,7 +201,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void playbackSeek(CommonGBChannel channel, String stream, long seekTime) {
-        log.info("[通用通道] 回放拖动播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        log.info("[通用通道] 回放拖动播放， 类型： {}， 编号：{} stream：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId(), stream);
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -213,7 +214,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void playbackSpeed(CommonGBChannel channel, String stream, Double speed) {
-        log.info("[通用通道] 回放倍速播放， 类型： {}， 编号：{} stream：{}", channel.getDataType(), channel.getGbDeviceId(), stream);
+        log.info("[通用通道] 回放倍速播放， 类型： {}， 编号：{} stream：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId(), stream);
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {
@@ -226,7 +227,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback) {
-        log.info("[通用通道] 录像查询， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        log.info("[通用通道] 录像查询， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
         if (playbackService == null) {

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.web.custom;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
@@ -33,6 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -44,6 +46,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -74,8 +77,13 @@ public class CameraChannelController {
     private IStreamPushPlayService streamPushPlayService;
 
     @Autowired
+    private DynamicTask dynamicTask;
+
+    @Autowired
     private IStreamProxyService streamProxyService;
 
+    @Value("${sy.ptz-control-time-interval}")
+    private int ptzControlTimeInterval = 300;
 
     @GetMapping(value = "/camera/list")
     @ResponseBody
@@ -308,6 +316,12 @@ public class CameraChannelController {
             wvpResult.setData(data);
             result.setResult(wvpResult);
         });
+        // 设置时间间隔后自动发送停止
+        if (!command.equalsIgnoreCase("stop")) {
+            dynamicTask.startDelay(UUID.randomUUID().toString(), () -> {
+                channelService.ptz(deviceId, deviceCode, "stop", speed, (code, msg, data) -> {});
+            }, ptzControlTimeInterval);
+        }
         return result;
     }
 

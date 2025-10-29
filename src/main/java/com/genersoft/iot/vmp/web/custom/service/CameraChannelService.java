@@ -513,12 +513,12 @@ public class CameraChannelService implements CommandLineRunner {
         if (geoCoordSys != null && longitude != null && latitude != null
                 && longitude > 0 && latitude > 0) {
             if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
-                Double[] position = Coordtransform.WGS84ToGCJ02(longitude, latitude);
+                Double[] position = Coordtransform.GCJ02ToWGS84(longitude, latitude);
                 commonGBChannel.setGbLongitude(position[0]);
                 commonGBChannel.setGbLatitude(position[1]);
             }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
-                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(longitude, latitude);
-                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
+                Double[] gcj02Position = Coordtransform.BD09ToGCJ02(longitude, latitude);
+                Double[] position = Coordtransform.GCJ02ToWGS84(gcj02Position[0], gcj02Position[1]);
                 commonGBChannel.setGbLongitude(position[0]);
                 commonGBChannel.setGbLatitude(position[1]);
             }else {

@@ -209,4 +209,8 @@ public class UserSetting {
      */
     private boolean disableDateHeader = false;
 
+    /**
+     * Media Web Hook 回调 接口
+     */
+    private String mediaHookWebUrl = null;
 }

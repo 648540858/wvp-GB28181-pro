@@ -124,7 +124,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							catalogChannelEvent.getChannel().setDataDeviceId(device.getId());
                             if (catalogChannelEvent.getChannel().getLongitude() > 0
                                     && catalogChannelEvent.getChannel().getLatitude() > 0) {
-                               if (device.isWgs84()) {
+                               if (device.checkWgs84()) {
                                    catalogChannelEvent.getChannel().setGbLongitude(catalogChannelEvent.getChannel().getLongitude());
                                    catalogChannelEvent.getChannel().setGbLatitude(catalogChannelEvent.getChannel().getLatitude());
                                }else {

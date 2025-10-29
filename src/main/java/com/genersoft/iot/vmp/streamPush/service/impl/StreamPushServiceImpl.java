@@ -335,6 +335,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         if (!mediaInfoList.isEmpty()) {
             for (MediaInfo mediaInfo : mediaInfoList) {
+                if (mediaInfo == null) {
+                    continue;
+                }
                 streamInfoPushItemMap.put(mediaInfo.getApp() + mediaInfo.getStream(), mediaInfo);
             }
         }

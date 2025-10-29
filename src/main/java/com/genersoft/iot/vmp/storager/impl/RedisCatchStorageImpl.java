@@ -106,7 +106,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (streamAuthorityInfo != null) {
             mediaInfo.setCallId(streamAuthorityInfo.getCallId());
         }
-        redisTemplate.opsForValue().set(key, mediaInfo);
+        redisTemplate.opsForValue().set(key, JSON.toJSONString(mediaInfo));
     }
 
     @Override
@@ -130,7 +130,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetting.getServerId() + "_" + type.toUpperCase() + "_*_*_" + mediaServerId;
         List<Object> streams = RedisUtil.scan(redisTemplate, key);
         for (Object stream : streams) {
-            MediaInfo mediaInfo = (MediaInfo)redisTemplate.opsForValue().get(stream);
+            String mediaInfoJson = (String)redisTemplate.opsForValue().get(stream);
+            MediaInfo mediaInfo = JSON.parseObject(mediaInfoJson, MediaInfo.class);
             result.add(mediaInfo);
         }
         return result;
@@ -251,7 +252,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
         if (keys.size() > 0) {
             String key = (String) keys.get(0);
-            result = JsonUtil.redisJsonToObject(redisTemplate, key, MediaInfo.class);
+            String mediaInfoJson = (String)redisTemplate.opsForValue().get(key);
+            result = JSON.parseObject(mediaInfoJson, MediaInfo.class);
         }
 
         return result;
@@ -265,7 +267,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
         if (keys.size() > 0) {
             String key = (String) keys.get(0);
-            result = JsonUtil.redisJsonToObject(redisTemplate, key, MediaInfo.class);
+            String mediaInfoJson = (String)redisTemplate.opsForValue().get(key);
+            result = JSON.parseObject(mediaInfoJson, MediaInfo.class);
         }
 
         return result;

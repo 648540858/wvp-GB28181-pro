@@ -132,7 +132,7 @@ export default {
   data() {
     return {
       channelList: [],
-      tableHeight: `calc(100vh - 190px)`,
+      tableHeight: 'calc(100vh - 190px)',
       searchStr: '',
       channelType: '',
       online: '',

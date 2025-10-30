@@ -474,7 +474,8 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
     List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
-                                    @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("dataType") Integer dataType);
+                                    @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("dataType") Integer dataType,
+                                    @Param("civilCode") String civilCode, @Param("parentDeviceId") String parentDeviceId);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -668,4 +669,8 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryMeetingChannelList")
     List<CameraChannel> queryMeetingChannelList(@Param("business") String business);
+
+    @Update("UPDATE wvp_device_channel SET map_level=null")
+    int resetLevel();
+
 }

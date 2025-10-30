@@ -74,6 +74,7 @@
             <div style="margin-left: 10px; line-height: 38px;">
               <el-button :loading="quicklyDrawThinLoading" @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
               <el-button size="mini" @click="boxDrawThin" >局部抽稀</el-button>
+              <el-button size="mini" @click="resetDrawThinData()">数据还原</el-button>
               <el-button :loading="saveDrawThinLoading" type="primary" :disabled="!layerGroupSource" size="mini" @click="saveDrawThin()">保存</el-button>
               <el-button type="warning" size="mini" @click="showDrawThinBox(false)">取消</el-button>
             </div>
@@ -308,7 +309,7 @@ export default {
         status: data.gbStatus
       }
       if (!this.$refs.mapComponent.hasFeature(channelLayer, data.gbId)) {
-        this.$refs.mapComponent.addFeature(channelLayer, cameraData, )
+        this.$refs.mapComponent.addFeature(channelLayer, cameraData)
       }
       this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
     },
@@ -358,7 +359,7 @@ export default {
             channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
           }else {
             console.log(cameraList.length)
-            setTimeout(()=>{
+            setTimeout(() => {
               channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
             })
           }
@@ -368,7 +369,7 @@ export default {
           if (channelLayer) {
             channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
           }else {
-            setTimeout(()=>{
+            setTimeout(() => {
               channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
                 declutter: true
               })
@@ -506,7 +507,7 @@ export default {
       this.clean()
       this.$refs.queryTrace.openDialog(data, (channelPositions) => {
         if (channelPositions.length === 0) {
-          this.$message.info({
+          this.$message.warning({
             showClose: true,
             message: '未查询到轨迹信息'
           })
@@ -519,7 +520,7 @@ export default {
 
           }
           if (positions.length === 0) {
-            this.$message.info({
+            this.$message.warning({
               showClose: true,
               message: '未查询到轨迹信息'
             })
@@ -587,7 +588,7 @@ export default {
       })
     },
     boxDrawThin: function (){
-      this.$message.info({
+      this.$message.warning({
         showClose: true,
         message: '点击地图进行框选'
       })
@@ -598,7 +599,7 @@ export default {
         if (channelLayer) {
           this.$refs.mapComponent.clearLayer(channelLayer)
         }
-        this.$message.info({
+        this.$message.warning({
           showClose: true,
           message: '正在抽稀，请稍等'
         })
@@ -808,6 +809,21 @@ export default {
           this.saveDrawThinLoading = false
         })
 
+    },
+    resetDrawThinData(){
+      this.$confirm('确定移除抽稀结果?', '操作提示', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$store.dispatch('commonChanel/resetLevel')
+          .then(() => {
+            this.$message.success({
+              showClose: true,
+              message: '数据还原成功'
+            })
+          })
+      })
     }
   }
 

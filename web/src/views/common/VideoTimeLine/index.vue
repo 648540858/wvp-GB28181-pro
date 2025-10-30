@@ -149,7 +149,7 @@ export default {
     */
     timeSegments: {
       type: Array,
-      default: () => []
+      default: () => {}
     },
     // 时间轴背景颜色
     backgroundColor: {

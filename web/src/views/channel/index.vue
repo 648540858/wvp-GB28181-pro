@@ -37,6 +37,35 @@
             <el-option v-for="item in Object.values($channelTypeList)" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
+        <el-form-item >
+          <el-input placeholder="请选择行政区划" v-model="civilCodeName" readonly style="width: 12rem; margin-right: 1rem;">
+            <span slot="suffix" v-show="civilCodeName" style="height: 100%; display: flex; align-items: center; width: 22px;"
+                  @click="civilCodeClear">
+               <i class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;"></i>
+            </span>
+            <el-button slot="append" @click="civilCodeFilter">选择</el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item >
+          <el-input placeholder="请选择业务分组" v-model="groupName" readonly style="width: 12rem; margin-right: 1rem;">
+            <span slot="suffix" v-show="groupName" style="height: 100%; display: flex; align-items: center; width: 22px;"
+                  @click="groupClear">
+               <i class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;"></i>
+            </span>
+            <el-button slot="append" @click="groupFilter">选择</el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item >
+          <el-dropdown >
+            <el-button type="primary">
+              批量操作<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="batchChangeRegion">行政区划</el-dropdown-item>
+              <el-dropdown-item @click.native="batchChangeGroup">业务分组</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </el-form-item>
         <el-form-item style="float: right;">
           <el-button icon="el-icon-refresh-right" circle @click="refresh()" title="刷新表格"/>
         </el-form-item>
@@ -48,7 +77,9 @@
         height="calc(100% - 64px)"
         style="width: 100%; font-size: 12px;"
         header-row-class-name="table-header"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" />
         <el-table-column prop="gbName" label="名称" min-width="180" />
         <el-table-column prop="gbDeviceId" label="编号" min-width="180" />
         <el-table-column prop="gbManufacturer" label="厂家" min-width="100" />
@@ -128,7 +159,7 @@
         style="text-align: right"
         :current-page="currentPage"
         :page-size="count"
-        :page-sizes="[15, 25, 35, 50]"
+        :page-sizes="[15, 25, 35, 50, 100, 500, 1000]"
         layout="total, sizes, prev, pager, next"
         :total="total"
         @size-change="handleSizeChange"
@@ -138,6 +169,8 @@
 
     <devicePlayer ref="devicePlayer" />
     <channel-edit v-if="editId" :id="editId" :close-edit="closeEdit" />
+    <chooseCivilCode ref="chooseCivilCode" />
+    <chooseGroup ref="chooseGroup" />
 
   </div>
 </template>
@@ -145,11 +178,17 @@
 <script>
 import devicePlayer from '@/views/common/channelPlayer/index.vue'
 import Edit from './edit.vue'
+import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
+import ChooseGroup from '@/views/dialog/chooseGroup.vue'
+import { MessageBox } from 'element-ui'
+import store from '@/store'
 
 export default {
   name: 'ChannelList',
   components: {
+    ChooseGroup,
     devicePlayer,
+    ChooseCivilCode,
     ChannelEdit: Edit
   },
   props: {
@@ -203,7 +242,15 @@ export default {
       count: this.defaultCount | 15,
       total: 0,
       beforeUrl: '/device',
-      editId: null
+      editId: null,
+      civilCodeName: null,
+      civilCodeDeviceId: null,
+
+      groupName: null,
+      groupDeviceId: null,
+      groupBusiness: null,
+
+      multipleSelection: []
     }
   },
   mounted() {
@@ -214,6 +261,9 @@ export default {
     clearTimeout(this.updateLooper)
   },
   methods: {
+    handleSelectionChange: function(val) {
+      this.multipleSelection = val
+    },
     initData: function() {
       this.getChannelList()
     },
@@ -236,7 +286,9 @@ export default {
         count: this.count,
         query: this.searchStr,
         online: this.online,
-        channelType: this.channelType
+        channelType: this.channelType,
+        civilCode: this.civilCodeDeviceId,
+        parentDeviceId: this.groupDeviceId
       }).then(data => {
         this.total = data.total
         this.channelList = data.list
@@ -334,6 +386,114 @@ export default {
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
       }
+    },
+    getCheckIds: function() {
+      const channelIds = []
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        channelIds.push(this.multipleSelection[i].gbId)
+      }
+      if (channelIds.length === 0) {
+        this.$message.warning({
+          showClose: true,
+          message: '请选择通道'
+        })
+        return []
+      }
+      return channelIds
+    },
+    batchChangeRegion: function() {
+      let ids = this.getCheckIds()
+      if (ids.length === 0) {
+        return
+      }
+      this.$refs.chooseCivilCode.openDialog((code, name) => {
+        this.$confirm(`确定添加${ids.length}个通道到${name}?`, '批量操作', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('commonChanel/addToRegion', {
+            civilCode: code,
+            channelIds: ids
+          })
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '保存成功'
+              })
+            })
+            .catch((error) => {
+              this.$message.error({
+                showClose: true,
+                message: error
+              })
+            })
+            .finally(() => {
+              this.loading = false
+            })
+        })
+      })
+    },
+    batchChangeGroup: function() {
+      let ids = this.getCheckIds()
+      if (ids.length === 0) {
+        return
+      }
+      this.$refs.chooseGroup.openDialog((code, businessGroupId, name) => {
+        this.$confirm(`确定添加${ids.length}个通道到${name}?`, '批量操作', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('commonChanel/addToGroup', {
+            parentId: code,
+            businessGroup: businessGroupId,
+            channelIds: ids
+          })
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '保存成功'
+              })
+              this.getChannelList()
+            })
+            .catch((error) => {
+              this.$message.error({
+                showClose: true,
+                message: error
+              })
+            })
+            .finally(() => {
+              this.loading = false
+            })
+        })
+      })
+    },
+    civilCodeFilter() {
+      this.$refs.chooseCivilCode.openDialog((code, name) => {
+        this.civilCodeName = name
+        this.civilCodeDeviceId = code
+        this.getChannelList()
+      })
+    },
+    groupFilter() {
+      this.$refs.chooseGroup.openDialog((code, businessGroupId, name) => {
+        this.groupDeviceId = code
+        this.groupBusiness = businessGroupId
+        this.groupName = name
+        this.getChannelList()
+      })
+    },
+    civilCodeClear(){
+      this.civilCodeDeviceId = null
+      this.civilCodeName = null
+      this.getChannelList()
+    },
+    groupClear(){
+      this.groupName = null
+      this.groupDeviceId = null
+      this.groupBusiness = null
+      this.getChannelList()
     }
   }
 }

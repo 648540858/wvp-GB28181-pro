@@ -289,6 +289,12 @@ public class ChannelProvider {
         if (params.get("dataType") != null) {
             sqlBuild.append(" AND data_type = #{dataType}");
         }
+        if (params.get("civilCode") != null) {
+            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) = #{civilCode}");
+        }
+        if (params.get("parentDeviceId") != null) {
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) =  #{parentDeviceId}");
+        }
         return sqlBuild.toString();
     }
 

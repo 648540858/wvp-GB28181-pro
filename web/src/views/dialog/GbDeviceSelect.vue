@@ -135,9 +135,9 @@ export default {
         .then(data => {
           this.total = data.total
           this.deviceList = data.list
-        }).finally(() => [
+        }).finally(() => {
           this.getDeviceListLoading = false
-        ])
+      })
     },
     openDialog: function(callback) {
       this.listChangeCallback = callback

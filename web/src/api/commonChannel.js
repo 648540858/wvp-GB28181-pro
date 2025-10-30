@@ -60,7 +60,7 @@ export function add(data) {
 }
 
 export function getList(params) {
-  const { page, count, query, online, hasRecordPlan, channelType } = params
+  const { page, count, query, online, hasRecordPlan, channelType, civilCode, parentDeviceId } = params
   return request({
     method: 'get',
     url: '/api/common/channel/list',
@@ -70,7 +70,9 @@ export function getList(params) {
       channelType: channelType,
       query: query,
       online: online,
-      hasRecordPlan: hasRecordPlan
+      hasRecordPlan: hasRecordPlan,
+      civilCode: civilCode,
+      parentDeviceId: parentDeviceId
     }
   })
 }
@@ -603,6 +605,12 @@ export function saveLevel(data) {
     method: 'post',
     url: '/api/common/channel/map/save-level',
     data: data
+  })
+}
+export function resetLevel() {
+  return request({
+    method: 'post',
+    url: '/api/common/channel/map/reset-level'
   })
 }
 export function test() {

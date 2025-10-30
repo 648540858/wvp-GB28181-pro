@@ -1,11 +1,11 @@
 <template>
   <div id="CommonChannelEdit" v-loading="loading" style="width: 100%">
-    <el-form ref="passwordForm" status-icon label-width="160px" class="channel-form">
+    <el-form ref="channelForm" :model="form" :rules="rules" status-icon label-width="160px" class="channel-form" size="medium">
       <div class="form-box">
-        <el-form-item label="名称">
+        <el-form-item label="名称" prop="gbName">
           <el-input v-model="form.gbName" placeholder="请输入通道名称" />
         </el-form-item>
-        <el-form-item label="编码">
+        <el-form-item label="编码" prop="gbDeviceId">
           <el-input v-model="form.gbDeviceId" placeholder="请输入通道编码">
             <template v-slot:append>
               <el-button @click="buildDeviceIdCode(form.gbDeviceId)">生成</el-button>
@@ -13,7 +13,7 @@
           </el-input>
         </el-form-item>
         <el-form-item label="设备厂商">
-          <el-input v-model="form.gbManufacturer" placeholder="请输入设备厂商" />
+          <el-input v-model="gbManufacturer" placeholder="请输入设备厂商" />
         </el-form-item>
         <el-form-item label="设备型号">
           <el-autocomplete
@@ -40,18 +40,36 @@
         <el-form-item label="安装地址">
           <el-input v-model="form.gbAddress" placeholder="请输入安装地址" />
         </el-form-item>
-        <el-form-item label="子设备">
-          <el-select v-model="form.gbParental" style="width: 100%" placeholder="请选择是否有子设备">
-            <el-option label="有" :value="1" />
-            <el-option label="无" :value="0" />
+        <el-form-item label="监视方位">
+          <el-select v-model="form.gbDirectionType" style="width: 100%" placeholder="请选择监视方位">
+            <el-option label="东(西向东)" :value="1" />
+            <el-option label="西(东向西)" :value="2" />
+            <el-option label="南(北向南)" :value="3" />
+            <el-option label="北(南向北)" :value="4" />
+            <el-option label="东南(西北到东南)" :value="5" />
+            <el-option label="东北(西南到东北)" :value="6" />
+            <el-option label="西南(东北到西南)" :value="7" />
+            <el-option label="西北(东南到西北)" :value="8" />
+            <el-option label="左(非标)" :value="91" />
+            <el-option label="后(非标)" :value="92" />
+            <el-option label="前(非标)" :value="93" />
+            <el-option label="右(非标)" :value="94" />
+            <el-option label="左前(非标)" :value="95" />
+            <el-option label="右前(非标)" :value="96" />
+            <el-option label="左后(非标)" :value="97" />
+            <el-option label="右后(非标)" :value="98" />
           </el-select>
         </el-form-item>
+
         <el-form-item label="父节点编码">
-          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码或选择所属虚拟组织">
+          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码或选择所属虚拟组织" @change="getPaths">
             <template v-slot:append>
               <el-button @click="chooseGroup()">选择</el-button>
             </template>
           </el-input>
+          <el-breadcrumb v-if="parentPath.length > 0" separator="/" style="display: block; margin-top: 8px; font-size: 14px;">
+            <el-breadcrumb-item v-for="key in parentPath" :key="key">{{ key }}</el-breadcrumb-item>
+          </el-breadcrumb>
         </el-form-item>
         <el-form-item label="设备状态">
           <el-select v-model="form.gbStatus" style="width: 100%" placeholder="请选择设备状态">
@@ -80,11 +98,11 @@
         </el-form-item>
       </div>
       <div>
+        <el-form-item label="业务分组编号">
+          <el-input v-model="form.gbBusinessGroupId" placeholder="请输入业务分组编号" @change="getPaths"/>
+        </el-form-item>
         <el-form-item label="警区">
           <el-input v-model="form.gbBlock" placeholder="请输入警区" />
-        </el-form-item>
-        <el-form-item label="设备归属">
-          <el-input v-model="form.gbOwner" placeholder="请输入设备归属" />
         </el-form-item>
         <el-form-item label="信令安全模式">
           <el-select v-model="form.gbSafetyWay" style="width: 100%" placeholder="请选择信令安全模式">
@@ -138,8 +156,14 @@
         </el-form-item>
       </div>
       <div>
-        <el-form-item label="业务分组编号">
-          <el-input v-model="form.gbBusinessGroupId" placeholder="请输入业务分组编号" />
+        <el-form-item label="设备归属">
+          <el-input v-model="form.gbOwner" placeholder="请输入设备归属" />
+        </el-form-item>
+        <el-form-item label="子设备">
+          <el-select v-model="form.gbParental" style="width: 100%" placeholder="请选择是否有子设备">
+            <el-option label="有" :value="1" />
+            <el-option label="无" :value="0" />
+          </el-select>
         </el-form-item>
         <el-form-item label="位置类型">
           <el-select v-model="form.gbPositionType" style="width: 100%" placeholder="请选择位置类型">
@@ -226,10 +250,9 @@
         <el-form-item >
           <el-checkbox v-model="form.enableBroadcastForBool" >语音对讲(非标属性)</el-checkbox>
         </el-form-item>
-
-        <div style="float: right;">
-          <el-button type="primary" @click="onSubmit">保存</el-button>
-          <el-button v-if="cancel" @click="cancelSubmit">取消</el-button>
+        <div style="text-align: right">
+          <el-button type="primary" @click="onSubmit" >保存</el-button>
+          <el-button v-if="cancel" @click="cancelSubmit" >取消</el-button>
           <el-button v-if="form.dataType === 1" @click="reset">重置</el-button>
         </div>
       </div>
@@ -256,8 +279,17 @@ export default {
   props: ['id', 'dataForm', 'saveSuccess', 'cancel'],
   data() {
     return {
+      rules: {
+        gbName: [
+          { required: true, message: '请输入通道名称', trigger: 'blur' }
+        ],
+        gbDeviceId: [
+          { required: true, message: '请输入通道编号', trigger: 'blur' }
+        ]
+      },
       loading: false,
       modelList: [],
+      parentPath: [],
       form: {}
     }
   },
@@ -276,8 +308,8 @@ export default {
       if (!this.dataForm.gbDeviceId) {
         this.dataForm.gbDeviceId = ''
       }
-      console.log(this.dataForm)
       this.form = this.dataForm
+      this.getPaths()
     }
   },
   methods: {
@@ -289,38 +321,42 @@ export default {
       callback(results)
     },
     onSubmit: function() {
-      this.loading = true
-      if (this.form.gbDownloadSpeedArray) {
-        this.form.gbDownloadSpeed = this.form.gbDownloadSpeedArray.join('/')
-      }
-      this.form.enableBroadcast = this.form.enableBroadcastForBool ? 1 : 0
-      if (this.form.gbId) {
-        this.$store.dispatch('commonChanel/update', this.form)
-          .then(data => {
-            this.$message.success({
-              showClose: true,
-              message: '保存成功'
+      this.$refs.channelForm.validate((valid) => {
+        if (valid) {
+          this.loading = true
+          if (this.form.gbDownloadSpeedArray) {
+            this.form.gbDownloadSpeed = this.form.gbDownloadSpeedArray.join('/')
+          }
+          this.form.enableBroadcast = this.form.enableBroadcastForBool ? 1 : 0
+          if (this.form.gbId) {
+            this.$store.dispatch('commonChanel/update', this.form)
+              .then(data => {
+                this.$message.success({
+                  showClose: true,
+                  message: '保存成功'
+                })
+                if (this.saveSuccess) {
+                  this.saveSuccess()
+                }
+              }).finally(() => {
+              this.loading = false
             })
-            if (this.saveSuccess) {
-              this.saveSuccess()
-            }
-          }).finally(() => [
-            this.loading = false
-          ])
-      } else {
-        this.$store.dispatch('commonChanel/add', this.form)
-          .then(data => {
-            this.$message.success({
-              showClose: true,
-              message: '保存成功'
+          } else {
+            this.$store.dispatch('commonChanel/add', this.form)
+              .then(data => {
+                this.$message.success({
+                  showClose: true,
+                  message: '保存成功'
+                })
+                if (this.saveSuccess) {
+                  this.saveSuccess()
+                }
+              }).finally(() => {
+              this.loading = false
             })
-            if (this.saveSuccess) {
-              this.saveSuccess()
-            }
-          }).finally(() => [
-            this.loading = false
-          ])
-      }
+          }
+        }
+      })
     },
     reset: function() {
       this.$confirm('确定重置为默认内容?', '提示', {
@@ -346,9 +382,9 @@ export default {
           }
         }).catch((error) => {
           console.error(error)
-        }).finally(() => [
+        }).finally(() => {
           this.loading = false
-        ])
+        })
       }).catch(() => {
 
       })
@@ -362,6 +398,7 @@ export default {
           }
           this.form = data
           this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
+          this.getPaths()
         })
         .finally(() => {
           this.loading = false
@@ -369,10 +406,7 @@ export default {
     },
     buildDeviceIdCode: function(deviceId) {
       this.$refs.channelCode.openDialog(code => {
-        console.log(this.form)
-        console.log('code===> ' + code)
         this.form.gbDeviceId = code
-        console.log('code22===> ' + code)
       }, deviceId)
     },
     chooseCivilCode: function() {
@@ -382,15 +416,31 @@ export default {
     },
     chooseGroup: function() {
       this.$refs.chooseGroup.openDialog((deviceId, businessGroupId) => {
-        console.log(deviceId)
-        console.log(businessGroupId)
         this.form.gbBusinessGroupId = businessGroupId
         this.form.gbParentId = deviceId
+        this.getPaths()
       })
     },
     cancelSubmit: function() {
       if (this.cancel) {
         this.cancel()
+      }
+    },
+    getPaths: function() {
+      this.parentPath = []
+      if (this.form.gbParentId && this.form.gbBusinessGroupId) {
+        this.$store.dispatch('group/getPath', {
+          deviceId: this.form.gbParentId,
+          businessGroup: this.form.gbBusinessGroupId
+        })
+          .then(data => {
+            console.log(data)
+            const path = []
+            for (let i = 0; i < data.length; i++) {
+              path.push(data[i].name)
+            }
+            this.parentPath = path
+          })
       }
     }
   }

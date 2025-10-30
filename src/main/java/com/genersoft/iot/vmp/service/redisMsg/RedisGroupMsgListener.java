@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.RedisGroupMessage;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
@@ -163,7 +164,9 @@ public class RedisGroupMsgListener implements MessageListener {
                     }
                 }
 
-            } catch (Exception e) {
+            } catch (ControllerException e) {
+                log.warn("[REDIS消息-业务分组同步回复] 失败, \r\n{}", e.getMsg());
+            }catch (Exception e) {
                 log.warn("[REDIS消息-业务分组同步回复] 发现未处理的异常, \r\n{}", new String(msg.getBody()));
                 log.error("[REDIS消息-业务分组同步回复] 异常内容： ", e);
             }

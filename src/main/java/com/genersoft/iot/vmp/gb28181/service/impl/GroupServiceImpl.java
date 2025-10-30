@@ -285,9 +285,9 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
         if (group == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "虚拟组织不存在");
         }
-        groupList.add(group);
         List<Group> allParent = getAllParent(group);
         groupList.addAll(allParent);
+        groupList.add(group);
         return groupList;
     }
 

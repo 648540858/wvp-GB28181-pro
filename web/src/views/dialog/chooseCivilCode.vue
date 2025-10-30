@@ -45,7 +45,8 @@ export default {
     return {
       showDialog: false,
       endCallback: false,
-      regionDeviceId: ''
+      regionDeviceId: '',
+      regionName: ''
     }
   },
   computed: {},
@@ -54,10 +55,12 @@ export default {
     openDialog: function(callback) {
       this.showDialog = true
       this.endCallback = callback
+      this.regionDeviceId = ''
+      this.regionName = ''
     },
     onSubmit: function() {
       if (this.endCallback) {
-        this.endCallback(this.regionDeviceId)
+        this.endCallback(this.regionDeviceId, this.regionName)
       }
       this.close()
     },
@@ -66,6 +69,7 @@ export default {
     },
     treeNodeClickEvent: function(region) {
       this.regionDeviceId = region.deviceId
+      this.regionName = region.name
     },
     onChannelChange: function(deviceId) {
       //

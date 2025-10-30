@@ -47,6 +47,7 @@ export default {
       showDialog: false,
       endCallback: false,
       groupDeviceId: '',
+      groupName: '',
       businessGroup: ''
     }
   },
@@ -56,10 +57,13 @@ export default {
     openDialog: function(callback) {
       this.showDialog = true
       this.endCallback = callback
+      this.groupDeviceId = ''
+      this.groupName = ''
+      this.businessGroup = ''
     },
     onSubmit: function() {
       if (this.endCallback) {
-        this.endCallback(this.groupDeviceId, this.businessGroup)
+        this.endCallback(this.groupDeviceId, this.businessGroup, this.groupName)
       }
       this.close()
     },
@@ -74,6 +78,7 @@ export default {
       }
       this.groupDeviceId = group.deviceId
       this.businessGroup = group.businessGroup
+      this.groupName = group.name
     },
     onChannelChange: function(deviceId) {
       //

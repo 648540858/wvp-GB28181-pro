@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -23,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -68,9 +68,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "缺少通道数据类型或通道数据关联设备ID");
         }
         CommonGBChannel commonGBChannelInDb =  commonGBChannelMapper.queryByDataId(commonGBChannel.getDataType(), commonGBChannel.getDataDeviceId());
-        if (commonGBChannelInDb != null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此推流已经关联通道");
-        }
+        Assert.isNull(commonGBChannelInDb, "此推流已经关联通道");
+
+        // 检验国标编号是否重复
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByDeviceId(commonGBChannel.getGbDeviceId());
+        Assert.isTrue(channelList.isEmpty(), "国标编号已经存在");
+
         commonGBChannel.setCreateTime(DateUtil.getNow());
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.insert(commonGBChannel);
@@ -741,14 +744,15 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
+    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan,
+                                               Integer channelType, String civilCode, String parentDeviceId) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, civilCode, parentDeviceId);
         return new PageInfo<>(all);
     }
 
@@ -826,7 +830,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
-        return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType);
+        return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, null, null);
     }
 
     @Override
@@ -849,5 +853,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel) {
         return commonGBChannelMapper.queryCommonChannelByDeviceChannel(channel);
+    }
+
+    @Override
+    public void resetLevel() {
+        commonGBChannelMapper.resetLevel();
     }
 }

@@ -401,23 +401,12 @@ public class CameraChannelService implements CommandLineRunner {
     public CameraChannel queryOne(String deviceId, String deviceCode, String geoCoordSys) {
         List<CameraChannel> cameraChannels = channelMapper.queryGbChannelByChannelDeviceIdAndGbDeviceId(deviceId, deviceCode);
         Assert.isTrue(cameraChannels.isEmpty(), "通道不存在");
-        CameraChannel channel = cameraChannels.get(0);
-        if (geoCoordSys != null && channel.getGbLongitude() != null && channel.getGbLatitude() != null
-         && channel.getGbLongitude() > 0 && channel.getGbLatitude() > 0) {
-            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
-                Double[] position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
-                channel.setGbLongitude(position[0]);
-                channel.setGbLatitude(position[1]);
-            }else if (geoCoordSys.equalsIgnoreCase("BD09")) {
-                Double[] gcj02Position = Coordtransform.WGS84ToGCJ02(channel.getGbLongitude(), channel.getGbLatitude());
-                Double[] position = Coordtransform.GCJ02ToBD09(gcj02Position[0], gcj02Position[1]);
-                channel.setGbLongitude(position[0]);
-                channel.setGbLatitude(position[1]);
-            }
-        }
+        List<CameraChannel> channels = addIconPathAndPositionForCameraChannelList(cameraChannels, geoCoordSys);
+        CameraChannel channel = channels.get(0);
         if (deviceCode != null) {
             channel.setDeviceCode(deviceCode);
         }
+
         return channel;
     }
 

@@ -104,16 +104,26 @@ public class ChannelController {
     @Parameter(name = "online", description = "是否在线")
     @Parameter(name = "hasRecordPlan", description = "是否已设置录制计划")
     @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
+    @Parameter(name = "civilCode", description = "行政区划")
+    @Parameter(name = "parentDeviceId", description = "父节点编码")
     @GetMapping("/list")
     public PageInfo<CommonGBChannel> queryList(int page, int count,
                                                           @RequestParam(required = false) String query,
                                                           @RequestParam(required = false) Boolean online,
                                                           @RequestParam(required = false) Boolean hasRecordPlan,
-                                                          @RequestParam(required = false) Integer channelType){
+                                                          @RequestParam(required = false) Integer channelType,
+                                                          @RequestParam(required = false) String civilCode,
+                                                          @RequestParam(required = false) String parentDeviceId){
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryList(page, count, query, online, hasRecordPlan, channelType);
+        if (ObjectUtils.isEmpty(civilCode)){
+            civilCode = null;
+        }
+        if (ObjectUtils.isEmpty(parentDeviceId)){
+            parentDeviceId = null;
+        }
+        return channelService.queryList(page, count, query, online, hasRecordPlan, channelType, civilCode, parentDeviceId);
     }
 
     @Operation(summary = "获取关联行政区划通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -481,4 +491,13 @@ public class ChannelController {
     public void saveLevel(@RequestBody List<ChannelForThin> channels){
         channelService.saveLevel(channels);
     }
+
+    @Operation(summary = "为地图去除抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/map/reset-level")
+    public void resetLevel(){
+        channelService.resetLevel();
+    }
+
+
+
 }

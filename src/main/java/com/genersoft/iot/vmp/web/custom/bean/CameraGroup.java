@@ -23,6 +23,9 @@ public class CameraGroup extends Group {
     }
 
     public void addChild(CameraGroup child) {
+        if (child == null) {
+            return;
+        }
         this.child.add(child);
         if (this.parent != null) {
             this.parent.addChild(child);

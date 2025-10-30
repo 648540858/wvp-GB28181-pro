@@ -11,7 +11,9 @@ import VectorSource from 'ol/source/Vector'
 import Tile from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
 import LayerGroup from 'ol/layer/Group'
-import WebGLPointslayer from 'ol/layer/WebGLPoints'
+import MVT from 'ol/format/MVT.js'
+import VectorTileLayer from 'ol/layer/VectorTile.js'
+import VectorTileSource from 'ol/source/VectorTile.js'
 import WebGLVectorLayer from 'ol/layer/WebGLVector'
 import Style from 'ol/style/Style'
 import Stroke from 'ol/style/Stroke'
@@ -58,7 +60,6 @@ export default {
     init() {
       this.$store.dispatch('server/getMapConfig')
         .then(mapConfigList => {
-          console.log(mapConfigList.length)
           if (mapConfigList.length === 0) {
            if (window.mapParam.tilesUrl) {
              this.mapTileList.push({
@@ -95,6 +96,8 @@ export default {
             url: this.mapTileList[this.mapTileIndex].tilesUrl
           })
         })
+        console.log(4444)
+        console.log(this.mapTileList[this.mapTileIndex].tilesUrl)
       } else {
         tileLayer = new Tile({
           preload: 4,
@@ -143,6 +146,51 @@ export default {
       })
       olMap.getView().on('change:resolution', () => {
         this.$emit('zoomChange', olMap.getView().getZoom())
+      })
+    },
+    addVectorTileLayer(tileUrl){
+      let source = new VectorTileSource({
+
+        format: new MVT(),
+        url: tileUrl
+      })
+      let layer = new VectorTileLayer({
+        source: source,
+        style: {
+          // 必须提供 style 配置，可以是对象或函数
+          'circle-radius': 4,
+          'circle-fill-color': 'red',
+          'circle-stroke-color': 'white',
+          'circle-stroke-width': 0.5
+          // 'icon-src': 'static/images/gis/sprite.png',
+          // 'icon-width': 120,
+          // 'icon-height': 40,
+          // 'icon-size': [40, 40],
+          // 'icon-anchor': [0.5, 1],
+          // 'icon-offset-origin': 'bottom-left',
+          // 'icon-offset': [
+          //   'match',
+          //   ['get', 'status'],
+          //   'ON',
+          //   [0, 0],
+          //   'OFF',
+          //   [40, 0],
+          //   'checked',
+          //   [80, 0],
+          //   [120, 60]
+          // ]
+        }
+      })
+      olMap.addLayer(layer)
+      layer.on('click', (event) => {
+        console.log(event)
+        if (event.features.length > 0) {
+          const items = []
+          for (let i = 0; i < event.features.length; i++) {
+            items.push(event.features[i].customData)
+          }
+          console.log(items)
+        }
       })
     },
     setCenter(point) {
@@ -283,6 +331,8 @@ export default {
       return vectorLayer
     },
     createPointLayer(data, clickEvent, option){
+      console.log(444)
+      console.log(data)
       const features = []
       let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
       let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
@@ -333,7 +383,7 @@ export default {
       })
       if (clickEvent && typeof clickEvent === 'function') {
         vectorLayer.on('click', (event) => {
-
+          console.log(event)
           if (event.features.length > 0) {
             const items = []
             for (let i = 0; i < event.features.length; i++) {
@@ -414,6 +464,7 @@ export default {
       layer.getSource().addFeature(feature)
     },
     updatePointLayer(layer, data, postponement) {
+      console.log(data)
       layer.getSource().clear(true)
       if (!data || data.length == 0) {
         return
@@ -423,13 +474,9 @@ export default {
         const feature = new Feature(new Point(fromLonLat(data[i].position)))
         feature.setId(data[i].id)
         feature.customData = data[i].data
-        // const cloneStyle = new Style()
-        // cloneStyle.setImage(new Icon({
-        //   anchor: data[i].image.anchor,
-        //   crossOrigin: 'Anonymous',
-        //   src: data[i].image.src
-        // }))
-        // feature.setStyle(cloneStyle)
+        feature.setProperties({
+          status: data[i].status
+        })
         features.push(feature)
       }
       layer.getSource().addFeatures(features)

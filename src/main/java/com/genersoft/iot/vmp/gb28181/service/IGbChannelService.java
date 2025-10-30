@@ -107,4 +107,6 @@ public interface IGbChannelService {
 
     void resetLevel();
 
+    byte[] getTile(int z, int x, int y, String geoCoordSys);
+
 }

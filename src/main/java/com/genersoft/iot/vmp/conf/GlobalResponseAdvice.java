@@ -38,6 +38,10 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
             }
         }
 
+        if (selectedContentType.equals(MediaType.parseMediaType("application/x-protobuf"))) {
+            return body;
+        }
+
         if (body instanceof WVPResult) {
             return body;
         }

@@ -527,10 +527,13 @@ public class ChannelProvider {
                 " where data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}";
     }
 
-    public String queryOnlineListsByGbDeviceId(Map<String, Object> params ){
+    public String queryCameraChannelInBox(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_TABLE_NAME);
-        sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 AND data_device_id = #{deviceId}");
+        sqlBuild.append(" where coalesce(wdc.gb_longitude, wdc.longitude) > #{minLon} " +
+                "AND coalesce(wdc.gb_longitude, wdc.longitude) <= #{maxLon} " +
+                "AND coalesce(wdc.gb_latitude,  wdc.latitude) > #{minLat} " +
+                "AND coalesce(wdc.gb_latitude,  wdc.latitude) <= #{maxLat}");
         return sqlBuild.toString();
     }
 
@@ -567,6 +570,13 @@ public class ChannelProvider {
         sqlBuild.append(" left join (select wcg.device_id from wvp_common_group wcg) temp on temp.device_id = coalesce(wdc.gb_parent_id, wdc.parent_id)" +
                 " where coalesce(wdc.gb_parent_id, wdc.parent_id) is not null and temp.device_id is null ");
         sqlBuild.append(" AND wdc.channel_type = 0 ");
+        return sqlBuild.toString();
+    }
+
+    public String queryOnlineListsByGbDeviceId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_TABLE_NAME);
+        sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 AND data_device_id = #{deviceId}");
         return sqlBuild.toString();
     }
 

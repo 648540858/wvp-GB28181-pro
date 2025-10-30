@@ -5,7 +5,11 @@
         <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer" @zoomChange="zoomChange"></MapComponent>
       </div>
       <div class="map-tool-box-bottom-right">
-
+        <div class="map-tool-btn-group">
+          <div class="el-dropdown-link map-tool-btn" @click="addVectorTileLayer">
+            <i class="iconfont icon-mti-jutai"></i>
+          </div>
+        </div>
         <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
           <el-dropdown placement="top"  @command="changeLayerStyle">
             <div class="el-dropdown-link map-tool-btn">
@@ -349,11 +353,11 @@ export default {
       switch (this.layerStyle) {
         case 0:
           channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, null)
-          console.log(22222)
-          console.log(channelLayer)
+
           break
         case 1:
-
+          console.log(22221112222)
+          console.log(channelLayer)
           // 直接展示
           if (channelLayer) {
             channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
@@ -824,6 +828,10 @@ export default {
             })
           })
       })
+    },
+    addVectorTileLayer() {
+      let tileUrl = 'http://192.168.1.3:18080/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=GCJ02'
+      this.$refs.mapComponent.addVectorTileLayer(tileUrl)
     }
   }
 

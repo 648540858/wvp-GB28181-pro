@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.alibaba.excel.support.cglib.beans.BeanMap;
+import com.alibaba.excel.util.BeanMapUtils;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -14,21 +16,24 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
+import no.ecc.vectortile.VectorTileEncoder;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -51,6 +56,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private GroupMapper groupMapper;
+
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
@@ -858,5 +865,90 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public void resetLevel() {
         commonGBChannelMapper.resetLevel();
+    }
+
+    @Override
+    public byte[] getTile(int z, int x, int y, String geoCoordSys) {
+        double minLon = tile2lon(x, z);
+        double maxLon = tile2lon(x + 1, z);
+        double maxLat = tile2lat(y, z);
+        double minLat = tile2lat(y + 1, z);
+
+        if (geoCoordSys != null) {
+            if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] minPosition = Coordtransform.GCJ02ToWGS84(minLon, minLat);
+                minLon = minPosition[0];
+                minLat = minPosition[1];
+
+                Double[] maxPosition = Coordtransform.GCJ02ToWGS84(maxLon, maxLat);
+                maxLon = maxPosition[0];
+                maxLat = maxPosition[1];
+            }
+        }
+        // 从数据库查询对应的数据
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryCameraChannelInBox(minLon, maxLon, minLat, maxLat);
+        VectorTileEncoder encoder = new VectorTileEncoder();
+        if (!channelList.isEmpty()) {
+            channelList.forEach(commonGBChannel -> {
+                double lon = commonGBChannel.getGbLongitude();
+                double lat = commonGBChannel.getGbLatitude();
+                // 转换为目标坐标系
+                if (geoCoordSys != null) {
+                    if (geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                        Double[] minPosition = Coordtransform.WGS84ToGCJ02(lon, lat);
+                        lon = minPosition[0];
+                        lat = minPosition[1];
+                    }
+                }
+
+                // 将 lon/lat 转为瓦片内像素坐标（0..256）
+                double[] px = lonLatToTilePixel(lon, lat, z, x, y);
+                Point pointGeom = geometryFactory.createPoint(new Coordinate(px[0], px[1]));
+
+                BeanMap beanMap = BeanMapUtils.create(commonGBChannel);
+
+//                Map<String, Object> props = new HashMap<>();
+//                props.put("id", commonGBChannel.getGbId());
+//                props.put("name", commonGBChannel.getGbName());
+//                props.put("deviceId", commonGBChannel.getGbDeviceId());
+//                props.put("status", commonGBChannel.getGbStatus());
+
+                encoder.addFeature("points", beanMap, pointGeom);
+            });
+        }
+        return encoder.encode();
+    }
+
+    /**
+     * tile X/Z -> longitude (deg)
+     */
+    private double tile2lon(int x, int z) {
+        double n = Math.pow(2.0, z);
+        return x / n * 360.0 - 180.0;
+    }
+
+    /**
+     * tile Y/Z -> latitude (deg)
+     */
+    private double tile2lat(int y, int z) {
+        double n = Math.pow(2.0, z);
+        double latRad = Math.atan(Math.sinh(Math.PI * (1 - 2.0 * y / n)));
+        return Math.toDegrees(latRad);
+    }
+
+    /**
+     * lon/lat -> pixel in tile (0..256)
+     */
+    private double[] lonLatToTilePixel(double lon, double lat, int z, int tileX, int tileY) {
+        double n = Math.pow(2.0, z);
+        double xtile = (lon + 180.0) / 360.0 * n;
+
+        double latRad = Math.toRadians(lat);
+        double ytile = (1.0 - Math.log(Math.tan(latRad) + 1.0 / Math.cos(latRad)) / Math.PI) / 2.0 * n;
+
+        double pixelX = (xtile - tileX) * 256.0;
+        double pixelY = (ytile - tileY) * 256.0;
+
+        return new double[] { pixelX, pixelY };
     }
 }

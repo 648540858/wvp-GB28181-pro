@@ -23,6 +23,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -498,6 +502,20 @@ public class ChannelController {
         channelService.resetLevel();
     }
 
+    @Operation(summary = "为地图提供标准的mvt图层", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping(value = "/map/tile/{z}/{x}/{y}", produces = "application/x-protobuf")
+    @Parameter(name = "geoCoordSys", description = "地理坐标系， WGS84/GCJ02")
+    public ResponseEntity<byte[]> getTile(@PathVariable int z, @PathVariable int x, @PathVariable int y, String geoCoordSys){
 
-
+        try {
+            byte[] mvt = channelService.getTile(z, x, y, geoCoordSys);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
+            headers.setContentLength(mvt.length);
+            return new ResponseEntity<>(mvt, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("构建矢量瓦片失败： z: {}, x: {}, y:{}", z, x, y, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

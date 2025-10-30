@@ -673,4 +673,7 @@ public interface CommonGBChannelMapper {
     @Update("UPDATE wvp_device_channel SET map_level=null")
     int resetLevel();
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelInBox")
+    List<CommonGBChannel> queryCameraChannelInBox(@Param("minLon") double minLon, @Param("maxLon") double maxLon,
+                                                  @Param("minLat") double minLat, @Param("maxLat") double maxLat);
 }

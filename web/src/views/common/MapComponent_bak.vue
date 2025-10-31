@@ -13,6 +13,7 @@ import VectorLayer from 'ol/layer/Vector'
 import LayerGroup from 'ol/layer/Group'
 import MVT from 'ol/format/MVT.js'
 import VectorTileLayer from 'ol/layer/VectorTile.js'
+import WebGLVectorTileLayer from 'ol/layer/WebGLVectorTile.js'
 import VectorTileSource from 'ol/source/VectorTile.js'
 import WebGLVectorLayer from 'ol/layer/WebGLVector'
 import Style from 'ol/style/Style'
@@ -121,9 +122,10 @@ export default {
       olMap.on('click', event => {
         let features = {}
         let layers = {}
+        console.log(event)
         // 单个元素事件传递
         olMap.forEachFeatureAtPixel(event.pixel, (featureAtPixel, layerAtPixel) => {
-
+          console.log(4444)
           if (layerAtPixel) {
             let ol_uid = 'key' + getUid(layerAtPixel)
             layers[ol_uid] = layerAtPixel
@@ -148,60 +150,100 @@ export default {
         this.$emit('zoomChange', olMap.getView().getZoom())
       })
     },
-    addVectorTileLayer(tileUrl, clickEvent, errorEvent){
+    addVectorTileLayer(tileUrl, clickEvent){
       let source = new VectorTileSource({
         format: new MVT(),
         url: tileUrl
       })
 
-      let layer = new VectorTileLayer({
-        source: source,
-        style: function(feature) {
-          let status = feature.properties_.gbStatus
-          if (status === 'ON') {
-            return new Style({
-              image: new Icon({
-                anchor: [0.5, 1],
-                crossOrigin: 'Anonymous',
-                src: 'static/images/gis/camera1.png',
-                opacity: 1
-              })
-            })
-          }else if (status === 'OFF'){
-            return new Style({
-              image: new Icon({
-                anchor: [0.5, 1],
-                crossOrigin: 'Anonymous',
-                src: 'static/images/gis/camera1-offline.png',
-                opacity: 1
-              })
-            })
+      const webglStyle = {
+        // Example layer names — adjust to actual layer names from your tileset:
+        // 'poi', 'places', 'points', 'place_label' etc.
+        // For layers that are not points we leave undefined so they won't be drawn (or you can omit them).
+        'poi': {
+          // Only draw circles for point geometries
+          symbol: {
+            symbolType: 'circle',
+            // color: rgba in 0..1 range => red color with full opacity
+            color: [1.0, 0.0, 0.0, 1.0],
+            // radius in pixels
+            radius: 4,
+            // optional outline stroke for visibility (rgba)
+            stroke: {
+              color: [1, 1, 1, 0.6],
+              width: 0.5
+            }
+          }
+        },
+        'places': {
+          symbol: {
+            symbolType: 'circle',
+            color: [1.0, 0.0, 0.0, 1.0],
+            radius: 4
+          }
+        },
+        'points': {
+          symbol: {
+            symbolType: 'circle',
+            color: [1.0, 0.0, 0.0, 1.0],
+            radius: 4
           }
         }
-        // style: {
-        //   // 必须提供 style 配置，可以是对象或函数
-        //   'circle-radius': 4,
-        //   'circle-fill-color': 'red',
-        //   'circle-stroke-color': 'white',
-        //   'circle-stroke-width': 0.5
-        //   // 'icon-src': 'static/images/gis/sprite.png',
-        //   // 'icon-width': 120,
-        //   // 'icon-height': 40,
-        //   // 'icon-size': [40, 40],
-        //   // 'icon-anchor': [0.5, 1],
-        //   // 'icon-offset-origin': 'bottom-left',
-        //   // 'icon-offset': [
-        //   //   'match',
-        //   //   ['get', 'status'],
-        //   //   'ON',
-        //   //   [0, 0],
-        //   //   'OFF',
-        //   //   [40, 0],
-        //   //   'checked',
-        //   //   [80, 0],
-        //   //   [120, 60]
-        //   // ]
+        // If your tileset uses different layer names, add them here with the same circle symbol.
+      };
+
+      let layer = new WebGLVectorTileLayer({
+        source: source,
+        declutter: false,
+        disableHitDetection: true,
+        // style: function(feature) {
+        //   let status = feature.properties_.gbStatus
+        //   if (status === 'ON') {
+        //     return new Style({
+        //       image: new Icon({
+        //         anchor: [0.5, 1],
+        //         crossOrigin: 'Anonymous',
+        //         src: 'static/images/gis/camera1.png',
+        //         opacity: 1
+        //       })
+        //     })
+        //   }else if (status === 'OFF'){
+        //     return new Style({
+        //       image: new Icon({
+        //         anchor: [0.5, 1],
+        //         crossOrigin: 'Anonymous',
+        //         src: 'static/images/gis/camera1-offline.png',
+        //         opacity: 1
+        //       })
+        //     })
+        //   }
         // }
+        // style: webglStyle
+        style: {
+          // 必须提供 style 配置，可以是对象或函数
+          // 'circle-radius': 4,
+          // 'circle-fill-color': 'red',
+          // 'circle-stroke-color': 'white',
+          // 'circle-stroke-width': 0.5
+          'icon-src': 'static/images/gis/sprite.png',
+          'icon-width': 120,
+          'icon-height': 40,
+          'icon-size': [40, 40],
+          'icon-anchor': [0.5, 1],
+          'icon-offset-origin': 'bottom-left',
+          'icon-offset': [0, 0]
+          // 'icon-offset': [
+          //   'match',
+          //   ['get', 'status'],
+          //   'ON',
+          //   [0, 0],
+          //   'OFF',
+          //   [40, 0],
+          //   'checked',
+          //   [80, 0],
+          //   [120, 60]
+          // ]
+        }
       })
       olMap.addLayer(layer)
       if (clickEvent) {
@@ -216,14 +258,7 @@ export default {
           }
         })
       }
-      if (errorEvent) {
-        source.on('tileloaderror', (event) => {
-          console.log(event)
-          errorEvent(event)
-        })
-      }
 
-      return layer
     },
     setCenter(point) {
 

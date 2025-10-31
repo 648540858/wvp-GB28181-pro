@@ -139,6 +139,10 @@ jt1078:
     #[可选] 设备鉴权的密码
     password: admin123
 
+sy:
+  enable: false
+  # 云台控制开始到结束的时间间隔(毫秒)
+  ptz-control-time-interval: 300
 
 #zlm 默认服务器配置
 media:

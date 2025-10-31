@@ -314,7 +314,8 @@ public interface GroupMapper {
             "    SUM(CASE WHEN coalesce( wdc.gb_status, wdc.status) = 'ON' THEN 1 ELSE 0 END) AS onlineCount" +
             " FROM " +
             "    wvp_device_channel wdc " +
-            " where coalesce( wdc.gb_parent_id, wdc.parent_id) in " +
+            " where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+            " AND coalesce( wdc.gb_parent_id, wdc.parent_id) in " +
             " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " GROUP BY coalesce(wdc.gb_parent_id, wdc.parent_id)" +
             "</script>")

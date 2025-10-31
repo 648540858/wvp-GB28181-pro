@@ -830,8 +830,28 @@ export default {
       })
     },
     addVectorTileLayer() {
-      let tileUrl = 'http://192.168.1.3:18080/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=GCJ02'
-      this.$refs.mapComponent.addVectorTileLayer(tileUrl)
+      let geoCoordSys = this.$refs.mapComponent.getCoordSys()
+      const baseUrl = window.baseUrl ? window.baseUrl : ''
+      let tileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl)
+        + `/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
+
+      let clientEvent = data => {
+        this.closeInfoBox()
+        this.$nextTick(() => {
+          this.showChannelInfo(data[0])
+          // if (data[0].edit) {
+          //   this.showEditInfo(data[0])
+          // }else {
+          //   this.showChannelInfo(data[0])
+          // }
+        })
+      }
+
+      let tileEvent = error => {
+        console.log(error)
+      }
+
+      let tileLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, clientEvent, tileEvent)
     }
   }
 

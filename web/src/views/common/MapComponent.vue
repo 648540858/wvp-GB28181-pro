@@ -31,7 +31,7 @@ import { fromLonLat, toLonLat } from './map/TransformLonLat'
 
 import { v4 } from 'uuid'
 import { getUid } from 'ol'
-import {Fill} from "ol/style";
+import { Fill } from 'ol/style'
 
 let olMap, tileLayer = null
 export default {
@@ -158,6 +158,9 @@ export default {
         source: source,
         style: function(feature) {
           let status = feature.properties_.gbStatus
+          if (layer.get('hideFeatures').includes(feature.properties_.gbId)) {
+            return new Style()
+          }
           if (status === 'ON') {
             return new Style({
               image: new Icon({
@@ -203,6 +206,7 @@ export default {
         //   // ]
         // }
       })
+      layer.set('hideFeatures', [])
       olMap.addLayer(layer)
       if (clickEvent) {
         layer.on('click', (event) => {
@@ -363,8 +367,6 @@ export default {
       return vectorLayer
     },
     createPointLayer(data, clickEvent, option){
-      console.log(444)
-      console.log(data)
       const features = []
       let maxZoom = (option && option.maxZoom) ? option.maxZoom : olMap.getView().getMaxZoom()
       let minZoom = (option && option.minZoom) ? option.minZoom : olMap.getView().getMinZoom()
@@ -498,7 +500,7 @@ export default {
     updatePointLayer(layer, data, postponement) {
       console.log(data)
       layer.getSource().clear(true)
-      if (!data || data.length == 0) {
+      if (!data || data.length === 0) {
         return
       }
       const features = []
@@ -567,12 +569,15 @@ export default {
       feature.setStyle(style)
       olMap.render()
     },
+    hideFeature(layer, featureId) {
+      layer.get('hideFeatures').add(featureId)
+    },
+    cancelHideFeature(layer, featureId) {
+      let index = layer.get('hideFeatures').indexOf(featureId)
+      layer.get('hideFeatures').splice(index, 1)
+    },
     setFeaturePositionById(layer, featureId, data) {
-      if (layer instanceof LayerGroup) {
 
-      }else {
-
-      }
       let featureOld = layer.getSource().getFeatureById(featureId)
       if (featureOld) {
         layer.getSource().removeFeature(featureOld)
@@ -743,6 +748,11 @@ export default {
     },
     getCoordSys(){
       return this.mapTileList[this.mapTileIndex].coordinateSystem
+    },
+    refreshLayer(layer){
+      if (layer && layer.getSource()) {
+        layer.getSource().refresh()
+      }
     }
   }
 }

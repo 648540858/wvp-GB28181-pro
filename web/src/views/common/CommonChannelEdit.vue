@@ -1,5 +1,5 @@
 <template>
-  <div id="CommonChannelEdit" v-loading="loading" style="width: 100%">
+  <div id="CommonChannelEdit" v-loading="loading" style="width: 100%; overflow: auto; height: calc(-148px + 100vh);">
     <el-form ref="channelForm" :model="form" :rules="rules" status-icon label-width="160px" class="channel-form" size="medium">
       <div class="form-box">
         <el-form-item label="名称" prop="gbName">
@@ -13,7 +13,7 @@
           </el-input>
         </el-form-item>
         <el-form-item label="设备厂商">
-          <el-input v-model="gbManufacturer" placeholder="请输入设备厂商" />
+          <el-input v-model="form.gbManufacturer" placeholder="请输入设备厂商" />
         </el-form-item>
         <el-form-item label="设备型号">
           <el-autocomplete
@@ -252,7 +252,7 @@
         </el-form-item>
         <div style="text-align: right">
           <el-button type="primary" @click="onSubmit" >保存</el-button>
-          <el-button v-if="cancel" @click="cancelSubmit" >取消</el-button>
+          <el-button v-if="showCancel" @click="cancelSubmit" >取消</el-button>
           <el-button v-if="form.dataType === 1" @click="reset">重置</el-button>
         </div>
       </div>
@@ -276,7 +276,7 @@ export default {
     ChooseGroup,
     channelCode
   },
-  props: ['id', 'dataForm', 'saveSuccess', 'cancel'],
+  props: ['id', 'dataForm', 'showCancel'],
   data() {
     return {
       rules: {
@@ -303,7 +303,7 @@ export default {
   created() {
     // 获取完整信息
     if (this.id) {
-      this.getCommonChannel()
+      this.getCommonChannel(this.id)
     } else {
       if (!this.dataForm.gbDeviceId) {
         this.dataForm.gbDeviceId = ''
@@ -335,9 +335,7 @@ export default {
                   showClose: true,
                   message: '保存成功'
                 })
-                if (this.saveSuccess) {
-                  this.saveSuccess()
-                }
+                this.$emit('submitSuccess')
               }).finally(() => {
               this.loading = false
             })
@@ -378,7 +376,7 @@ export default {
               showClose: true,
               message: '重置成功 已保存'
             })
-            this.getCommonChannel()
+            this.getCommonChannel(this.form.gbId)
           }
         }).catch((error) => {
           console.error(error)
@@ -389,9 +387,9 @@ export default {
 
       })
     },
-    getCommonChannel: function() {
+    getCommonChannel: function(id) {
       this.loading = true
-      this.$store.dispatch('commonChanel/queryOne', this.id)
+      this.$store.dispatch('commonChanel/queryOne', id)
         .then(data => {
           if (data.gbDownloadSpeed) {
             data.gbDownloadSpeedArray = data.gbDownloadSpeed.split('/')
@@ -422,9 +420,7 @@ export default {
       })
     },
     cancelSubmit: function() {
-      if (this.cancel) {
-        this.cancel()
-      }
+      this.$emit('cancel')
     },
     getPaths: function() {
       this.parentPath = []

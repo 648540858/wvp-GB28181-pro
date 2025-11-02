@@ -502,10 +502,59 @@ public class ChannelController {
         channelService.resetLevel();
     }
 
-    @Operation(summary = "为地图提供标准的mvt图层", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "执行抽稀", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/map/thin/draw")
+    public String drawThin(@RequestBody DrawThinParam param){
+        if(param == null || param.getZoomParam() == null || param.getZoomParam().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR400);
+        }
+        return channelService.drawThin(param.getZoomParam(), param.getExtent(), param.getGeoCoordSys());
+    }
+
+    @Operation(summary = "清除未保存的抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "抽稀ID", required = true)
+    @GetMapping("/map/thin/clear")
+    public void clearThin(String id){
+
+    }
+
+    @Operation(summary = "保存的抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "抽稀ID", required = true)
+    @GetMapping("/map/thin/save")
+    public void saveThin(String id){
+
+    }
+
+    @Operation(summary = "获取抽稀执行的进度", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "抽稀ID", required = true)
+    @GetMapping("/map/thin/progress")
+    public DrawThinProcess thinProgress(String id){
+        return channelService.thinProgress(id);
+    }
+
+    @Operation(summary = "为地图提供标准mvt图层", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/map/tile/{z}/{x}/{y}", produces = "application/x-protobuf")
     @Parameter(name = "geoCoordSys", description = "地理坐标系， WGS84/GCJ02")
     public ResponseEntity<byte[]> getTile(@PathVariable int z, @PathVariable int x, @PathVariable int y, String geoCoordSys){
+
+        try {
+            byte[] mvt = channelService.getTile(z, x, y, geoCoordSys);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
+            headers.setContentLength(mvt.length);
+            return new ResponseEntity<>(mvt, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("构建矢量瓦片失败： z: {}, x: {}, y:{}", z, x, y, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @Operation(summary = "为地图提供经过抽稀的标准mvt图层", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping(value = "/map/thin/tile/{z}/{x}/{y}", produces = "application/x-protobuf")
+    @Parameter(name = "geoCoordSys", description = "地理坐标系， WGS84/GCJ02")
+    @Parameter(name = "thinId", description = "抽稀结果ID")
+    public ResponseEntity<byte[]> getThinTile(@PathVariable int z, @PathVariable int x, @PathVariable int y,
+                                              String geoCoordSys, @RequestParam(required = false) String thinId){
 
         try {
             byte[] mvt = channelService.getTile(z, x, y, geoCoordSys);

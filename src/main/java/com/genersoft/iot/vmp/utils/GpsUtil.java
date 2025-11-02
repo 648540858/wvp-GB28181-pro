@@ -10,8 +10,6 @@ public class GpsUtil {
 
 
     public static BaiduPoint Wgs84ToBd09(String xx, String yy) {
-
-
         double lng = Double.parseDouble(xx);
         double lat = Double.parseDouble(yy);
         Double[] gcj02 = Coordtransform.WGS84ToGCJ02(lng, lat);

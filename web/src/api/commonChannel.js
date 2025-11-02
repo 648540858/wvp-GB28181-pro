@@ -613,6 +613,40 @@ export function resetLevel() {
     url: '/api/common/channel/map/reset-level'
   })
 }
+export function clearThin(id) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/map/thin/clear',
+    params: {
+      id: id
+    }
+  })
+}
+export function thinProgress(id) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/map/thin/progress',
+    params: {
+      id: id
+    }
+  })
+}
+export function saveThin(id) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/map/thin/save',
+    params: {
+      id: id
+    }
+  })
+}
+export function drawThin(data) {
+  return request({
+    method: 'post',
+    url: '/api/common/channel/map/thin/draw',
+    data: data
+  })
+}
 export function test() {
   return request({
     method: 'get',

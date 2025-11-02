@@ -22,7 +22,7 @@
 
       </el-tab-pane>
       <el-tab-pane label="国标通道配置">
-        <CommonChannelEdit :id="jtChannel.gbId" ref="commonChannelEdit" :data-form="jtChannel" :cancel="close" />
+        <CommonChannelEdit :id="jtChannel.gbId" ref="commonChannelEdit" :data-form="jtChannel" @cancel="close" />
       </el-tab-pane>
     </el-tabs>
   </div>

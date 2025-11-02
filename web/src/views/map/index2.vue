@@ -11,23 +11,31 @@
           </div>
         </div>
         <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
-          <el-dropdown placement="top"  @command="changeLayerType">
+          <el-dropdown placement="top"  @command="changeLayerStyle">
             <div class="el-dropdown-link map-tool-btn">
               <i class="iconfont icon-mti-jutai"></i>
             </div>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item :command="0" >
-                <span v-if="layerType !== 0">图层关闭</span>
-                <span v-if="layerType === 0" style="color: rgb(64, 158, 255);">图层关闭</span>
+                <span v-if="layerStyle !== 0">图层关闭</span>
+                <span v-if="layerStyle === 0" style="color: rgb(64, 158, 255);">图层关闭</span>
               </el-dropdown-item>
               <el-dropdown-item :command="1" >
-                <span v-if="layerType !== 1">直接展示</span>
-                <span v-if="layerType === 1" style="color: rgb(64, 158, 255);">直接展示</span>
+                <span v-if="layerStyle !== 1">直接展示</span>
+                <span v-if="layerStyle === 1" style="color: rgb(64, 158, 255);">直接展示</span>
               </el-dropdown-item>
               <el-dropdown-item :command="2">
-                <span v-if="layerType !== 2">抽稀图层</span>
-                <span v-if="layerType === 2" style="color: rgb(64, 158, 255);">抽稀图层</span>
+                <span v-if="layerStyle !== 2">碰撞检测</span>
+                <span v-if="layerStyle === 2" style="color: rgb(64, 158, 255);">碰撞检测</span>
               </el-dropdown-item>
+              <el-dropdown-item :command="3">
+                <span v-if="layerStyle !== 3">抽稀图层</span>
+                <span v-if="layerStyle === 3" style="color: rgb(64, 158, 255);">抽稀图层</span>
+              </el-dropdown-item>
+<!--              <el-dropdown-item :command="4">-->
+<!--                <span v-if="layerStyle !== 4">聚合图层</span>-->
+<!--                <span v-if="layerStyle === 4" style="color: rgb(64, 158, 255);">聚合图层</span>-->
+<!--              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -69,7 +77,7 @@
             <el-slider v-model="diffPixels" show-input :min="10" :max="200" input-size="mini" ></el-slider>
             <div style="margin-left: 10px; line-height: 38px;">
               <el-button :loading="quicklyDrawThinLoading" @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
-              <el-button :loading="boxDrawThinLoading" size="mini" @click="boxDrawThin" >局部抽稀</el-button>
+              <el-button size="mini" @click="boxDrawThin" >局部抽稀</el-button>
               <el-button size="mini" @click="resetDrawThinData()">数据还原</el-button>
               <el-button :loading="saveDrawThinLoading" type="primary" :disabled="!layerGroupSource" size="mini" @click="saveDrawThin()">保存</el-button>
               <el-button type="warning" size="mini" @click="showDrawThinBox(false)">取消</el-button>
@@ -123,7 +131,6 @@
       <devicePlayer ref="devicePlayer" ></devicePlayer>
       <queryTrace ref="queryTrace" ></queryTrace>
       <CommonChannelEditDialog ref="commonChannelEditDialog" ></CommonChannelEditDialog>
-      <DrawThinProgress ref="drawThinProgress" ></DrawThinProgress>
     </div>
 </template>
 
@@ -132,18 +139,16 @@ import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
 import devicePlayer from '../common/channelPlayer/index.vue'
-import CommonChannelEditDialog from '../dialog/commonChannelEditDialog.vue'
-import DrawThinProgress from './dialog/drawThinProgress.vue'
+import CommonChannelEditDialog from "@/views/dialog/commonChannelEditDialog.vue";
 
 let cameraListForSource = []
 let cameraList = []
 let cameraListForLevelMap = new Map()
 let cameraLayerExtent = []
-let channelLayer, channelTileLayer = null
+let channelLayer = null
 export default {
   name: 'Map',
   components: {
-    DrawThinProgress,
     CommonChannelEditDialog,
     DeviceTree,
     devicePlayer,
@@ -169,11 +174,9 @@ export default {
       zoomValue: 10,
       showDrawThin: false,
       quicklyDrawThinLoading: false,
-      boxDrawThinLoading: false,
-      drawThinId: null,
-      drawThinLayer: null,
       saveDrawThinLoading: false,
-      layerType: 0,
+      layerStyle: 0,
+      drawThinLayer: null,
       layerGroupSource: null
     }
   },
@@ -185,32 +188,64 @@ export default {
   },
   methods: {
     initChannelLayer: function () {
+
       this.mapTileList = this.$refs.mapComponent.mapTileList
       // 获取所有有位置的通道
       this.closeInfoBox()
-
-      let clientEvent = data => {
-        this.closeInfoBox()
-        this.$nextTick(() => {
-          if (data[0].edit) {
-            this.showEditInfo(data[0])
-          }else {
-            this.showChannelInfo(data[0])
+      this.$store.dispatch('commonChanel/getAllForMap', {}).then(data => {
+        cameraListForSource = data
+        console.log(data.length)
+        let minLng = data[0].gbLongitude
+        let maxLng = data[0].gbLongitude
+        let minLat = data[0].gbLatitude
+        let maxLat = data[0].gbLatitude
+        for (let i = 1; i < data.length; i++) {
+          let item = data[i]
+          if (item.gbLongitude < minLng) {
+            minLng = item.gbLongitude
           }
-        })
-      }
-
-      channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, null)
+          if (item.gbLongitude > maxLng) {
+            maxLng = item.gbLongitude
+          }
+          if (item.gbLatitude < minLat) {
+            minLat = item.gbLatitude
+          }
+          if (item.gbLatitude > maxLat) {
+            maxLat = item.gbLatitude
+          }
+          if (item.gbLongitude && item.gbLatitude) {
+            let position = [item.gbLongitude, item.gbLatitude]
+            let cameraData = {
+              id: item.gbId,
+              position: position,
+              status: item.gbStatus,
+              data: item,
+              image: {
+                anchor: [0.5, 1],
+                src: this.getImageByChannel(item)
+              }
+            }
+            cameraList.push(cameraData)
+            if (item.mapLevel) {
+              if (cameraListForLevelMap.has(item.mapLevel)) {
+                let list = cameraListForLevelMap.get(item.mapLevel)
+                list.push(cameraData)
+              }else {
+                cameraListForLevelMap.set(item.mapLevel, [cameraData])
+              }
+            }else {
+              cameraListForLevelMap.set(0, [cameraData])
+            }
+          }
+        }
+        cameraLayerExtent = [minLng, minLat, maxLng, maxLat]
+        this.updateChannelLayer()
+      })
     },
     refreshLayer(){
       this.closeInfoBox()
-      // 刷新瓦片图层
-      if (channelLayer) {
-        this.$refs.mapComponent.refreshLayer(channelLayer)
-      }
-      if (channelTileLayer) {
-        this.$refs.mapComponent.refreshLayer(channelTileLayer)
-      }
+      this.$refs.mapComponent.clearLayer(channelLayer)
+      this.initChannelLayer()
     },
     treeChannelClickEvent: function (id) {
       this.closeInfoBox()
@@ -250,18 +285,7 @@ export default {
             }
           },
           {
-            label: '修改位置',
-            icon: 'el-icon-coordinate',
-            type: 1,
-            onClick: (event, data, node) => {
-              this.$store.dispatch('commonChanel/queryOne', data.id)
-                .then(data => {
-                  this.editPosition(data)
-                })
-            }
-          },
-          {
-            label: '编辑通道',
+            label: '编辑位置',
             icon: 'el-icon-edit',
             type: 1,
             onClick: (event, data, node) => {
@@ -271,6 +295,15 @@ export default {
                 })
             }
           }
+          // ,
+          // {
+          //   label: '轨迹查询',
+          //   icon: 'el-icon-map-location',
+          //   type: 1,
+          //   onClick: (event, data, node) => {
+          //
+          //   }
+          // }
         ]
     },
     showChannelInfo: function(data) {
@@ -283,8 +316,9 @@ export default {
         data: data,
         status: data.gbStatus
       }
-      this.$refs.mapComponent.addFeature(channelLayer, cameraData)
-
+      if (!this.$refs.mapComponent.hasFeature(channelLayer, data.gbId)) {
+        this.$refs.mapComponent.addFeature(channelLayer, cameraData)
+      }
       this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
     },
     zoomChange: function(zoom) {},
@@ -299,37 +333,74 @@ export default {
       }
       this.$refs.mapComponent.changeMapTile(index)
     },
-    clientEvent(data){
-      this.closeInfoBox()
-      this.$nextTick(() => {
-        if (data[0].edit) {
-          this.showEditInfo(data[0])
-        }else {
-          this.showChannelInfo(data[0])
-        }
-      })
-    },
-    changeLayerType: function (index) {
-      if (this.layerType === index) {
+    changeLayerStyle: function (index) {
+      if (this.layerStyle === index) {
         return
       }
-      this.layerType = index
-      if (index === 0) {
-        this.$refs.mapComponent.removeLayer(channelTileLayer)
+      this.layerStyle = index
+      this.$refs.mapComponent.removeLayer(channelLayer)
+      this.channelLayer = null
+      this.updateChannelLayer()
+    },
+    updateChannelLayer: function() {
+      let clientEvent = data => {
+        this.closeInfoBox()
+        this.$nextTick(() => {
+          if (data[0].edit) {
+            this.showEditInfo(data[0])
+          }else {
+            this.showChannelInfo(data[0])
+          }
+        })
       }
 
-      let geoCoordSys = this.$refs.mapComponent.getCoordSys()
-      const baseUrl = window.baseUrl ? window.baseUrl : ''
-      let baseApi = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl)
-      let tileUrl = null
-      if (index === 1) {
-        tileUrl = baseApi + `/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
-      }else if (index === 2) {
-        tileUrl = baseApi + `/api/common/channel/map/thin/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
-      }else {
-        return
+      switch (this.layerStyle) {
+        case 0:
+          channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, null)
+
+          break
+        case 1:
+          console.log(22221112222)
+          console.log(channelLayer)
+          // 直接展示
+          if (channelLayer) {
+            channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
+          }else {
+            console.log(cameraList.length)
+            setTimeout(() => {
+              channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, null)
+            })
+          }
+          break
+        case 2:
+          // 碰撞检测
+          if (channelLayer) {
+            channelLayer = this.$refs.mapComponent.updatePointLayer(channelLayer, cameraList, true)
+          }else {
+            setTimeout(() => {
+              channelLayer = this.$refs.mapComponent.addPointLayer(cameraList, clientEvent, {
+                declutter: true
+              })
+            })
+          }
+          break
+        case 3:
+          // 抽稀图层
+          this.$refs.mapComponent.removeLayer(channelLayer)
+          channelLayer = this.$refs.mapComponent.addPointLayerGroup(cameraListForLevelMap, clientEvent)
+          break
+        // case 4:
+        //   // 聚合图层
+        //
+        //   break
       }
-      channelTileLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl. this.clientEvent)
+    },
+    getImageByChannel: function (channel) {
+      if (channel.gbStatus === 'ON') {
+        return 'static/images/gis/camera1.png'
+      } else {
+        return 'static/images/gis/camera1-offline.png'
+      }
     },
     closeInfoBox: function () {
       if (this.infoBoxId !== null) {
@@ -403,10 +474,6 @@ export default {
         data: channel,
         status: 'checked'
       })
-      // 如果开启了瓦片图层，此时应该让瓦片图层不再显示这个feature
-      if (channelTileLayer) {
-        this.$refs.mapComponent.hideFeature(channelTileLayer, channel.gbId)
-      }
     },
     showEditInfo: function(data) {
       this.dragChannel = data
@@ -424,9 +491,6 @@ export default {
         data: channel,
         status: channel.gbStatus
       })
-      if (channelTileLayer) {
-        this.$refs.mapComponent.cancelHideFeature(channelTileLayer, channel.gbId)
-      }
     },
     submitEdit: function(channel) {
       let position = [channel.gbLongitude, channel.gbLatitude]
@@ -451,65 +515,89 @@ export default {
 
         })
     },
+    getTrace: function (data) {
+      this.clean()
+      this.$refs.queryTrace.openDialog(data, (channelPositions) => {
+        if (channelPositions.length === 0) {
+          this.$message.warning({
+            showClose: true,
+            message: '未查询到轨迹信息'
+          })
+        } else {
+          let positions = []
+          for (let i = 0; i < channelPositions.length; i++) {
+            if (channelPositions[i][this.longitudeStr] * channelPositions[i][this.latitudeStr] > 0) {
+              positions.push([channelPositions[i][this.longitudeStr], channelPositions[i][this.latitudeStr]])
+            }
+
+          }
+          if (positions.length === 0) {
+            this.$message.warning({
+              showClose: true,
+              message: '未查询到轨迹信息'
+            })
+            return
+          }
+        }
+      })
+    },
+    clean: function (){
+      if (this.infoBoxId !== null) {
+        this.$refs.mapComponent.closeInfoBox(this.infoBoxId)
+      }
+    },
+    testArray: function (){
+      this.$store.dispatch('commonChanel/test')
+    },
     showDrawThinBox: function(show){
       this.showDrawThin = show
       setTimeout(() => {
         if (!show) {
           // 关闭抽稀预览
-          if (this.drawThinId !== null) {
-            // 发送消息 清空抽稀结果
-            this.$store.dispatch('commonChanel/clearThin', this.drawThinId)
-            this.drawThinId = null
-          }
           if (this.drawThinLayer !== null) {
             this.$refs.mapComponent.removeLayer(this.drawThinLayer)
             this.drawThinLayer = null
           }
+          // 清空预览数据
+          this.layerGroupSource = null
+          this.updateChannelLayer()
+        }else {
+          //
         }
       }, 1)
     },
     quicklyDrawThin: function (){
-      if (channelLayer) {
+      if (this.channelLayer) {
         this.$refs.mapComponent.removeLayer(channelLayer)
-      }
-      if (channelTileLayer) {
-        this.$refs.mapComponent.removeLayer(channelTileLayer)
       }
       if (this.drawThinLayer !== null) {
         this.$refs.mapComponent.removeLayer(this.drawThinLayer)
         this.drawThinLayer = null
       }
+      // 获取待抽稀数据
+      let cameraList = cameraListForSource.slice()
+
       this.quicklyDrawThinLoading = true
-      console.log(222)
-      console.log(this.getDrawThinParam())
-      // 获取每一个图层的抽稀参数
-      this.$store.dispatch('commonChanel/drawThin', {
-        zoomParam: this.getDrawThinParam()
-      })
-        .then(drawThinId => {
-          // 显示抽稀进度
-          this.drawThinId = drawThinId
-          this.$refs.drawThinProgress.openDialog(drawThinId, () => {
+      setTimeout(() => {
+        this.drawThin(cameraList).then((layerGroupSource) => {
+          this.layerGroupSource = layerGroupSource
+          this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
             this.closeInfoBox()
-            this.$message.success({
-              showClose: true,
-              message: '抽稀完成，请预览无误后保存抽稀结果'
-            })
-            // 展示抽稀结果
-            this.showDrawThinLayer(drawThinId)
+            // this.$nextTick(() => {
+            //   if (data[0].edit) {
+            //     this.showEditInfo(data[0])
+            //   }else {
+            //     this.showChannelInfo(data[0])
+            //   }
+            // })
+          })
+          this.quicklyDrawThinLoading = false
+          this.$message.success({
+            showClose: true,
+            message: '抽稀完成，请预览无误后保存抽稀结果'
           })
         })
-        .finally(() => {
-          this.quicklyDrawThinLoading = false
-        })
-    },
-    showDrawThinLayer(thinId) {
-      // 展示抽稀结果
-      let geoCoordSys = this.$refs.mapComponent.getCoordSys()
-      const baseUrl = window.baseUrl ? window.baseUrl : ''
-      let baseApi = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl)
-      let tileUrl = baseApi + `/api/common/channel/map/thin/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&thinId=${thinId}&accessToken=${this.$store.getters.token}`
-      this.drawThinLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, null)
+      })
     },
     boxDrawThin: function (){
       this.$message.warning({
@@ -521,53 +609,91 @@ export default {
 
         // 清理默认的摄像头图层
         if (channelLayer) {
-          this.$refs.mapComponent.removeLayer(channelLayer)
+          this.$refs.mapComponent.clearLayer(channelLayer)
         }
-        if (channelTileLayer) {
-          this.$refs.mapComponent.removeLayer(channelTileLayer)
-        }
-        if (this.drawThinLayer !== null) {
-          this.$refs.mapComponent.removeLayer(this.drawThinLayer)
-          this.drawThinLayer = null
-        }
-        this.boxDrawThinLoading = true
-        // 获取每一个图层的抽稀参数
-        this.$store.dispatch('commonChanel/drawThin', {
-          zoomParam: this.getDrawThinParam(),
-          extent: extent
+        this.$message.warning({
+          showClose: true,
+          message: '正在抽稀，请稍等'
         })
-          .then(drawThinId => {
-            // 显示抽稀进度
-            this.drawThinId = drawThinId
-            this.$refs.drawThinProgress.openDialog(drawThinId, () => {
-              this.closeInfoBox()
-              this.$message.success({
+        setTimeout(() => {
+          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
+          let cameraListInExtent = []
+          let cameraListOutExtent = []
+          if (this.layerGroupSource !== null) {
+            // 从当前预览的数据里，获取待抽稀的数据
+            let sourceCameraList = this.layerGroupSource.get(0)
+            console.log(sourceCameraList)
+            if (!sourceCameraList) {
+              this.$message.warning({
                 showClose: true,
-                message: '抽稀完成，请预览无误后保存抽稀结果'
+                message: '数据已经全部抽稀'
               })
-              // 展示抽稀结果
-              this.showDrawThinLayer(drawThinId)
+              return
+            }
+            for (let i = 0; i < sourceCameraList.length; i++) {
+              let value = sourceCameraList[i]
+              if (!value.data.gbLongitude || !value.data.gbLatitude) {
+                continue
+              }
+              if (value.data.gbLongitude >= extent[0] && value.data.gbLongitude <= extent[2]
+                && value.data.gbLatitude >= extent[1] && value.data.gbLatitude <= extent[3]) {
+                cameraListInExtent.push(value.data)
+              }else {
+                cameraListOutExtent.push(value.data)
+              }
+            }
+          }else {
+            for (let i = 0; i < cameraListForSource.length; i++) {
+              let value = cameraListForSource[i]
+              if (!value.gbLongitude || !value.gbLatitude) {
+                continue
+              }
+              if (value.gbLongitude >= extent[0] && value.gbLongitude <= extent[2]
+                && value.gbLatitude >= extent[1] && value.gbLatitude <= extent[3]) {
+                cameraListInExtent.push(value)
+              }else {
+                cameraListOutExtent.push(value)
+              }
+            }
+          }
+          // 如果已经在预览，清理预览图层
+          if (this.drawThinLayer !== null) {
+            this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+            this.drawThinLayer = null
+          }
+          this.drawThin(cameraListInExtent).then((layerGroupSource) => {
+            if (this.layerGroupSource !== null) {
+              let zoom = zoomExtent[0]
+              // 按照层级合并每次的抽稀结果
+              while (zoom < zoomExtent[1]) {
+                Array.prototype.push.apply(layerGroupSource.get(zoom), this.layerGroupSource.get(zoom))
+                zoom += 1
+              }
+            }
+            if (cameraListOutExtent.length > 0) {
+              let layerSourceForOutExtent = this.createZoomLayerSource(cameraListOutExtent, zoomExtent[0])
+              layerGroupSource.set(0, layerSourceForOutExtent)
+            }
+            this.layerGroupSource = layerGroupSource
+            this.drawThinLayer = this.$refs.mapComponent.addPointLayerGroup(layerGroupSource, data => {
+              this.closeInfoBox()
+              // this.$nextTick(() => {
+              //   if (data[0].edit) {
+              //     this.showEditInfo(data[0])
+              //   }else {
+              //     this.showChannelInfo(data[0])
+              //   }
+              // })
+            })
+            this.$message.success({
+              showClose: true,
+              message: '抽稀完成，请预览无误后保存抽稀结果,如需继续，请再次点击局部抽稀按钮'
             })
           })
-          .finally(() => {
-            this.boxDrawThinLoading = false
-          })
+        }, 100)
+
+
       })
-    },
-    getDrawThinParam() {
-      // 获取全部层级
-      let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-      let zoomMap = {}
-      let zoom = zoomExtent[0]
-      while (zoom < zoomExtent[1]) {
-        // 计算经纬度差值
-        let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
-        if (diff && diff > 0) {
-          zoomMap[zoom] = diff
-        }
-        zoom += 1
-      }
-      return zoomMap
     },
     drawThin: function (cameraListInExtent){
       return new Promise((resolve, reject) => {
@@ -660,10 +786,30 @@ export default {
      return dataArray
     },
     saveDrawThin: function(){
-      if (!this.drawThinId) {
+      if (!this.layerGroupSource) {
         return
       }
-      this.$store.dispatch('commonChanel/saveThin', this.drawThinId)
+      this.saveDrawThinLoading = true
+      let param = []
+      let keys = Array.from(this.layerGroupSource.keys())
+      for (let i = 0; i < keys.length; i++) {
+        let zoom = keys[i]
+        let values = this.layerGroupSource.get(zoom)
+        for (let j = 0; j < values.length; j++) {
+          let value = values[j]
+          if (zoom === 0) {
+            param.push({
+              gbId: value.id
+            })
+          }else {
+            param.push({
+              gbId: value.id,
+              mapLevel: zoom
+            })
+          }
+        }
+      }
+      this.$store.dispatch('commonChanel/saveLevel', param)
         .then((data) => {
           this.$message.success({
             showClose: true,
@@ -674,6 +820,7 @@ export default {
         .finally(() => {
           this.saveDrawThinLoading = false
         })
+
     },
     resetDrawThinData(){
       this.$confirm('确定移除抽稀结果?', '操作提示', {

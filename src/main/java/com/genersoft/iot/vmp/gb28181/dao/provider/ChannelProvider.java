@@ -583,7 +583,7 @@ public class ChannelProvider {
     public String queryListForSy(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) AND coalesce(wdc.gb_parent_id, wdc.parent_id) = #{groupDeviceId}");
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) AND coalesce(wdc.gb_parent_id, wdc.parent_id) = #{groupDeviceId}");
         if (params.get("online") != null && (Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(wdc.gb_status, wdc.status) = 'ON'");
         }
@@ -598,7 +598,7 @@ public class ChannelProvider {
     public String queryListWithChildForSy(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) ");
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) ");
 
 
         List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
@@ -672,7 +672,7 @@ public class ChannelProvider {
     public String queryListInBox(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
                 " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
@@ -700,7 +700,7 @@ public class ChannelProvider {
     public String queryListInCircleForMysql(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
                 " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
@@ -729,7 +729,7 @@ public class ChannelProvider {
     public String queryListInCircleForKingBase(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
                 " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
@@ -758,7 +758,7 @@ public class ChannelProvider {
     public String queryListInPolygonForMysql(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
                 " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
@@ -796,7 +796,7 @@ public class ChannelProvider {
     public String queryListInPolygonForKingBase(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
-        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 && wdc.gb_ptz_type != 99)) " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null ||  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
                 " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
 
         sqlBuild.append(" ");
@@ -901,4 +901,22 @@ public class ChannelProvider {
     public String queryCameraChannelById(Map<String, Object> params ){
         return BASE_SQL_FOR_CAMERA_DEVICE + " where wdc.id = #{gbId}";
     }
+
+    public String queryAllWithPosition(Map<String, Object> params ){
+        return BASE_SQL + " where channel_type = 0 " +
+                " AND coalesce(gb_longitude, longitude) > 0" +
+                " AND coalesce(gb_latitude,  latitude) > 0";
+    }
+
+    public String queryListInExtent(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where channel_type = 0  " +
+                "AND coalesce(gb_longitude, longitude) > #{minLng} " +
+                "AND coalesce(gb_longitude, longitude) <= #{maxLng} " +
+                "AND coalesce(gb_latitude,  latitude) > #{minLat} " +
+                "AND coalesce(gb_latitude,  latitude) <= #{maxLat}");
+        return sqlBuild.toString();
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -8,6 +9,7 @@ import com.github.pagehelper.PageInfo;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface IGbChannelService {
 
@@ -109,4 +111,7 @@ public interface IGbChannelService {
 
     byte[] getTile(int z, int x, int y, String geoCoordSys);
 
+    String drawThin(Map<Integer, Double> zoomParam, Extent extent, String geoCoordSys);
+
+    DrawThinProcess thinProgress(String id);
 }

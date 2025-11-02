@@ -5,7 +5,7 @@
         <el-page-header content="编辑通道" @back="close" />
       </div>
     </div>
-    <CommonChannelEdit :id="id" ref="commonChannelEdit" :save-success="close" :cancel="close" />
+    <CommonChannelEdit :id="id" ref="commonChannelEdit" :showCancel="true" @submitSuccess="close" @cancel="close" />
   </div>
 </template>
 

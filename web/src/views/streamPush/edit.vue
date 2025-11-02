@@ -32,7 +32,7 @@
 
       </el-tab-pane>
       <el-tab-pane v-if="streamPush.id" label="国标通道配置">
-        <CommonChannelEdit ref="commonChannelEdit" :data-form="streamPush" :cancel="close" />
+        <CommonChannelEdit ref="commonChannelEdit" :showCancel="true" :data-form="streamPush" @cancel="close" />
       </el-tab-pane>
     </el-tabs>
   </div>

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -676,4 +677,20 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelInBox")
     List<CommonGBChannel> queryCameraChannelInBox(@Param("minLon") double minLon, @Param("maxLon") double maxLon,
                                                   @Param("minLat") double minLat, @Param("maxLat") double maxLat);
+
+    @Select("select " +
+            "MAX(coalesce(gb_longitude, longitude)) as maxLng,  " +
+            "MIN(coalesce(gb_longitude, longitude)) as minLng,  " +
+            "MAX(coalesce(gb_latitude, latitude)) as maxLat,  " +
+            "MIN(coalesce(gb_latitude, latitude)) as minLat  " +
+            " from wvp_device_channel " +
+            " where channel_type = 0")
+    Extent queryExtent();
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllWithPosition")
+    List<CommonGBChannel> queryAllWithPosition();
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInExtent")
+    List<CommonGBChannel> queryListInExtent(Extent extent);
+
 }

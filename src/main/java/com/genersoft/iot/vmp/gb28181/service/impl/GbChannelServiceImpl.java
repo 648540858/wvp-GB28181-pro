@@ -2,9 +2,12 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.excel.support.cglib.beans.BeanMap;
 import com.alibaba.excel.util.BeanMapUtils;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
@@ -14,10 +17,12 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.utils.VectorTileUtils;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.Coordtransform;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.TileUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -26,14 +31,16 @@ import no.ecc.vectortile.VectorTileEncoder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -56,6 +63,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private GroupMapper groupMapper;
+
+    @Autowired
+    private DynamicTask dynamicTask;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -157,6 +170,20 @@ public class GbChannelServiceImpl implements IGbChannelService {
             try {
                 // 发送通知
                 eventPublisher.channelEventPublishForUpdate(commonGBChannel, oldChannel);
+
+                if (commonGBChannel.getGbLongitude() != null && !Objects.equals(oldChannel.getGbLongitude(), commonGBChannel.getGbLongitude())
+                        && commonGBChannel.getGbLatitude() != null && !Objects.equals(oldChannel.getGbLatitude(), commonGBChannel.getGbLatitude())) {
+                    MobilePosition mobilePosition = new MobilePosition();
+                    mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
+                    mobilePosition.setChannelId(commonGBChannel.getGbId());
+                    mobilePosition.setDeviceName(commonGBChannel.getGbName());
+                    mobilePosition.setCreateTime(DateUtil.getNow());
+                    mobilePosition.setTime(DateUtil.getNow());
+                    mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
+                    mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
+                    eventPublisher.mobilePositionEventPublish(mobilePosition);
+                }
+
             } catch (Exception e) {
                 log.warn("[更新通道通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
             }
@@ -906,13 +933,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 Point pointGeom = geometryFactory.createPoint(new Coordinate(px[0], px[1]));
 
                 BeanMap beanMap = BeanMapUtils.create(commonGBChannel);
-
-//                Map<String, Object> props = new HashMap<>();
-//                props.put("id", commonGBChannel.getGbId());
-//                props.put("name", commonGBChannel.getGbName());
-//                props.put("deviceId", commonGBChannel.getGbDeviceId());
-//                props.put("status", commonGBChannel.getGbStatus());
-
                 encoder.addFeature("points", beanMap, pointGeom);
             });
         }
@@ -950,5 +970,149 @@ public class GbChannelServiceImpl implements IGbChannelService {
         double pixelY = (ytile - tileY) * 256.0;
 
         return new double[] { pixelX, pixelY };
+    }
+
+    @Override
+    public String drawThin(Map<Integer, Double> zoomParam, Extent extent, String geoCoordSys) {
+        long time = System.currentTimeMillis();
+
+        String id = UUID.randomUUID().toString();
+        List<CommonGBChannel> channelList;
+        if (extent == null) {
+            log.info("[抽稀] ID: {}, 未设置范围，从数据库读取摄像头的范围", id);
+            extent = commonGBChannelMapper.queryExtent();
+            channelList = commonGBChannelMapper.queryAllWithPosition();
+
+        }else {
+            if (geoCoordSys != null && geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] maxPosition = Coordtransform.GCJ02ToWGS84(extent.getMaxLng(), extent.getMaxLng());
+                Double[] minPosition = Coordtransform.GCJ02ToWGS84(extent.getMinLng(), extent.getMinLat());
+
+                extent.setMaxLng(maxPosition[0]);
+                extent.setMaxLat(maxPosition[1]);
+
+                extent.setMinLng(minPosition[0]);
+                extent.setMinLat(minPosition[1]);
+            }
+            // 获取数据源
+            channelList = commonGBChannelMapper.queryListInExtent(extent);
+        }
+        Assert.isTrue(!channelList.isEmpty(), "通道数据为空");
+
+        log.info("[开始抽稀] ID： {}， 范围，[{}, {}, {}, {}]", id, extent.getMinLng(), extent.getMinLat(), extent.getMaxLng(), extent.getMaxLat());
+
+        Extent finalExtent = extent;
+        // 记录进度
+        saveProcess(id, 0, "开始抽稀");
+        dynamicTask.startDelay(id, () -> {
+            try {
+                // 存储每层的抽稀结果， key为层级（zoom），value为摄像头数组
+                Map<Integer, Collection<CommonGBChannel>> zoomCameraMap = new HashMap<>();
+
+                // 冗余一份已经处理过的摄像头的数据， 避免多次循环获取
+                Map<Integer, CommonGBChannel> useCameraMap = new HashMap<>();
+                AtomicReference<Double> process = new AtomicReference<>((double) 0);
+                for (Integer zoom : zoomParam.keySet()) {
+                    Double diff = zoomParam.get(zoom);
+                    // 对这个层级展开抽稀
+                    log.info("[抽稀] ID：{}，当前层级： {}, 坐标间隔： {}", id, zoom, diff);
+                    Map<String, CommonGBChannel> useCameraMapForZoom = new HashMap<>();
+                    Map<String, CommonGBChannel> cameraMapForZoom = new HashMap<>();
+                    // 更新上级图层的数据到当前层级，确保当前层级展示时考虑到之前层级的数据
+                    for (CommonGBChannel channel : useCameraMap.values()) {
+                        int lngGrid = (int)(channel.getGbLongitude() / diff);
+                        int latGrid = (int)(channel.getGbLatitude() / diff);
+                        String gridKey = latGrid + ":" + lngGrid;
+                        useCameraMapForZoom.put(gridKey, channel);
+                    }
+                    // 对数据开始执行抽稀
+                    for (CommonGBChannel channel : channelList) {
+                        if (useCameraMap.containsKey(channel.getGbId())) {
+                            continue;
+                        }
+                        int lngGrid = (int)(channel.getGbLongitude() / diff);
+                        int latGrid = (int)(channel.getGbLatitude() / diff);
+                        // 数据网格Id
+                        String gridKey = latGrid + ":" + lngGrid;
+                        if (useCameraMapForZoom.containsKey(gridKey)) {
+                            continue;
+                        }
+                        if (cameraMapForZoom.containsKey(gridKey)) {
+                            CommonGBChannel oldChannel = cameraMapForZoom.get(gridKey);
+                            // 如果一个网格存在多个数据，则选择最接近中心点的， 目前只选择了经度方向作为参考
+                            if (channel.getGbLongitude() % diff < oldChannel.getGbLongitude() % diff) {
+                                cameraMapForZoom.put(gridKey, channel);
+                                useCameraMap.put(channel.getGbId(), channel);
+                                useCameraMap.remove(oldChannel.getGbId());
+                            }
+                        }else {
+                            cameraMapForZoom.put(gridKey, channel);
+                            useCameraMap.put(channel.getGbId(), channel);
+                        }
+                    }
+
+                    // 存储
+                    zoomCameraMap.put(zoom, cameraMapForZoom.values());
+                    process.updateAndGet(v -> new Double((double) (v + 0.5 / zoomParam.size())));
+                    saveProcess(id, process.get(), "抽稀图层： " + zoom);
+                }
+                // 抽稀完成, 对数据生成mvt矢量瓦片
+                zoomCameraMap.forEach((key, value) -> {
+                    log.info("[抽稀-生成mvt矢量瓦片] ID：{}，当前层级： {}", id, key);
+                    // 按照 z/x/y 数据组织数据， 矢量数据暂时保存在内存中
+                    // 按照范围生成 x y范围，
+                    List<TileUtils.TileCoord> tileCoords = TileUtils.tilesForBoxAtZoom(finalExtent, key);
+                    for (TileUtils.TileCoord tileCoord : tileCoords) {
+                        saveTile(id, tileCoord.z, tileCoord.x, tileCoord.y, "WGS84", value);
+                        saveTile(id, tileCoord.z, tileCoord.x, tileCoord.y, "GCJ02", value);
+                        process.updateAndGet(v -> (v + 0.5 / zoomParam.size() / tileCoords.size()));
+                        saveProcess(id, process.get(), "发布矢量瓦片： " + key);
+                    }
+                });
+                log.info("[抽稀完成] ID：{}, 耗时： {}ms", id, (System.currentTimeMillis() - time));
+                saveProcess(id, 1, "抽稀完成");
+            } catch (Exception e) {
+
+            }
+
+        }, 1);
+
+        return id;
+    }
+
+    private void saveTile(String id, int z, int x, int y, String geoCoordSys, Collection<CommonGBChannel> commonGBChannelList ) {
+        VectorTileEncoder encoder = new VectorTileEncoder();
+        commonGBChannelList.forEach(commonGBChannel -> {
+            double lon = commonGBChannel.getGbLongitude();
+            double lat = commonGBChannel.getGbLatitude();
+            if (geoCoordSys != null && geoCoordSys.equalsIgnoreCase("GCJ02")) {
+                Double[] minPosition = Coordtransform.WGS84ToGCJ02(lon, lat);
+                lon = minPosition[0];
+                lat = minPosition[1];
+            }
+
+            // 将 lon/lat 转为瓦片内像素坐标（0..256）
+            double[] px = lonLatToTilePixel(lon, lat, z, x, y);
+            Point pointGeom = geometryFactory.createPoint(new Coordinate(px[0], px[1]));
+
+            BeanMap beanMap = BeanMapUtils.create(commonGBChannel);
+            encoder.addFeature("points", beanMap, pointGeom);
+        });
+
+        byte[] encode = encoder.encode();
+        String catchKey = id + "_" + z + "_" + x + "_" + y + "_" + geoCoordSys;
+        VectorTileUtils.INSTANCE.addVectorTile(catchKey, encode);
+    }
+
+    private void saveProcess(String id, double process, String msg) {
+        String key = VideoManagerConstants.DRAW_THIN_PROCESS_PREFIX + id;
+        Duration duration = Duration.ofMinutes(30);
+        redisTemplate.opsForValue().set(key, new DrawThinProcess(process, msg), duration);
+    }
+
+    @Override
+    public DrawThinProcess thinProgress(String id) {
+        String key = VideoManagerConstants.DRAW_THIN_PROCESS_PREFIX + id;
+        return (DrawThinProcess) redisTemplate.opsForValue().get(key);
     }
 }

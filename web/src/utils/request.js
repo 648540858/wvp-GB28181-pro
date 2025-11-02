@@ -3,6 +3,8 @@ import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
+let showLoginConfirm = false
+
 // create an axios instance
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
@@ -44,9 +46,8 @@ service.interceptors.response.use(
     }
     const res = response.data
     if (res.code && res.code !== 0) {
-      Message({
+      Message.error({
         message: res.msg,
-        type: 'error',
         duration: 5 * 1000
       })
     } else {
@@ -55,8 +56,9 @@ service.interceptors.response.use(
   },
   error => {
     console.log(error) // for debug
-    if (error.response.status === 401) {
+    if (error.response.status === 401 && !showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
       // to re-login
+      showLoginConfirm = true
       MessageBox.confirm('登录已经到期， 是否重新登录', '登录确认', {
         confirmButtonText: '重新登录',
         cancelButtonText: '取消',
@@ -65,13 +67,31 @@ service.interceptors.response.use(
         store.dispatch('user/resetToken').then(() => {
           location.reload()
         })
+      }).catch(() => {
+        store.dispatch('user/closeConfirmBoxForLoginLose')
+        Message.warning({
+          type: 'warning',
+          message: '登录过期提示已经关闭，请注销后重新登录'
+        })
+        // 清除token， 后续请求不再继续
+
       })
     } else {
-      Message({
-        message: error.message,
-        type: 'error',
-        duration: 5 * 1000
-      })
+      if (!store.getters.showConfirmBoxForLoginLose) {
+        return
+      }
+      let data = error.response.data
+      if (data && data.msg) {
+        Message.error({
+          message: data.msg,
+          showClose: true
+        })
+      }else {
+        Message.error({
+          message: error.message,
+          showClose: true
+        })
+      }
     }
     // return Promise.reject(error)
   }

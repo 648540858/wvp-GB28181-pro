@@ -98,7 +98,7 @@
         </el-form>
       </el-tab-pane>
       <el-tab-pane v-if="streamProxy.id" label="国标通道配置">
-        <CommonChannelEdit ref="commonChannelEdit" :data-form="streamProxy" :cancel="close" />
+        <CommonChannelEdit ref="commonChannelEdit" :showCancel="true" :data-form="streamProxy" @cancel="close" />
       </el-tab-pane>
     </el-tabs>
   </div>

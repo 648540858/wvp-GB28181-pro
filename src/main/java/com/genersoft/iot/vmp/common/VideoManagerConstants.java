@@ -50,6 +50,7 @@ public class VideoManagerConstants {
 	public static final String WAITE_SEND_PUSH_STREAM = "VMP_WAITE_SEND_PUSH_STREAM:";
 	public static final String START_SEND_PUSH_STREAM = "VMP_START_SEND_PUSH_STREAM:";
 	public static final String SSE_TASK_KEY = "SSE_TASK_";
+	public static final String DRAW_THIN_PROCESS_PREFIX = "VMP_DRAW_THIN_PROCESS_";
 
 
 

@@ -25,7 +25,8 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    serverId: ''
+    serverId: '',
+    showConfirmBoxForLoginLose: true
   }
 }
 
@@ -43,6 +44,9 @@ const mutations = {
   },
   SET_SERVER_ID: (state, serverId) => {
     state.serverId = serverId
+  },
+  SET_CONFIRM_BOX: (state, status) => {
+    state.showConfirmBoxForLoginLose = status
   }
 }
 
@@ -59,6 +63,7 @@ const actions = {
         commit('SET_TOKEN', data.accessToken)
         commit('SET_NAME', data.username)
         commit('SET_SERVER_ID', data.serverId)
+        commit('SET_CONFIRM_BOX', true)
         setToken(data.accessToken)
         setName(data.username)
         setServerId(data.serverId)
@@ -168,6 +173,9 @@ const actions = {
         reject(error)
       })
     })
+  },
+  closeConfirmBoxForLoginLose({ commit }) {
+    commit('SET_CONFIRM_BOX', false)
   }
 }
 

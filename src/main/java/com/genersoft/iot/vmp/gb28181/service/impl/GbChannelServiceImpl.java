@@ -1053,7 +1053,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
                     // 存储
                     zoomCameraMap.put(zoom, cameraMapForZoom.values());
-                    process.updateAndGet(v -> new Double((double) (v + 0.5 / zoomParam.size())));
+                    process.updateAndGet(v -> (v + 0.5 / zoomParam.size()));
                     saveProcess(id, process.get(), "抽稀图层： " + zoom);
                 }
                 // 抽稀完成, 对数据生成mvt矢量瓦片

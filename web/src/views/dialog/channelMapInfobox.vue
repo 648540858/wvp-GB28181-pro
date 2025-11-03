@@ -7,7 +7,7 @@
         <el-descriptions-item label="设备归属" >{{channel.owner}}</el-descriptions-item>
         <el-descriptions-item label="行政区域" >{{channel.civilCode}}</el-descriptions-item>
         <el-descriptions-item label="安装地址" >{{channel.address}}</el-descriptions-item>
-        <el-descriptions-item label="云台类型" >{{channel.ptzTypeText}}</el-descriptions-item>
+        <el-descriptions-item label="摄像头类型" >{{channel.ptzTypeText}}</el-descriptions-item>
         <el-descriptions-item label="经纬度" >{{channel.longitude}},{{channel.latitude}}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag size="small" v-if="channel.status === 1">在线</el-tag>

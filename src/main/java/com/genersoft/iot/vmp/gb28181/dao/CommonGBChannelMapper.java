@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -660,7 +659,7 @@ public interface CommonGBChannelMapper {
             "WHERE id = #{item.gbId}" +
             "</foreach> " +
             "</script>")
-    void saveLevel(List<ChannelForThin> channels);
+    void saveLevel(List<CommonGBChannel> channels);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryCameraChannelByIds")
     List<CameraChannel> queryCameraChannelByIds(List<CommonGBChannel> channelList);
@@ -691,6 +690,11 @@ public interface CommonGBChannelMapper {
     List<CommonGBChannel> queryAllWithPosition();
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListInExtent")
-    List<CommonGBChannel> queryListInExtent(Extent extent);
+    List<CommonGBChannel> queryListInExtent(@Param("minLng") double minLng, @Param("maxLng") double maxLng,
+                                            @Param("minLat") double minLat, @Param("maxLat") double maxLat);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListOutExtent")
+    List<CommonGBChannel> queryListOutExtent(@Param("minLng") double minLng, @Param("maxLng") double maxLng,
+                                            @Param("minLat") double minLat, @Param("maxLat") double maxLat);
 
 }

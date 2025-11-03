@@ -113,10 +113,48 @@ public class TileUtils {
 
     public static class TileCoord {
         public final int x, y, z;
-        public TileCoord(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
+        public TileCoord(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+
+        }
         @Override
         public String toString() {
             return "{" + "z=" + z + ", x=" + x + ", y=" + y + '}';
         }
+    }
+
+    /**
+     * tile X/Z -> longitude (deg)
+     */
+    public static double tile2lon(int x, int z) {
+        double n = Math.pow(2.0, z);
+        return x / n * 360.0 - 180.0;
+    }
+
+    /**
+     * tile Y/Z -> latitude (deg)
+     */
+    public static double tile2lat(int y, int z) {
+        double n = Math.pow(2.0, z);
+        double latRad = Math.atan(Math.sinh(Math.PI * (1 - 2.0 * y / n)));
+        return Math.toDegrees(latRad);
+    }
+
+    /**
+     * lon/lat -> pixel in tile (0..256)
+     */
+    public static double[] lonLatToTilePixel(double lon, double lat, int z, int tileX, int tileY) {
+        double n = Math.pow(2.0, z);
+        double xtile = (lon + 180.0) / 360.0 * n;
+
+        double latRad = Math.toRadians(lat);
+        double ytile = (1.0 - Math.log(Math.tan(latRad) + 1.0 / Math.cos(latRad)) / Math.PI) / 2.0 * n;
+
+        double pixelX = (xtile - tileX) * 256.0;
+        double pixelY = (ytile - tileY) * 256.0;
+
+        return new double[] { pixelX, pixelY };
     }
 }

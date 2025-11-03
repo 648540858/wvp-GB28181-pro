@@ -16,6 +16,7 @@ import VectorTileLayer from 'ol/layer/VectorTile.js'
 import VectorTileSource from 'ol/source/VectorTile.js'
 import WebGLVectorLayer from 'ol/layer/WebGLVector'
 import Style from 'ol/style/Style'
+import Circle from 'ol/style/Circle'
 import Stroke from 'ol/style/Stroke'
 import Icon from 'ol/style/Icon'
 import View from 'ol/View'
@@ -159,7 +160,7 @@ export default {
         style: function(feature) {
           let status = feature.properties_.gbStatus
           if (layer.get('hideFeatures').includes(feature.properties_.gbId)) {
-            return new Style()
+            return
           }
           if (status === 'ON') {
             return new Style({

@@ -26,6 +26,7 @@ import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -114,13 +115,19 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 Element deviceListElement = rootElement.element("DeviceList");
                 Element sumNumElement = rootElement.element("SumNum");
                 Element snElement = rootElement.element("SN");
+
+                sn = Integer.parseInt(snElement.getText());
                 int sumNum = Integer.parseInt(sumNumElement.getText());
 
                 if (sumNum == 0) {
                     log.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
                     // 数据已经完整接收
                     deviceChannelService.cleanChannelsForDevice(take.getDevice().getId());
+                    // 推送空数据，不然无法及时结束
+                    catalogDataCatch.put(take.getDevice().getDeviceId(), sn, 0, take.getDevice(),
+                            Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
                     catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, null);
+                    return;
                 } else {
                     Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                     if (deviceListIterator != null) {
@@ -167,7 +174,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             }
                             channelList.add(channel);
                         }
-                        sn = Integer.parseInt(snElement.getText());
+
                         catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(),
                                 channelList, regionList, groupList);
                         log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.size(take.getDevice().getDeviceId(), sn), sumNum);
@@ -177,15 +184,17 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 log.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
                 log.error("[收到通道] 异常内容： ", e);
             } finally {
-                if (catalogDataCatch.size(take.getDevice().getDeviceId(), sn) == catalogDataCatch.sumNum(take.getDevice().getDeviceId(), sn)) {
+                String deviceId = take.getDevice().getDeviceId();
+                if (catalogDataCatch.size(deviceId, sn) > 0
+                        && catalogDataCatch.size(deviceId, sn) == catalogDataCatch.sumNum(deviceId, sn)) {
                     // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                     // 目前支持设备通道上线通知时和设备上线时向上级通知
                     boolean resetChannelsResult = saveData(take.getDevice(), sn);
                     if (!resetChannelsResult) {
-                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(take.getDevice().getDeviceId(), sn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId(), sn).size() + "条";
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, errorMsg);
+                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(deviceId, sn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId(), sn).size() + "条";
+                        catalogDataCatch.setChannelSyncEnd(deviceId, sn, errorMsg);
                     } else {
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, null);
+                        catalogDataCatch.setChannelSyncEnd(deviceId, sn, null);
                     }
                 }
             }

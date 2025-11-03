@@ -42,6 +42,7 @@ import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -218,16 +219,18 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         if (index > channels.size()) {
             return;
         }
-        List<CommonGBChannel> deviceChannels;
-        if (index + parentPlatform.getCatalogGroup() < channels.size()) {
-            deviceChannels = channels.subList(index, index + parentPlatform.getCatalogGroup());
+        String catalogXml;
+        if (channels.isEmpty()) {
+            catalogXml = getCatalogXml(Collections.emptyList(), sn, parentPlatform, 0);
         }else {
-            deviceChannels = channels.subList(index, channels.size());
+            List<CommonGBChannel> subChannelList;
+            if (index + parentPlatform.getCatalogGroup() < channels.size()) {
+                subChannelList = channels.subList(index, index + parentPlatform.getCatalogGroup());
+            }else {
+                subChannelList = channels.subList(index, channels.size());
+            }
+            catalogXml = getCatalogXml(subChannelList, sn, parentPlatform, channels.size());
         }
-        if(deviceChannels.isEmpty()) {
-            return;
-        }
-        String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 

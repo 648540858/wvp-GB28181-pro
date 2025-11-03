@@ -97,7 +97,7 @@
             <span v-if="!scope.row.longitude || !scope.row.latitude">无</span>
           </template>
         </el-table-column>
-        <el-table-column prop="ptzType" label="云台类型" min-width="100">
+        <el-table-column prop="ptzType" label="摄像头类型" min-width="100">
           <template v-slot:default="scope">
             <div>{{ scope.row.ptzTypeText }}</div>
           </template>

@@ -5,11 +5,6 @@
         <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer" @zoomChange="zoomChange"></MapComponent>
       </div>
       <div class="map-tool-box-bottom-right">
-        <div class="map-tool-btn-group">
-          <div class="el-dropdown-link map-tool-btn" @click="addVectorTileLayer">
-            <i class="iconfont icon-mti-jutai"></i>
-          </div>
-        </div>
         <div class="map-tool-btn-group" v-if="mapTileList.length > 0">
           <el-dropdown placement="top"  @command="changeLayerType">
             <div class="el-dropdown-link map-tool-btn">
@@ -66,12 +61,12 @@
         <div v-show="showDrawThin"  class="map-tool-draw-thin">
           <div class="map-tool-draw-thin-density">
             <span style="line-height: 36px; font-size: 15px">间隔： </span>
-            <el-slider v-model="diffPixels" show-input :min="10" :max="200" input-size="mini" ></el-slider>
+            <el-slider v-model="diffPixels" show-input :min="1" :max="200" input-size="mini" ></el-slider>
             <div style="margin-left: 10px; line-height: 38px;">
               <el-button :loading="quicklyDrawThinLoading" @click="quicklyDrawThin" size="mini">快速抽稀</el-button>
               <el-button :loading="boxDrawThinLoading" size="mini" @click="boxDrawThin" >局部抽稀</el-button>
               <el-button size="mini" @click="resetDrawThinData()">数据还原</el-button>
-              <el-button :loading="saveDrawThinLoading" type="primary" :disabled="!layerGroupSource" size="mini" @click="saveDrawThin()">保存</el-button>
+              <el-button :loading="saveDrawThinLoading" type="primary" :disabled="drawThinId === null" size="mini" @click="saveDrawThin()">保存</el-button>
               <el-button type="warning" size="mini" @click="showDrawThinBox(false)">取消</el-button>
             </div>
           </div>
@@ -165,7 +160,7 @@ export default {
       longitudeStr: 'longitude',
       latitudeStr: 'latitude',
       mapTileList: [],
-      diffPixels: 60,
+      diffPixels: 30,
       zoomValue: 10,
       showDrawThin: false,
       quicklyDrawThinLoading: false,
@@ -174,7 +169,6 @@ export default {
       drawThinLayer: null,
       saveDrawThinLoading: false,
       layerType: 0,
-      layerGroupSource: null
     }
   },
   created() {
@@ -316,6 +310,7 @@ export default {
       this.layerType = index
       if (index === 0) {
         this.$refs.mapComponent.removeLayer(channelTileLayer)
+        return
       }
 
       let geoCoordSys = this.$refs.mapComponent.getCoordSys()
@@ -326,10 +321,8 @@ export default {
         tileUrl = baseApi + `/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
       }else if (index === 2) {
         tileUrl = baseApi + `/api/common/channel/map/thin/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
-      }else {
-        return
       }
-      channelTileLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl. this.clientEvent)
+      channelTileLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, this.clientEvent)
     },
     closeInfoBox: function () {
       if (this.infoBoxId !== null) {
@@ -480,8 +473,6 @@ export default {
         this.drawThinLayer = null
       }
       this.quicklyDrawThinLoading = true
-      console.log(222)
-      console.log(this.getDrawThinParam())
       // 获取每一个图层的抽稀参数
       this.$store.dispatch('commonChanel/drawThin', {
         zoomParam: this.getDrawThinParam()
@@ -504,12 +495,16 @@ export default {
         })
     },
     showDrawThinLayer(thinId) {
+      if (this.drawThinLayer) {
+        this.$refs.mapComponent.removeLayer(this.drawThinLayer)
+        this.drawThinLayer = null
+      }
       // 展示抽稀结果
       let geoCoordSys = this.$refs.mapComponent.getCoordSys()
       const baseUrl = window.baseUrl ? window.baseUrl : ''
       let baseApi = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl)
       let tileUrl = baseApi + `/api/common/channel/map/thin/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&thinId=${thinId}&accessToken=${this.$store.getters.token}`
-      this.drawThinLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, null)
+      this.drawThinLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, this.clientEvent)
     },
     boxDrawThin: function (){
       this.$message.warning({
@@ -534,7 +529,13 @@ export default {
         // 获取每一个图层的抽稀参数
         this.$store.dispatch('commonChanel/drawThin', {
           zoomParam: this.getDrawThinParam(),
-          extent: extent
+          extent: {
+            minLng: extent[0],
+            minLat: extent[1],
+            maxLng: extent[2],
+            maxLat: extent[3]
+          },
+          geoCoordSys: 'GCJ02'
         })
           .then(drawThinId => {
             // 显示抽稀进度
@@ -559,7 +560,7 @@ export default {
       let zoomExtent = this.$refs.mapComponent.getZoomExtent()
       let zoomMap = {}
       let zoom = zoomExtent[0]
-      while (zoom < zoomExtent[1]) {
+      while (zoom <= zoomExtent[1]) {
         // 计算经纬度差值
         let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
         if (diff && diff > 0) {
@@ -569,96 +570,7 @@ export default {
       }
       return zoomMap
     },
-    drawThin: function (cameraListInExtent){
-      return new Promise((resolve, reject) => {
-        try {
-          let layerGroupSource = new Map()
-          // 获取全部层级
-          let zoomExtent = this.$refs.mapComponent.getZoomExtent()
-          let zoom = zoomExtent[0]
-          let zoomCameraMap = new Map()
-          let useCameraMap = new Map()
 
-          while (zoom < zoomExtent[1]) {
-            // 计算经纬度差值
-            let diff = this.$refs.mapComponent.computeDiff(this.diffPixels, zoom)
-            let cameraMapForZoom = new Map()
-            let useCameraMapForZoom = new Map()
-            let useCameraList = Array.from(useCameraMap.values())
-            for (let i = 0; i < useCameraList.length; i++) {
-              let value = useCameraList[i]
-              let lngGrid = Math.trunc(value.gbLongitude / diff)
-              let latGrid = Math.trunc(value.gbLatitude / diff)
-              let gridKey = latGrid + ':' + lngGrid
-              useCameraMapForZoom.set(gridKey, value)
-            }
-
-            for (let i = 0; i < cameraListInExtent.length; i++) {
-              let value = cameraListInExtent[i]
-              if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
-                continue
-              }
-              let lngGrid = Math.trunc(value.gbLongitude / diff)
-              let latGrid = Math.trunc(value.gbLatitude / diff)
-              let gridKey = latGrid + ':' + lngGrid
-              if (useCameraMapForZoom.has(gridKey)) {
-                continue
-              }
-              if (cameraMapForZoom.has(gridKey)) {
-                let oldValue = cameraMapForZoom.get(gridKey)
-                if (value.gbLongitude % diff < oldValue.gbLongitude % diff) {
-                  cameraMapForZoom.set(gridKey, value)
-                  useCameraMap.set(value.gbId, value)
-                  useCameraMap.delete(oldValue.gbId)
-                }
-              }else {
-                cameraMapForZoom.set(gridKey, value)
-                useCameraMap.set(value.gbId, value)
-              }
-            }
-
-            let cameraArray = Array.from(cameraMapForZoom.values())
-            zoomCameraMap.set(zoom, cameraArray)
-            let layerSource = this.createZoomLayerSource(cameraArray)
-            layerGroupSource.set(zoom - 1, layerSource)
-            zoom += 1
-          }
-          let cameraArray = []
-          for (let i = 0; i < cameraListInExtent.length; i++) {
-            let value = cameraListInExtent[i]
-            if (useCameraMap.has(value.gbId) || !value.gbLongitude || !value.gbLatitude) {
-              continue
-            }
-            cameraArray.push(value)
-          }
-          let layerSource = this.createZoomLayerSource(cameraArray)
-          layerGroupSource.set(zoomExtent[1] - 1, layerSource)
-
-          resolve(layerGroupSource)
-        }catch (error) {
-          reject(error)
-        }
-      })
-    },
-
-    createZoomLayerSource(cameraArray) {
-      let dataArray = []
-      for (let i = 0; i < cameraArray.length; i++) {
-        let item = cameraArray[i]
-        let position = [item.gbLongitude, item.gbLatitude]
-        dataArray.push({
-          id: item.gbId,
-          position: position,
-          data: item,
-          status: item.gbStatus,
-          image: {
-            anchor: [0.5, 1],
-            src: this.getImageByChannel(item)
-          }
-        })
-      }
-     return dataArray
-    },
     saveDrawThin: function(){
       if (!this.drawThinId) {
         return
@@ -669,7 +581,7 @@ export default {
             showClose: true,
             message: '保存成功'
           })
-          this.showDrawThin = false
+          this.showDrawThinBox(false)
         })
         .finally(() => {
           this.saveDrawThinLoading = false
@@ -689,30 +601,6 @@ export default {
             })
           })
       })
-    },
-    addVectorTileLayer() {
-      let geoCoordSys = this.$refs.mapComponent.getCoordSys()
-      const baseUrl = window.baseUrl ? window.baseUrl : ''
-      let tileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl)
-        + `/api/common/channel/map/tile/{z}/{x}/{y}?geoCoordSys=${geoCoordSys}&accessToken=${this.$store.getters.token}`
-
-      let clientEvent = data => {
-        this.closeInfoBox()
-        this.$nextTick(() => {
-          this.showChannelInfo(data[0])
-          // if (data[0].edit) {
-          //   this.showEditInfo(data[0])
-          // }else {
-          //   this.showChannelInfo(data[0])
-          // }
-        })
-      }
-
-      let tileEvent = error => {
-        console.log(error)
-      }
-
-      let tileLayer = this.$refs.mapComponent.addVectorTileLayer(tileUrl, clientEvent, tileEvent)
     }
   }
 

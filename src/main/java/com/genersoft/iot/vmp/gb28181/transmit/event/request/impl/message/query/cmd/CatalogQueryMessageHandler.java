@@ -22,6 +22,7 @@ import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -75,7 +76,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                 cmderFroPlatform.catalogQuery(channelList, platform, sn, fromHeader.getTag());
             }else {
                 // 回复无通道
-                cmderFroPlatform.catalogQuery(null, platform, sn, fromHeader.getTag(), 0);
+                cmderFroPlatform.catalogQuery(Collections.emptyList(), platform, sn, fromHeader.getTag());
             }
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());

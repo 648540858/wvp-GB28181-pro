@@ -265,8 +265,12 @@ public class CameraChannelController {
                     }
                     CameraStreamContent cameraStreamContent = new CameraStreamContent(streamInfo);
                     cameraStreamContent.setName(channel.getGbName());
-                    cameraStreamContent.setControlType(
-                            (channel.getGbPtzType() == 1 || channel.getGbPtzType() == 4 || channel.getGbPtzType() == 5) ? 1 : 0);
+                    if (channel.getGbPtzType() != null) {
+                        cameraStreamContent.setControlType(
+                                (channel.getGbPtzType() == 1 || channel.getGbPtzType() == 4 || channel.getGbPtzType() == 5) ? 1 : 0);
+                    }else {
+                        cameraStreamContent.setControlType(0);
+                    }
 
                     wvpResult.setData(cameraStreamContent);
                 }else {

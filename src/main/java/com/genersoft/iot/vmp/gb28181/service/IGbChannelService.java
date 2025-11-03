@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelForThin;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.github.pagehelper.PageInfo;
@@ -103,8 +102,6 @@ public interface IGbChannelService {
 
     List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType);
 
-    void saveLevel(List<ChannelForThin> channels);
-
     CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel);
 
     void resetLevel();
@@ -114,4 +111,6 @@ public interface IGbChannelService {
     String drawThin(Map<Integer, Double> zoomParam, Extent extent, String geoCoordSys);
 
     DrawThinProcess thinProgress(String id);
+
+    void saveThin(String id);
 }

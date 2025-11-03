@@ -8,9 +8,9 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.utils.VectorTileUtils;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 public class ChannelController {
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
     private IGbChannelService channelService;
@@ -490,12 +491,6 @@ public class ChannelController {
         return channelService.queryListForMap(query, online, hasRecordPlan, channelType);
     }
 
-    @Operation(summary = "为地图保存抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @PostMapping("/map/save-level")
-    public void saveLevel(@RequestBody List<ChannelForThin> channels){
-        channelService.saveLevel(channels);
-    }
-
     @Operation(summary = "为地图去除抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/map/reset-level")
     public void resetLevel(){
@@ -515,14 +510,14 @@ public class ChannelController {
     @Parameter(name = "id", description = "抽稀ID", required = true)
     @GetMapping("/map/thin/clear")
     public void clearThin(String id){
-
+        VectorTileUtils.INSTANCE.remove(id);
     }
 
     @Operation(summary = "保存的抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "抽稀ID", required = true)
     @GetMapping("/map/thin/save")
     public void saveThin(String id){
-
+        channelService.saveThin(id);
     }
 
     @Operation(summary = "获取抽稀执行的进度", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -541,6 +536,10 @@ public class ChannelController {
             byte[] mvt = channelService.getTile(z, x, y, geoCoordSys);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
+            if (mvt == null) {
+                headers.setContentLength(0);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
             headers.setContentLength(mvt.length);
             return new ResponseEntity<>(mvt, headers, HttpStatus.OK);
         } catch (Exception e) {
@@ -556,16 +555,20 @@ public class ChannelController {
     public ResponseEntity<byte[]> getThinTile(@PathVariable int z, @PathVariable int x, @PathVariable int y,
                                               String geoCoordSys, @RequestParam(required = false) String thinId){
 
-        try {
-            byte[] mvt = channelService.getTile(z, x, y, geoCoordSys);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
-            headers.setContentLength(mvt.length);
-            return new ResponseEntity<>(mvt, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("构建矢量瓦片失败： z: {}, x: {}, y:{}", z, x, y, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        if (ObjectUtils.isEmpty(thinId)) {
+            thinId = "DEFAULT";
         }
+        String catchKey = z + "_" + x + "_" + y + "_" + geoCoordSys.toUpperCase();
+        byte[] mvt = VectorTileUtils.INSTANCE.getVectorTile(thinId, catchKey);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
+        if (mvt == null) {
+            headers.setContentLength(0);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+
+        headers.setContentLength(mvt.length);
+        return new ResponseEntity<>(mvt, headers, HttpStatus.OK);
     }
 
 

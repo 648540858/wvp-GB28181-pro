@@ -187,8 +187,16 @@ public class SipUtils {
             remotePort = request.getTopmostViaHeader().getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
-                remotePort = request.getPeerPacketSourcePort();
+                if (request.getPeerPacketSourceAddress() != null) {
+                    remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
+                }else {
+                    remoteAddress = request.getRemoteAddress().getHostAddress();
+                }
+                if( request.getPeerPacketSourcePort() > 0) {
+                    remotePort = request.getPeerPacketSourcePort();
+                }else {
+                    remotePort = request.getRemotePort();
+                }
             }
         }
 

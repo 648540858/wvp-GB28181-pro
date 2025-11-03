@@ -919,4 +919,16 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    public String queryListOutExtent(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where channel_type = 0  AND ( " +
+                "coalesce(gb_longitude, longitude) <= #{minLng} " +
+                "or coalesce(gb_longitude, longitude) > #{maxLng} " +
+                "or coalesce(gb_latitude,  latitude) <= #{minLat} " +
+                "or coalesce(gb_latitude,  latitude) > #{maxLat}" +
+                ")");
+        return sqlBuild.toString();
+    }
+
 }

@@ -341,9 +341,13 @@ public class DeviceQuery {
 		}else if (channelSyncStatus.getErrorMsg() != null) {
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg(channelSyncStatus.getErrorMsg());
-		}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
+		}else if (channelSyncStatus.getTotal() == null){
 			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
 			wvpResult.setMsg("等待通道信息...");
+		}else if (channelSyncStatus.getTotal() == 0){
+			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+            wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+            wvpResult.setData(channelSyncStatus);
 		}else {
 			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
 			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());

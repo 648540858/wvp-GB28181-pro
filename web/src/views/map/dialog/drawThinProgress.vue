@@ -12,7 +12,7 @@
       style="text-align: center"
       @close="close()"
     >
-      <el-progress type="circle" :percentage="percentage"  />
+      <el-progress type="circle" :percentage="percentage"  :status="syncStatus"/>
       <div style="text-align: center">
         {{ msg }}
       </div>
@@ -30,7 +30,7 @@ export default {
   data() {
     return {
       endCallBack: null,
-      syncStatus: null,
+      syncStatus: '',
       percentage: 0,
       showDialog: false,
       isLoging: false,
@@ -51,17 +51,23 @@ export default {
       this.msg = ''
       this.percentage = 0
       this.syncFlag = false
-      this.syncStatus = null
+      this.syncStatus = ''
       this.endCallBack = endCallBack
       this.getProgress()
     },
     getProgress() {
       this.$store.dispatch('commonChanel/thinProgress', this.drawThinId)
-        .then(({ data }) => {
+        .then((data) => {
+          console.log(data)
           this.syncFlag = true
           this.percentage = data.process * 100
           this.msg = data.msg
           console.log('drawThinId: ' + data.drawThinId)
+          if (data.process >= 1) {
+            this.syncStatus = 'success'
+            this.close()
+            return
+          }
           this.timer = setTimeout(this.getProgress, 300)
 
         }).catch((error) => {
@@ -74,10 +80,11 @@ export default {
         })
     },
     close: function() {
+      window.clearTimeout(this.timer)
+      this.showDialog = false
       if (this.endCallBack) {
         this.endCallBack()
       }
-      window.clearTimeout(this.timer)
     }
   }
 }

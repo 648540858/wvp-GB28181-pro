@@ -364,25 +364,18 @@ export default {
         type: 'warning'
       }).then(() => {
         this.loading = true
-        this.$axios({
-          method: 'post',
-          url: '/api/common/channel/reset',
-          params: {
-            id: this.form.gbId
-          }
-        }).then((res) => {
-          if (res.data.code === 0) {
+        this.$store.dispatch('commonChanel/reset', this.form.gbId)
+          .then((data) => {
             this.$message.success({
               showClose: true,
               message: '重置成功 已保存'
             })
             this.getCommonChannel(this.form.gbId)
-          }
-        }).catch((error) => {
-          console.error(error)
-        }).finally(() => {
-          this.loading = false
-        })
+          }).catch((error) => {
+            console.error(error)
+          }).finally(() => {
+            this.loading = false
+          })
       }).catch(() => {
 
       })

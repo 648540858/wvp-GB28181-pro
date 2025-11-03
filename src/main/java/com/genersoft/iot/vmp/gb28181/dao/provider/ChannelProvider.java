@@ -530,7 +530,7 @@ public class ChannelProvider {
     public String queryCameraChannelInBox(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_TABLE_NAME);
-        sqlBuild.append(" where coalesce(wdc.gb_longitude, wdc.longitude) > #{minLon} " +
+        sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_longitude, wdc.longitude) > #{minLon} " +
                 "AND coalesce(wdc.gb_longitude, wdc.longitude) <= #{maxLon} " +
                 "AND coalesce(wdc.gb_latitude,  wdc.latitude) > #{minLat} " +
                 "AND coalesce(wdc.gb_latitude,  wdc.latitude) <= #{maxLat}");

@@ -56,27 +56,29 @@ service.interceptors.response.use(
   },
   error => {
     console.log(error) // for debug
-    if (error.response.status === 401 && !showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
-      // to re-login
-      showLoginConfirm = true
-      MessageBox.confirm('登录已经到期， 是否重新登录', '登录确认', {
-        confirmButtonText: '重新登录',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        store.dispatch('user/resetToken').then(() => {
-          location.reload()
-        })
-      }).catch(() => {
-        store.dispatch('user/closeConfirmBoxForLoginLose')
-        Message.warning({
-          type: 'warning',
-          message: '登录过期提示已经关闭，请注销后重新登录'
-        })
-        // 清除token， 后续请求不再继续
+    if (error.response.status === 401) {
+      if (!showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
+        // to re-login
+        showLoginConfirm = true
+        MessageBox.confirm('登录已经到期， 是否重新登录', '登录确认', {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          store.dispatch('user/resetToken').then(() => {
+            location.reload()
+          })
+        }).catch(() => {
+          store.dispatch('user/closeConfirmBoxForLoginLose')
+          Message.warning({
+            type: 'warning',
+            message: '登录过期提示已经关闭，请注销后重新登录'
+          })
+          // 清除token， 后续请求不再继续
 
-      })
-    } else {
+        })
+      }
+    }else {
       if (!store.getters.showConfirmBoxForLoginLose) {
         return
       }

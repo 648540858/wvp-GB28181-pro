@@ -636,7 +636,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             param.put("callId", callId);
         }
         if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))  {
-            param.put("originTypeStr", mediaInfo.getOriginTypeStr());
+            if (!ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr())) {
+                param.put("originTypeStr", mediaInfo.getOriginTypeStr());
+            }
+            if (!ObjectUtils.isEmpty(mediaInfo.getVideoCodec())) {
+                param.put("videoCodec", mediaInfo.getVideoCodec());
+            }
+            if (!ObjectUtils.isEmpty(mediaInfo.getAudioCodec())) {
+                param.put("audioCodec", mediaInfo.getAudioCodec());
+            }
         }
         StringBuilder callIdParamBuilder = new StringBuilder();
         if (!param.isEmpty()) {

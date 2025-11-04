@@ -6,7 +6,8 @@
       </div>
     </div>
     <el-tabs tab-position="top" style="padding-top: 1rem">
-      <el-tab-pane label="拉流代理信息" style="padding-top: 1rem">
+      <el-tab-pane label="拉流代理信息" style="padding-top: 1rem; height: calc(-218px + 100vh);
+    overflow: auto;">
         <el-form ref="streamProxy" :rules="rules" :model="streamProxy" label-width="140px" style="width: 50%; margin: 0 auto">
           <el-form-item label="类型" prop="type">
             <el-select

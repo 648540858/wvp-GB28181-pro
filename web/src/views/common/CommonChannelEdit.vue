@@ -1,5 +1,5 @@
 <template>
-  <div id="CommonChannelEdit" v-loading="loading" style="width: 100%; overflow: auto; height: calc(-148px + 100vh);">
+  <div id="CommonChannelEdit" v-loading="loading" style="width: 100%; height: calc(-218px + 100vh); overflow: auto;">
     <el-form ref="channelForm" :model="form" :rules="rules" status-icon label-width="160px" class="channel-form" size="medium">
       <div class="form-box">
         <el-form-item label="名称" prop="gbName">

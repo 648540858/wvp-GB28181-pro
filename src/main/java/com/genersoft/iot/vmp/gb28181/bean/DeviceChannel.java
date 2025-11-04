@@ -247,6 +247,7 @@ public class DeviceChannel extends CommonGBChannel {
 		Element deviceElement = element.element("DeviceID");
 		DeviceChannel deviceChannel = new DeviceChannel();
 		deviceChannel.setDeviceId(deviceElement.getText());
+		deviceChannel.setDataType(ChannelDataType.GB28181);
 		return deviceChannel;
 	}
 

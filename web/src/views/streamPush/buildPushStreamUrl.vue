@@ -1,5 +1,5 @@
 <template>
-  <div id="addUser" v-loading="isLoging">
+  <div id="buildPushStreamUrl">
     <el-dialog
       v-el-drag-dialog
       title="构建推流地址"

@@ -212,21 +212,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateStreamAuthorityInfo(String app, String stream, StreamAuthorityInfo streamAuthorityInfo) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY;
         String objectKey = app+ "_" + stream;
         redisTemplate.opsForHash().put(key, objectKey, streamAuthorityInfo);
     }
 
     @Override
     public void removeStreamAuthorityInfo(String app, String stream) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY;
         String objectKey = app+ "_" + stream;
         redisTemplate.opsForHash().delete(key, objectKey);
     }
 
     @Override
     public StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY;
         String objectKey = app+ "_" + stream;
         return (StreamAuthorityInfo)redisTemplate.opsForHash().get(key, objectKey);
 
@@ -234,7 +234,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public List<StreamAuthorityInfo> getAllStreamAuthorityInfo() {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY;
         List<StreamAuthorityInfo> result = new ArrayList<>();
         List<Object> values = redisTemplate.opsForHash().values(key);
         for (Object value : values) {

@@ -432,7 +432,7 @@ public interface CommonGBChannelMapper {
             ", gb_download_speed=#{item.gbDownloadSpeed}" +
             ", gb_svc_space_support_mod=#{item.gbSvcSpaceSupportMod}" +
             ", gb_svc_time_support_mode=#{item.gbSvcTimeSupportMode}" +
-            ", enable_broadcast = #{enableBroadcast}" +
+            ", enable_broadcast = #{item.enableBroadcast}" +
             " WHERE id=#{item.gbId}" +
             "</foreach>" +
             "</script>"})
@@ -593,7 +593,7 @@ public interface CommonGBChannelMapper {
     List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryCommonChannelByDeviceChannel")
-    CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel);
+    CommonGBChannel queryCommonChannelByDeviceChannel(@Param("dataType") Integer dataType, @Param("dataDeviceId") Integer dataDeviceId, @Param("deviceId") String deviceId);
 
     @Update("UPDATE wvp_device_channel SET stream_id = #{stream} where id = #{gbId}")
     void updateStream(int gbId, String stream);
@@ -696,5 +696,4 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryListOutExtent")
     List<CommonGBChannel> queryListOutExtent(@Param("minLng") double minLng, @Param("maxLng") double maxLng,
                                             @Param("minLat") double minLat, @Param("maxLat") double maxLat);
-
 }

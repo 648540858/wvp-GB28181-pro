@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.excel.support.cglib.beans.BeanMap;
 import com.alibaba.excel.util.BeanMapUtils;
+import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -873,7 +874,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel) {
-        return commonGBChannelMapper.queryCommonChannelByDeviceChannel(channel);
+        System.out.println(JSON.toJSONString(channel));
+        return commonGBChannelMapper.queryCommonChannelByDeviceChannel(channel.getDataType(), channel.getDataDeviceId(), channel.getDeviceId());
     }
 
     @Override

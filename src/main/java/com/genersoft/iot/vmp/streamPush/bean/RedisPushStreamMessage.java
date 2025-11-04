@@ -32,6 +32,7 @@ public class RedisPushStreamMessage {
         push.setGbModel(model);
         push.setGbPtzType(ptzType);
         push.setGbStatus(status?"ON":"OFF");
+        push.setEnableBroadcast(0);
         return push;
     }
 }

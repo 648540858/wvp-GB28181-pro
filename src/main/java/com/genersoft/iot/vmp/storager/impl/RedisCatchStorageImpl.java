@@ -188,6 +188,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(60L);
+        gpsMsgInfo.setStored(false);
         redisTemplate.opsForHash().put(key, gpsMsgInfo.getId(),gpsMsgInfo);
         redisTemplate.expire(key, duration);
         // 默认GPS消息保存1分钟

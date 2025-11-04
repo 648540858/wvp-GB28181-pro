@@ -12,7 +12,6 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -824,7 +823,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         if (deviceStatusTaskRunner.containsKey(deviceId)) {
             deviceStatusTaskRunner.removeTask(deviceId);
         }
-        List<CommonGBChannel> commonGBChannels = commonGBChannelMapper.queryByGbDeviceIds(1, List.of(device.getId()));
+        List<CommonGBChannel> commonGBChannels = commonGBChannelMapper.queryByDataTypeAndDeviceIds(1, List.of(device.getId()));
 
         try {
             // 发送catalog

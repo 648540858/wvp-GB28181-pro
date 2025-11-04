@@ -334,7 +334,7 @@ public class ChannelProvider {
         return sqlBuild.toString() ;
     }
 
-    public String queryByGbDeviceIds(Map<String, Object> params ){
+    public String queryByDataTypeAndDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
         sqlBuild.append("where channel_type = 0 and data_type = #{dataType} and data_device_id in ( ");
@@ -346,6 +346,26 @@ public class ChannelProvider {
                 sqlBuild.append(",");
             }
             sqlBuild.append(id);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByGbDeviceIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append("where channel_type = 0 and coalesce(gb_device_id, device_id) in ( ");
+
+        Collection<String> ids = (Collection<String>)params.get("deviceIds");
+        boolean first = true;
+        for (String id : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("'");
+            sqlBuild.append(id);
+            sqlBuild.append("'");
             first = false;
         }
         sqlBuild.append(" )");

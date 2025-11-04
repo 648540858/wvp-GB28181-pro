@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.excel.support.cglib.beans.BeanMap;
 import com.alibaba.excel.util.BeanMapUtils;
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -36,6 +35,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
@@ -559,7 +559,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void addChannelToRegionByGbDevice(String civilCode, List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181, deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByDataTypeAndDeviceIds(ChannelDataType.GB28181, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -581,7 +581,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToRegionByGbDevice(List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181, deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByDataTypeAndDeviceIds(ChannelDataType.GB28181, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -702,7 +702,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     @Transactional
     public void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181, deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByDataTypeAndDeviceIds(ChannelDataType.GB28181, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -732,7 +732,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToGroupByGbDevice(List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181, deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByDataTypeAndDeviceIds(ChannelDataType.GB28181, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -842,7 +842,29 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (gpsMsgInfoList == null || gpsMsgInfoList.isEmpty()) {
             return;
         }
+        // 此处来源默认为WGS84, 所以直接入库
         commonGBChannelMapper.updateGpsByDeviceId(gpsMsgInfoList);
+
+        Map<String, GPSMsgInfo> gpsMsgInfoMap = new ConcurrentReferenceHashMap<>();
+        for (GPSMsgInfo gpsMsgInfo : gpsMsgInfoList) {
+            gpsMsgInfoMap.put(gpsMsgInfo.getId(), gpsMsgInfo);
+        }
+
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(new ArrayList<>(gpsMsgInfoMap.keySet()));
+        if (channelList.isEmpty()) {
+            return;
+        }
+        channelList.forEach(commonGBChannel -> {
+            MobilePosition mobilePosition = new MobilePosition();
+            mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
+            mobilePosition.setChannelId(commonGBChannel.getGbId());
+            mobilePosition.setDeviceName(commonGBChannel.getGbName());
+            mobilePosition.setCreateTime(DateUtil.getNow());
+            mobilePosition.setTime(DateUtil.getNow());
+            mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
+            mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
+            eventPublisher.mobilePositionEventPublish(mobilePosition);
+        });
     }
 
     @Transactional
@@ -874,7 +896,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public CommonGBChannel queryCommonChannelByDeviceChannel(DeviceChannel channel) {
-        System.out.println(JSON.toJSONString(channel));
         return commonGBChannelMapper.queryCommonChannelByDeviceChannel(channel.getDataType(), channel.getDataDeviceId(), channel.getDeviceId());
     }
 

@@ -238,7 +238,7 @@ export default {
         })
     },
     deletePush: function(id) {
-      this.$confirm(`确定删除通道?`, '提示', {
+      this.$confirm('确定删除通道?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -246,6 +246,10 @@ export default {
         this.loading = true
         this.$store.dispatch('streamPush/remove', id)
           .then((data) => {
+            this.$message.success({
+              showClose: true,
+              message: '删除成功'
+            })
             this.initData()
           })
       }).catch(() => {

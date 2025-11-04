@@ -122,7 +122,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								continue;
 							}
 							catalogChannelEvent.getChannel().setDataDeviceId(device.getId());
-                            if (catalogChannelEvent.getChannel().getLongitude() > 0
+                            if (catalogChannelEvent.getChannel().getLongitude() != null
+                                    && catalogChannelEvent.getChannel().getLatitude() != null
+                                    && catalogChannelEvent.getChannel().getLongitude() > 0
                                     && catalogChannelEvent.getChannel().getLatitude() > 0) {
                                if (device.checkWgs84()) {
                                    catalogChannelEvent.getChannel().setGbLongitude(catalogChannelEvent.getChannel().getLongitude());
@@ -286,7 +288,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				switch (notifyCatalogChannel.getType()) {
 					case STATUS_CHANGED:
 						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
-						CommonGBChannel channelForStatus = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+						CommonGBChannel channelForStatus = channelService.getOne(notifyCatalogChannel.getChannel().getId());
 						if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
 							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
 						}else {
@@ -299,7 +301,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						eventPublisher.channelEventPublish(channelForAdd, ChannelEvent.ChannelEventMessageType.ADD);
 						break;
 					case UPDATE:
-						CommonGBChannel oldCommonChannel = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+						CommonGBChannel oldCommonChannel = channelService.getOne(notifyCatalogChannel.getChannel().getId());
 						deviceChannelService.updateChannelForNotify(notifyCatalogChannel.getChannel());
 						CommonGBChannel channel = channelService.getOne(oldCommonChannel.getGbId());
 						eventPublisher.channelEventPublishForUpdate(channel, oldCommonChannel);

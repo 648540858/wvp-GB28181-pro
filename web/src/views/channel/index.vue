@@ -235,7 +235,7 @@ export default {
       updateLooper: 0, // 数据刷新轮训标志
       searchStr: '',
       channelType: '',
-      online: 'true',
+      online: '',
       subStream: '',
       winHeight: window.innerHeight - 200,
       currentPage: this.defaultPage | 1,

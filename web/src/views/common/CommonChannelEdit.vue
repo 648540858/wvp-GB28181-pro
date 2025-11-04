@@ -201,26 +201,6 @@
             <el-option label="其他" :value="9" />
           </el-select>
         </el-form-item>
-        <el-form-item label="监视方位">
-          <el-select v-model="form.gbDirectionType" style="width: 100%" placeholder="请选择监视方位">
-            <el-option label="东(西向东)" :value="1" />
-            <el-option label="西(东向西)" :value="2" />
-            <el-option label="南(北向南)" :value="3" />
-            <el-option label="北(南向北)" :value="4" />
-            <el-option label="东南(西北到东南)" :value="5" />
-            <el-option label="东北(西南到东北)" :value="6" />
-            <el-option label="西南(东北到西南)" :value="7" />
-            <el-option label="西北(东南到西北)" :value="8" />
-            <el-option label="左(非标)" :value="91" />
-            <el-option label="后(非标)" :value="92" />
-            <el-option label="前(非标)" :value="93" />
-            <el-option label="右(非标)" :value="94" />
-            <el-option label="左前(非标)" :value="95" />
-            <el-option label="右前(非标)" :value="96" />
-            <el-option label="左后(非标)" :value="97" />
-            <el-option label="右后(非标)" :value="98" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="分辨率">
           <el-input v-model="form.gbResolution" placeholder="请输入分辨率" />
         </el-form-item>
@@ -314,6 +294,7 @@ export default {
   },
   methods: {
     queryModel(queryString, callback) {
+      // 过滤可选项
       let modelList = this.modelList
       var results = queryString ? modelList.filter(((state) => {
         return (state.alias.toLowerCase().indexOf(queryString.toLowerCase()) === 0 || state.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0)

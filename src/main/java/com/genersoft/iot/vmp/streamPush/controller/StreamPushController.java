@@ -100,7 +100,7 @@ public class StreamPushController {
     @Operation(summary = "删除", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "应用名", required = true)
     public void delete(int id){
-        if (streamPushService.delete(id) > 0){
+        if (streamPushService.delete(id) <= 0){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

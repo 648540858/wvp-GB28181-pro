@@ -40,7 +40,7 @@ public class RedisPushStreamListMsgListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        log.info("[REDIS: 流设备列表更新]： {}", new String(message.getBody()));
+        log.info("[REDIS: 推流设备列表更新]： {}", new String(message.getBody()));
         taskQueue.offer(message);
     }
 

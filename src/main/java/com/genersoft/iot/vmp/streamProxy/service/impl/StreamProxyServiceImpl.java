@@ -364,15 +364,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setMediaServerId(mediaServerId);
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.updateStream(streamProxy);
-
-        streamProxy.setGbStatus(status ? "ON" : "OFF");
-        if (streamProxy.getGbId() > 0) {
-            if (status) {
-                gbChannelService.online(streamProxy.buildCommonGBChannel());
-            } else {
-                gbChannelService.offline(streamProxy.buildCommonGBChannel());
-            }
-        }
     }
 
     @Override

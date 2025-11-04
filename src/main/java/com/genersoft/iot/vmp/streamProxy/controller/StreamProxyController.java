@@ -168,7 +168,7 @@ public class StreamProxyController {
 
     @GetMapping(value = "/start")
     @ResponseBody
-    @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "播放代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理Id", required = true)
     public DeferredResult<WVPResult<StreamContent>> start(HttpServletRequest request, int id){
         log.info("播放代理： {}", id);
@@ -214,10 +214,10 @@ public class StreamProxyController {
 
     @GetMapping(value = "/stop")
     @ResponseBody
-    @Operation(summary = "停用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "停止播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理Id", required = true)
     public void stop(int id){
-        log.info("停用代理： {}", id);
+        log.info("停止播放： {}", id);
         streamProxyPlayService.stop(id);
     }
 }

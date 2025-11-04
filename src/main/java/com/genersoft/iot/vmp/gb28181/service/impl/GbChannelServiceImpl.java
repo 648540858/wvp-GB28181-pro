@@ -863,6 +863,11 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public List<CommonGBChannel> queryListForMap(String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, null, null);
     }
 
@@ -1033,7 +1038,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
                     saveTile(id, key, "WGS84", beforeData);
                     saveTile(id, key, "GCJ02", beforeData);
                     process.updateAndGet(v -> (v + 0.5 / zoomParam.size()));
-                    saveProcess(id, process.get(), "生成mvt矢量瓦片： " + key);
+                    saveProcess(id, process.get(), "发布矢量瓦片： " + key);
                 }
                 // 记录原始数据，未保存做准备
                 VectorTileUtils.INSTANCE.addSource(id, new ArrayList<>(useCameraMap.values()));

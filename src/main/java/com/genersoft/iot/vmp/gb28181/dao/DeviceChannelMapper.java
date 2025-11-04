@@ -505,6 +505,7 @@ public interface DeviceChannelMapper {
     void changeAudio(@Param("channelId") int channelId, @Param("audio") boolean audio);
 
     @Update("UPDATE wvp_device_channel SET status=#{status} WHERE data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void updateStatus(DeviceChannel channel);
 
     @Update({"<script>" +

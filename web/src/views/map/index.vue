@@ -575,6 +575,7 @@ export default {
       if (!this.drawThinId) {
         return
       }
+      this.saveDrawThinLoading = true
       this.$store.dispatch('commonChanel/saveThin', this.drawThinId)
         .then((data) => {
           this.$message.success({

@@ -1122,7 +1122,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Transactional
     public void saveThin(String id) {
         commonGBChannelMapper.resetLevel();
-        VectorTileUtils.INSTANCE.save(id);
         List<CommonGBChannel> channelList = VectorTileUtils.INSTANCE.getChannelList(id);
         if (channelList != null && !channelList.isEmpty()) {
             int limitCount = 1000;
@@ -1138,5 +1137,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 commonGBChannelMapper.saveLevel(channelList);
             }
         }
+        VectorTileUtils.INSTANCE.save(id);
     }
 }

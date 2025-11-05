@@ -18,6 +18,11 @@ public class GPSMsgInfo {
     private Integer channelId;
 
     /**
+     *
+     */
+    private String app;
+
+    /**
      * 经度 (必选)
      */
     private double lng;

@@ -288,7 +288,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				switch (notifyCatalogChannel.getType()) {
 					case STATUS_CHANGED:
 						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
-						CommonGBChannel channelForStatus = channelService.getOne(notifyCatalogChannel.getChannel().getId());
+						CommonGBChannel channelForStatus = channelService.queryBySourceChannelId(notifyCatalogChannel.getChannel());
 						if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
 							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
 						}else {
@@ -313,7 +313,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						break;
 				}
 			}catch (Exception e) {
-				log.error("[存储收到的通道]类型：{}，编号：{}", notifyCatalogChannel.getType(),
+				log.error("[存储收到的通道-异常]类型：{}，编号：{}", notifyCatalogChannel.getType(),
 						notifyCatalogChannel.getChannel().getDeviceId(), e);
 			}
 		}

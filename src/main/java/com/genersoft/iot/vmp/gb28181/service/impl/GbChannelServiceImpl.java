@@ -35,7 +35,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
@@ -844,27 +843,27 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         // 此处来源默认为WGS84, 所以直接入库
         commonGBChannelMapper.updateGpsByDeviceId(gpsMsgInfoList);
-
-        Map<String, GPSMsgInfo> gpsMsgInfoMap = new ConcurrentReferenceHashMap<>();
-        for (GPSMsgInfo gpsMsgInfo : gpsMsgInfoList) {
-            gpsMsgInfoMap.put(gpsMsgInfo.getId(), gpsMsgInfo);
-        }
-
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(new ArrayList<>(gpsMsgInfoMap.keySet()));
-        if (channelList.isEmpty()) {
-            return;
-        }
-        channelList.forEach(commonGBChannel -> {
-            MobilePosition mobilePosition = new MobilePosition();
-            mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
-            mobilePosition.setChannelId(commonGBChannel.getGbId());
-            mobilePosition.setDeviceName(commonGBChannel.getGbName());
-            mobilePosition.setCreateTime(DateUtil.getNow());
-            mobilePosition.setTime(DateUtil.getNow());
-            mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
-            mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
-            eventPublisher.mobilePositionEventPublish(mobilePosition);
-        });
+//
+//        Map<String, GPSMsgInfo> gpsMsgInfoMap = new ConcurrentReferenceHashMap<>();
+//        for (GPSMsgInfo gpsMsgInfo : gpsMsgInfoList) {
+//            gpsMsgInfoMap.put(gpsMsgInfo.getId(), gpsMsgInfo);
+//        }
+//
+//        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(new ArrayList<>(gpsMsgInfoMap.keySet()));
+//        if (channelList.isEmpty()) {
+//            return;
+//        }
+//        channelList.forEach(commonGBChannel -> {
+//            MobilePosition mobilePosition = new MobilePosition();
+//            mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
+//            mobilePosition.setChannelId(commonGBChannel.getGbId());
+//            mobilePosition.setDeviceName(commonGBChannel.getGbName());
+//            mobilePosition.setCreateTime(DateUtil.getNow());
+//            mobilePosition.setTime(DateUtil.getNow());
+//            mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
+//            mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
+//            eventPublisher.mobilePositionEventPublish(mobilePosition);
+//        });
     }
 
     @Transactional

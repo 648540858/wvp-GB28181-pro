@@ -459,4 +459,47 @@ public interface DeviceMapper {
             "</foreach>" +
             "</script>"})
     void batchUpdate(List<Device> devices);
+
+
+    @Update(value = {" <script>" +
+            "SELECT " +
+            "coalesce(custom_name, name) as name, " +
+            "id" +
+            ",device_id" +
+            ",manufacturer" +
+            ",model" +
+            ",firmware" +
+            ",transport" +
+            ",stream_mode" +
+            ",on_line" +
+            ",register_time" +
+            ",keepalive_time" +
+            ",ip" +
+            ",create_time" +
+            ",update_time" +
+            ",port" +
+            ",expires" +
+            ",subscribe_cycle_for_catalog" +
+            ",subscribe_cycle_for_mobile_position" +
+            ",mobile_position_submission_interval" +
+            ",subscribe_cycle_for_alarm" +
+            ",host_address" +
+            ",charset" +
+            ",ssrc_check" +
+            ",geo_coord_sys" +
+            ",media_server_id" +
+            ",sdp_ip" +
+            ",local_ip" +
+            ",password" +
+            ",as_message_channel" +
+            ",heart_beat_interval" +
+            ",heart_beat_count" +
+            ",position_capability" +
+            ",broadcast_push_after_ack" +
+            ",server_id" +
+            " FROM wvp_device" +
+            " WHERE device_id in"+
+            "<foreach collection='deviceIds' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    List<Device> queryByDeviceIds(List<String> deviceIds);
 }

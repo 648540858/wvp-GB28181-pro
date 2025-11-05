@@ -540,7 +540,6 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             }
             for (CommonGBChannel channel : channelList) {
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getGbDeviceId());
-
                 // 无最新位置则发送当前位置
                 if (gpsMsgInfo != null && (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0)) {
                     gpsMsgInfo = null;

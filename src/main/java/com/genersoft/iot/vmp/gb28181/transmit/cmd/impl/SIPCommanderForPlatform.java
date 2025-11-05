@@ -356,6 +356,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
+        log.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
         if (log.isDebugEnabled()) {
             log.debug("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
         }

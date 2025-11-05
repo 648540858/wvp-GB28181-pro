@@ -228,7 +228,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public MediaInfo getMediaInfo(MediaServer mediaServer, String app, String stream) {
         ZLMResult<JSONObject> zlmResult = zlmresTfulUtils.getMediaInfo(mediaServer, app, "rtsp", stream);
-        if (zlmResult.getCode() != 0) {
+        if (zlmResult.getCode() != 0 || zlmResult.getData() == null || zlmResult.getData().getString("app") == null ) {
             return null;
         }
         return MediaInfo.getInstance(zlmResult.getData(), mediaServer, userSetting.getServerId());

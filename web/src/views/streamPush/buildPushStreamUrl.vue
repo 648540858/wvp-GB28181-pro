@@ -18,6 +18,9 @@
           <el-form-item label="流ID" prop="stream">
             <el-input v-model="stream" autocomplete="off" />
           </el-form-item>
+          <el-form-item label="CallID" prop="stream">
+            <el-input v-model="callId" autocomplete="off" />
+          </el-form-item>
           <el-form-item label="媒体节点" prop="mediaServerId">
             <el-select v-model="mediaServer" placeholder="请选择" style="width: 100%">
               <el-option
@@ -80,6 +83,7 @@ export default {
       showDialog: false,
       app: null,
       stream: null,
+      callId: null,
       mediaServer: null,
       mediaServerList: [],
       pushKey: null,
@@ -91,32 +95,56 @@ export default {
       if (!this.pushKey) {
         return ''
       }
-      return crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+      if (this.callId) {
+        return crypto.createHash('md5').update(this.callId + '_' + this.pushKey, 'utf8').digest('hex')
+
+      }else {
+        return crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+      }
+
     },
     rtsp(){
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
       crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
-      return `rtsp://${this.mediaServer.streamIp}:${this.mediaServer.rtspPort}/${this.app}/${this.stream}?sign=${this.sign}`
+      if (this.callId) {
+        return `rtsp://${this.mediaServer.streamIp}:${this.mediaServer.rtspPort}/${this.app}/${this.stream}?callId=${this.callId}&sign=${this.sign}`
+      }else {
+        return `rtsp://${this.mediaServer.streamIp}:${this.mediaServer.rtspPort}/${this.app}/${this.stream}?sign=${this.sign}`
+      }
     },
     rtmp(){
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
-      return `rtmp://${this.mediaServer.streamIp}:${this.mediaServer.rtmpPort}/${this.app}/${this.stream}?sign=${this.sign}`
+      if (this.callId) {
+        return `rtmp://${this.mediaServer.streamIp}:${this.mediaServer.rtmpPort}/${this.app}/${this.stream}?callId=${this.callId}&sign=${this.sign}`
+      }else {
+        return `rtmp://${this.mediaServer.streamIp}:${this.mediaServer.rtmpPort}/${this.app}/${this.stream}?sign=${this.sign}`
+      }
     },
     rtc(){
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
-      return `http://${this.mediaServer.streamIp}:${this.mediaServer.httpPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&sign=${this.sign}`
+      if (this.callId) {
+        return `http://${this.mediaServer.streamIp}:${this.mediaServer.httpPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&callId=${this.callId}&sign=${this.sign}`
+      }else {
+        return `http://${this.mediaServer.streamIp}:${this.mediaServer.httpPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&sign=${this.sign}`
+      }
+
     },
     rtcs(){
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
-      return `https://${this.mediaServer.streamIp}:${this.mediaServer.httpSSlPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&sign=${this.sign}`
+      if (this.callId) {
+        return `https://${this.mediaServer.streamIp}:${this.mediaServer.httpSSlPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&callId=${this.callId}&sign=${this.sign}`
+      }else {
+        return `https://${this.mediaServer.streamIp}:${this.mediaServer.httpSSlPort}/index/api/webrtc?app=${this.app}&stream=${this.stream}&sign=${this.sign}`
+      }
+
     }
   },
   created() {

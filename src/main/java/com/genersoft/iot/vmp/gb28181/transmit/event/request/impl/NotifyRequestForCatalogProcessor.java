@@ -288,7 +288,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				switch (notifyCatalogChannel.getType()) {
 					case STATUS_CHANGED:
 						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
-						CommonGBChannel channelForStatus = channelService.queryBySourceChannelId(notifyCatalogChannel.getChannel());
+						CommonGBChannel channelForStatus = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
 						if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
 							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
 						}else {

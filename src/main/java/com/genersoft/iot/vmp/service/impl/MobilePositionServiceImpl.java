@@ -125,6 +125,10 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             updateChannelMap.get(mobilePosition.getDeviceId()).put(mobilePosition.getChannelId(), deviceChannel);
         }
         List<String> deviceIds = new ArrayList<>(updateChannelMap.keySet());
+        if (deviceIds.isEmpty()) {
+            log.info("[移动位置订阅]为查询到对应的设备，消息已经忽略");
+            return;
+        }
         List<Device> deviceList = deviceMapper.queryByDeviceIds(deviceIds);
         for (Device device : deviceList) {
             Map<Integer, DeviceChannel> channelMap = updateChannelMap.get(device.getDeviceId());

@@ -15,7 +15,9 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.HttpUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -80,7 +82,7 @@ public class CameraChannelController {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private IStreamProxyService streamProxyService;
+    private IStreamPushService streamPushService;
 
     @Value("${sy.ptz-control-time-interval}")
     private int ptzControlTimeInterval = 300;
@@ -349,10 +351,13 @@ public class CameraChannelController {
     @Parameter(name = "callId", description = "推流时携带的自定义鉴权ID", required = true)
     @GetMapping(value = "/push/play")
     @ResponseBody
-    public StreamContent getStreamInfoByAppAndStream(HttpServletRequest request,
+    public DeferredResult<WVPResult<StreamContent>> getStreamInfoByAppAndStream(HttpServletRequest request,
                                                                                 String app,
                                                                                 String stream,
                                                                                 String callId){
+        StreamPush streamPush = streamPushService.getPush(app, stream);
+        Assert.notNull(streamPush, "地址不存在");
+
         // 权限校验
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
         if (streamAuthorityInfo == null
@@ -360,16 +365,29 @@ public class CameraChannelController {
                 || !streamAuthorityInfo.getCallId().equals(callId)) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "播放地址鉴权失败");
         }
-        String host;
-        try {
-            URL url=new URL(request.getRequestURL().toString());
-            host=url.getHost();
-        } catch (MalformedURLException e) {
-            host=request.getLocalAddr();
-        }
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, null, host, true);
-        Assert.notNull(streamInfo, "地址不存在");
-        return new StreamContent(streamInfo);
+
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        result.onTimeout(()->{
+            WVPResult<StreamContent> fail = WVPResult.fail(ErrorCode.ERROR100.getCode(), "等待推流超时");
+            result.setResult(fail);
+        });
+
+        streamPushPlayService.start(streamPush.getId(), (code, msg, streamInfo) -> {
+            if (code == 0 && streamInfo != null) {
+                streamInfo=streamInfo.clone();//深拷贝
+                String host;
+                try {
+                    URL url=new URL(request.getRequestURL().toString());
+                    host=url.getHost();
+                } catch (MalformedURLException e) {
+                    host=request.getLocalAddr();
+                }
+                streamInfo.changeStreamIp(host);
+                WVPResult<StreamContent> success = WVPResult.success(new StreamContent(streamInfo));
+                result.setResult(success);
+            }
+        }, null, null);
+        return result;
     }
 
     @ResponseBody

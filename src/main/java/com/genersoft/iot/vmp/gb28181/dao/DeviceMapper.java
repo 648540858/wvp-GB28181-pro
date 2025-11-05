@@ -461,7 +461,7 @@ public interface DeviceMapper {
     void batchUpdate(List<Device> devices);
 
 
-    @Update(value = {" <script>" +
+    @Select(value = {" <script>" +
             "SELECT " +
             "coalesce(custom_name, name) as name, " +
             "id" +

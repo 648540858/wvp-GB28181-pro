@@ -997,8 +997,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                         // 最大层级不进行抽稀， 将未进行抽稀的数据直接存储到这个层级
                         for (CommonGBChannel channel : channelListInExtent) {
                             if (!useCameraMap.containsKey(channel.getGbId())) {
+                                channel.setMapLevel(zoom);
                                 // 这个的key跟后面的不一致是因为无需抽稀， 直接存储原始数据
                                 cameraMapForZoom.put(channel.getGbId() + "", channel);
+                                useCameraMap.put(channel.getGbId(), channel);
                             }
                         }
                     }else {

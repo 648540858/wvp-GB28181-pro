@@ -45,10 +45,10 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-//        if (request.getParameter("ccerty") != null) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
+        if (request.getParameter("ccerty") != null) {
+            chain.doFilter(request, response);
+            return;
+        }
         // 设置响应内容类型
         response.setContentType("application/json;charset=UTF-8");
 

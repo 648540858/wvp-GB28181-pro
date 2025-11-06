@@ -9,7 +9,7 @@ public class RedisPushStreamMessage {
     private String app;
     private String stream;
     private String name;
-    private boolean status;
+    private Boolean status;
     // 终端所属的虚拟组织
     private String groupGbId;
     // 终端所属的虚拟组织别名 可选，可作为地方同步组织结构到wvp时的关联关系
@@ -31,7 +31,9 @@ public class RedisPushStreamMessage {
         push.setGbManufacturer(manufacturer);
         push.setGbModel(model);
         push.setGbPtzType(ptzType);
-        push.setGbStatus(status?"ON":"OFF");
+        if (status != null) {
+            push.setGbStatus(status?"ON":"OFF");
+        }
         push.setEnableBroadcast(0);
         return push;
     }

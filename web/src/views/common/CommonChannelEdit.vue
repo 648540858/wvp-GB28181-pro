@@ -248,6 +248,7 @@
 import channelCode from './../dialog/channelCode'
 import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
 import ChooseGroup from '../dialog/chooseGroup.vue'
+import diff from '../../utils/diff'
 
 export default {
   name: 'CommonChannelEdit',
@@ -288,7 +289,7 @@ export default {
       if (!this.dataForm.gbDeviceId) {
         this.dataForm.gbDeviceId = ''
       }
-      this.form = this.dataForm
+      this.form = window.structuredClone(this.dataForm)
       this.getPaths()
     }
   },
@@ -309,8 +310,16 @@ export default {
             this.form.gbDownloadSpeed = this.form.gbDownloadSpeedArray.join('/')
           }
           this.form.enableBroadcast = this.form.enableBroadcastForBool ? 1 : 0
+          // 判断哪些字段变化
+          let diffData = diff(this.dataForm, this.form)
+          diffData['gbId'] = this.form.gbId
+
+          console.log(diffData)
+          console.log(this.dataForm)
+          console.log(this.form)
+
           if (this.form.gbId) {
-            this.$store.dispatch('commonChanel/update', this.form)
+            this.$store.dispatch('commonChanel/update', diffData)
               .then(data => {
                 this.$message.success({
                   showClose: true,
@@ -368,6 +377,7 @@ export default {
           if (data.gbDownloadSpeed) {
             data.gbDownloadSpeedArray = data.gbDownloadSpeed.split('/')
           }
+          this.dataForm = window.structuredClone(data)
           this.form = data
           this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
           this.getPaths()

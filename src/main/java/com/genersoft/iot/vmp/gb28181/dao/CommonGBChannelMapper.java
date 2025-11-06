@@ -117,40 +117,40 @@ public interface CommonGBChannelMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
             "SET update_time=#{updateTime}" +
-            ", gb_device_id = #{gbDeviceId}" +
-            ", gb_name = #{gbName}" +
-            ", gb_manufacturer = #{gbManufacturer}" +
-            ", gb_model = #{gbModel}" +
-            ", gb_owner = #{gbOwner}" +
-            ", gb_civil_code = #{gbCivilCode}" +
-            ", gb_block = #{gbBlock}" +
-            ", gb_address = #{gbAddress}" +
-            ", gb_parental = #{gbParental}" +
-            ", gb_parent_id = #{gbParentId}" +
-            ", gb_safety_way = #{gbSafetyWay}" +
-            ", gb_register_way = #{gbRegisterWay}" +
-            ", gb_cert_num = #{gbCertNum}" +
-            ", gb_certifiable = #{gbCertifiable}" +
-            ", gb_err_code = #{gbErrCode}" +
-            ", gb_end_time = #{gbEndTime}" +
-            ", gb_ip_address = #{gbIpAddress}" +
-            ", gb_port = #{gbPort}" +
-            ", gb_password = #{gbPassword}" +
-            ", gb_status = #{gbStatus}" +
-            ", gb_longitude = #{gbLongitude}" +
-            ", gb_latitude = #{gbLatitude}" +
-            ", gb_ptz_type = #{gbPtzType}" +
-            ", gb_position_type = #{gbPositionType}" +
-            ", gb_room_type = #{gbRoomType}" +
-            ", gb_use_type = #{gbUseType}" +
-            ", gb_supply_light_type = #{gbSupplyLightType}" +
-            ", gb_direction_type = #{gbDirectionType}" +
-            ", gb_resolution = #{gbResolution}" +
-            ", gb_business_group_id = #{gbBusinessGroupId}" +
-            ", gb_download_speed = #{gbDownloadSpeed}" +
-            ", gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
-            ", gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
-            ", enable_broadcast = #{enableBroadcast}" +
+            "<if test='gbDeviceId != null' > , gb_device_id = #{gbDeviceId}</if> " +
+            "<if test='gbName != null' > , gb_name = #{gbName}</if> " +
+            "<if test='gbManufacturer != null' > , gb_manufacturer = #{gbManufacturer}</if> " +
+            "<if test='gbModel != null' > , gb_model = #{gbModel}</if> " +
+            "<if test='gbOwner != null' > , gb_owner = #{gbOwner}</if> " +
+            "<if test='gbCivilCode != null' > , gb_civil_code = #{gbCivilCode}</if> " +
+            "<if test='gbBlock != null' > , gb_block = #{gbBlock}</if> " +
+            "<if test='gbAddress != null' > , gb_address = #{gbAddress}</if> " +
+            "<if test='gbParental != null' > , gb_parental = #{gbParental}</if> " +
+            "<if test='gbParentId != null' > , gb_parent_id = #{gbParentId}</if> " +
+            "<if test='gbSafetyWay != null' > , gb_safety_way = #{gbSafetyWay}</if> " +
+            "<if test='gbRegisterWay != null' > , gb_register_way = #{gbRegisterWay}</if> " +
+            "<if test='gbCertNum != null' > , gb_cert_num = #{gbCertNum}</if> " +
+            "<if test='gbCertifiable != null' > , gb_certifiable = #{gbCertifiable}</if> " +
+            "<if test='gbErrCode != null' > , gb_err_code = #{gbErrCode}</if> " +
+            "<if test='gbEndTime != null' > , gb_end_time = #{gbEndTime}</if> " +
+            "<if test='gbIpAddress != null' > , gb_ip_address = #{gbIpAddress}</if> " +
+            "<if test='gbPort != null' > , gb_port = #{gbPort}</if> " +
+            "<if test='gbPassword != null' > , gb_password = #{gbPassword}</if> " +
+            "<if test='gbStatus != null' > , gb_status = #{gbStatus}</if> " +
+            "<if test='gbLongitude != null' > , gb_longitude = #{gbLongitude}</if> " +
+            "<if test='gbLatitude != null' > , gb_latitude = #{gbLatitude}</if> " +
+            "<if test='gbPtzType != null' > , gb_ptz_type = #{gbPtzType}</if> " +
+            "<if test='gbPositionType != null' > , gb_position_type = #{gbPositionType}</if> " +
+            "<if test='gbRoomType != null' > , gb_room_type = #{gbRoomType}</if> " +
+            "<if test='gbUseType != null' > , gb_use_type = #{gbUseType}</if> " +
+            "<if test='gbSupplyLightType != null' > , gb_supply_light_type = #{gbSupplyLightType}</if> " +
+            "<if test='gbDirectionType != null' > , gb_direction_type = #{gbDirectionType}</if> " +
+            "<if test='gbResolution != null' > , gb_resolution = #{gbResolution}</if> " +
+            "<if test='gbBusinessGroupId != null' > , gb_business_group_id = #{gbBusinessGroupId}</if> " +
+            "<if test='gbDownloadSpeed != null' > , gb_download_speed = #{gbDownloadSpeed}</if> " +
+            "<if test='gbSvcSpaceSupportMod != null' > , gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}</if> " +
+            "<if test='gbSvcTimeSupportMode != null' > , gb_svc_time_support_mode = #{gbSvcTimeSupportMode}</if> " +
+            "<if test='enableBroadcast != null' > , enable_broadcast = #{enableBroadcast}</if> " +
             " WHERE id = #{gbId}"+
             " </script>"})
     int update(CommonGBChannel commonGBChannel);
@@ -236,17 +236,13 @@ public interface CommonGBChannelMapper {
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
-            " SET update_time=#{updateTime}, gb_device_id = null, gb_name = null, gb_manufacturer = null," +
-            " gb_model = null, gb_owner = null, gb_block = null, gb_address = null," +
-            " gb_parental = null, gb_parent_id = null, gb_safety_way = null, gb_register_way = null, gb_cert_num = null," +
-            " gb_certifiable = null, gb_err_code = null, gb_end_time = null, gb_secrecy = null, gb_ip_address = null, " +
-            " gb_port = null, gb_password = null, gb_status = null, gb_longitude = null, gb_latitude = null, " +
-            " gb_ptz_type = null, gb_position_type = null, gb_room_type = null, gb_use_type = null, gb_supply_light_type = null, " +
-            " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
-            " gb_svc_time_support_mode = null" +
-            " WHERE id = #{id} and data_type = #{dataType} and data_device_id = #{dataDeviceId}"+
+            " SET update_time=#{updateTime}" +
+            "<foreach collection='fields' index='index' item='item' separator=';'> " +
+            ", #{item} = null" +
+            "</foreach> " +
+            " WHERE id = #{id}"+
             " </script>"})
-    void reset(@Param("id") int id, @Param("dataType") Integer dataType, @Param("dataDeviceId") int dataDeviceId, @Param("updateTime") String updateTime);
+    void reset(@Param("id") int id, List<String> fields, @Param("updateTime") String updateTime);
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByIds")
@@ -421,7 +417,7 @@ public interface CommonGBChannelMapper {
             ", gb_ip_address=#{item.gbIpAddress}" +
             ", gb_port=#{item.gbPort}" +
             ", gb_password=#{item.gbPassword}" +
-            ", gb_status=#{item.gbStatus}" +
+            "<if test='item.gbStatus != null' > , gb_status=#{item.gbStatus}</if> " +
             ", gb_longitude=#{item.gbLongitude}" +
             ", gb_latitude=#{item.gbLatitude}" +
             ", gb_ptz_type=#{item.gbPtzType}" +

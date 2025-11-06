@@ -42,7 +42,7 @@ public interface IGbChannelService {
 
     List<NetworkIdentificationType> getNetworkIdentificationTypeList();
 
-    void reset(int id);
+    void reset(int id, List<String> chanelFields);
 
     PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode);
 

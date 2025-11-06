@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +34,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.beans.PropertyDescriptor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -86,13 +88,26 @@ public class ChannelController {
     @Operation(summary = "更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/update")
     public void update(@RequestBody CommonGBChannel channel){
+        BeanWrapperImpl wrapper = new BeanWrapperImpl(channel);
+        int count = 0;
+        for (PropertyDescriptor pd : wrapper.getPropertyDescriptors()) {
+            String name = pd.getName();
+            if ("class".equals(name)) continue;
+            if (pd.getReadMethod() == null) continue;
+            Object val = wrapper.getPropertyValue(name);
+            if (val != null) count++;
+        }
+        Assert.isTrue(count > 1, "未进行任何修改");
         channelService.update(channel);
     }
 
+
     @Operation(summary = "重置国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/reset")
-    public void reset(Integer id){
-        channelService.reset(id);
+    public void reset(ResetParam param){
+        Assert.notNull(param.getId(), "通道ID不能为空");
+        Assert.notEmpty(param.getChanelFields(), "待重置字段不可以空");
+        channelService.reset(param.getId(), param.getChanelFields());
     }
 
     @Operation(summary = "增加通道", security = @SecurityRequirement(name = JwtUtils.HEADER))

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.excel.support.cglib.beans.BeanMap;
 import com.alibaba.excel.util.BeanMapUtils;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -25,11 +26,13 @@ import com.genersoft.iot.vmp.utils.TileUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -165,26 +168,28 @@ public class GbChannelServiceImpl implements IGbChannelService {
         CommonGBChannel oldChannel = commonGBChannelMapper.queryById(commonGBChannel.getGbId());
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.update(commonGBChannel);
+
         if (result > 0) {
             try {
+                CommonGBChannel newChannel = commonGBChannelMapper.queryById(commonGBChannel.getGbId());
                 // 发送通知
-                eventPublisher.channelEventPublishForUpdate(commonGBChannel, oldChannel);
+                eventPublisher.channelEventPublishForUpdate(newChannel, oldChannel);
 
-                if (commonGBChannel.getGbLongitude() != null && !Objects.equals(oldChannel.getGbLongitude(), commonGBChannel.getGbLongitude())
-                        && commonGBChannel.getGbLatitude() != null && !Objects.equals(oldChannel.getGbLatitude(), commonGBChannel.getGbLatitude())) {
+                if (newChannel.getGbLongitude() != null && !Objects.equals(oldChannel.getGbLongitude(), newChannel.getGbLongitude())
+                        && newChannel.getGbLatitude() != null && !Objects.equals(oldChannel.getGbLatitude(), newChannel.getGbLatitude())) {
                     MobilePosition mobilePosition = new MobilePosition();
-                    mobilePosition.setDeviceId(commonGBChannel.getGbDeviceId());
-                    mobilePosition.setChannelId(commonGBChannel.getGbId());
-                    mobilePosition.setDeviceName(commonGBChannel.getGbName());
+                    mobilePosition.setDeviceId(newChannel.getGbDeviceId());
+                    mobilePosition.setChannelId(newChannel.getGbId());
+                    mobilePosition.setDeviceName(newChannel.getGbName());
                     mobilePosition.setCreateTime(DateUtil.getNow());
                     mobilePosition.setTime(DateUtil.getNow());
-                    mobilePosition.setLongitude(commonGBChannel.getGbLongitude());
-                    mobilePosition.setLatitude(commonGBChannel.getGbLatitude());
+                    mobilePosition.setLongitude(newChannel.getGbLongitude());
+                    mobilePosition.setLatitude(newChannel.getGbLatitude());
                     eventPublisher.mobilePositionEventPublish(mobilePosition);
                 }
 
             } catch (Exception e) {
-                log.warn("[更新通道通知] 发送失败，{}", commonGBChannel.getGbDeviceId(), e);
+                log.warn("[更新通道通知] 发送失败，{}", JSONObject.toJSONString(commonGBChannel), e);
             }
         }
         return result;
@@ -422,8 +427,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void reset(int id) {
+    public void reset(int id, List<String> chanelFields) {
         log.info("[重置国标通道] id: {}", id);
+        Assert.notEmpty(chanelFields, "待重置字段为空");
         CommonGBChannel channel = getOne(id);
         if (channel == null) {
             log.warn("[重置国标通道] 未找到对应Id的通道: id: {}", id);
@@ -433,8 +439,18 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[重置国标通道] 非国标下级通道无法重置: id: {}", id);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "非国标下级通道无法重置");
         }
+        List<String> dbFields = new ArrayList<>();
+
+        for (String chanelField : chanelFields) {
+            BeanWrapperImpl wrapper = new BeanWrapperImpl(channel);
+            if (wrapper.isReadableProperty(chanelField)) {
+                dbFields.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, chanelField));
+            }
+        }
+        Assert.notEmpty(dbFields, "待重置字段为空");
+
         // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
-        commonGBChannelMapper.reset(id, ChannelDataType.GB28181, channel.getDataDeviceId(), DateUtil.getNow());
+        commonGBChannelMapper.reset(id, dbFields, DateUtil.getNow());
         CommonGBChannel channelNew = getOne(id);
         // 发送通过更新通知
         try {

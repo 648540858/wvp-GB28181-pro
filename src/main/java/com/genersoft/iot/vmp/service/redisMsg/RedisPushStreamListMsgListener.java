@@ -102,7 +102,9 @@ public class RedisPushStreamListMsgListener implements MessageListener {
                         streamPush.setUpdateTime(DateUtil.getNow());
                         streamPush.setGbDeviceId(pushStreamMessage.getGbId());
                         streamPush.setGbName(pushStreamMessage.getName());
-                        streamPush.setGbStatus(pushStreamMessage.isStatus() ? "ON" : "OFF");
+                        if (pushStreamMessage.getStatus() != null) {
+                            streamPush.setGbStatus(pushStreamMessage.getStatus() ? "ON" : "OFF");
+                        }
                         //存在就只修改 name和gbId
                         streamPushItemForUpdate.add(streamPush);
                     }

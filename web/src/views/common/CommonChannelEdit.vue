@@ -233,7 +233,7 @@
         <div style="text-align: right">
           <el-button type="primary" @click="onSubmit" >保存</el-button>
           <el-button v-if="showCancel" @click="cancelSubmit" >取消</el-button>
-          <el-button v-if="form.dataType === 1" @click="reset">重置</el-button>
+          <el-button v-if="form.dataType === 1" @click="showReset">重置</el-button>
         </div>
       </div>
 
@@ -241,6 +241,7 @@
     <channelCode ref="channelCode" />
     <chooseCivilCode ref="chooseCivilCode" />
     <chooseGroup ref="chooseGroup" />
+    <resetChannel ref="resetChannel" @submit="reset"/>
   </div>
 </template>
 
@@ -249,10 +250,12 @@ import channelCode from './../dialog/channelCode'
 import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
 import ChooseGroup from '../dialog/chooseGroup.vue'
 import diff from '../../utils/diff'
+import ResetChannel from './../dialog/resetChannel.vue'
 
 export default {
   name: 'CommonChannelEdit',
   components: {
+    ResetChannel,
     ChooseCivilCode,
     ChooseGroup,
     channelCode
@@ -346,7 +349,7 @@ export default {
         }
       })
     },
-    reset: function() {
+    reset: function(fileIds) {
       this.$confirm('确定重置为默认内容?', '提示', {
         dangerouslyUseHTMLString: true,
         confirmButtonText: '确定',
@@ -354,7 +357,10 @@ export default {
         type: 'warning'
       }).then(() => {
         this.loading = true
-        this.$store.dispatch('commonChanel/reset', this.form.gbId)
+        this.$store.dispatch('commonChanel/reset', {
+          id: this.form.gbId,
+          chanelFields: fileIds
+        })
           .then((data) => {
             this.$message.success({
               showClose: true,
@@ -405,6 +411,9 @@ export default {
     },
     cancelSubmit: function() {
       this.$emit('cancel')
+    },
+    showReset: function() {
+      this.$refs.resetChannel.openDialog()
     },
     getPaths: function() {
       this.parentPath = []

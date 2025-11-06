@@ -104,7 +104,7 @@ public class ChannelController {
 
     @Operation(summary = "重置国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/reset")
-    public void reset(ResetParam param){
+    public void reset(@RequestBody ResetParam param){
         Assert.notNull(param.getId(), "通道ID不能为空");
         Assert.notEmpty(param.getChanelFields(), "待重置字段不可以空");
         channelService.reset(param.getId(), param.getChanelFields());

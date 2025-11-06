@@ -237,8 +237,8 @@ public interface CommonGBChannelMapper {
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
             " SET update_time=#{updateTime}" +
-            "<foreach collection='fields' index='index' item='item' separator=';'> " +
-            ", #{item} = null" +
+            "<foreach collection='fields' index='index' item='item'> " +
+            " ,${item} = null" +
             "</foreach> " +
             " WHERE id = #{id}"+
             " </script>"})

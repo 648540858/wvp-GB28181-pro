@@ -72,9 +72,9 @@ const actions = {
       })
     })
   },
-  reset({ commit }, id) {
+  reset({ commit }, data) {
     return new Promise((resolve, reject) => {
-      reset(id).then(response => {
+      reset(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

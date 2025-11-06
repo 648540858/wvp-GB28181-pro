@@ -41,13 +41,11 @@ export function update(data) {
   })
 }
 
-export function reset(id) {
+export function reset(data) {
   return request({
     method: 'post',
     url: '/api/common/channel/reset',
-    params: {
-      id: id
-    }
+    data: data
   })
 }
 

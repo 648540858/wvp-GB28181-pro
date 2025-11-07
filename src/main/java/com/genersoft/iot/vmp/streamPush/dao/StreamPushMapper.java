@@ -106,7 +106,8 @@ public interface StreamPushMapper {
     int getAllPushing(Boolean usePushingAsStatus);
 
     @MapKey("uniqueKey")
-    @Select("SELECT CONCAT(wsp.app, wsp.stream) as unique_key, wsp.*, wsp.* , wdc.id as gb_id " +
+    @Select("SELECT CONCAT(wsp.app, wsp.stream) as unique_key, wsp.*, wdc.* , " +
+            " wdc.id as gb_id " +
             " from wvp_stream_push wsp " +
             " LEFT join wvp_device_channel wdc on wdc.data_type = 2 and wsp.id = wdc.data_device_id")
     Map<String, StreamPush> getAllAppAndStreamMap();

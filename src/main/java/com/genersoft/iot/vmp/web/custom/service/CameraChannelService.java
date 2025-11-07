@@ -144,6 +144,9 @@ public class CameraChannelService implements CommandLineRunner {
                 for (CommonGBChannel channel : channelList) {
                     if (channel.getGbPtzType() != null && channel.getGbPtzType() == 99) {
                         CommonGBChannel oldChannel = oldChannelMap.get(channel.getGbDeviceId());
+                        if (channel.getGbStatus() == null) {
+                            channel.setGbStatus(oldChannel.getGbStatus());
+                        }
                         if (oldChannel != null) {
                             if (oldChannel.getGbPtzType() != null && oldChannel.getGbPtzType() == 99) {
                                 resultListForUpdate.add(channel);
@@ -251,7 +254,7 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("speed", mobilePosition.getSpeed());
         jsonObject.put("topGroupGAlias", cameraChannel.getTopGroupGAlias());
         jsonObject.put("groupAlias", cameraChannel.getGroupAlias());
-        log.info("[redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
+        log.info("[SY-redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
         redisTemplate.convertAndSend(REDIS_GPS_MESSAGE, jsonObject);
     }
 

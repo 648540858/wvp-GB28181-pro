@@ -371,8 +371,6 @@ public interface DeviceChannelMapper {
             " SET update_time=#{item.updateTime}" +
             "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
-            "<if test='item.gbLongitude != null'>, gb_longitude=#{item.gbLongitude}</if>" +
-            "<if test='item.gbLatitude != null'>, gb_latitude=#{item.gbLatitude}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
             "<if test='item.id == 0'>WHERE data_type = #{item.dataType} and data_device_id=#{item.dataDeviceId} AND device_id=#{item.deviceId}</if>" +

@@ -81,6 +81,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
                 }
                 mobilePosition.setDeviceId(device.getDeviceId());
                 mobilePosition.setChannelId(deviceChannel.getId());
+                mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
                 //兼容ISO 8601格式时间
                 String time = getText(rootElement, "Time");
                 if (ObjectUtils.isEmpty(time)){

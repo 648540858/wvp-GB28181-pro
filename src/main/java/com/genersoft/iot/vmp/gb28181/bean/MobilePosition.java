@@ -21,6 +21,11 @@ public class MobilePosition {
     private Integer channelId;
 
     /**
+     * 通道国标编号
+     */
+    private String channelDeviceId;
+
+    /**
      * 设备名称
      */
     private String deviceName;

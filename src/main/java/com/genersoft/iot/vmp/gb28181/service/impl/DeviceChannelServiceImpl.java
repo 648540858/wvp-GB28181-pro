@@ -361,6 +361,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         for (DeviceChannel channel : deviceChannels) {
             // 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
             mobilePosition.setChannelId(channel.getId());
+            mobilePosition.setChannelDeviceId(channel.getDeviceId());
             try {
                 eventPublisher.mobilePositionEventPublish(mobilePosition);
             }catch (Exception e) {

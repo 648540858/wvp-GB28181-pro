@@ -154,6 +154,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				}else {
 					MobilePosition mobilePosition = new MobilePosition();
 					mobilePosition.setChannelId(deviceChannel.getId());
+					mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
 					mobilePosition.setCreateTime(DateUtil.getNow());
 					mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
 					mobilePosition.setTime(deviceAlarm.getAlarmTime());

@@ -237,13 +237,13 @@ public class CameraChannelService implements CommandLineRunner {
         CameraChannel cameraChannel = channelMapper.queryCameraChannelById(channelId);
 
         // 非移动设备类型 不发送
-        if (cameraChannel == null || cameraChannel.getGbPtzType() != 99) {
+        if (cameraChannel == null || cameraChannel.getGbPtzType() == null || cameraChannel.getGbPtzType() != 99) {
             return;
         }
         // 发送redis消息
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("time", mobilePosition.getTime());
-        jsonObject.put("deviceId", mobilePosition.getDeviceId());
+        jsonObject.put("deviceId", mobilePosition.getChannelDeviceId());
         jsonObject.put("longitude", mobilePosition.getLongitude());
         jsonObject.put("latitude", mobilePosition.getLatitude());
         jsonObject.put("altitude", mobilePosition.getAltitude());
@@ -251,7 +251,7 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("speed", mobilePosition.getSpeed());
         jsonObject.put("topGroupGAlias", cameraChannel.getTopGroupGAlias());
         jsonObject.put("groupAlias", cameraChannel.getGroupAlias());
-        log.debug("[redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
+        log.info("[redis发送通知] 发送 移动设备位置信息移动位置 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
         redisTemplate.convertAndSend(REDIS_GPS_MESSAGE, jsonObject);
     }
 

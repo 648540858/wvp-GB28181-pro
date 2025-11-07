@@ -90,6 +90,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         mobilePosition.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
 
                         mobilePosition.setChannelId(deviceChannel.getId());
+                        mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
                         String time = getText(rootElementAfterCharset, "Time");
                         if (ObjectUtils.isEmpty(time)){
                             mobilePosition.setTime(DateUtil.getNow());

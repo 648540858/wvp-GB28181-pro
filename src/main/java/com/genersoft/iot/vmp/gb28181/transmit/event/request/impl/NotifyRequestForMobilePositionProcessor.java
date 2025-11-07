@@ -106,6 +106,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
 							if (deviceChannel != null) {
 								mobilePosition.setChannelId(deviceChannel.getId());
+								mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
 							}else {
 								log.error("[notify-移动位置] 未找到通道 {}/{}", device.getDeviceId(), channelId);
 								break readDocument;
@@ -165,7 +166,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				try {
 					eventPublisher.mobilePositionEventPublish(mobilePosition);
 				}catch (Exception e) {
-					log.error("[向上级转发移动位置失败] ", e);
+					log.error("[MobilePositionEvent] 发送失败：  ", e);
 				}
 			} catch (DocumentException e) {
 				log.error("[收到移动位置订阅通知] 文档解析异常： \r\n{}", evt.getRequest(), e);

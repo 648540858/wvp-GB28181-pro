@@ -180,6 +180,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
                     MobilePosition mobilePosition = new MobilePosition();
                     mobilePosition.setDeviceId(newChannel.getGbDeviceId());
                     mobilePosition.setChannelId(newChannel.getGbId());
+                    mobilePosition.setChannelDeviceId(newChannel.getGbDeviceId());
                     mobilePosition.setDeviceName(newChannel.getGbName());
                     mobilePosition.setCreateTime(DateUtil.getNow());
                     mobilePosition.setTime(DateUtil.getNow());

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -190,7 +191,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                         sendRtpItem.setStatus(1);
                         sendRtpItem.setCallId(inviteInfo.getCallId());
-                        sendRtpItem.setPlayType("Play".equalsIgnoreCase(inviteInfo.getSessionName()) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
+
+                        sendRtpItem.setPlayTypeByChannelDataType(channel.getDataType(), inviteInfo.getSessionName());
                         sendRtpItem.setServerId(streamInfo.getServerId());
                         sendRtpServerService.update(sendRtpItem);
                         String sdpIp = streamInfo.getMediaServer().getSdpIp();

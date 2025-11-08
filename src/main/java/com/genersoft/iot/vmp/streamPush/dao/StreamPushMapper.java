@@ -56,7 +56,7 @@ public interface StreamPushMapper {
             " <if test='pushing == true' > AND st.pushing=true</if>" +
             " <if test='pushing == false' > AND st.pushing=false </if>" +
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
-            " order by st.create_time desc" +
+            " order by st.pushing desc, st.create_time desc" +
             " </script>"})
     List<StreamPush> selectAll(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 

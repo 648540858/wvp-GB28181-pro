@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import lombok.Data;
@@ -236,4 +237,13 @@ public class SendRtpInfo {
     }
 
 
+    public void setPlayTypeByChannelDataType(Integer dataType, String sessionName) {
+        if (dataType == ChannelDataType.STREAM_PUSH) {
+            this.setPlayType(InviteStreamType.PUSH);
+        }else if (dataType == ChannelDataType.STREAM_PROXY){
+            this.setPlayType(InviteStreamType.PROXY);
+        }else {
+            this.setPlayType("Play".equalsIgnoreCase(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
+        }
+    }
 }

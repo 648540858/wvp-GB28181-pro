@@ -73,7 +73,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public WVPResult startSendRtp(String callId, SendRtpInfo sendRtpItem) {
+    public WVPResult<?> startSendRtp(String callId, SendRtpInfo sendRtpItem) {
         log.info("[请求其他WVP] 开始推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
         RedisRpcRequest request = buildRequest("sendRtp/startSendRtp", callId);
         request.setToId(sendRtpItem.getServerId());

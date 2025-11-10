@@ -925,7 +925,8 @@ public class ChannelProvider {
     public String queryAllWithPosition(Map<String, Object> params ){
         return BASE_SQL + " where channel_type = 0 " +
                 " AND coalesce(gb_longitude, longitude) > 0" +
-                " AND coalesce(gb_latitude,  latitude) > 0";
+                " AND coalesce(gb_latitude,  latitude) > 0 " +
+                " ORDER BY map_level";
     }
 
     public String queryListInExtent(Map<String, Object> params ){

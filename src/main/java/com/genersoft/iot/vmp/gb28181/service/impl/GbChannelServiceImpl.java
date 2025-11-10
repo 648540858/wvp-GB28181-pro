@@ -17,7 +17,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.gb28181.utils.VectorTileUtils;
+import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.Coordtransform;
@@ -34,6 +34,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,11 +43,12 @@ import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
-public class GbChannelServiceImpl implements IGbChannelService {
+public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunner {
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -72,7 +74,37 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
+    @Autowired
+    private VectorTileCatch vectorTileCatch;
+
     private final GeometryFactory geometryFactory = new GeometryFactory();
+
+
+    @Override
+    public void run(String... args) throws Exception {
+        // 启动时重新发布抽稀图层
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryAllWithPosition();
+        Map<Integer, List<CommonGBChannel>> zoomCameraMap = new ConcurrentHashMap<>();
+
+        channelList.stream().forEach(commonGBChannel ->  {
+            if (commonGBChannel.getMapLevel() == null) {
+                return;
+            }
+            List<CommonGBChannel> channelListForZoom = zoomCameraMap.computeIfAbsent(commonGBChannel.getMapLevel(), k -> new ArrayList<>());
+            channelListForZoom.add(commonGBChannel);
+        });
+
+        String id = "DEFAULT";
+        List<CommonGBChannel> beforeData = new ArrayList<>();
+        for (Integer zoom : zoomCameraMap.keySet()) {
+            beforeData.addAll(zoomCameraMap.get(zoom));
+            log.info("[抽稀-发布mvt矢量瓦片] ID：{}，当前层级： {}, ", id, zoom);
+            // 按照 z/x/y 数据组织数据， 矢量数据暂时保存在内存中
+            // 按照范围生成 x y范围，
+            saveTile(id, zoom, "WGS84", beforeData);
+            saveTile(id, zoom, "GCJ02", beforeData);
+        }
+    }
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
@@ -1069,25 +1101,25 @@ public class GbChannelServiceImpl implements IGbChannelService {
                     saveProcess(id, process.get(), "抽稀图层： " + zoom);
                 }
 
-                // 抽稀完成, 对数据生成mvt矢量瓦片
+                // 抽稀完成, 对数据发布mvt矢量瓦片
                 List<CommonGBChannel> beforeData = new ArrayList<>();
-                for (Integer key : zoomCameraMap.keySet()) {
-                    beforeData.addAll(zoomCameraMap.get(key));
-                    log.info("[抽稀-生成mvt矢量瓦片] ID：{}，当前层级： {}", id, key);
+                for (Integer zoom : zoomCameraMap.keySet()) {
+                    beforeData.addAll(zoomCameraMap.get(zoom));
+                    log.info("[抽稀-发布mvt矢量瓦片] ID：{}，当前层级： {}", id, zoom);
                     // 按照 z/x/y 数据组织数据， 矢量数据暂时保存在内存中
                     // 按照范围生成 x y范围，
-                    saveTile(id, key, "WGS84", beforeData);
-                    saveTile(id, key, "GCJ02", beforeData);
+                    saveTile(id, zoom, "WGS84", beforeData);
+                    saveTile(id, zoom, "GCJ02", beforeData);
                     process.updateAndGet(v -> (v + 0.5 / zoomParam.size()));
-                    saveProcess(id, process.get(), "发布矢量瓦片： " + key);
+                    saveProcess(id, process.get(), "发布矢量瓦片： " + zoom);
                 }
                 // 记录原始数据，未保存做准备
-                VectorTileUtils.INSTANCE.addSource(id, new ArrayList<>(useCameraMap.values()));
+                vectorTileCatch.addSource(id, new ArrayList<>(useCameraMap.values()));
 
                 log.info("[抽稀完成] ID：{}, 耗时： {}ms", id, (System.currentTimeMillis() - time));
                 saveProcess(id, 1, "抽稀完成");
             } catch (Exception e) {
-
+                log.info("[抽稀] 失败 ID：{}", id, e);
             }
 
         }, 1);
@@ -1121,7 +1153,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             encoder.addFeature("points", beanMap, pointGeom);
         });
         encoderMap.forEach((key, encoder) -> {
-            VectorTileUtils.INSTANCE.addVectorTile(id, key, encoder.encode());
+            vectorTileCatch.addVectorTile(id, key, encoder.encode());
         });
     }
 
@@ -1141,7 +1173,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Transactional
     public void saveThin(String id) {
         commonGBChannelMapper.resetLevel();
-        List<CommonGBChannel> channelList = VectorTileUtils.INSTANCE.getChannelList(id);
+        List<CommonGBChannel> channelList = vectorTileCatch.getChannelList(id);
         if (channelList != null && !channelList.isEmpty()) {
             int limitCount = 1000;
             if (channelList.size() > limitCount) {
@@ -1156,6 +1188,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 commonGBChannelMapper.saveLevel(channelList);
             }
         }
-        VectorTileUtils.INSTANCE.save(id);
+        vectorTileCatch.save(id);
     }
 }

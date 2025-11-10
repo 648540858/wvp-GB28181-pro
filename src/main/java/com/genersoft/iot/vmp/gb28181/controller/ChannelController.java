@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.gb28181.utils.VectorTileUtils;
+import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -58,6 +58,9 @@ public class ChannelController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private VectorTileCatch vectorTileCatch;
 
 
     @Operation(summary = "查询通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -525,7 +528,7 @@ public class ChannelController {
     @Parameter(name = "id", description = "抽稀ID", required = true)
     @GetMapping("/map/thin/clear")
     public void clearThin(String id){
-        VectorTileUtils.INSTANCE.remove(id);
+        vectorTileCatch.remove(id);
     }
 
     @Operation(summary = "保存的抽稀结果", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -574,7 +577,7 @@ public class ChannelController {
             thinId = "DEFAULT";
         }
         String catchKey = z + "_" + x + "_" + y + "_" + geoCoordSys.toUpperCase();
-        byte[] mvt = VectorTileUtils.INSTANCE.getVectorTile(thinId, catchKey);
+        byte[] mvt = vectorTileCatch.getVectorTile(thinId, catchKey);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/x-protobuf"));
         if (mvt == null) {

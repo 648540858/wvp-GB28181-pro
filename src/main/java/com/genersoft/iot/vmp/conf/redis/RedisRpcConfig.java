@@ -18,7 +18,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,6 +142,10 @@ public class RedisRpcConfig implements MessageListener {
                 }
             }else {
                 if (method == null) {
+                    // 回复404结果
+                    RedisRpcResponse response = request.getResponse();
+                    response.setStatusCode(ErrorCode.ERROR404.getCode());
+                    sendResponse(response);
                     return;
                 }
                 RedisRpcResponse response = (RedisRpcResponse)method.invoke(controller, request);
@@ -150,8 +153,11 @@ public class RedisRpcConfig implements MessageListener {
                     sendResponse(response);
                 }
             }
-        }catch (InvocationTargetException | IllegalAccessException e) {
+        }catch (Exception e) {
             log.error("[redis-rpc ] 处理请求失败 ", e);
+            RedisRpcResponse response = request.getResponse();
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            sendResponse(response);
         }
     }
 

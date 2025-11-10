@@ -189,13 +189,19 @@ public class RedisRpcStreamPushController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        streamPushPlayService.start(id, (code, msg, data) -> {
-            if (code == ErrorCode.SUCCESS.getCode()) {
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(JSONObject.toJSONString(data));
-                sendResponse(response);
-            }
-        }, null, null);
+        try {
+            streamPushPlayService.start(id, (code, msg, data) -> {
+                if (code == ErrorCode.SUCCESS.getCode()) {
+                    response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                    response.setBody(JSONObject.toJSONString(data));
+                    sendResponse(response);
+                }
+            }, null, null);
+        }catch (IllegalArgumentException e) {
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            response.setBody(e.getMessage());
+            sendResponse(response);
+        }
         return null;
     }
 

@@ -168,7 +168,7 @@ export default {
       drawThinId: null,
       drawThinLayer: null,
       saveDrawThinLoading: false,
-      layerType: 0,
+      layerType: 0
     }
   },
   created() {
@@ -304,9 +304,6 @@ export default {
       })
     },
     changeLayerType: function (index) {
-      if (this.layerType === index) {
-        return
-      }
       this.layerType = index
       if (index === 0) {
         this.$refs.mapComponent.removeLayer(channelTileLayer)
@@ -446,8 +443,8 @@ export default {
     },
     showDrawThinBox: function(show){
       this.showDrawThin = show
-      setTimeout(() => {
-        if (!show) {
+      if (!show) {
+        setTimeout(() => {
           // 关闭抽稀预览
           if (this.drawThinId !== null) {
             // 发送消息 清空抽稀结果
@@ -458,8 +455,13 @@ export default {
             this.$refs.mapComponent.removeLayer(this.drawThinLayer)
             this.drawThinLayer = null
           }
-        }
-      }, 1)
+          // 展示图层
+          if (this.layerType > 0) {
+            this.changeLayerType(this.layerType)
+          }
+        }, 1)
+      }
+
     },
     quicklyDrawThin: function (){
       if (channelLayer) {

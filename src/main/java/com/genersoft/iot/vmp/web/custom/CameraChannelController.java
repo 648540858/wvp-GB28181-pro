@@ -389,6 +389,32 @@ public class CameraChannelController {
         return result;
     }
 
+    @Operation(summary = "获取推流播放地址（不做检查）", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    @Parameter(name = "callId", description = "推流时携带的自定义鉴权ID", required = true)
+    @GetMapping(value = "/push/play-without-check")
+    @ResponseBody
+    public StreamContent getStreamInfoByAppAndStreamWithoutCheck(HttpServletRequest request,
+                                                                                String app,
+                                                                                String stream,
+                                                                                String callId){
+
+        MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
+        Assert.notNull(mediaServer, "流媒体服务器不存在");
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, app, stream, null, callId);
+        streamInfo=streamInfo.clone();//深拷贝
+        String host;
+        try {
+            URL url=new URL(request.getRequestURL().toString());
+            host=url.getHost();
+        } catch (MalformedURLException e) {
+            host=request.getLocalAddr();
+        }
+        streamInfo.changeStreamIp(host);
+        return new StreamContent(streamInfo);
+    }
+
     @ResponseBody
     @GetMapping("/record/collect/add")
     @Operation(summary = "添加收藏")

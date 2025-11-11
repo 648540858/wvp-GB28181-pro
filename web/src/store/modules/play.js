@@ -11,7 +11,7 @@ const actions = {
       })
     })
   },
-  stop({ commit }, [deviceId, channelId]) {
+  stop({ commit }, { deviceId, channelId }) {
     return new Promise((resolve, reject) => {
       stop(deviceId, channelId).then(response => {
         const { data } = response

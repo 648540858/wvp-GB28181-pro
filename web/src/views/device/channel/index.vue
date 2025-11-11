@@ -422,7 +422,10 @@ export default {
       })
     },
     stopDevicePush: function(itemData) {
-      this.$store.dispatch('play/stop', [this.deviceId, itemData.deviceId]).then(data => {
+      this.$store.dispatch('play/stop', {
+        deviceId: this.deviceId,
+        channelId: itemData.deviceId
+      }).then(data => {
         this.initData()
       }).catch((error) => {
         if (error.response.status === 402) { // 已经停止过

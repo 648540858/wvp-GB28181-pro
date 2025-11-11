@@ -30,3 +30,4 @@ hs_err_pid*
 certificates
 /.vs
 /docker/volumes
+/docker/wvp/config/jwk.json

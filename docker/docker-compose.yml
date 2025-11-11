@@ -96,6 +96,7 @@ services:
       - polaris-mysql
       - polaris-media
     volumes:
+      - ./wvp/config:/opt/wvp/config
       - ./wvp/wvp/:/opt/ylcx/wvp/
       - ./logs/wvp:/opt/wvp/logs/
     environment:

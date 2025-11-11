@@ -16,15 +16,16 @@ export function add(data) {
     data: data
   })
 }
-export function getTreeList(params) {
-  const { query, parent, hasChannel } = params
+export function getTreeList({ query, parent, hasChannel, page, count }) {
   return request({
     method: 'get',
     url: `/api/group/tree/list`,
     params: {
       query: query,
       parent: parent,
-      hasChannel: hasChannel
+      hasChannel: hasChannel,
+      page: page,
+      count: count
     }
   })
 }

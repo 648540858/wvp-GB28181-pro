@@ -137,6 +137,7 @@ export default {
       searchType: 0,
       showCode: false,
       showAlert: true,
+      treeLimit: 50,
       searchStr: '',
       chooseId: '',
       treeData: [],
@@ -220,7 +221,23 @@ export default {
             if (data.length > 0) {
               this.showAlert = false
             }
-            resolve(data)
+            if (data.length > this.treeLimit) {
+              let subData = data.splice(0, this.treeLimit)
+              subData.push({
+                treeId: '---',
+                deviceId: '---',
+                name: '加载更多...',
+                isLeaf: true,
+                leaf: true,
+                type: 100,
+                children: [],
+                nextData: data.splice(this.treeLimit, data.length)
+              })
+              resolve(subData)
+            }else {
+              resolve(data)
+            }
+
           }).finally(() => {
             this.locading = false
           })
@@ -442,8 +459,37 @@ export default {
       }, node.data)
     },
     nodeClickHandler: function(data, node, tree) {
-      this.chooseId = data.deviceId
-      this.$emit('clickEvent', data)
+
+      if (data && data.nextData && data.nextData.length > 0) {
+        const parentNode = node.parent
+        let nextData = data.nextData
+        if (nextData.length > this.treeLimit) {
+          let subData = nextData.splice(0, this.treeLimit)
+          subData.push({
+            treeId: '---',
+            deviceId: '---',
+            name: '加载更多...',
+            isLeaf: true,
+            leaf: true,
+            type: 100,
+            children: [],
+            nextData: nextData.splice(this.treeLimit, nextData.length)
+          })
+          this.$refs.veTree.remove(data, parentNode)
+          for (let item of subData) {
+            this.$refs.veTree.append(item, parentNode)
+          }
+
+        } else {
+          this.$refs.veTree.remove(data, parentNode)
+          for (let item of subData) {
+            this.$refs.veTree.append(item, parentNode)
+          }
+        }
+      }else {
+        this.chooseId = data.deviceId
+        this.$emit('clickEvent', data)
+      }
     },
     listClickHandler: function(data) {
       this.chooseId = data.deviceId

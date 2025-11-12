@@ -198,6 +198,7 @@ export default {
     },
     refreshLayer(){
       this.closeInfoBox()
+
       // 刷新瓦片图层
       if (channelLayer) {
         this.$refs.mapComponent.refreshLayer(channelLayer)

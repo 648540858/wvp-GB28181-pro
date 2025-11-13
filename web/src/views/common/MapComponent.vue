@@ -97,8 +97,6 @@ export default {
             url: this.mapTileList[this.mapTileIndex].tilesUrl
           })
         })
-        console.log(4444)
-        console.log(this.mapTileList[this.mapTileIndex].tilesUrl)
       } else {
         tileLayer = new Tile({
           preload: 4,
@@ -150,11 +148,11 @@ export default {
       })
     },
     addVectorTileLayer(tileUrl, clickEvent, errorEvent){
+      tileUrl += `?geoCoordSys=${this.mapTileList[this.mapTileIndex].coordinateSystem}&accessToken=${this.$store.getters.token}`
       let source = new VectorTileSource({
         format: new MVT(),
         url: tileUrl
       })
-
       let layer = new VectorTileLayer({
         source: source,
         style: function(feature) {
@@ -625,6 +623,7 @@ export default {
       this.mapTileIndex = index
       window.coordinateSystem = this.mapTileList[this.mapTileIndex].coordinateSystem
       tileLayer.getSource().setUrl(this.mapTileList[index].tilesUrl)
+      tileLayer.getSource().refresh()
       if (mapTileConfig.coordinateSystem !== this.mapTileList[this.mapTileIndex].coordinateSystem) {
         // 发送通知
         this.$emit('coordinateSystemChange', this.mapTileList[this.mapTileIndex].coordinateSystem)

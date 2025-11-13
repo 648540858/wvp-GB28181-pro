@@ -474,7 +474,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
         MediaInfo param = (MediaInfo)redisTemplate.opsForValue().get(key);
-        if (param != null) {
+        if (param != null && userSetting.getServerId().equals(param.getServerId())) {
             redisTemplate.delete(key);
         }
     }

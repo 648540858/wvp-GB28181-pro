@@ -16,7 +16,7 @@ window.mapParam = {
   // 默认地图中心点
   center:[116.41020, 39.915119],
   // 地图最大层级
-  maxZoom:19,
+  maxZoom:18,
   // 地图最小层级
   minZoom: 3
 }

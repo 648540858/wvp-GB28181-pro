@@ -151,6 +151,7 @@ export default {
       tileUrl += `?geoCoordSys=${this.mapTileList[this.mapTileIndex].coordinateSystem}&accessToken=${this.$store.getters.token}`
       let source = new VectorTileSource({
         format: new MVT(),
+        tileSize: 256,
         url: tileUrl
       })
       let layer = new VectorTileLayer({

@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static com.genersoft.iot.vmp.conf.security.JwtUtils.userSetting;
-
 /**
  * @Auther: JiangFeng
  * @Date: 2022/8/16 11:32

@@ -5,10 +5,6 @@ import lombok.Data;
 @Data
 public class RedisGroupMessage {
 
-    /**
-     * 分组国标ID
-     */
-    private String groupGbId;
 
     /**
      * 分组别名
@@ -20,25 +16,11 @@ public class RedisGroupMessage {
      */
     private String groupName;
 
-    /**
-     * 分组所属的行政区划
-     */
-    private String groupCivilCode;
-
-    /**
-     * 分组所属父分组国标ID
-     */
-    private String parentGroupGbId;
 
     /**
      * 分组所属父分组别名
      */
     private String parentGAlias;
-
-    /**
-     * 分组所属业务分组国标ID
-     */
-    private String topGroupGbId;
 
     /**
      * 分组所属业务分组别名
@@ -54,13 +36,9 @@ public class RedisGroupMessage {
     @Override
     public String toString() {
         return "RedisGroupMessage{" +
-                "groupGbId='" + groupGbId + '\'' +
                 ", groupAlias='" + groupAlias + '\'' +
                 ", groupName='" + groupName + '\'' +
-                ", groupCivilCode='" + groupCivilCode + '\'' +
-                ", parentGroupGbId='" + parentGroupGbId + '\'' +
                 ", parentGAlias='" + parentGAlias + '\'' +
-                ", topGroupGbId='" + topGroupGbId + '\'' +
                 ", topGroupGAlias='" + topGroupGAlias + '\'' +
                 '}';
     }

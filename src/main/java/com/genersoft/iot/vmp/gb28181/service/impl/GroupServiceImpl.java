@@ -331,4 +331,20 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "同步失败: " + e.getMessage());
         }
     }
+
+    @Override
+    public Map<String, Group> queryGroupByAliasMap() {
+        return groupManager.queryGroupByAliasMap();
+    }
+
+    @Override
+    @Transactional
+    public void saveByAlias(Collection<Group> groups) {
+        // 清空别名数据
+        groupManager.deleteHasAlias();
+        // 写入新数据
+        groupManager.batchAdd(new ArrayList<>(groups));
+        // 修复数据丢失的parentID
+        groupManager.fixParentId();
+    }
 }

@@ -21,8 +21,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -74,101 +73,73 @@ public class RedisGroupMsgListener implements MessageListener {
         if (messageDataList.isEmpty()) {
             return;
         }
-        if (userSetting.isUseAliasForGroupSync()) {
-            log.info("[REDIS消息-业务分组同步回复] 使用别名作为唯一ID解析分组消息");
-        }
+        // 按照别名获取所有业务分组
+        Map<String, Group> aliasGroupMap = groupService.queryGroupByAliasMap();
+        Map<String, Group> aliasGroupToSave = new LinkedHashMap<>();
         for (Message msg : messageDataList) {
             try {
                 List<RedisGroupMessage> groupMessages = JSON.parseArray(new String(msg.getBody()), RedisGroupMessage.class);
                 for (int i = 0; i < groupMessages.size(); i++) {
                     RedisGroupMessage groupMessage = groupMessages.get(i);
                     log.info("[REDIS消息-业务分组同步回复] 处理数据:  {}", groupMessage.toString());
-                    if (!userSetting.isUseAliasForGroupSync()) {
-                        if (groupMessage.getGroupGbId() == null) {
-                            log.warn("[REDIS消息-业务分组同步回复] 分组编号未设置，{}", groupMessage.toString());
+                    // 此处使用别名作为判断依据，别名此处常常是分组在第三方系统里的唯一ID
+                    if (groupMessage.getGroupAlias() == null || ObjectUtils.isEmpty(groupMessage.getGroupName())
+                            || ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
+                        log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
+                        continue;
+                    }
+                    boolean isTop = groupMessage.getTopGroupGAlias().equals(groupMessage.getGroupAlias());
+                    Group group = aliasGroupMap.get(groupMessage.getGroupAlias());
+                    if (group == null ) {
+                        group = new Group();
+                        String deviceId = buildGroupDeviceId(isTop);
+                        group.setDeviceId(deviceId);
+                        group.setAlias(groupMessage.getGroupAlias());
+                        group.setName(groupMessage.getGroupName());
+                        group.setCreateTime(DateUtil.getNow());
+                    }
+
+                    if (!isTop) {
+                        if (ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
+                            log.info("[REDIS消息-业务分组同步回复] 消息缺失业务分组别名， {}", groupMessage.toString());
                             continue;
                         }
-                        Group group = groupService.queryGroupByDeviceId(groupMessage.getGroupGbId());
-                        if (group == null ) {
-                            if (ObjectUtils.isEmpty(groupMessage.getGroupName())
-                                    || ObjectUtils.isEmpty(groupMessage.getTopGroupGbId()) ){
-                                log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
-                                continue;
-                            }
-                            group = new Group();
-                            group.setDeviceId(groupMessage.getGroupGbId());
-                            group.setAlias(groupMessage.getGroupAlias());
-                            group.setParentDeviceId(groupMessage.getParentGroupGbId());
-                            group.setBusinessGroup(groupMessage.getTopGroupGbId());
-                            group.setCreateTime(DateUtil.getNow());
-                            group.setUpdateTime(DateUtil.getNow());
-                            groupService.add(group);
 
-                        }else {
-                            group.setDeviceId(groupMessage.getGroupGbId());
-                            group.setAlias(groupMessage.getGroupAlias());
-                            group.setParentDeviceId(groupMessage.getParentGroupGbId());
-                            group.setBusinessGroup(groupMessage.getTopGroupGbId());
-                            group.setUpdateTime(DateUtil.getNow());
-                            groupService.update(group);
+                        Group topGroup = aliasGroupMap.get(groupMessage.getTopGroupGAlias());
+                        if (topGroup == null) {
+                            topGroup = aliasGroupToSave.get(groupMessage.getTopGroupGAlias());
                         }
-                    }else {
-                        // 此处使用别名作为判断依据，别名此处常常是分组在第三方系统里的唯一ID
-                        if (groupMessage.getGroupAlias() == null || ObjectUtils.isEmpty(groupMessage.getGroupName())
-                                || ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
-                            log.info("[REDIS消息-业务分组同步回复] 消息关键字段缺失， {}", groupMessage.toString());
+                        if (topGroup == null) {
+                            log.info("[REDIS消息-业务分组同步回复] 业务分组信息未发送或者未首先发送， {}", groupMessage.toString());
                             continue;
                         }
-                        boolean isTop = groupMessage.getTopGroupGAlias().equals(groupMessage.getGroupAlias());
-                        Group group = groupService.queryGroupByAlias(groupMessage.getGroupAlias());
-                        if (group == null ) {
-                            group = new Group();
-                            String deviceId = buildGroupDeviceId(isTop);
-                            group.setDeviceId(deviceId);
-                            group.setAlias(groupMessage.getGroupAlias());
-                            group.setName(groupMessage.getGroupName());
-                            group.setCreateTime(DateUtil.getNow());
-                        }
-
-                        if (!isTop) {
-                            if (ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
-                                log.info("[REDIS消息-业务分组同步回复] 消息缺失业务分组别名， {}", groupMessage.toString());
+                        group.setBusinessGroup(topGroup.getDeviceId());
+                        if (groupMessage.getParentGAlias() != null) {
+                            Group parentGroup = aliasGroupMap.get(groupMessage.getParentGAlias());
+                            if (parentGroup == null) {
+                                parentGroup = aliasGroupToSave.get(groupMessage.getParentGAlias());
+                            }
+                            if (parentGroup == null) {
+                                log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点未发送或者未首先发送， {}", groupMessage.toString());
                                 continue;
                             }
-
-                            Group topGroup = groupService.queryGroupByAlias(groupMessage.getTopGroupGAlias());
-                            if (topGroup == null) {
-                                log.info("[REDIS消息-业务分组同步回复] 业务分组信息未入库， {}", groupMessage.toString());
-                                continue;
-                            }
-                            group.setBusinessGroup(topGroup.getDeviceId());
-                            if (groupMessage.getParentGAlias() != null) {
-                                Group parentGroup = groupService.queryGroupByAlias(groupMessage.getParentGAlias());
-                                if (parentGroup == null) {
-                                    log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点信息未入库， {}", groupMessage.toString());
-                                    continue;
-                                }
-                                group.setParentId(parentGroup.getId());
-                                group.setParentDeviceId(parentGroup.getDeviceId());
-                            }else {
-                                group.setParentId(topGroup.getId());
-                                group.setParentDeviceId(null);
-                            }
+                            group.setParentId(null);
+                            group.setParentDeviceId(parentGroup.getDeviceId());
                         }else {
                             group.setParentId(null);
-                            group.setParentDeviceId(null);
+                            group.setParentDeviceId(topGroup.getDeviceId());
                         }
-
-                        group.setUpdateTime(DateUtil.getNow());
-                        if (group.getId() > 0) {
-                            log.info("[REDIS消息-业务分组同步回复] 更新入库， {}", JSON.toJSONString(group));
-                            groupService.update(group);
-                        }else {
-                            log.info("[REDIS消息-业务分组同步回复] 新增入库， {}", JSON.toJSONString(group));
-                            groupService.add(group);
-                        }
+                    }else {
+                        group.setParentId(null);
+                        group.setBusinessGroup(group.getDeviceId());
+                        group.setParentDeviceId(null);
                     }
+
+                    group.setUpdateTime(DateUtil.getNow());
+                    aliasGroupToSave.put(group.getAlias(), group);
                 }
+                // 存储分组数据
+                groupService.saveByAlias(aliasGroupToSave.values());
 
             } catch (ControllerException e) {
                 log.warn("[REDIS消息-业务分组同步回复] 失败, \r\n{}", e.getMsg());
@@ -177,6 +148,8 @@ public class RedisGroupMsgListener implements MessageListener {
                 log.error("[REDIS消息-业务分组同步回复] 异常内容： ", e);
             }
         }
+
+
 
     }
 

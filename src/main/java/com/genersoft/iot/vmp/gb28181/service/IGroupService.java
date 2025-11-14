@@ -4,7 +4,9 @@ import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.github.pagehelper.PageInfo;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 
 public interface IGroupService {
@@ -31,4 +33,7 @@ public interface IGroupService {
 
     void sync();
 
+    Map<String, Group> queryGroupByAliasMap();
+
+    void saveByAlias(Collection<Group> groups);
 }

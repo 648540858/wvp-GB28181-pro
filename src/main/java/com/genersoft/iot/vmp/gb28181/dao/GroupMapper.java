@@ -320,4 +320,19 @@ public interface GroupMapper {
             " GROUP BY coalesce(wdc.gb_parent_id, wdc.parent_id)" +
             "</script>")
     List<CameraCount> queryCountWithChild(List<CameraGroup> groupList);
+
+    @Select("SELECT * from wvp_common_group where alias is not null")
+    @MapKey("alias")
+    Map<String, Group> queryGroupByAliasMap();
+
+    @Delete("DELETE FROM wvp_common_group where alias is not null")
+    void deleteHasAlias();
+
+    @Update(" UPDATE wvp_common_group g1" +
+            "    JOIN wvp_common_group g2" +
+            "    ON g1.parent_device_id = g2.device_id" +
+            " SET g1.parent_id = g2.id" +
+            " WHERE g1.alias IS NOT NULL;")
+    void fixParentId();
+
 }

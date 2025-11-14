@@ -8,9 +8,6 @@ public class ServerInfo {
 
     private String ip;
     private int port;
-    /**
-     * 现在使用的线程数
-     */
     private String createTime;
 
     public static ServerInfo create(String ip, int port) {

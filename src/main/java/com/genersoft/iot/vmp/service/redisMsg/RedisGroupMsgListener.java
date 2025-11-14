@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.RedisGroupMessage;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import jakarta.annotation.Resource;
@@ -37,7 +38,7 @@ public class RedisGroupMsgListener implements MessageListener {
     private IGroupService groupService;
 
     @Resource
-    private IStreamPushService streamPushService;
+    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private UserSetting userSetting;
@@ -49,6 +50,10 @@ public class RedisGroupMsgListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
+        String serverId = redisCatchStorage.chooseOneServer(null);
+        if (!userSetting.getServerId().equals(serverId)) {
+            return;
+        }
         log.info("[REDIS: 业务分组同步回复] key： {}， ： {}", VideoManagerConstants.VM_MSG_GROUP_LIST_RESPONSE, new String(message.getBody()));
         taskQueue.offer(message);
     }
@@ -77,7 +82,7 @@ public class RedisGroupMsgListener implements MessageListener {
                 List<RedisGroupMessage> groupMessages = JSON.parseArray(new String(msg.getBody()), RedisGroupMessage.class);
                 for (int i = 0; i < groupMessages.size(); i++) {
                     RedisGroupMessage groupMessage = groupMessages.get(i);
-                    log.info("[REDIS消息-业务分组同步回复] {}", groupMessage.toString());
+                    log.info("[REDIS消息-业务分组同步回复] 处理数据:  {}", groupMessage.toString());
                     if (!userSetting.isUseAliasForGroupSync()) {
                         if (groupMessage.getGroupGbId() == null) {
                             log.warn("[REDIS消息-业务分组同步回复] 分组编号未设置，{}", groupMessage.toString());
@@ -156,11 +161,12 @@ public class RedisGroupMsgListener implements MessageListener {
 
                         group.setUpdateTime(DateUtil.getNow());
                         if (group.getId() > 0) {
+                            log.info("[REDIS消息-业务分组同步回复] 更新入库， {}", JSON.toJSONString(group));
                             groupService.update(group);
                         }else {
+                            log.info("[REDIS消息-业务分组同步回复] 新增入库， {}", JSON.toJSONString(group));
                             groupService.add(group);
                         }
-
                     }
                 }
 

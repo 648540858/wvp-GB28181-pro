@@ -182,10 +182,13 @@ public class CameraChannelService implements CommandLineRunner {
             case VLOST:
                 for (CommonGBChannel channel : channels) {
                     if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
+                        CameraChannel cameraChannel = channelMapper.queryCameraChannelById(channel.getGbId());
                         if (event.getMessageType() == ChannelEvent.ChannelEventMessageType.ON) {
-                            resultListForOnline.add(channel);
+                            cameraChannel.setGbStatus("ON");
+                            resultListForOnline.add(cameraChannel);
                         }else {
-                            resultListForOffline.add(channel);
+                            cameraChannel.setGbStatus("OFF");
+                            resultListForOffline.add(cameraChannel);
                         }
 
                     }

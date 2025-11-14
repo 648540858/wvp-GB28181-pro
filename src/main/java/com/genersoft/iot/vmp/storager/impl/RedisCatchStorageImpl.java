@@ -521,7 +521,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public String chooseOneServer(String serverId) {
         String key = VideoManagerConstants.WVP_SERVER_LIST;
-        redisTemplate.opsForZSet().remove(key, serverId);
+        if (serverId != null) {
+            redisTemplate.opsForZSet().remove(key, serverId);
+        }
         Set<Object> range = redisTemplate.opsForZSet().range(key, 0, 0);
         if (range == null || range.isEmpty()) {
             return null;

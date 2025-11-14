@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.bean.RedisPushStreamMessage;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static com.genersoft.iot.vmp.conf.security.JwtUtils.userSetting;
 
 /**
  * @Auther: JiangFeng
@@ -36,10 +40,20 @@ public class RedisPushStreamListMsgListener implements MessageListener {
     @Resource
     private IStreamPushService streamPushService;
 
+    @Resource
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Resource
+    private UserSetting userSetting;
+
     private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
+        String serverId = redisCatchStorage.chooseOneServer(null);
+        if (!userSetting.getServerId().equals(serverId)) {
+            return;
+        }
         log.info("[REDIS: 推流设备列表更新]： {}", new String(message.getBody()));
         taskQueue.offer(message);
     }

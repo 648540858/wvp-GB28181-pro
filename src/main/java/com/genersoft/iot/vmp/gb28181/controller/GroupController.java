@@ -89,13 +89,6 @@ public class GroupController {
         return groupService.getPath(deviceId, businessGroup);
     }
 
-    @Operation(summary = "从第三方同步组织结构")
-    @ResponseBody
-    @GetMapping("/sync")
-    public void sync(){
-        groupService.sync();
-    }
-
 //    @Operation(summary = "根据分组Id查询分组")
 //    @Parameter(name = "groupDeviceId", description = "分组节点编号", required = true)
 //    @ResponseBody

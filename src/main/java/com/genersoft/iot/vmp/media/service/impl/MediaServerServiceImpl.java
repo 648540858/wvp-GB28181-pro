@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import jakarta.validation.constraints.NotNull;
@@ -443,6 +444,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
         return (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
     }
 
+    /**
+     * 获取集群中的节点信息，不区分所属的wvp
+     */
+    @Override
+    public MediaServer getOneFromCluster(String mediaServerId) {
+        if (mediaServerId == null) {
+            return null;
+        }
+        String scanKey = String.format("%s_*", VideoManagerConstants.MEDIA_SERVER_PREFIX);
+        List<Object> values = RedisUtil.scan(redisTemplate, scanKey);
+        if (values.isEmpty()) {
+            return null;
+        }
+        return (MediaServer) values.get(0);
+    }
+
 
     @Override
     public MediaServer getDefaultMediaServer() {
@@ -605,7 +622,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void delete(MediaServer mediaServer) {
         mediaServerMapper.delOne(mediaServer.getId(), userSetting.getServerId());
         redisTemplate.opsForZSet().remove(VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId(), mediaServer.getId());
-        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServer.getId();
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
         redisTemplate.delete(key);
         // 发送节点移除通知
         MediaServerDeleteEvent event = new MediaServerDeleteEvent(this);

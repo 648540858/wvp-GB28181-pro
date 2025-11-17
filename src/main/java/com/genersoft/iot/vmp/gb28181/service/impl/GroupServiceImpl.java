@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -16,7 +16,6 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
-public class GroupServiceImpl implements IGroupService, CommandLineRunner {
+public class GroupServiceImpl implements IGroupService {
 
     @Autowired
     private GroupMapper groupManager;
@@ -46,14 +45,6 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-    // 启动后请求组织结构同步
-    @Override
-    public void run(String... args) throws Exception {
-        String key = VideoManagerConstants.VM_MSG_GROUP_LIST_REQUEST;
-        log.info("[redis发送通知] 发送 同步组织结构请求 {}", key);
-        redisTemplate.convertAndSend(key, "");
-    }
 
     @Override
     public void add(Group group) {
@@ -324,15 +315,6 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
     }
 
     @Override
-    public void sync() {
-        try {
-            this.run();
-        }catch (Exception e) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "同步失败: " + e.getMessage());
-        }
-    }
-
-    @Override
     public Map<String, Group> queryGroupByAliasMap() {
         return groupManager.queryGroupByAliasMap();
     }
@@ -340,6 +322,7 @@ public class GroupServiceImpl implements IGroupService, CommandLineRunner {
     @Override
     @Transactional
     public void saveByAlias(Collection<Group> groups) {
+        log.info("[存储分组数据] {}", JSONObject.toJSONString(groups));
         // 清空别名数据
         groupManager.deleteHasAlias();
         // 写入新数据

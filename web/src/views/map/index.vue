@@ -160,7 +160,7 @@ export default {
       longitudeStr: 'longitude',
       latitudeStr: 'latitude',
       mapTileList: [],
-      diffPixels: 30,
+      diffPixels: 120,
       zoomValue: 10,
       showDrawThin: false,
       quicklyDrawThinLoading: false,

@@ -68,4 +68,22 @@ public class MobilePosition {
      * 创建时间
      */
     private String createTime;
+
+    @Override
+    public String toString() {
+        return "MobilePosition{" +
+                "deviceId='" + deviceId + '\'' +
+                ", channelId=" + channelId +
+                ", channelDeviceId='" + channelDeviceId + '\'' +
+                ", deviceName='" + deviceName + '\'' +
+                ", time='" + time + '\'' +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
+                ", altitude=" + altitude +
+                ", speed=" + speed +
+                ", direction=" + direction +
+                ", reportSource='" + reportSource + '\'' +
+                ", createTime='" + createTime + '\'' +
+                '}';
+    }
 }

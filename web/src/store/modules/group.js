@@ -64,16 +64,6 @@ const actions = {
         reject(error)
       })
     })
-  },
-  sync({ commit }) {
-    return new Promise((resolve, reject) => {
-      sync().then(response => {
-        const { data } = response
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
   }
 }
 

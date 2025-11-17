@@ -16,9 +16,8 @@
         type="info"
         style="text-align: left"
       />
-      <div v-if="edit" style="font-size: 14px;position: absolute;left: 270px;z-index: 100;" >
+      <div v-if="edit" style="margin-top: 10px; font-size: 14px;position: absolute;left: 270px;z-index: 100;" >
         显示编号： <el-checkbox v-model="showCode" />
-        <el-button type="text" style="margin-left: 10px" :loading="groupSyncLoading" @click="groupSync">同步</el-button>
       </div>
 
       <vue-easy-tree
@@ -149,8 +148,7 @@ export default {
       count: this.defaultCount | 15,
       total: 0,
       groupList: [],
-      channelList: [],
-      groupSyncLoading: false
+      channelList: []
     }
   },
   created() {
@@ -505,20 +503,6 @@ export default {
       this.$emit('clickEvent', {
         leaf: true,
         id: data.gbId
-      })
-    },
-    groupSync: function() {
-      this.groupSyncLoading = true
-      this.$store.dispatch('group/sync').then(data => {
-        this.$message.success({
-          showClose: true,
-          message: '同步消息已经发送, 3秒后自动刷新'
-        })
-        setTimeout(() => {
-          this.refresh('')
-        }, 3000)
-      }).finally(() => {
-        this.groupSyncLoading = false
       })
     },
     contextmenuEventHandlerForLi(event, data) {

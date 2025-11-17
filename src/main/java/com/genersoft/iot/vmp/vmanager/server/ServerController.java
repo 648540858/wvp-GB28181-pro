@@ -176,7 +176,7 @@ public class ServerController {
     @GetMapping(value = "/media_server/media_info")
     @ResponseBody
     public MediaInfo getMediaInfo(String app, String stream, String mediaServerId) {
-        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServer = mediaServerService.getOneFromCluster(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "流媒体不存在");
         }

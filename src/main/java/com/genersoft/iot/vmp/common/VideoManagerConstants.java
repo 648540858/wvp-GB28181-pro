@@ -77,11 +77,6 @@ public class VideoManagerConstants {
 	public static final String VM_MSG_PUSH_STREAM_LIST_CHANGE = "VM_MSG_PUSH_STREAM_LIST_CHANGE";
 
     /**
-     * 请求同步三方组织结构
-     */
-	public static final String VM_MSG_GROUP_LIST_REQUEST = "VM_MSG_GROUP_LIST_REQUEST";
-
-    /**
      * 同步三方组织结构回复
      */
     public static final String VM_MSG_GROUP_LIST_RESPONSE = "VM_MSG_GROUP_LIST_RESPONSE";

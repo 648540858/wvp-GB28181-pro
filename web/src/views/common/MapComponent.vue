@@ -623,8 +623,8 @@ export default {
       let mapTileConfig = this.mapTileList[this.mapTileIndex]
       this.mapTileIndex = index
       window.coordinateSystem = this.mapTileList[this.mapTileIndex].coordinateSystem
+      tileLayer.getSource().clear()
       tileLayer.getSource().setUrl(this.mapTileList[index].tilesUrl)
-      tileLayer.getSource().refresh()
       if (mapTileConfig.coordinateSystem !== this.mapTileList[this.mapTileIndex].coordinateSystem) {
         // 发送通知
         this.$emit('coordinateSystemChange', this.mapTileList[this.mapTileIndex].coordinateSystem)

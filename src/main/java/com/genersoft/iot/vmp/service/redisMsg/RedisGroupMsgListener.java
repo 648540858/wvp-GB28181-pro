@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.RedisGroupMessage;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -71,6 +73,7 @@ public class RedisGroupMsgListener implements MessageListener {
             }
         }
         if (messageDataList.isEmpty()) {
+            log.warn("[REDIS消息-业务分组同步回复] 处理队列时发现队列为空");
             return;
         }
         // 按照别名获取所有业务分组
@@ -78,10 +81,11 @@ public class RedisGroupMsgListener implements MessageListener {
         Map<String, Group> aliasGroupToSave = new LinkedHashMap<>();
         for (Message msg : messageDataList) {
             try {
+                log.info("[REDIS消息-业务分组同步回复] 处理数据:  {}", new String(msg.getBody()));
                 List<RedisGroupMessage> groupMessages = JSON.parseArray(new String(msg.getBody()), RedisGroupMessage.class);
-                for (int i = 0; i < groupMessages.size(); i++) {
-                    RedisGroupMessage groupMessage = groupMessages.get(i);
-                    log.info("[REDIS消息-业务分组同步回复] 处理数据:  {}", groupMessage.toString());
+                log.info("[REDIS消息-业务分组同步回复] 待处理数量:  {}", groupMessages.size());
+                for (RedisGroupMessage groupMessage : groupMessages) {
+
                     // 此处使用别名作为判断依据，别名此处常常是分组在第三方系统里的唯一ID
                     if (groupMessage.getGroupAlias() == null || ObjectUtils.isEmpty(groupMessage.getGroupName())
                             || ObjectUtils.isEmpty(groupMessage.getTopGroupGAlias())) {
@@ -90,7 +94,7 @@ public class RedisGroupMsgListener implements MessageListener {
                     }
                     boolean isTop = groupMessage.getTopGroupGAlias().equals(groupMessage.getGroupAlias());
                     Group group = aliasGroupMap.get(groupMessage.getGroupAlias());
-                    if (group == null ) {
+                    if (group == null) {
                         group = new Group();
                         String deviceId = buildGroupDeviceId(isTop);
                         group.setDeviceId(deviceId);
@@ -125,16 +129,15 @@ public class RedisGroupMsgListener implements MessageListener {
                             }
                             group.setParentId(null);
                             group.setParentDeviceId(parentGroup.getDeviceId());
-                        }else {
+                        } else {
                             group.setParentId(null);
                             group.setParentDeviceId(topGroup.getDeviceId());
                         }
-                    }else {
+                    } else {
                         group.setParentId(null);
                         group.setBusinessGroup(group.getDeviceId());
                         group.setParentDeviceId(null);
                     }
-
                     group.setUpdateTime(DateUtil.getNow());
                     aliasGroupToSave.put(group.getAlias(), group);
                 }
@@ -143,7 +146,7 @@ public class RedisGroupMsgListener implements MessageListener {
 
             } catch (ControllerException e) {
                 log.warn("[REDIS消息-业务分组同步回复] 失败, \r\n{}", e.getMsg());
-            }catch (Exception e) {
+            } catch (Exception e) {
                 log.warn("[REDIS消息-业务分组同步回复] 发现未处理的异常, \r\n{}", new String(msg.getBody()));
                 log.error("[REDIS消息-业务分组同步回复] 异常内容： ", e);
             }

@@ -71,6 +71,8 @@ public interface IMediaServerService {
 
     void delete(MediaServer mediaServer);
 
+    MediaServer getOneFromCluster(String mediaServerId);
+
     MediaServer getDefaultMediaServer();
 
     MediaServerLoad getLoad(MediaServer mediaServerItem);

@@ -31,8 +31,6 @@ public interface IGroupService {
 
     Group queryGroupByAlias(String groupAlias);
 
-    void sync();
-
     Map<String, Group> queryGroupByAliasMap();
 
     void saveByAlias(Collection<Group> groups);

@@ -452,12 +452,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerId == null) {
             return null;
         }
-        String scanKey = String.format("%s_*", VideoManagerConstants.MEDIA_SERVER_PREFIX);
+        String scanKey = String.format("%s*", VideoManagerConstants.MEDIA_SERVER_PREFIX);
         List<Object> values = RedisUtil.scan(redisTemplate, scanKey);
         if (values.isEmpty()) {
             return null;
         }
-        return (MediaServer) values.get(0);
+        return (MediaServer) redisTemplate.opsForHash().get((String) values.get(0), mediaServerId);
     }
 
 

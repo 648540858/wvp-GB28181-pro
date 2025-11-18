@@ -295,6 +295,7 @@ public class ChannelProvider {
         if (params.get("parentDeviceId") != null) {
             sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) =  #{parentDeviceId}");
         }
+        sqlBuild.append(" order by create_time desc");
         return sqlBuild.toString();
     }
 

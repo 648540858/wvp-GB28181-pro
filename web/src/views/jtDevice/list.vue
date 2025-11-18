@@ -208,7 +208,7 @@ export default {
   },
   mounted() {
     this.initData()
-    this.updateLooper = setInterval(this.initData, 10000)
+    this.updateLooper = setInterval(this.getList, 10000)
   },
   destroyed() {
     this.$destroy('videojs')
@@ -216,6 +216,8 @@ export default {
   },
   methods: {
     initData: function() {
+      this.currentPage = 1
+      this.total = 0
       this.getList()
     },
     currentChange: function(val) {

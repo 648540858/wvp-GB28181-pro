@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -322,7 +321,6 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     @Transactional
     public void saveByAlias(Collection<Group> groups) {
-        log.info("[存储分组数据] {}", JSONObject.toJSONString(groups));
         // 清空别名数据
         groupManager.deleteHasAlias();
         // 写入新数据

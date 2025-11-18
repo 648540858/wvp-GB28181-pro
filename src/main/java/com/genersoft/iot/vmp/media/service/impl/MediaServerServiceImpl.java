@@ -671,13 +671,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
     @Override
-    public boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
+    public boolean stopSendRtp(MediaServer mediaServer, String app, String stream, String ssrc) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            log.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            log.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.stopSendRtp(mediaInfo, app, stream, ssrc);
+        return mediaNodeServerService.stopSendRtp(mediaServer, app, stream, ssrc);
     }
 
     @Override

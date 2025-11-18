@@ -287,6 +287,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         if (mediaServer != null) {
             mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
+            mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);
         }
         streamPush.setPushing(false);
         if (userSetting.getUsePushingAsStatus()) {
@@ -296,7 +297,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         }
         sendRtpServerService.deleteByStream(streamPush.getStream());
-        mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);
         streamPush.setUpdateTime(DateUtil.getNow());
         streamPushMapper.update(streamPush);
         return true;
@@ -383,6 +383,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 redisCatchStorage.removePushListItem(mediaInfo.getApp(), mediaInfo.getStream(), mediaServer.getId());
             }
         }
+        if (!pushItemMap.isEmpty()) {
+            for (StreamPush streamPush : pushItemMap.values()) {
+                // 如果没有国标编号，从数据库中删除
+                delete(streamPush.getId());
+            }
+        }
 
         Collection<StreamAuthorityInfo> streamAuthorityInfos = streamAuthorityInfoInfoMap.values();
         if (!streamAuthorityInfos.isEmpty()) {
@@ -402,11 +408,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 stop(streamPushItem);
             }
         }
-//        // 移除没有GBId的推流
-//        streamPushMapper.deleteWithoutGBId(mediaServerId);
-//        // 其他的流设置未启用
-//        streamPushMapper.updateStatusByMediaServerId(mediaServerId, false);
-//        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
+        // 移除没有GBId的推流
+        streamPushMapper.deleteWithoutGBId(mediaServer.getId());
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息

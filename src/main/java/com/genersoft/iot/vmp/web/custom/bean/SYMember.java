@@ -8,8 +8,8 @@ import lombok.Setter;
 public class SYMember {
 
     private String no;
-    private String unicodeNo;
-    private String blockId;
+    private Long unicodeNo;
+    private Long blockId;
     private String unitNo;
     private String terminalMemberStatus;
 

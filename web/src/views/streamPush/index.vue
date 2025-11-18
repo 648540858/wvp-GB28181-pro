@@ -9,7 +9,7 @@
             placeholder="关键字"
             prefix-icon="el-icon-search"
             clearable
-            @input="getPushList"
+            @input="queryList"
           />
         </el-form-item>
         <el-form-item label="流媒体">
@@ -18,7 +18,7 @@
             style="margin-right: 1rem;"
             placeholder="请选择"
             default-first-option
-            @change="getPushList"
+            @change="queryList"
           >
             <el-option label="全部" value="" />
             <el-option
@@ -35,7 +35,7 @@
             style="margin-right: 1rem;"
             placeholder="请选择"
             default-first-option
-            @change="getPushList"
+            @change="queryList"
           >
             <el-option label="全部" value="" />
             <el-option label="推流中" value="true" />
@@ -204,6 +204,11 @@ export default {
     },
     handleSizeChange: function(val) {
       this.count = val
+      this.getPushList()
+    },
+    queryList: function() {
+      this.currentPage = 1
+      this.total = 0
       this.getPushList()
     },
     getPushList: function() {

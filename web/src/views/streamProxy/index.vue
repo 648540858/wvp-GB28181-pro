@@ -9,7 +9,7 @@
             placeholder="关键字"
             prefix-icon="el-icon-search"
             clearable
-            @input="getStreamProxyList"
+            @input="queryList"
           />
         </el-form-item>
         <el-form-item label="流媒体">
@@ -18,7 +18,7 @@
             style="margin-right: 1rem;"
             placeholder="请选择"
             default-first-option
-            @change="getStreamProxyList"
+            @change="queryList"
           >
             <el-option label="全部" value="" />
             <el-option
@@ -35,7 +35,7 @@
             style="margin-right: 1rem;"
             placeholder="请选择"
             default-first-option
-            @change="getStreamProxyList"
+            @change="queryList"
           >
             <el-option label="全部" value="" />
             <el-option label="正在拉流" value="true" />
@@ -187,6 +187,11 @@ export default {
     },
     handleSizeChange: function(val) {
       this.count = val
+      this.getStreamProxyList()
+    },
+    queryList: function() {
+      this.currentPage = 1
+      this.total = 0
       this.getStreamProxyList()
     },
     getStreamProxyList: function() {

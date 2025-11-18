@@ -626,5 +626,11 @@ public class CameraChannelController {
         return channelService.queryMeetingChannelList(topGroupAlias);
     }
 
+    @GetMapping(value = "/test")
+    @ResponseBody
+    public SYMember test(String device){
+        return channelService.getMember(device);
+    }
+
 
 }

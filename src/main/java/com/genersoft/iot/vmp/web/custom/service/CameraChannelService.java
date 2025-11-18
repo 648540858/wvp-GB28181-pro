@@ -232,7 +232,7 @@ public class CameraChannelService implements CommandLineRunner {
             jsonObject.put("type", ChannelEvent.ChannelEventMessageType.DEL);
             jsonObject.put("list", resultListForDelete);
             log.info("[SY-redis发送通知-DEL] 发送 通道信息变化 {}: {}", REDIS_CHANNEL_MESSAGE, jsonObject.toString());
-            redisTemplate.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject);
+            redisTemplateForString.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject.toString());
         }
         if (!resultListForAdd.isEmpty()) {
             sendChannelMessage(resultListForAdd, ChannelEvent.ChannelEventMessageType.ADD);
@@ -272,7 +272,7 @@ public class CameraChannelService implements CommandLineRunner {
     private void sendMemberStatusMessage(List<SYMember> memberList) {
         String jsonString = JSONObject.toJSONString(memberList);
         log.info("[SY-redis发送通知] 发送 状态变化 {}: {}", REDIS_MEMBER_STATUS_MESSAGE, jsonString);
-        redisTemplate.convertAndSend(REDIS_MEMBER_STATUS_MESSAGE, jsonString);
+        redisTemplateForString.convertAndSend(REDIS_MEMBER_STATUS_MESSAGE, jsonString);
     }
 
     private void sendChannelMessage(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
@@ -284,7 +284,7 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("type", type);
         jsonObject.put("list", cameraChannelList);
         log.info("[SY-redis发送通知-{}] 发送 通道信息变化 {}: {}", type, REDIS_CHANNEL_MESSAGE, jsonObject.toString());
-        redisTemplate.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject);
+        redisTemplateForString.convertAndSend(REDIS_CHANNEL_MESSAGE, jsonObject.toString());
     }
 
     // 监听GPS消息，如果是移动设备则发送redis消息
@@ -312,17 +312,17 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("speed", mobilePosition.getSpeed());
         jsonObject.put("blockId", member.getBlockId());
         log.info("[SY-redis发送通知-移动设备位置信息] 发送 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
-        redisTemplate.convertAndSend(REDIS_GPS_MESSAGE, jsonObject);
+        redisTemplateForString.convertAndSend(REDIS_GPS_MESSAGE, jsonObject.toString());
     }
 
-    private SYMember getMember(String deviceId) {
+    public SYMember getMember(String deviceId) {
         // 从redis补充信息
         String key = MOBILE_CHANNEL_PREFIX + deviceId;
-        String memberJsonString = (String) redisTemplate.opsForValue().get(key);
-        if (memberJsonString == null) {
+        JSONObject jsonObject = (JSONObject)redisTemplate.opsForValue().get(key);
+        if (jsonObject == null) {
             return null;
         }
-        return JSONObject.parseObject(memberJsonString, SYMember.class);
+        return JSONObject.parseObject(jsonObject.toString(), SYMember.class);
     }
 
 

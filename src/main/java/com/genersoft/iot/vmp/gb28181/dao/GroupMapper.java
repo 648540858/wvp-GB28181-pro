@@ -328,11 +328,26 @@ public interface GroupMapper {
     @Delete("DELETE FROM wvp_common_group where alias is not null")
     void deleteHasAlias();
 
-    @Update(" UPDATE wvp_common_group g1" +
+    @Update(value = " UPDATE wvp_common_group g1" +
             "    JOIN wvp_common_group g2" +
             "    ON g1.parent_device_id = g2.device_id" +
             " SET g1.parent_id = g2.id" +
-            " WHERE g1.alias IS NOT NULL;")
+            " WHERE g1.alias IS NOT NULL;", databaseId = "mysql")
+    @Update(value = " UPDATE wvp_common_group g1" +
+            "    JOIN wvp_common_group g2" +
+            "    ON g1.parent_device_id = g2.device_id" +
+            " SET g1.parent_id = g2.id" +
+            " WHERE g1.alias IS NOT NULL;", databaseId = "h2")
+    @Update(value = " UPDATE wvp_common_group AS g1" +
+            " SET parent_id = g2.id" +
+            " FROM wvp_common_group AS g2" +
+            " WHERE g1.parent_device_id = g2.device_id" +
+            "  AND g1.alias IS NOT NULL;", databaseId = "kingbase")
+    @Update(value = " UPDATE wvp_common_group AS g1" +
+            " SET parent_id = g2.id" +
+            " FROM wvp_common_group AS g2" +
+            " WHERE g1.parent_device_id = g2.device_id" +
+            "  AND g1.alias IS NOT NULL;", databaseId = "postgresql")
     void fixParentId();
 
 }

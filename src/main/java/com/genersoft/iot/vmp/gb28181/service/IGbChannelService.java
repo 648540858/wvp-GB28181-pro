@@ -24,11 +24,11 @@ public interface IGbChannelService {
 
     int offline(CommonGBChannel commonGBChannel);
 
-    int offline(List<CommonGBChannel> commonGBChannelList);
+    int offline(List<CommonGBChannel> commonGBChannelList, boolean permission);
 
     int online(CommonGBChannel commonGBChannel);
 
-    int online(List<CommonGBChannel> commonGBChannelList);
+    int online(List<CommonGBChannel> commonGBChannelList, boolean permission);
 
     void batchAdd(List<CommonGBChannel> commonGBChannels);
 
@@ -78,7 +78,7 @@ public interface IGbChannelService {
 
     void deleteChannelToGroupByGbDevice(List<Integer> deviceIds);
 
-    void batchUpdate(List<CommonGBChannel> commonGBChannels);
+    void batchUpdateForStreamPushRedisMsg(List<CommonGBChannel> commonGBChannels, boolean permission);
 
     CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 

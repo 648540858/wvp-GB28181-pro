@@ -79,19 +79,19 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
                 dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
                 if (streamStatusMessage.isSetAllOffline()) {
                     // 所有设备离线
-                    streamPushService.allOffline();
+                    streamPushService.allOfflineForRedisMsg();
                 }
                 if (streamStatusMessage.getOfflineStreams() != null
                         && !streamStatusMessage.getOfflineStreams().isEmpty()) {
                     // 更新部分设备离线
                     log.info("[REDIS: 推流设备状态变化] 更新部分设备离线： {}个", streamStatusMessage.getOfflineStreams().size());
-                    streamPushService.offline(streamStatusMessage.getOfflineStreams());
+                    streamPushService.offlineforRedisMsg(streamStatusMessage.getOfflineStreams());
                 }
                 if (streamStatusMessage.getOnlineStreams() != null &&
                         !streamStatusMessage.getOnlineStreams().isEmpty()) {
                     // 更新部分设备上线
                     log.info("[REDIS: 推流设备状态变化] 更新部分设备上线： {}个", streamStatusMessage.getOnlineStreams().size());
-                    streamPushService.online(streamStatusMessage.getOnlineStreams());
+                    streamPushService.onlineForRedisMsg(streamStatusMessage.getOnlineStreams());
                 }
             } catch (Exception e) {
                 log.warn("[REDIS消息-推流设备状态变化] 发现未处理的异常, \r\n{}", JSON.parseObject(msg.getBody()));
@@ -115,7 +115,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
         dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, () -> {
             log.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
             // 五秒收不到请求就设置通道离线，然后通知上级离线
-            streamPushService.allOffline();
+            streamPushService.allOfflineForRedisMsg();
         }, 5000);
     }
 

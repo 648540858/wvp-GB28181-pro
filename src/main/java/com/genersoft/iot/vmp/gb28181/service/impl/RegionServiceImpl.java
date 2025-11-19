@@ -236,8 +236,9 @@ public class RegionServiceImpl implements IRegionService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "行政区划不存在");
         }
         List<Region> allParent = getAllParent(region);
-        allParent.add(region);
-        return allParent;
+        List<Region> regionList = new LinkedList<>(allParent);
+        regionList.add(region);
+        return regionList;
     }
 
 
@@ -246,15 +247,13 @@ public class RegionServiceImpl implements IRegionService {
             return new ArrayList<>();
         }
 
-        List<Region> regionList = new LinkedList<>();
         Region parent = regionMapper.queryByDeviceId(region.getParentDeviceId());
         if (parent == null) {
-            return regionList;
+            return new ArrayList<>();
         }
-        regionList.add(parent);
         List<Region> allParent = getAllParent(parent);
-        regionList.addAll(allParent);
-        return regionList;
+        allParent.add(parent);
+        return allParent;
     }
 
     @Override

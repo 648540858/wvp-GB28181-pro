@@ -396,4 +396,56 @@ public class CommonGBChannel {
         return commonGBChannel;
     }
 
+    @Override
+    public String toString() {
+        return "CommonGBChannel{" +
+                "gbId=" + gbId +
+                ", gbDeviceId='" + gbDeviceId + '\'' +
+                ", gbName='" + gbName + '\'' +
+                ", gbManufacturer='" + gbManufacturer + '\'' +
+                ", gbModel='" + gbModel + '\'' +
+                ", gbOwner='" + gbOwner + '\'' +
+                ", gbCivilCode='" + gbCivilCode + '\'' +
+                ", gbBlock='" + gbBlock + '\'' +
+                ", gbAddress='" + gbAddress + '\'' +
+                ", gbParental=" + gbParental +
+                ", gbParentId='" + gbParentId + '\'' +
+                ", gbSafetyWay=" + gbSafetyWay +
+                ", gbRegisterWay=" + gbRegisterWay +
+                ", gbCertNum='" + gbCertNum + '\'' +
+                ", gbCertifiable=" + gbCertifiable +
+                ", gbErrCode=" + gbErrCode +
+                ", gbEndTime='" + gbEndTime + '\'' +
+                ", gbSecrecy=" + gbSecrecy +
+                ", gbIpAddress='" + gbIpAddress + '\'' +
+                ", gbPort=" + gbPort +
+                ", gbPassword='" + gbPassword + '\'' +
+                ", gbStatus='" + gbStatus + '\'' +
+                ", gbLongitude=" + gbLongitude +
+                ", gbLatitude=" + gbLatitude +
+                ", gpsAltitude=" + gpsAltitude +
+                ", gpsSpeed=" + gpsSpeed +
+                ", gpsDirection=" + gpsDirection +
+                ", gpsTime='" + gpsTime + '\'' +
+                ", gbBusinessGroupId='" + gbBusinessGroupId + '\'' +
+                ", gbPtzType=" + gbPtzType +
+                ", gbPositionType=" + gbPositionType +
+                ", gbRoomType=" + gbRoomType +
+                ", gbUseType=" + gbUseType +
+                ", gbSupplyLightType=" + gbSupplyLightType +
+                ", gbDirectionType=" + gbDirectionType +
+                ", gbResolution='" + gbResolution + '\'' +
+                ", gbDownloadSpeed='" + gbDownloadSpeed + '\'' +
+                ", gbSvcSpaceSupportMod=" + gbSvcSpaceSupportMod +
+                ", gbSvcTimeSupportMode=" + gbSvcTimeSupportMode +
+                ", recordPLan=" + recordPLan +
+                ", dataType=" + dataType +
+                ", dataDeviceId=" + dataDeviceId +
+                ", createTime='" + createTime + '\'' +
+                ", updateTime='" + updateTime + '\'' +
+                ", streamId='" + streamId + '\'' +
+                ", enableBroadcast=" + enableBroadcast +
+                ", mapLevel=" + mapLevel +
+                '}';
+    }
 }

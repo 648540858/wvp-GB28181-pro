@@ -289,7 +289,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
 
         if (!channelListForOnline.isEmpty()) {
-            gbChannelService.online(channelListForOnline);
+            gbChannelService.online(channelListForOnline, true);
         }
         List<CommonGBChannel> channelListForOffline = new ArrayList<>();
         List<StreamProxy> streamProxiesForRemove = new ArrayList<>();
@@ -302,7 +302,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }
         }
         if (!channelListForOffline.isEmpty()) {
-            gbChannelService.offline(channelListForOffline);
+            gbChannelService.offline(channelListForOffline, true);
         }
         if (!streamProxiesForRemove.isEmpty()) {
             streamProxyMapper.deleteByList(streamProxiesForRemove);
@@ -338,7 +338,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         if (!channelListForOffline.isEmpty()) {
             // 修改国标关联的国标通道的状态
-            gbChannelService.offline(channelListForOffline);
+            gbChannelService.offline(channelListForOffline, true);
         }
         if (!streamProxiesForSendMessage.isEmpty()) {
             for (StreamProxy streamProxy : streamProxiesForSendMessage) {

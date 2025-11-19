@@ -42,6 +42,7 @@ public class CameraChannelService implements CommandLineRunner {
     private final String REDIS_CHANNEL_MESSAGE = "VM_MSG_MOBILE_CHANNEL";
     private final String REDIS_MEMBER_STATUS_MESSAGE = "VM_MSG_MEMBER_STATUS_CHANNEL";
     private final String MOBILE_CHANNEL_PREFIX = "nationalStandardMobileTerminal_";
+    private final String DELAY_TASK_KEY = "DELAY_TASK_KEY_";
 
     @Autowired
     private CommonGBChannelMapper channelMapper;
@@ -126,9 +127,9 @@ public class CameraChannelService implements CommandLineRunner {
         List<CommonGBChannel> resultListForOnline = new ArrayList<>();
         List<CommonGBChannel> resultListForOffline = new ArrayList<>();
 
-        List<SYMember> memberList = new ArrayList<>();
-        List<CommonGBChannel> addMemberList = new ArrayList<>();
+        Map<String, CommonGBChannel> delayChannelMap = new HashMap<>();
 
+        List<SYMember> memberList = new ArrayList<>();
 
 
         switch (event.getMessageType()) {
@@ -157,16 +158,29 @@ public class CameraChannelService implements CommandLineRunner {
                         if (oldChannel != null) {
                             if (oldChannel.getGbPtzType() != null && oldChannel.getGbPtzType() == 99) {
                                 resultListForUpdate.add(channel);
+                                // 如果状态变化发送消息
+                                if (!Objects.equals(oldChannel.getGbStatus(), channel.getGbStatus())) {
+                                    SYMember member = getMember(channel.getGbDeviceId());
+                                    if (member != null) {
+                                        if ("ON".equals(channel.getGbStatus())) {
+                                            member.setTerminalMemberStatus("ONLINE");
+                                        }else {
+                                            member.setTerminalMemberStatus("OFFLINE");
+                                        }
+                                        memberList.add(member);
+                                    }
+                                }
+
                             }else {
                                 resultListForAdd.add(channel);
                                 if ("ON".equals(channel.getGbStatus())) {
-                                    addMemberList.add(channel);
+                                    delayChannelMap.put(channel.getGbDeviceId(), channel);
                                 }
                             }
                         }else {
                             resultListForAdd.add(channel);
                             if ("ON".equals(channel.getGbStatus())) {
-                                addMemberList.add(channel);
+                                delayChannelMap.put(channel.getGbDeviceId(), channel);
                             }
                         }
                     }else {
@@ -175,6 +189,11 @@ public class CameraChannelService implements CommandLineRunner {
                             CameraChannel cameraChannel = new CameraChannel();
                             cameraChannel.setGbDeviceId(channel.getGbDeviceId());
                             resultListForDelete.add(cameraChannel);
+                            SYMember member = getMember(cameraChannel.getGbDeviceId());
+                            if (member != null) {
+                                member.setTerminalMemberStatus("OFFLINE");
+                                memberList.add(member);
+                            }
                         }
                     }
                 }
@@ -186,8 +205,14 @@ public class CameraChannelService implements CommandLineRunner {
                         CameraChannel cameraChannel = new CameraChannel();
                         cameraChannel.setGbDeviceId(channel.getGbDeviceId());
                         resultListForDelete.add(cameraChannel);
+                        SYMember member = getMember(cameraChannel.getGbDeviceId());
+                        if (member != null) {
+                            member.setTerminalMemberStatus("OFFLINE");
+                            memberList.add(member);
+                        }
                     }
                 }
+
                 break;
             case ON:
             case OFF:
@@ -221,7 +246,7 @@ public class CameraChannelService implements CommandLineRunner {
                     if (channel.getGbPtzType()  != null && channel.getGbPtzType() == 99) {
                         resultListForAdd.add(channel);
                         if ("ON".equals(channel.getGbStatus())) {
-                            addMemberList.add(channel);
+                            delayChannelMap.put(channel.getGbDeviceId(), channel);
                         }
                     }
                 }
@@ -249,27 +274,34 @@ public class CameraChannelService implements CommandLineRunner {
         if (!memberList.isEmpty()) {
             sendMemberStatusMessage(memberList);
         }
-        if (!addMemberList.isEmpty()) {
+        if (!delayChannelMap.isEmpty()) {
             // 对于在线的终端进行延迟检查和发送
-            String key = UUID.randomUUID().toString();
-            dynamicTask.startDelay(key, () -> {
-                List<SYMember> members = new ArrayList<>();
-                for (CommonGBChannel commonGBChannel : addMemberList) {
+            for (CommonGBChannel commonGBChannel : delayChannelMap.values()) {
+                String key = DELAY_TASK_KEY + commonGBChannel.getGbDeviceId();
+                dynamicTask.startDelay(key, () -> {
+                    dynamicTask.stop(key);
                     SYMember member = getMember(commonGBChannel.getGbDeviceId());
                     if (member == null) {
-                        continue;
+                        return;
                     }
                     member.setTerminalMemberStatus("ONLINE");
-                    members.add(member);
-                }
-                if (!members.isEmpty()) {
-                    sendMemberStatusMessage(members);
-                }
-            }, 5000);
+                    sendMemberStatusMessage(List.of(member));
+                }, 3000);
+            }
         }
     }
 
+
     private void sendMemberStatusMessage(List<SYMember> memberList) {
+        // 取消延时发送
+        for (SYMember syMember : memberList) {
+            String key = DELAY_TASK_KEY + syMember.getChannelDeviceId();
+            if (dynamicTask.contains(key)) {
+                log.info("[SY-redis发送通知] 取消延时新增任务: {}", key);
+                dynamicTask.stop(key);
+            }
+        }
+
         String jsonString = JSONObject.toJSONString(memberList);
         log.info("[SY-redis发送通知] 发送 状态变化 {}: {}", REDIS_MEMBER_STATUS_MESSAGE, jsonString);
         redisTemplateForString.convertAndSend(REDIS_MEMBER_STATUS_MESSAGE, jsonString);
@@ -277,6 +309,7 @@ public class CameraChannelService implements CommandLineRunner {
 
     private void sendChannelMessage(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
         if (channelList.isEmpty()) {
+            log.warn("[SY-redis发送通知-{}] 发送失败，数据为空， 通道信息变化 {}", type, REDIS_CHANNEL_MESSAGE);
             return;
         }
         List<CameraChannel> cameraChannelList = channelMapper.queryCameraChannelByIds(channelList);
@@ -311,6 +344,7 @@ public class CameraChannelService implements CommandLineRunner {
         jsonObject.put("direction", mobilePosition.getDirection());
         jsonObject.put("speed", mobilePosition.getSpeed());
         jsonObject.put("blockId", member.getBlockId());
+        jsonObject.put("gbDeviceId", mobilePosition.getChannelDeviceId());
         log.info("[SY-redis发送通知-移动设备位置信息] 发送 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
         redisTemplateForString.convertAndSend(REDIS_GPS_MESSAGE, jsonObject.toString());
     }
@@ -322,7 +356,9 @@ public class CameraChannelService implements CommandLineRunner {
         if (jsonObject == null) {
             return null;
         }
-        return JSONObject.parseObject(jsonObject.toString(), SYMember.class);
+        SYMember syMember = JSONObject.parseObject(jsonObject.toString(), SYMember.class);
+        syMember.setChannelDeviceId(deviceId);
+        return syMember;
     }
 
 

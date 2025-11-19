@@ -32,7 +32,8 @@ public class SubscribeHolder {
     public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         log.info("[国标级联] 添加目录订阅，平台： {}， 有效期： {}", platformId, subscribeInfo.getExpires());
 
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        subscribeInfo.setServerId(userSetting.getServerId());
+        String key = String.format("%s:%s:%s", prefix, "catalog", platformId);
         if (subscribeInfo.getExpires() > 0) {
             Duration duration = Duration.ofSeconds(subscribeInfo.getExpires());
             redisTemplate.opsForValue().set(key, subscribeInfo, duration);
@@ -42,18 +43,19 @@ public class SubscribeHolder {
     }
 
     public SubscribeInfo getCatalogSubscribe(String platformId) {
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        String key = String.format("%s:%s:%s", prefix, "catalog", platformId);
         return (SubscribeInfo)redisTemplate.opsForValue().get(key);
     }
 
     public void removeCatalogSubscribe(String platformId) {
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        String key = String.format("%s:%s:%s", prefix, "catalog", platformId);
         redisTemplate.delete(key);
     }
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo, Runnable gpsTask) {
         log.info("[国标级联] 添加移动位置订阅，平台： {}， 有效期： {}s", platformId, subscribeInfo.getExpires());
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        subscribeInfo.setServerId(userSetting.getServerId());
+        String key = String.format("%s:%s:%s", prefix, "mobilePosition", platformId);
         if (subscribeInfo.getExpires() > 0) {
             Duration duration = Duration.ofSeconds(subscribeInfo.getExpires());
             redisTemplate.opsForValue().set(key, subscribeInfo, duration);
@@ -81,12 +83,12 @@ public class SubscribeHolder {
     }
 
     public SubscribeInfo getMobilePositionSubscribe(String platformId) {
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        String key = String.format("%s:%s:%s", prefix, "mobilePosition", platformId);
         return (SubscribeInfo)redisTemplate.opsForValue().get(key);
     }
 
     public void removeMobilePositionSubscribe(String platformId) {
-        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        String key = String.format("%s:%s:%s", prefix, "mobilePosition", platformId);
         redisTemplate.delete(key);
     }
 
@@ -96,7 +98,7 @@ public class SubscribeHolder {
         }
         List<String> result = new ArrayList<>();
         for (Platform platform : platformList) {
-            String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platform.getServerGBId());
+            String key = String.format("%s:%s:%s", prefix, "catalog", platform.getServerGBId());
             if (redisTemplate.hasKey(key)) {
                 result.add(platform.getServerGBId());
             }
@@ -110,7 +112,7 @@ public class SubscribeHolder {
         }
         List<String> result = new ArrayList<>();
         for (Platform platform : platformList) {
-            String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platform.getServerGBId());
+            String key = String.format("%s:%s:%s", prefix, "mobilePosition", platform.getServerGBId());
             if (redisTemplate.hasKey(key)) {
                 result.add(platform.getServerGBId());
             }

@@ -65,16 +65,19 @@ public class EventPublisher {
 	}
 
 	public void channelEventPublishForUpdate(CommonGBChannel commonGBChannel, CommonGBChannel deviceChannelForOld) {
+        log.info("[通道改变内部分发-更新] {}", commonGBChannel.getGbDeviceId());
         ChannelEvent channelEvent = ChannelEvent.getInstanceForUpdate(this, Collections.singletonList(commonGBChannel), Collections.singletonList(deviceChannelForOld));
         applicationEventPublisher.publishEvent(channelEvent);
 	}
 
 	public void channelEventPublishForUpdate(List<CommonGBChannel> channelList, List<CommonGBChannel> channelListForOld) {
+        log.info("[通道改变内部分发-更新] 数量： {}", channelList.size());
         ChannelEvent channelEvent = ChannelEvent.getInstanceForUpdate(this, channelList, channelListForOld);
         applicationEventPublisher.publishEvent(channelEvent);
 	}
 
     public void channelEventPublish(List<CommonGBChannel> channelList, ChannelEvent.ChannelEventMessageType type) {
+        log.info("[通道改变内部分发-{}] 数量： {}", type, channelList.size());
 		ChannelEvent channelEvent = ChannelEvent.getInstance(this, type, channelList);
 		applicationEventPublisher.publishEvent(channelEvent);
 	}

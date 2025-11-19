@@ -37,6 +37,11 @@ public class SubscribeInfo {
      */
     private String simulatedCallId;
 
+    /**
+     * 来源serverId
+     */
+    private String serverId;
+
 
     public static SubscribeInfo getInstance(SIPResponse response, String id, int expires, EventHeader eventHeader){
         SubscribeInfo subscribeInfo = new SubscribeInfo();

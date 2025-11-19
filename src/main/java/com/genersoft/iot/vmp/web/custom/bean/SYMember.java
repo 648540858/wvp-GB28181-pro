@@ -12,5 +12,6 @@ public class SYMember {
     private Long blockId;
     private String unitNo;
     private String terminalMemberStatus;
+    private String channelDeviceId;
 
 }

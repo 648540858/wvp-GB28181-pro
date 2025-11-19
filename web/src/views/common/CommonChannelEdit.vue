@@ -30,11 +30,14 @@
         </el-form-item>
 
         <el-form-item label="行政区域">
-          <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域">
+          <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域" @change="getRegionPaths">
             <template v-slot:append>
               <el-button @click="chooseCivilCode()">选择</el-button>
             </template>
           </el-input>
+          <el-breadcrumb v-if="regionPath.length > 0" separator="/" style="display: block; margin-top: 8px; font-size: 14px;">
+            <el-breadcrumb-item v-for="key in regionPath" :key="key">{{ key }}</el-breadcrumb-item>
+          </el-breadcrumb>
         </el-form-item>
 
         <el-form-item label="安装地址">
@@ -274,6 +277,7 @@ export default {
       loading: false,
       modelList: [],
       parentPath: [],
+      regionPath: [],
       form: {}
     }
   },
@@ -387,6 +391,7 @@ export default {
           this.form = data
           this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
           this.getPaths()
+          this.getRegionPaths()
         })
         .finally(() => {
           this.loading = false
@@ -400,6 +405,7 @@ export default {
     chooseCivilCode: function() {
       this.$refs.chooseCivilCode.openDialog(code => {
         this.form.gbCivilCode = code
+        this.getRegionPaths()
       })
     },
     chooseGroup: function() {
@@ -429,6 +435,20 @@ export default {
               path.push(data[i].name)
             }
             this.parentPath = path
+          })
+      }
+    },
+    getRegionPaths: function() {
+      this.regionPath = []
+      if (this.form.gbCivilCode) {
+        this.$store.dispatch('region/queryPath', this.form.gbCivilCode)
+          .then(data => {
+            console.log(data)
+            const path = []
+            for (let i = 0; i < data.length; i++) {
+              path.push(data[i].name)
+            }
+            this.regionPath = path
           })
       }
     }

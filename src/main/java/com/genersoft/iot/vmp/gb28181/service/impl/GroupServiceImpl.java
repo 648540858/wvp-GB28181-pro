@@ -269,14 +269,12 @@ public class GroupServiceImpl implements IGroupService {
         if (businessGroupInDb == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "业务分组不存在");
         }
-        List<Group> groupList = new LinkedList<>();
-        groupList.add(businessGroupInDb);
         Group group = groupManager.queryOneByDeviceId(deviceId, businessGroup);
         if (group == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "虚拟组织不存在");
         }
         List<Group> allParent = getAllParent(group);
-        groupList.addAll(allParent);
+        List<Group> groupList = new LinkedList<>(allParent);
         groupList.add(group);
         return groupList;
     }
@@ -286,10 +284,9 @@ public class GroupServiceImpl implements IGroupService {
             return new ArrayList<>();
         }
 
-        List<Group> groupList = new ArrayList<>();
         Group parent = groupManager.queryOneByDeviceId(group.getParentDeviceId(), group.getBusinessGroup());
         if (parent == null) {
-            return groupList;
+            return new ArrayList<>();
         }
         List<Group> allParent = getAllParent(parent);
         allParent.add(parent);

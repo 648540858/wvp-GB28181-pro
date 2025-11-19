@@ -22,13 +22,13 @@ public interface DeviceChannelMapper {
             "insert into wvp_device_channel " +
             "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
-            "ip_address, port, password, status, longitude, latitude, gb_longitude, gb_latitude, ptz_type, position_type, room_type, use_type, " +
+            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "(#{deviceId}, #{dataType}, #{dataDeviceId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}, " +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
-            "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{gbLongitude}, #{gbLatitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
+            "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
             " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification}, #{channelType}) " +
             "</script>")
@@ -63,8 +63,6 @@ public interface DeviceChannelMapper {
             ", status=#{status}" +
             ", longitude=#{longitude}" +
             ", latitude=#{latitude}" +
-            ", gb_longitude=#{gbLongitude}" +
-            ", gb_latitude=#{gbLatitude}" +
             ", ptz_type=#{ptzType}" +
             ", position_type=#{positionType}" +
             ", room_type=#{roomType}" +
@@ -200,14 +198,14 @@ public interface DeviceChannelMapper {
             "insert into wvp_device_channel " +
             "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
-            "ip_address, port, password, status, longitude, latitude, gb_longitude, gb_latitude, ptz_type, position_type, room_type, use_type, " +
+            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.deviceId}, #{item.dataType}, #{item.dataDeviceId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
             "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
-            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.gbLongitude}, #{item.gbLatitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
+            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
             "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
             " #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId}, #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}, #{item.channelType}) " +
             "</foreach> " +
@@ -534,8 +532,6 @@ public interface DeviceChannelMapper {
             ", status=#{status}" +
             ", longitude=#{longitude}" +
             ", latitude=#{latitude}" +
-            ", gb_longitude=#{gbLongitude}" +
-            ", gb_latitude=#{gbLatitude}" +
             ", ptz_type=#{ptzType}" +
             ", position_type=#{positionType}" +
             ", room_type=#{roomType}" +

@@ -187,7 +187,7 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
 
     @Override
     public int update(CommonGBChannel commonGBChannel) {
-        log.info("[更新通道] 通道ID: {}, ", commonGBChannel.getGbId());
+        log.info("[更新通道] 通道ID: {}, ", commonGBChannel.toString());
         if (commonGBChannel.getGbId() <= 0) {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
@@ -248,32 +248,33 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
 
     @Override
     @Transactional
-    public int offline(List<CommonGBChannel> commonGBChannelList) {
+    public int offline(List<CommonGBChannel> commonGBChannelList, boolean permission) {
         if (commonGBChannelList.isEmpty()) {
             log.warn("[多个通道离线] 通道数量为0，更新失败");
             return 0;
         }
         log.info("[通道离线] 共 {} 个", commonGBChannelList.size());
-        int limitCount = 1000;
         int result = 0;
-        if (commonGBChannelList.size() > limitCount) {
-            for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > commonGBChannelList.size()) {
-                    toIndex = commonGBChannelList.size();
+        if (permission) {
+            int limitCount = 1000;
+            if (commonGBChannelList.size() > limitCount) {
+                for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > commonGBChannelList.size()) {
+                        toIndex = commonGBChannelList.size();
+                    }
+                    result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "OFF");
                 }
-                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "OFF");
+            } else {
+                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "OFF");
             }
-        } else {
-            result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "OFF");
+            log.info("[通道离线] 保存入库 共 {} 个改变", result);
         }
-        if (result > 0) {
-            try {
-                // 发送catalog
-                eventPublisher.channelEventPublish(commonGBChannelList, ChannelEvent.ChannelEventMessageType.OFF);
-            } catch (Exception e) {
-                log.warn("[多个通道离线] 发送失败，数量：{}", commonGBChannelList.size(), e);
-            }
+        try {
+            // 发送catalog
+            eventPublisher.channelEventPublish(commonGBChannelList, ChannelEvent.ChannelEventMessageType.OFF);
+        } catch (Exception e) {
+            log.warn("[多个通道离线] 发送失败，数量：{}", commonGBChannelList.size(), e);
         }
         return result;
     }
@@ -298,24 +299,26 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
 
     @Override
     @Transactional
-    public int online(List<CommonGBChannel> commonGBChannelList) {
+    public int online(List<CommonGBChannel> commonGBChannelList, boolean permission) {
         if (commonGBChannelList.isEmpty()) {
             log.warn("[多个通道上线] 通道数量为0，更新失败");
             return 0;
         }
-        // 批量更新
-        int limitCount = 1000;
         int result = 0;
-        if (commonGBChannelList.size() > limitCount) {
-            for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > commonGBChannelList.size()) {
-                    toIndex = commonGBChannelList.size();
+        if (permission) {
+            // 批量更新
+            int limitCount = 1000;
+            if (commonGBChannelList.size() > limitCount) {
+                for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > commonGBChannelList.size()) {
+                        toIndex = commonGBChannelList.size();
+                    }
+                    result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "ON");
                 }
-                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "ON");
+            } else {
+                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "ON");
             }
-        } else {
-            result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "ON");
         }
         try {
             // 发送catalog
@@ -358,27 +361,29 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
     }
 
     @Override
-    public void batchUpdate(List<CommonGBChannel> commonGBChannels) {
+    public void batchUpdateForStreamPushRedisMsg(List<CommonGBChannel> commonGBChannels, boolean permission) {
         if (commonGBChannels.isEmpty()) {
             log.warn("[更新多个通道] 通道数量为0，更新失败");
             return;
         }
         List<CommonGBChannel> oldCommonGBChannelList = commonGBChannelMapper.queryOldChanelListByChannels(commonGBChannels);
-        // 批量保存
-        int limitCount = 1000;
-        int result = 0;
-        if (commonGBChannels.size() > limitCount) {
-            for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > commonGBChannels.size()) {
-                    toIndex = commonGBChannels.size();
+        if (permission) {
+            // 批量保存
+            int limitCount = 1000;
+            int result = 0;
+            if (commonGBChannels.size() > limitCount) {
+                for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > commonGBChannels.size()) {
+                        toIndex = commonGBChannels.size();
+                    }
+                    result += commonGBChannelMapper.batchUpdate(commonGBChannels.subList(i, toIndex));
                 }
-                result += commonGBChannelMapper.batchUpdate(commonGBChannels.subList(i, toIndex));
+            } else {
+                result += commonGBChannelMapper.batchUpdate(commonGBChannels);
             }
-        } else {
-            result += commonGBChannelMapper.batchUpdate(commonGBChannels);
+            log.info("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
         }
-        log.info("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
         // 发送通过更新通知
         try {
             // 发送通知

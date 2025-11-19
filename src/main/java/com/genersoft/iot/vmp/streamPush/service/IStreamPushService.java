@@ -52,17 +52,17 @@ public interface IStreamPushService {
     /**
      * 全部离线
      */
-    void allOffline();
+    void allOfflineForRedisMsg();
 
     /**
      * 推流离线
      */
-    void offline(List<StreamPushItemFromRedis> offlineStreams);
+    void offlineforRedisMsg(List<StreamPushItemFromRedis> offlineStreams);
 
     /**
      * 推流上线
      */
-    void online(List<StreamPushItemFromRedis> onlineStreams);
+    void onlineForRedisMsg(List<StreamPushItemFromRedis> onlineStreams);
 
     /**
      * 增加推流
@@ -91,7 +91,7 @@ public interface IStreamPushService {
 
     void updatePushStatus(StreamPush streamPush);
 
-    void batchUpdate(List<StreamPush> streamPushItemForUpdate);
+    void batchUpdateForRedisMsg(List<StreamPush> streamPushItemForUpdate);
 
     int delete(int id);
 

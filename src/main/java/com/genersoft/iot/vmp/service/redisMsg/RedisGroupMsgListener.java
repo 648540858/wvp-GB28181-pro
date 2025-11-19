@@ -109,50 +109,49 @@ public class RedisGroupMsgListener implements MessageListener {
                             continue;
                         }
 
-                    Group topGroup = aliasGroupMap.get(groupMessage.getTopGroupGAlias());
-                    if (topGroup == null) {
-                        topGroup = aliasGroupToSave.get(groupMessage.getTopGroupGAlias());
-                    }
-                    if (topGroup == null) {
-                        log.info("[REDIS消息-业务分组同步回复] 业务分组信息未发送或者未首先发送， {}", groupMessage.toString());
-                        continue;
-                    }
-                    group.setBusinessGroup(topGroup.getDeviceId());
-                    if (groupMessage.getParentGAlias() != null) {
-                        Group parentGroup = aliasGroupMap.get(groupMessage.getParentGAlias());
-                        if (parentGroup == null) {
-                            parentGroup = aliasGroupToSave.get(groupMessage.getParentGAlias());
+                        Group topGroup = aliasGroupMap.get(groupMessage.getTopGroupGAlias());
+                        if (topGroup == null) {
+                            topGroup = aliasGroupToSave.get(groupMessage.getTopGroupGAlias());
                         }
-                        if (parentGroup == null) {
-                            log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点未发送或者未首先发送， {}", groupMessage.toString());
+                        if (topGroup == null) {
+                            log.info("[REDIS消息-业务分组同步回复] 业务分组信息未发送或者未首先发送， {}", groupMessage.toString());
                             continue;
                         }
-                        group.setParentId(null);
-                        group.setParentDeviceId(parentGroup.getDeviceId());
+                        group.setBusinessGroup(topGroup.getDeviceId());
+                        if (groupMessage.getParentGAlias() != null) {
+                            Group parentGroup = aliasGroupMap.get(groupMessage.getParentGAlias());
+                            if (parentGroup == null) {
+                                parentGroup = aliasGroupToSave.get(groupMessage.getParentGAlias());
+                            }
+                            if (parentGroup == null) {
+                                log.info("[REDIS消息-业务分组同步回复] 虚拟组织父节点未发送或者未首先发送， {}", groupMessage.toString());
+                                continue;
+                            }
+                            group.setParentId(null);
+                            group.setParentDeviceId(parentGroup.getDeviceId());
+                        } else {
+                            group.setParentId(null);
+                            group.setParentDeviceId(topGroup.getDeviceId());
+                        }
                     } else {
                         group.setParentId(null);
-                        group.setParentDeviceId(topGroup.getDeviceId());
+                        group.setBusinessGroup(group.getDeviceId());
+                        group.setParentDeviceId(null);
                     }
-                } else {
-                    group.setParentId(null);
-                    group.setBusinessGroup(group.getDeviceId());
-                    group.setParentDeviceId(null);
+                    group.setUpdateTime(DateUtil.getNow());
+                    aliasGroupToSave.put(group.getAlias(), group);
                 }
-                group.setUpdateTime(DateUtil.getNow());
-                aliasGroupToSave.put(group.getAlias(), group);
+                log.info("[业务分组同步回复-存储分组数据] {}", JSONObject.toJSONString(aliasGroupToSave.values()));
+                // 存储分组数据
+                groupService.saveByAlias(aliasGroupToSave.values());
+
+            } catch (ControllerException e) {
+                log.warn("[REDIS消息-业务分组同步回复] 失败, \r\n{}", e.getMsg());
+            } catch (Exception e) {
+                log.warn("[REDIS消息-业务分组同步回复] 发现未处理的异常, \r\n{}", new String(msg.getBody()));
+                log.error("[REDIS消息-业务分组同步回复] 异常内容： ", e);
             }
-            log.info("[业务分组同步回复-存储分组数据] {}", JSONObject.toJSONString(aliasGroupToSave.values()));
-            // 存储分组数据
-            groupService.saveByAlias(aliasGroupToSave.values());
-
-        } catch (ControllerException e) {
-            log.warn("[REDIS消息-业务分组同步回复] 失败, \r\n{}", e.getMsg());
-        } catch (Exception e) {
-            log.warn("[REDIS消息-业务分组同步回复] 发现未处理的异常, \r\n{}", new String(msg.getBody()));
-            log.error("[REDIS消息-业务分组同步回复] 异常内容： ", e);
         }
-    }
-
 
 
     }
@@ -175,7 +174,7 @@ public class RedisGroupMsgListener implements MessageListener {
                 codeType = "215";
             }
             return String.format(deviceTemplate, codeType, RandomStringUtils.insecure().next(6, false, true));
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("[REDIS消息-业务分组同步回复] 构建新的分组编号失败", e);
             return null;
         }

@@ -86,7 +86,6 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
 
     /**
      * 查询最新移动位置
-     * @param deviceId
      */
     @Override
     public MobilePosition queryLatestPosition(String deviceId) {
@@ -104,7 +103,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         if (userSetting.getSavePositionHistory()) {
             mobilePositionMapper.batchadd(mobilePositions);
         }
-        log.debug("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
+        log.info("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
         Map<String, Map<Integer, DeviceChannel>> updateChannelMap = new HashMap<>();
         for (MobilePosition mobilePosition : mobilePositions) {
             DeviceChannel deviceChannel = new DeviceChannel();

@@ -524,7 +524,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (serverId != null) {
             redisTemplate.opsForZSet().remove(key, serverId);
         }
-        Set<Object> range = redisTemplate.opsForZSet().range(key, 0, 0);
+        // 获取得分最高的，也是最后更新时间到redis的wvp，这样可以避免读取到离线的wvp，同时时间最新也一定程度代表最健康的
+        Set<Object> range = redisTemplate.opsForZSet().reverseRange(key, 0, 0);
         if (range == null || range.isEmpty()) {
             return null;
         }

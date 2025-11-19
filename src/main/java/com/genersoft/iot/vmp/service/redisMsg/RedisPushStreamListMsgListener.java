@@ -48,10 +48,6 @@ public class RedisPushStreamListMsgListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        String serverId = redisCatchStorage.chooseOneServer(null);
-        if (!userSetting.getServerId().equals(serverId)) {
-            return;
-        }
         log.info("[REDIS: 推流设备列表更新]： {}", new String(message.getBody()));
         taskQueue.offer(message);
     }
@@ -130,7 +126,7 @@ public class RedisPushStreamListMsgListener implements MessageListener {
                 if (!streamPushItemForUpdate.isEmpty()) {
                     log.info("修改{}条", streamPushItemForUpdate.size());
                     log.info(JSONObject.toJSONString(streamPushItemForUpdate));
-                    streamPushService.batchUpdate(streamPushItemForUpdate);
+                    streamPushService.batchUpdateForRedisMsg(streamPushItemForUpdate);
                 }
             } catch (Exception e) {
                 log.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(msg.getBody()));

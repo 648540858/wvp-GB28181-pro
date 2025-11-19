@@ -22,6 +22,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lin
@@ -62,16 +63,24 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @EventListener
     public void onApplicationEvent(ChannelEvent event) {
         if (event.getChannels().isEmpty()) {
+            log.info("[国标级联-处理通道变化事件] 通道数量为空");
             return;
         }
+        String deviceIds = event.getChannels().stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+        log.info("[国标级联-处理通道变化事件] 类型： {}, 通道: {}", event.getMessageType(), deviceIds);
         // 获取通道所关联的平台
         List<Platform> allPlatform = platformMapper.queryByServerId(userSetting.getServerId());
+        if (allPlatform.isEmpty()) {
+            log.info("[国标级联-处理通道变化事件] 没有关联的平台");
+            return;
+        }
         // 获取所用订阅
         List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform(allPlatform);
 
         Map<String, List<Platform>> platformMap = new HashMap<>();
         Map<String, CommonGBChannel> channelMap = new HashMap<>();
         if (platforms.isEmpty()) {
+            log.info("[国标级联-处理通道变化事件] 没有关联的平台的目录订阅");
             return;
         }
         for (CommonGBChannel deviceChannel : event.getChannels()) {
@@ -81,6 +90,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             channelMap.put(deviceChannel.getGbDeviceId(), deviceChannel);
         }
         if (platformMap.isEmpty()) {
+            log.info("[国标级联-处理通道变化事件] 开启订阅的平台都没有关联通道： {}", deviceIds);
             return;
         }
         switch (event.getMessageType()) {
@@ -147,13 +157,16 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @EventListener
     public void onApplicationEvent(CatalogEvent event) {
-        log.info("[Catalog事件: {}]通道数量： {}", event.getType(), event.getChannels().size());
+        String deviceIds = event.getChannels().stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+        log.info("[Catalog事件: {}] 通道： {}", event.getType(), deviceIds);
         Platform platform = event.getPlatform();
         if (platform == null || platform.getServerGBId() == null) {
+            log.info("[Catalog事件: {}] 缺少通道或通道数据异常： {}", event.getType(), deviceIds);
             return;
         }
         SubscribeInfo subscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
         if (subscribe == null) {
+            log.info("[Catalog事件: {}] 平台未被目录订阅，取消发送： {}", event.getType(), deviceIds);
             return;
         }
         switch (event.getType()) {
@@ -165,7 +178,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     channels.addAll(event.getChannels());
                 }
                 if (!channels.isEmpty()) {
-                    log.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), platform.getServerGBId(), channels.size());
+                    log.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), deviceIds);
                     try {
                         sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, channels, subscribe, null);
                     } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
@@ -185,7 +198,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     deviceChannelList.addAll(event.getChannels());
                 }
                 if (!deviceChannelList.isEmpty()) {
-                    log.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), platform.getServerGBId(), deviceChannelList.size());
+                    log.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), deviceIds);
                     try {
                         sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribe, null);
                     } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
@@ -460,34 +473,39 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public int removeChannelList(Integer platformId, List<CommonGBChannel> channelList) {
         Platform platform = platformMapper.query(platformId);
         if (platform == null) {
+            log.info("[移除关联通道] 平台{}未查询到", platformId);
             return 0;
         }
+        String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+        log.info("[移除关联通道] 上级平台： {}， 通道： {}", platform.getServerGBId(), deviceIds);
         int result = platformChannelMapper.removeChannelsWithPlatform(platformId, channelList);
-        if (result > 0) {
-            // 查询通道相关的分组信息
-            Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
-            Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platformId);
-            if (!deleteRegion.isEmpty()) {
-                for (Region region : deleteRegion) {
-                    channelList.add(0, CommonGBChannel.build(region));
-                }
+        if (result <= 0) {
+            log.info("[移除关联通道] 平台{}未关联通道： {}", platformId, deviceIds);
+            return 0;
+        }
+        // 查询通道相关的分组信息
+        Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
+        Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platformId);
+        if (!deleteRegion.isEmpty()) {
+            for (Region region : deleteRegion) {
+                channelList.add(0, CommonGBChannel.build(region));
             }
+        }
 
-            // 查询通道相关的分组信息
-            Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
-            Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
-            if (!deleteGroup.isEmpty()) {
-                for (Group group : deleteGroup) {
-                    channelList.add(0, CommonGBChannel.build(group));
-                }
+        // 查询通道相关的分组信息
+        Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
+        Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
+        if (!deleteGroup.isEmpty()) {
+            for (Group group : deleteGroup) {
+                channelList.add(0, CommonGBChannel.build(group));
             }
-            // 发送消息
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(platform, channelList, CatalogEvent.DEL);
-            } catch (Exception e) {
-                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
-            }
+        }
+        // 发送消息
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(platform, channelList, CatalogEvent.DEL);
+        } catch (Exception e) {
+            log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
         }
         return result;
     }
@@ -497,6 +515,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public int removeChannels(Integer platformId, List<Integer> channelIds) {
         List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platformId, channelIds);
         if (channelList.isEmpty()) {
+            log.info("[移除通道] 通道列表为空");
             return 0;
         }
         return removeChannelList(platformId, channelList);
@@ -507,6 +526,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public void removeChannels(List<Integer> ids) {
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(ids);
         if (platformList.isEmpty()) {
+            log.info("[移除多个通道] 未查询到通道关联的平台");
             return;
         }
 
@@ -520,6 +540,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public void removeChannel(int channelId) {
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelId(channelId);
         if (platformList.isEmpty()) {
+            log.info("[移除多个通道] 未查询到通道：{} 关联的平台", channelId);
             return;
         }
         for (Platform platform : platformList) {
@@ -532,6 +553,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public List<CommonGBChannel> queryByPlatform(Platform platform) {
         if (platform == null) {
+            log.info("[查询通道所属平台] 平台参数为NULL");
             return null;
         }
         List<CommonGBChannel> commonGBChannelList = commonGBChannelMapper.queryWithPlatform(platform.getId());
@@ -570,6 +592,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         Assert.notNull(platform, "平台不存在");
         List<CommonGBChannel> channelList = queryByPlatform(platform);
         if (channelList.isEmpty()){
+            log.info("[推送通道] 平台：{} 未查询到通道信息", platform.getServerGBId());
             return;
         }
         SubscribeInfo subscribeInfo = SubscribeInfo.buildSimulated(platform.getServerGBId(), platform.getServerIp());
@@ -608,6 +631,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         // 获取关联这些通道的平台
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
         if (platformList.isEmpty()) {
+            String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+            log.info("[获取关联这些通道的平台] 未查询到通道关联的平台, 通道如下 {}", deviceIds);
             return;
         }
         for (Platform platform : platformList) {
@@ -646,6 +671,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         // 获取关联这些通道的平台
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
         if (platformList.isEmpty()) {
+            String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+            log.info("[获取关联这些通道的平台] 未查询到通道关联的平台, 通道如下 {}", deviceIds);
             return;
         }
         for (Platform platform : platformList) {
@@ -683,6 +710,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         });
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
         if (platformList.isEmpty()) {
+            String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+            log.info("[获取关联这些通道的平台] 未查询到通道关联的平台, 通道如下 {}", deviceIds);
             return;
         }
         for (Platform platform : platformList) {
@@ -714,6 +743,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         });
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
         if (platformList.isEmpty()) {
+            String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining());
+            log.info("[获取关联这些通道的平台] 未查询到通道关联的平台, 通道如下 {}", deviceIds);
             return;
         }
         for (Platform platform : platformList) {

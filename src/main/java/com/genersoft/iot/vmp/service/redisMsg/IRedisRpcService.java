@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelListForRpcParam;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
@@ -25,6 +26,7 @@ public interface IRedisRpcService {
     void removeCallback(long key);
 
     long onStreamOnlineEvent(String app, String stream, CommonCallback<StreamInfo> callback);
+
     void unPushStreamOnlineEvent(String app, String stream);
 
     void subscribeCatalog(int id, int cycle);
@@ -32,6 +34,18 @@ public interface IRedisRpcService {
     void subscribeMobilePosition(int id, int cycle, int interval);
 
     boolean updatePlatform(String serverId, Platform platform);
+
+    boolean deletePlatform(String serverId, Integer platformId);
+
+    int addPlatformChannelList(String serverGBId, ChannelListForRpcParam channelListForRpcParam);
+
+    int removeAllPlatformChannel(String serverId, Integer platformId);
+
+    int removePlatformChannelList(String serverId, ChannelListForRpcParam channelListForRpcParam);
+
+    boolean updateCustomPlatformChannel(String serverId, PlatformChannel channel);
+
+    boolean pushPlatformChannel(String serverId, Integer platformId);
 
     void catalogEventPublish(String serverId, CatalogEvent catalogEvent);
 

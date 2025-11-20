@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
@@ -31,6 +32,7 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -130,7 +132,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     if (stopResult) {
                         Platform platform = queryPlatformByServerGBId(sendRtpItem.getTargetId());
 
-                        if (platform != null) {
+                        if (platform != null && userSetting.getServerId().equals(platform.getServerId())) {
                             try {
                                 commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
                             } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -154,7 +156,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 statusTaskRunner.removeRegisterTask(taskInfo.getPlatformServerId());
                 continue;
             }
-            sendUnRegister(platform, taskInfo.getSipTransactionInfo());
+            if (userSetting.getServerId().equals(platform.getServerId())) {
+                sendUnRegister(platform, taskInfo.getSipTransactionInfo());
+            }
         }
         // 启动时所有平台默认离线
         platformMapper.offlineAll(userSetting.getServerId());
@@ -874,25 +878,38 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
     @Override
     @Transactional
-    public void delete(Integer platformId, CommonCallback<Object> callback) {
+    public boolean delete(Integer platformId) {
         Platform platform = platformMapper.query(platformId);
         Assert.notNull(platform, "平台不存在");
-        if (statusTaskRunner.containsRegister(platform.getServerGBId())) {
-            try {
-                SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platform.getServerGBId());
-                sendUnRegister(platform, transactionInfo);
-            }catch (Exception ignored) {}
+        log.info("[删除平台] {}/{} {}:{}", platform.getName(), platform.getServerGBId(), platform.getServerIp(), platform.getServerPort());
+        if (!userSetting.getServerId().equals(platform.getServerId())) {
+            boolean result = redisRpcService.deletePlatform(platform.getServerId(), platformId);
+            if (result) {
+                log.info("[删除平台] 跨平台删除成功 {}/{}", platform.getName(), platform.getServerGBId());
+            }else {
+                log.info("[删除平台] 跨平台删除失败 {}/{}", platform.getName(), platform.getServerGBId());
+            }
+            return result;
         }
-        platformMapper.delete(platform.getId());
+        try {
+            if (statusTaskRunner.containsRegister(platform.getServerGBId())) {
+                try {
+                    SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platform.getServerGBId());
+                    sendUnRegister(platform, transactionInfo);
+                }catch (Exception ignored) {}
+            }
+            platformMapper.delete(platform.getId());
 
-        statusTaskRunner.removeRegisterTask(platform.getServerGBId());
-        statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
+            statusTaskRunner.removeRegisterTask(platform.getServerGBId());
+            statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
 
-        subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
-        subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
-        if (callback != null) {
-            callback.run(true);
+            subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
+            subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
+        }catch (Exception e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
         }
+
+        return true;
     }
 
     @Override

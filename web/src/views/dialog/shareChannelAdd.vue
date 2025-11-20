@@ -45,16 +45,16 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button v-if="hasShare !=='true'" size="mini" type="primary" @click="add()">
+          <el-button v-if="hasShare !=='true'" size="mini" type="primary" :loading="addLoading" @click="add()">
             添加
           </el-button>
-          <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
+          <el-button v-if="hasShare ==='true'" size="mini" type="danger" :loading="removeLoading" @click="remove()">
             移除
           </el-button>
-          <el-button v-if="hasShare !=='true'" size="mini" @click="addByDevice()">按设备添加</el-button>
-          <el-button v-if="hasShare ==='true'" size="mini" @click="removeByDevice()">按设备移除</el-button>
-          <el-button v-if="hasShare !=='true'" size="mini" @click="addAll()">全部添加</el-button>
-          <el-button v-if="hasShare ==='true'" size="mini" @click="removeAll()">全部移除</el-button>
+          <el-button v-if="hasShare !=='true'" size="mini" :loading="addByDeviceLoading" @click="addByDevice()">按设备添加</el-button>
+          <el-button v-if="hasShare ==='true'" size="mini" :loading="removeByDeviceLoading" @click="removeByDevice()">按设备移除</el-button>
+          <el-button v-if="hasShare !=='true'" size="mini" :loading="addAllLoading" @click="addAll()">全部添加</el-button>
+          <el-button v-if="hasShare ==='true'" size="mini" :loading="removeAllLoading" @click="removeAll()">全部移除</el-button>
         </el-form-item>
         <el-form-item style="float: right;">
           <el-button icon="el-icon-refresh-right" circle @click="getChannelList()" />
@@ -144,7 +144,13 @@ export default {
       total: 0,
       loading: false,
       loadSnap: {},
-      multipleSelection: []
+      multipleSelection: [],
+      addLoading: false,
+      addByDeviceLoading: false,
+      addAllLoading: false,
+      removeLoading: false,
+      removeByDeviceLoading: false,
+      removeAllLoading: false
     }
   },
 
@@ -212,7 +218,7 @@ export default {
         })
         return
       }
-      this.loading = true
+      this.addLoading = true
       this.$store.dispatch('platform/addChannel', {
         platformId: this.platformId,
         channelIds: channels
@@ -231,7 +237,7 @@ export default {
           })
         })
         .finally(() => {
-          this.loading = false
+          this.addLoading = false
         })
     },
     addAll: function(row) {
@@ -241,7 +247,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.loading = true
+        this.addAllLoading = true
         this.$store.dispatch('platform/addChannel', {
           platformId: this.platformId,
           all: true
@@ -260,7 +266,7 @@ export default {
             })
           })
           .finally(() => {
-            this.loading = false
+            this.addAllLoading = false
           })
       }).catch(() => {
       })
@@ -272,6 +278,7 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
+        this.addByDeviceLoading = true
         this.$store.dispatch('platform/addChannelByDevice', {
           platformId: this.platformId,
           deviceIds: deviceIds
@@ -290,7 +297,7 @@ export default {
             })
           })
           .finally(() => {
-            this.loading = false
+            this.addByDeviceLoading = false
           })
       })
     },
@@ -301,6 +308,7 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
+        this.removeByDeviceLoading = true
         this.$store.dispatch('platform/removeChannelByDevice', {
           platformId: this.platformId,
           deviceIds: deviceIds
@@ -319,7 +327,7 @@ export default {
             })
           })
           .finally(() => {
-            this.loading = false
+            this.removeByDeviceLoading = false
           })
       })
     },
@@ -335,7 +343,7 @@ export default {
         })
         return
       }
-      this.loading = true
+      this.removeLoading = true
       this.$store.dispatch('platform/removeChannel', {
         platformId: this.platformId,
         channelIds: channels
@@ -354,7 +362,7 @@ export default {
           })
         })
         .finally(() => {
-          this.loading = false
+          this.removeLoading = false
         })
     },
     removeAll: function(row) {
@@ -364,7 +372,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.loading = true
+        this.removeAllLoading = true
         this.$store.dispatch('platform/removeChannel', {
           platformId: this.platformId,
           all: true
@@ -383,7 +391,7 @@ export default {
             })
           })
           .finally(() => {
-            this.loading = false
+            this.removeAllLoading = false
           })
       }).catch(() => {
       })
@@ -403,6 +411,7 @@ export default {
             message: error
           })
         })
+
     },
     search: function() {
       this.currentPage = 1

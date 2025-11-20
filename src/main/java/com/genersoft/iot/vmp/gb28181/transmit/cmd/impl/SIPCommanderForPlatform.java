@@ -44,6 +44,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -434,7 +435,8 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channels,
                 deviceChannels.size(), type, subscribeInfo);
-        log.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
+        String channelDeviceIds = channels.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining(","));
+        log.info("[发送NOTIFY通知]类型： {}，通道： {}", type, channelDeviceIds);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
             log.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
             log.error(catalogXmlContent);

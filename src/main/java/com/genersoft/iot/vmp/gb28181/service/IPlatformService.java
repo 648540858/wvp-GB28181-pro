@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
-import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
@@ -78,7 +77,7 @@ public interface IPlatformService {
 
     List<Platform> queryEnablePlatformList(String serverId);
 
-    void delete(Integer platformId, CommonCallback<Object> callback);
+    boolean delete(Integer platformId);
 
     List<Platform> queryAll(String serverId);
 

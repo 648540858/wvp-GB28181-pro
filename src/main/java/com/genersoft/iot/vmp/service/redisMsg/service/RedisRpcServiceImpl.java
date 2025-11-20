@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelListForRpcParam;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -232,6 +233,72 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("platform/update", platform);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 40, TimeUnit.MILLISECONDS);
+        if(response == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(response.getBody().toString());
+    }
+
+    @Override
+    public boolean deletePlatform(String serverId, Integer platformId) {
+        RedisRpcRequest request = buildRequest("platform/delete", platformId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
+        if(response == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(response.getBody().toString());
+    }
+
+    @Override
+    public int addPlatformChannelList(String serverId, ChannelListForRpcParam channelListForRpcParam) {
+        RedisRpcRequest request = buildRequest("platform/addChannelList", channelListForRpcParam);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
+        if(response == null) {
+            return 0;
+        }
+        return Integer.parseInt(response.getBody().toString());
+    }
+
+    @Override
+    public int removeAllPlatformChannel(String serverId, Integer platformId) {
+        RedisRpcRequest request = buildRequest("platform/removeAllChannel", platformId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
+        if(response == null) {
+            return 0;
+        }
+        return Integer.parseInt(response.getBody().toString());
+    }
+
+    @Override
+    public int removePlatformChannelList(String serverId, ChannelListForRpcParam channelListForRpcParam) {
+        RedisRpcRequest request = buildRequest("platform/removeChannelList", channelListForRpcParam);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
+        if(response == null) {
+            return 0;
+        }
+        return Integer.parseInt(response.getBody().toString());
+    }
+
+    @Override
+    public boolean updateCustomPlatformChannel(String serverId, PlatformChannel channel) {
+        RedisRpcRequest request = buildRequest("platform/updateCustomChannel", channel);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
+        if(response == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(response.getBody().toString());
+    }
+
+    @Override
+    public boolean pushPlatformChannel(String serverId, Integer platformId) {
+        RedisRpcRequest request = buildRequest("platform/pushChannel", platformId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 20, TimeUnit.SECONDS);
         if(response == null) {
             return false;
         }

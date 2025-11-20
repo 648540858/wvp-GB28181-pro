@@ -46,10 +46,7 @@ service.interceptors.response.use(
     }
     const res = response.data
     if (res.code && res.code !== 0) {
-      Message.error({
-        message: res.msg,
-        duration: 5 * 1000
-      })
+      throw res.msg
     } else {
       return res
     }

@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.alibaba.excel.support.cglib.beans.BeanMap;
-import com.alibaba.excel.util.BeanMapUtils;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -29,9 +27,11 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import no.ecc.vectortile.VectorTileEncoder;
+import org.jetbrains.annotations.NotNull;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import java.beans.PropertyDescriptor;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -994,12 +995,26 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
                 // 将 lon/lat 转为瓦片内像素坐标（0..256）
                 double[] px = TileUtils.lonLatToTilePixel(lon, lat, z, x, y);
                 Point pointGeom = geometryFactory.createPoint(new Coordinate(px[0], px[1]));
-
-                BeanMap beanMap = BeanMapUtils.create(commonGBChannel);
+                Map<String, Object> beanMap = getStringObjectMap(commonGBChannel);
                 encoder.addFeature("points", beanMap, pointGeom);
             });
         }
         return encoder.encode();
+    }
+
+    @NotNull
+    private static Map<String, Object> getStringObjectMap(CommonGBChannel commonGBChannel) {
+        BeanWrapper wrapper = new BeanWrapperImpl(commonGBChannel);
+        PropertyDescriptor[] pds = wrapper.getPropertyDescriptors();
+        Map<String, Object> beanMap = new HashMap<>();
+
+        for (PropertyDescriptor pd : pds) {
+            if (pd.getReadMethod() != null && !"class".equals(pd.getName())) {
+                Object value = wrapper.getPropertyValue(pd.getName());
+                beanMap.put(pd.getName(), value);
+            }
+        }
+        return beanMap;
     }
 
 
@@ -1154,7 +1169,7 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
             // 将 lon/lat 转为瓦片内像素坐标（0..256）
             double[] px = TileUtils.lonLatToTilePixel(lon, lat, z, x, y);
             Point pointGeom = geometryFactory.createPoint(new Coordinate(px[0], px[1]));
-            BeanMap beanMap = BeanMapUtils.create(commonGBChannel);
+            Map<String, Object> beanMap = getStringObjectMap(commonGBChannel);
             encoder.addFeature("points", beanMap, pointGeom);
         });
         encoderMap.forEach((key, encoder) -> {

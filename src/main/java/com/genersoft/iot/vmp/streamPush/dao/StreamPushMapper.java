@@ -158,8 +158,13 @@ public interface StreamPushMapper {
             "</script>"})
     int batchUpdate(List<StreamPush> streamPushItemForUpdate);
 
-    @Delete(" DELETE FROM wvp_stream_push st " +
-            " LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id " +
-            " where wdc.id is null and st.server_id = #{serverId}")
+    @Delete(" DELETE FROM wvp_stream_push" +
+            " WHERE server_id = #{serverId}" +
+            "  AND NOT EXISTS (" +
+            "    SELECT 1 " +
+            "    FROM wvp_device_channel wdc " +
+            "    WHERE wdc.data_type = 2 " +
+            "      AND wvp_stream_push.id = wdc.data_device_id" +
+            "  );")
     void deleteWithoutGBId(@Param("serverId") String serverId);
 }

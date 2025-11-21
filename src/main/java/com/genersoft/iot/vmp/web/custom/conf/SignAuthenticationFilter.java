@@ -66,7 +66,9 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 out.close();
                 return;
             }
-            if (SyTokenManager.INSTANCE.appMap.get(appKey) == null) {
+            
+            // 添加空值检查
+            if (SyTokenManager.INSTANCE.appMap == null || SyTokenManager.INSTANCE.appMap.get(appKey) == null) {
                 log.info("[SY-接口验签] appKey {} 对应的 secret 不存在, 请求地址: {} ", appKey, requestURI);
                 response.setStatus(Response.OK);
                 PrintWriter out = response.getWriter();
@@ -86,11 +88,16 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 if (paramKey.equals("sign")) {
                     continue;
                 }
-                beforeSign.append(paramKey).append(parameterMap.get(paramKey)[0]);
+                // 添加数组长度检查
+                String[] values = parameterMap.get(paramKey);
+                if (values != null && values.length > 0) {
+                    beforeSign.append(paramKey).append(values[0]);
+                }
             }
             // 如果是post请求的json消息，拼接body字符串
             if (request.getContentLength() > 0
                     && request.getMethod().equalsIgnoreCase("POST")
+                    && request.getContentType() != null 
                     && request.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE)) {
                 // 读取body内容 - 使用自定义缓存机制
                 String requestBody = request.getCachedBody();
@@ -101,7 +108,19 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                     log.warn("[SY-接口验签] 请求体内容为空");
                 }
             }
-            beforeSign.append(SyTokenManager.INSTANCE.appMap.get(appKey));
+            
+            // 添加空值检查
+            String secret = SyTokenManager.INSTANCE.appMap.get(appKey);
+            if (secret == null) {
+                log.info("[SY-接口验签] 无法获取appKey {} 对应的 secret, 请求地址: {} ", appKey, requestURI);
+                response.setStatus(Response.OK);
+                PrintWriter out = response.getWriter();
+                out.println(getErrorResult(1, "参数非法"));
+                out.close();
+                return;
+            }
+            
+            beforeSign.append(secret);
             // 生成签名
             String buildSign = SmUtil.sm3(beforeSign.toString());
             if (!buildSign.equals(sign)) {
@@ -115,6 +134,15 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
             // 验证请求时间戳
             long timestamp = Long.parseLong(timestampStr);
             long currentTimeMillis = System.currentTimeMillis();
+            // 添加空值检查
+            if (SyTokenManager.INSTANCE.expires == null) {
+                log.info("[SY-接口验签] expires配置为空, 请求地址: {} ", requestURI);
+                response.setStatus(Response.OK);
+                PrintWriter out = response.getWriter();
+                out.println(getErrorResult(2, "签名错误"));
+                out.close();
+                return;
+            }
             if (currentTimeMillis > SyTokenManager.INSTANCE.expires * 60 * 1000 + timestamp ) {
                 log.info("[SY-接口验签] 时间戳已经过期, 请求时间戳：{}， 当前时间： {}, 过期时间： {}, 请求地址: {} ", timestamp, currentTimeMillis, timestamp + SyTokenManager.INSTANCE.expires * 60 * 1000, requestURI);
                 response.setStatus(Response.OK);
@@ -124,11 +152,29 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             // accessToken校验
+            // 添加空值检查
+            if (SyTokenManager.INSTANCE.adminToken == null) {
+                log.info("[SY-接口验签] adminToken配置为空, 请求地址: {} ", requestURI);
+                response.setStatus(Response.OK);
+                PrintWriter out = response.getWriter();
+                out.println(getErrorResult(2, "签名错误"));
+                out.close();
+                return;
+            }
             if (accessToken.equals(SyTokenManager.INSTANCE.adminToken)) {
                 log.info("[SY-接口验签] adminToken已经默认放行, 请求地址: {} ", requestURI);
                 chain.doFilter(request, response);
                 return;
             }else {
+                // 添加空值检查
+                if (SyTokenManager.INSTANCE.sm4Key == null) {
+                    log.info("[SY-接口验签] sm4Key配置为空, 请求地址: {} ", requestURI);
+                    response.setStatus(Response.OK);
+                    PrintWriter out = response.getWriter();
+                    out.println(getErrorResult(2, "签名错误"));
+                    out.close();
+                    return;
+                }
                 // 对token进行解密
                 SM4 sm4 = SmUtil.sm4(HexUtil.decodeHex(SyTokenManager.INSTANCE.sm4Key));
                 String decryptStr = sm4.decryptStr(accessToken, CharsetUtil.CHARSET_UTF_8);
@@ -142,7 +188,7 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                 }
                 JSONObject jsonObject = JSON.parseObject(decryptStr);
                 Long expirationTime = jsonObject.getLong("expirationTime");
-                if (expirationTime < System.currentTimeMillis()) {
+                if (expirationTime == null || expirationTime < System.currentTimeMillis()) {
                     log.info("[SY-接口验签] accessToken 已经过期, 请求地址: {} ", requestURI);
                     response.setStatus(Response.OK);
                     PrintWriter out = response.getWriter();
@@ -151,8 +197,17 @@ public class SignAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
             }
+        }catch (NumberFormatException e) {
+            log.info("[SY-接口验签] 时间戳格式错误, 请求地址: {} ", requestURI);
+            response.setStatus(Response.OK);
+            if (!response.isCommitted()) {
+                PrintWriter out = response.getWriter();
+                out.println(getErrorResult(2, "签名错误"));
+                out.close();
+            }
+            return;
         }catch (Exception e) {
-            log.info("[SY-接口验签] 读取body失败, 请求地址: {}  ", requestURI, e);
+            log.info("[SY-接口验签] 读取body失败, 请求地址: {} ", requestURI, e);
             response.setStatus(Response.OK);
             if (!response.isCommitted()) {
                 PrintWriter out = response.getWriter();

@@ -119,7 +119,6 @@ import VueEasyTree from '@wchbrad/vue-easy-tree'
 import regionEdit from './../dialog/regionEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
 import GbChannelSelect from '../dialog/GbChannelSelect.vue'
-import chooseCivilCode from '@/views/dialog/chooseCivilCode.vue'
 
 export default {
   name: 'DeviceTree',
@@ -199,6 +198,7 @@ export default {
       })
     },
     loadNode: function(node, resolve) {
+      console.log(22222)
       if (node.level === 0) {
         resolve([{
           treeId: '',
@@ -364,8 +364,13 @@ export default {
           this.$emit('onChannelChange', node.data.deviceId)
           node.parent.loaded = false
           node.parent.expand()
-        }).catch(function(error) {
-          console.log(error)
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
     },
     addChannelFormDevice: function(id, node) {

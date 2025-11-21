@@ -55,7 +55,11 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
                     return "";
                 }
             }
-            cachedBodyString = new String(cachedBody, StandardCharsets.UTF_8);
+            if (cachedBody != null) {
+                cachedBodyString = new String(cachedBody, StandardCharsets.UTF_8);
+            } else {
+                cachedBodyString = "";
+            }
         }
         return cachedBodyString;
     }
@@ -72,7 +76,7 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
                 return new byte[0];
             }
         }
-        return cachedBody;
+        return cachedBody != null ? cachedBody : new byte[0];
     }
 
     private void cacheInputStream() throws IOException {
@@ -86,6 +90,9 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
             }
             cachedBody = baos.toByteArray();
             log.debug("成功缓存请求体，长度: {}", cachedBody.length);
+        } catch (Exception e) {
+            log.error("缓存请求体时发生异常: ", e);
+            cachedBody = new byte[0];
         }
     }
 
@@ -96,7 +103,8 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
         private final ByteArrayInputStream inputStream;
 
         public CachedBodyServletInputStream(byte[] body) {
-            this.inputStream = new ByteArrayInputStream(body);
+            // 处理null值情况
+            this.inputStream = new ByteArrayInputStream(body != null ? body : new byte[0]);
         }
 
         @Override
@@ -120,6 +128,3 @@ public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
         }
     }
 }
-
-
-

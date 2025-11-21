@@ -63,8 +63,12 @@ export default {
             })
             this.jtChannel = data
           })
-          .catch(function(error) {
-            console.log(error)
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       } else {
         this.$store.dispatch('jtDevice/addChannel', this.jtChannel)
@@ -76,8 +80,12 @@ export default {
             })
             this.jtChannel = data
           })
-          .catch(function(error) {
-            console.log(error)
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }
     },

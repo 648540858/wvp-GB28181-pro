@@ -244,6 +244,13 @@ export default {
             hasAudio: true
           })
         })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
         .finally(() => {
           row.playLoading = false
         })
@@ -262,6 +269,13 @@ export default {
               message: '删除成功'
             })
             this.initData()
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }).catch(() => {
 
@@ -298,6 +312,13 @@ export default {
           .then((data) => {
             this.initData()
             this.$refs.pushListTable.clearSelection()
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }).catch(() => {
 

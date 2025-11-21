@@ -316,7 +316,15 @@ export default {
           setTimeout(() => {
             this.initData()
           }, 1000)
-        }).finally(() => {
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
+        .finally(() => {
           itemData.playLoading = false
         })
     },

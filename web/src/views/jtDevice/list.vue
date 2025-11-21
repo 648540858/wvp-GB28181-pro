@@ -256,6 +256,13 @@ export default {
           .then(data => {
             this.getList()
           })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
       }).catch(() => {
 
       })
@@ -329,6 +336,13 @@ export default {
         .then((data) => {
           this.serverId = data.addOn.serverId
           this.$refs.configInfo.openDialog(data, 'jt1078Config')
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
     },
     queryAttribute: function(itemData) {

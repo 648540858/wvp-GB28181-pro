@@ -158,7 +158,11 @@ export default {
             this.initData()
           })
           .catch((error) => {
-            console.error(error)
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }).catch(() => {
 

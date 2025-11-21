@@ -145,7 +145,11 @@ export default {
             this.getUserList()
           })
           .catch((error) => {
-            console.error(error)
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }).catch(() => {
 

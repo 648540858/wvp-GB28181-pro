@@ -373,6 +373,13 @@ export default {
           node.parent.expand()
           this.$emit('onChannelChange', node.data.deviceId)
         })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
     },
     addChannelFormDevice: function(id, node) {
       this.$refs.gbDeviceSelect.openDialog((rows) => {
@@ -393,7 +400,15 @@ export default {
             this.$emit('onChannelChange', node.data.deviceId)
             node.loaded = false
             node.expand()
-          }).finally(() => {
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
+          .finally(() => {
             this.loading = false
           })
       })
@@ -413,7 +428,15 @@ export default {
             this.$emit('onChannelChange', node.data.deviceId)
             node.loaded = false
             node.expand()
-          }).finally(() => {
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
+          .finally(() => {
             this.loading = false
           })
       })

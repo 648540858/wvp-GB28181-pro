@@ -243,7 +243,11 @@ export default {
           })
         })
         .catch((error) => {
-          console.log(error)
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
         .finally(() => {
           row.playLoading = false
@@ -258,7 +262,11 @@ export default {
           })
         })
         .catch((error) => {
-          console.log(error)
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
     },
     queryCloudRecords: function(row) {
@@ -277,6 +285,13 @@ export default {
               message: '删除成功'
             })
             this.initData()
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       }).catch(() => {
       })

@@ -73,6 +73,13 @@ export default {
           }
           this.initMap()
       })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
     },
     initMap(){
       let center = fromLonLat([116.41020, 39.915119])

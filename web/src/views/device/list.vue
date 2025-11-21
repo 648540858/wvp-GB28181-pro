@@ -236,7 +236,13 @@ export default {
       }).then((data) => {
         this.total = data.total
         this.deviceList = data.list
-      }).finally(() => {
+      }).catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        }).finally(() => {
         this.getDeviceListLoading = false
       })
     },
@@ -255,6 +261,13 @@ export default {
         this.$store.dispatch('device/deleteDevice', row.deviceId)
           .then((data) => {
             this.getDeviceList()
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
           })
       })
     },
@@ -284,7 +297,15 @@ export default {
           this.$refs.syncChannelProgress.openDialog(itemData.deviceId, () => {
             this.getDeviceList()
           })
-        }).finally(() => {
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
+        .finally(() => {
           this.getDeviceList()
         })
     },

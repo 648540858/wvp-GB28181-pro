@@ -234,8 +234,12 @@ export default {
             this.initData()
           }, 1000)
         })
-        .catch(err => {
-          console.error(err)
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
         .finally(() => {
           this.isLoging = false
@@ -266,8 +270,12 @@ export default {
         .then((data) => {
           this.initData()
         })
-        .catch(function(error) {
-          console.error(error)
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
     },
     getSnap: function(row) {
@@ -302,8 +310,12 @@ export default {
     },
     updateChannel: function(row) {
       this.$store.dispatch('jtDevice/updateChannel', row)
-        .catch((e) => {
-          console.log(e)
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
     },
     refresh: function() {

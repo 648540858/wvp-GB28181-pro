@@ -602,6 +602,13 @@ export default {
               this.startBroadcast(streamInfo.rtc)
             }
           })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
       } else if (this.broadcastStatus === 1) {
         this.broadcastStatus = -1
         this.broadcastRtc.close()
@@ -690,6 +697,13 @@ export default {
       this.broadcastRtc.close()
       this.broadcastStatus = -1
       this.$store.dispatch('play/broadcastStop', [this.channelId])
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
     }
   }
 }

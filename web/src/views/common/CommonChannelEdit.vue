@@ -333,7 +333,15 @@ export default {
                   message: '保存成功'
                 })
                 this.$emit('submitSuccess')
-              }).finally(() => {
+              })
+              .catch((error) => {
+                this.$message({
+                  showClose: true,
+                  message: error,
+                  type: 'error'
+                })
+              })
+              .finally(() => {
               this.loading = false
             })
           } else {
@@ -346,7 +354,15 @@ export default {
                 if (this.saveSuccess) {
                   this.saveSuccess()
                 }
-              }).finally(() => {
+              })
+              .catch((error) => {
+                this.$message({
+                  showClose: true,
+                  message: error,
+                  type: 'error'
+                })
+              })
+              .finally(() => {
               this.loading = false
             })
           }
@@ -371,9 +387,15 @@ export default {
               message: '重置成功 已保存'
             })
             this.getCommonChannel(this.form.gbId)
-          }).catch((error) => {
-            console.error(error)
-          }).finally(() => {
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
+          .finally(() => {
             this.loading = false
           })
       }).catch(() => {
@@ -392,6 +414,13 @@ export default {
           this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
           this.getPaths()
           this.getRegionPaths()
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
         .finally(() => {
           this.loading = false

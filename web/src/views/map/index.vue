@@ -242,6 +242,13 @@ export default {
                 .then(data => {
                   this.play(data)
                 })
+                .catch((error) => {
+                  this.$message({
+                    showClose: true,
+                    message: error,
+                    type: 'error'
+                  })
+                })
             }
           },
           {
@@ -253,6 +260,13 @@ export default {
                 .then(data => {
                   this.editPosition(data)
                 })
+                .catch((error) => {
+                  this.$message({
+                    showClose: true,
+                    message: error,
+                    type: 'error'
+                  })
+                })
             }
           },
           {
@@ -263,6 +277,13 @@ export default {
               this.$store.dispatch('commonChanel/queryOne', data.id)
                 .then(data => {
                   this.edit(data)
+                })
+                .catch((error) => {
+                  this.$message({
+                    showClose: true,
+                    message: error,
+                    type: 'error'
+                  })
                 })
             }
           }
@@ -345,7 +366,15 @@ export default {
             streamInfo: data,
             hasAudio: channel.hasAudio
           })
-        }).finally(() => {
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
+        .finally(() => {
           loading.close()
         })
     },
@@ -444,6 +473,13 @@ export default {
           this.$refs.deviceTree.refresh('channel' + channel.gbId)
 
         })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
     },
     showDrawThinBox: function(show){
       this.showDrawThin = show
@@ -453,6 +489,13 @@ export default {
           if (this.drawThinId !== null) {
             // 发送消息 清空抽稀结果
             this.$store.dispatch('commonChanel/clearThin', this.drawThinId)
+              .catch((error) => {
+                this.$message({
+                  showClose: true,
+                  message: error,
+                  type: 'error'
+                })
+              })
             this.drawThinId = null
           }
           if (this.drawThinLayer !== null) {
@@ -494,6 +537,13 @@ export default {
             })
             // 展示抽稀结果
             this.showDrawThinLayer(drawThinId)
+          })
+        })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
           })
         })
         .finally(() => {
@@ -556,6 +606,13 @@ export default {
               this.showDrawThinLayer(drawThinId)
             })
           })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
           .finally(() => {
             this.boxDrawThinLoading = false
           })
@@ -590,6 +647,13 @@ export default {
           })
           this.showDrawThinBox(false)
         })
+        .catch((error) => {
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
+        })
         .finally(() => {
           this.saveDrawThinLoading = false
         })
@@ -605,6 +669,13 @@ export default {
             this.$message.success({
               showClose: true,
               message: '数据还原成功'
+            })
+          })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
             })
           })
       })

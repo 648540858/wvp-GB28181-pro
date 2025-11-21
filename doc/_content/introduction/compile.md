@@ -22,7 +22,7 @@ WVP-PRO使用Spring boot开发，maven管理依赖。对于熟悉spring开发的
 
 | 依赖     | 版本    | 用途          | 开发环境需要 | 生产环境需要 |
 |--------|-------|-------------|--------|--------|
-| jdk    | >=1.8 | 运行与编译java代码 | 是      | 是      |  
+| jdk    | >=21  | 运行与编译java代码 | 是      | 是      |  
 | maven  | >=3.3 | 管理java代码依赖  | 否      | 否      |
 | git    |       | 下载/更新/提交代码  | 否      | 否      |
 | nodejs |       | 编译于运行前端文件   | 否      | 否      |
@@ -33,13 +33,7 @@ WVP-PRO使用Spring boot开发，maven管理依赖。对于熟悉spring开发的
 ubuntu环境，以ubuntu 18为例：
 
 ``` bash
-apt-get install -y openjdk-11-jre git maven nodejs npm
-```
-
-centos环境,以centos 8为例：
-
-```bash
-yum install -y java-1.8.0-openjdk.x86_64 git maven nodejs npm
+apt-get install -y openjdk-21-jre git maven nodejs npm
 ```
 
 window环境，以windows10为例：
@@ -53,6 +47,8 @@ window环境，以windows10为例：
 这里依然是参考网上教程，自行安装吧。
 
 ## 4 编译ZLMediaKit
+
+> 现在zlm提供最新版本的打包直接下载了， 地址为：[各平台二进制包下载](https://github.com/ZLMediaKit/ZLMediaKit/issues/483)
 
 参考ZLMediaKit[WIKI](https://github.com/ZLMediaKit/ZLMediaKit/wiki)
 ，如果需要使用语音对讲功能，请参考[zlm启用webrtc编译指南](https://github.com/ZLMediaKit/ZLMediaKit/wiki/zlm%E5%90%AF%E7%94%A8webrtc%E7%BC%96%E8%AF%91%E6%8C%87%E5%8D%97)

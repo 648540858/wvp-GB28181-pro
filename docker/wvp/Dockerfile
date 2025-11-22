@@ -50,12 +50,13 @@ RUN java -version && javac -version
 RUN apt-get update && \
     apt-get install -y maven && \
     rm -rf /var/lib/apt/lists/*
-
+    
 
 COPY . /build
 WORKDIR /build
 RUN ls && mvn clean package -Dmaven.test.skip=true
 WORKDIR /build/target
+#确保文件名一致
 RUN mv wvp-pro-*.jar wvp.jar
 
 

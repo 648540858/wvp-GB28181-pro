@@ -365,7 +365,11 @@ public class CameraChannelService implements CommandLineRunner {
     public PageInfo<CameraChannel> queryList(Integer page, Integer count, String groupAlias, Boolean status, String geoCoordSys) {
         // 构建组织结构信息
         Group group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
+        if (group == null) {
+            log.warn("[SY-查询摄像机列表, 只查询当前虚拟组织下的] 组织结构不存在: {}", groupAlias);
+            return new PageInfo<>(Collections.emptyList());
+        }
+
         String groupDeviceId = group.getDeviceId();
 
         // 构建分页
@@ -384,8 +388,10 @@ public class CameraChannelService implements CommandLineRunner {
         // 构建组织结构信息
         if (groupAlias != null) {
             CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-            Assert.notNull(group, "组织结构不存在");
-            String groupDeviceId = group.getDeviceId();
+            if (group == null) {
+                log.warn("[SY-查询摄像机列表, 查询当前虚拟组织下以及全部子节点] 组织结构不存在: {}", groupAlias);
+                return new PageInfo<>(Collections.emptyList());
+            }
             // 获取所有子节点
             groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
             groupList.add(group);
@@ -425,7 +431,10 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraCount> queryCountWithChild(String groupAlias) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
+        if (group == null) {
+            log.warn("[SY-按组织结构统计摄像头数量] 组织结构不存在: {}", groupAlias);
+            return Collections.emptyList();
+        }
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -641,7 +650,10 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInBox(Double minLongitude, Double maxLongitude, Double minLatitude, Double maxLatitude, Integer level, String groupAlias, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
+        if (group == null) {
+            log.warn("[SY-框选] 组织结构不存在: {}", groupAlias);
+            return Collections.emptyList();
+        }
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -675,7 +687,10 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInCircle(Double centerLongitude, Double centerLatitude, Double radius, Integer level, String groupAlias, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
+        if (group == null) {
+            log.warn("[SY-圈选] 组织结构不存在: {}", groupAlias);
+            return Collections.emptyList();
+        }
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);
@@ -702,7 +717,10 @@ public class CameraChannelService implements CommandLineRunner {
     public List<CameraChannel> queryListInPolygon(List<Point> pointList, String groupAlias, Integer level, String geoCoordSys) {
         // 构建组织结构信息
         CameraGroup group = groupMapper.queryGroupByAlias(groupAlias);
-        Assert.notNull(group, "组织结构不存在");
+        if (group == null) {
+            log.warn("[SY-多边形] 组织结构不存在: {}", groupAlias);
+            return Collections.emptyList();
+        }
         // 获取所有子节点
         List<CameraGroup> groupList = queryAllGroupChildren(group.getId(), group.getBusinessGroup());
         groupList.add(group);

@@ -27,14 +27,18 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -90,72 +94,137 @@ public class JwtUtils implements InitializingBean {
     }
 
     /**
-     * 创建密钥对
-     *
-     * @throws JoseException JoseException
+     * 创建密钥对（修复所有bug+classpath警告+密钥持久化）
      */
     private RsaJsonWebKey generateRsaJsonWebKey() throws JoseException {
-        RsaJsonWebKey rsaJsonWebKey = null;
-        try {
-            String jwkFile = userSetting.getJwkFile();
-            InputStream inputStream = null;
-            if (jwkFile.startsWith("classpath:")){
-                String filePath = jwkFile.substring("classpath:".length());
-                ClassPathResource civilCodeFile = new ClassPathResource(filePath);
-                if (civilCodeFile.exists()) {
-                    inputStream = civilCodeFile.getInputStream();
-                }
-            }else {
-                File civilCodeFile = new File(userSetting.getCivilCodeFile());
-                if (civilCodeFile.exists()) {
-                    inputStream = Files.newInputStream(civilCodeFile.toPath());
-                }
+        // 前置校验：避免空指针（防止userSetting未初始化或jwkFile未配置）
+        if (userSetting == null) {
+            log.error("[API AUTH] userSetting 未初始化！");
+            return createDefaultRsaKey();
+        }
+        String jwkFile = userSetting.getJwkFile();
+        if (jwkFile == null || jwkFile.trim().isEmpty()) {
+            log.error("[API AUTH] JWK文件路径未配置！");
+            return createDefaultRsaKey();
+        }
 
-            }
-            if (inputStream == null ) {
-                log.warn("[API AUTH] 读取jwk.json失败，文件不存在，将使用新生成的随机RSA密钥对");
-                // 生成一个RSA密钥对，该密钥对将用于JWT的签名和验证，包装在JWK中
-                rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
-                // 给JWK一个密钥ID
-                rsaJsonWebKey.setKeyId(keyId);
-                return rsaJsonWebKey;
-            }
-            BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            int index = -1;
-            String line;
-            StringBuilder content = new StringBuilder();
-            while ((line = inputStreamReader.readLine()) != null) {
-                content.append(line);
-                index ++;
-                if (index == 0) {
-                    continue;
-                }
-            }
-            inputStreamReader.close();
-            inputStream.close();
+        // 尝试读取JWK文件（自动处理classpath/本地文件，用try-with-resources自动关流，无泄露）
+        try (InputStream inputStream = getJwkInputStream(jwkFile);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
 
-
-            String jwkJson = content.toString();
+            // 读取JSON（不跳过任何行，修复原bug）
+            String jwkJson = reader.lines().collect(Collectors.joining());
             JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(jwkJson);
             List<JsonWebKey> jsonWebKeys = jsonWebKeySet.getJsonWebKeys();
-            if (!jsonWebKeys.isEmpty()) {
-                JsonWebKey jsonWebKey = jsonWebKeys.get(0);
+
+            // 筛选：取第一个有效的RSA私钥（签名需要私钥，避免后续报错）
+            for (JsonWebKey jsonWebKey : jsonWebKeys) {
                 if (jsonWebKey instanceof RsaJsonWebKey) {
-                    rsaJsonWebKey = (RsaJsonWebKey) jsonWebKey;
+                    RsaJsonWebKey rsaKey = (RsaJsonWebKey) jsonWebKey;
+                    // 校验是否包含私钥
+                    if (rsaKey.getPrivateKey() != null) {
+                        log.info("[API AUTH] 从JWK文件读取RSA密钥成功，keyId: {}", rsaKey.getKeyId());
+                        return rsaKey;
+                    }
                 }
             }
-        } catch (Exception ignore) {}
-        if (rsaJsonWebKey == null) {
-            log.warn("[API AUTH] 读取jwk.json失败，获取内容失败，将使用新生成的随机RSA密钥对");
-            // 生成一个RSA密钥对，该密钥对将用于JWT的签名和验证，包装在JWK中
-            rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
-            // 给JWK一个密钥ID
-            rsaJsonWebKey.setKeyId(keyId);
-        }else {
-            log.info("[API AUTH] 读取jwk.json成功");
+            log.error("[API AUTH] JWK文件中无有效RSA私钥（仅公钥无法签名JWT）");
+
+        } catch (IOException e) {
+            log.error("[API AUTH] 读取JWK文件失败（路径：{}）", jwkFile, e);
+        } catch (Exception e) {
+            log.error("[API AUTH] 解析JWK文件失败（JSON格式错误或密钥无效）", e);
         }
-        return rsaJsonWebKey;
+
+        // 所有失败场景：生成默认密钥并持久化（避免重启失效）
+        return createAndPersistDefaultRsaKey(jwkFile);
     }
+
+    /**
+     * 获取JWK文件输入流（支持classpath/本地文件，classpath读取加安全警告）
+     */
+    private InputStream getJwkInputStream(String jwkFile) throws IOException {
+        if (jwkFile.startsWith("classpath:")) {
+            String filePath = jwkFile.substring("classpath:".length());
+            ClassPathResource resource = new ClassPathResource(filePath);
+            if (resource.exists()) {
+                // 关键：classpath读取时打印安全警告，提醒用户确认密钥来源
+                log.warn("[API AUTH] 从classpath读取内置JWK文件：{}！请确认该密钥是您自己签发的，" +
+                        "classpath内置密钥存在泄露风险，生产环境建议改用外部文件配置", filePath);
+                return resource.getInputStream();
+            }
+            // throw new IOException("classpath下JWK文件不存在：" + filePath);
+        } 
+        {
+            File file = determinePersistPath(jwkFile).toFile();// 外部配置与classpath失败场景下
+            if (file.exists() && file.canRead()) {
+                log.debug("[API AUTH] 从本地文件读取JWK文件：{}", file.getAbsolutePath());
+                return Files.newInputStream(file.toPath());
+            }
+            throw new IOException("本地JWK文件不存在或无读取权限：" + file.getAbsolutePath());
+        }
+    }
+
+        /**
+     * 生成默认RSA密钥（单独抽取，修复之前漏写的问题）
+     */
+    private RsaJsonWebKey createDefaultRsaKey() throws JoseException {
+        RsaJsonWebKey defaultKey = RsaJwkGenerator.generateJwk(4096);
+        defaultKey.setKeyId(keyId);
+        log.warn("[API AUTH] 使用默认生成的RSA密钥（未持久化，重启会失效），keyId: {}", defaultKey.getKeyId());
+        return defaultKey;
+    }
+
+    /**
+     * 生成默认RSA密钥并持久化到文件（修复原重复代码，避免重启失效）
+     */
+    private RsaJsonWebKey createAndPersistDefaultRsaKey(String configJwkFile) throws JoseException {
+        // 1. 生成4096位RSA密钥（原2048位升级，更安全）
+        RsaJsonWebKey defaultKey = RsaJwkGenerator.generateJwk(4096);
+        defaultKey.setKeyId(keyId); // keyId配置
+
+        // 2. 确定持久化路径：优先用户配置的非classpath路径，否则用默认外部路径
+        Path persistPath = determinePersistPath(configJwkFile);
+        if (persistPath == null) {
+            log.warn("[API AUTH] 生成默认RSA密钥（keyId: {}），但配置路径是classpath（只读）！" +
+                    "服务重启后密钥会失效，请修改jwkFile为外部可写路径（如：/opt/config/jwk.json）", defaultKey.getKeyId());
+            return defaultKey;
+        }
+
+        // 3. 保存密钥到文件（标准JWK Set格式，下次启动可直接读取）
+        try {
+            // 自动创建父目录（比如./config不存在时会自动建）
+            Files.createDirectories(persistPath.getParent());
+            // 构建标准JWK Set JSON（jose4j的toString()自带正确格式）
+            JsonWebKeySet jwkSet = new JsonWebKeySet(defaultKey);
+            String jwkJson = jwkSet.toJson(JsonWebKey.OutputControlLevel.INCLUDE_PRIVATE);
+            // 写入文件（覆盖已有文件，避免重复）
+            Files.writeString(persistPath, jwkJson, StandardCharsets.UTF_8);
+            log.info("[API AUTH] 生成默认RSA密钥（keyId: {}）并持久化到：{}",
+                    defaultKey.getKeyId(), persistPath.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("[API AUTH] 生成默认RSA密钥成功，但持久化失败（路径：{}）！服务重启后密钥会失效",
+                    persistPath.toAbsolutePath(), e);
+        }
+
+        return defaultKey;
+    }
+
+    /**
+     * 确定密钥持久化路径（兼容classpath只读场景）
+     */
+    private Path determinePersistPath(String configJwkFile) {
+        // 若配置路径不是classpath，直接用用户配置的路径（外部可写）
+        if (!configJwkFile.startsWith("classpath:")) {
+            return Paths.get(configJwkFile);
+        }
+        // 若配置是classpath，保存到默认外部路径：./config/jwk.json（项目根目录下的config文件夹）
+        Path defaultPath = Paths.get("config", "jwk.json");
+        log.warn("[API AUTH] 配置的jwkFile是classpath路径（只读），默认密钥将保存到外部路径：{}",
+                defaultPath.toAbsolutePath());
+        return defaultPath;
+    }
+
 
     public static String createToken(String username, Long expirationTime, Map<String, Object> extra) {
         try {

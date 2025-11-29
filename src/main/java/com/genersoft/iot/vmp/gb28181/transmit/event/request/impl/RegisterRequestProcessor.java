@@ -88,39 +88,55 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
-
+            // 调整逻辑，如果为设置公共密码，那么就必须要预设用户信息，否则无法注册。
             Device device = deviceService.getDeviceByDeviceId(deviceId);
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
                     userSetting.getSipUseSourceIpAsRemoteAddress());
             String requestAddress = remoteAddressInfo.getIp() + ":" + remoteAddressInfo.getPort();
             String title = registerFlag ? "[注册请求]" : "[注销请求]";
-            log.info(title + "设备：{}, 开始处理: {}", deviceId, requestAddress);
-            if (device != null &&
-                    device.getSipTransactionInfo() != null &&
-                    request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
-                log.info(title + "设备：{}, 注册续订: {}", device.getDeviceId(), device.getDeviceId());
-                if (registerFlag) {
-                    device.setExpires(request.getExpires().getExpires());
-                    device.setIp(remoteAddressInfo.getIp());
-                    device.setPort(remoteAddressInfo.getPort());
-                    device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
+            log.info("{} 设备：{}, 开始处理: {}", title, deviceId, requestAddress);
+            String password = null;
+            if (device != null) {
+                if (device.getSipTransactionInfo() != null &&
+                        request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
+                    log.info("{} 设备：{}, 注册续订: {}", title, device.getDeviceId(), device.getDeviceId());
+                    if (registerFlag) {
+                        device.setExpires(request.getExpires().getExpires());
+                        device.setIp(remoteAddressInfo.getIp());
+                        device.setPort(remoteAddressInfo.getPort());
+                        device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
 
-                    device.setLocalIp(request.getLocalAddress().getHostAddress());
-                    Response registerOkResponse = getRegisterOkResponse(request);
-                    // 判断TCP还是UDP
-                    ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
-                    String transport = reqViaHeader.getTransport();
-                    device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
-                    sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
-                    device.setRegisterTime(DateUtil.getNow());
-                    deviceService.online(device, null);
-                } else {
-                    deviceService.offline(deviceId, "主动注销");
+                        device.setLocalIp(request.getLocalAddress().getHostAddress());
+                        Response registerOkResponse = getRegisterOkResponse(request);
+                        // 判断TCP还是UDP
+                        ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+                        String transport = reqViaHeader.getTransport();
+                        device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
+                        sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
+                        device.setRegisterTime(DateUtil.getNow());
+                        deviceService.online(device, null);
+                    } else {
+                        deviceService.offline(deviceId, "主动注销");
+                    }
+                    return;
+                }else {
+                    // 正常注册, 用户信息未设置密码，并且公共密码也未设置，则关闭鉴权
+                    if (!ObjectUtils.isEmpty(device.getPassword()) || !ObjectUtils.isEmpty(sipConfig.getPassword())) {
+                        password = (!ObjectUtils.isEmpty(device.getPassword())) ? device.getPassword() : sipConfig.getPassword();
+                    }
                 }
-                return;
+            }else {
+                if (ObjectUtils.isEmpty(sipConfig.getPassword())) {
+                    log.info("{} 设备：{}, 地址: {}, 公共密码已经禁用，请添加用户信息后注册", title, deviceId, requestAddress);
+                    response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
+                    sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                    return;
+                }else {
+                    password = sipConfig.getPassword();
+                }
             }
-            String password = (device != null && !ObjectUtils.isEmpty(device.getPassword())) ? device.getPassword() : sipConfig.getPassword();
+
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
                 log.info(title + " 设备：{}, 回复401: {}", deviceId, requestAddress);

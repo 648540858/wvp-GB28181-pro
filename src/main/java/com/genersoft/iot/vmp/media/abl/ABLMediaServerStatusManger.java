@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.abl;
 import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.ConfigKeyId;
@@ -12,8 +13,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -29,10 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 管理zlm流媒体节点的状态
  */
 @Component
+@Slf4j
 public class ABLMediaServerStatusManger {
-
-    private final static Logger logger = LoggerFactory.getLogger(ABLMediaServerStatusManger.class);
-
+    
     private final Map<Object, MediaServer> offlineABLPrimaryMap = new ConcurrentHashMap<>();
     private final Map<Object, MediaServer> offlineAblsecondaryMap = new ConcurrentHashMap<>();
     private final Map<Object, Long> offlineAblTimeMap = new ConcurrentHashMap<>();
@@ -55,6 +54,9 @@ public class ABLMediaServerStatusManger {
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private EventPublisher eventPublisher;
+
     private final String type = "abl";
 
     @Async("taskExecutor")
@@ -68,7 +70,7 @@ public class ABLMediaServerStatusManger {
             if (!type.equals(mediaServer.getType())) {
                 continue;
             }
-            logger.info("[ABL-添加待上线节点] ID：" + mediaServer.getId());
+            log.info("[ABL-添加待上线节点] ID：" + mediaServer.getId());
             offlineABLPrimaryMap.put(mediaServer.getId(), mediaServer);
             offlineAblTimeMap.put(mediaServer.getId(), System.currentTimeMillis());
         }
@@ -87,7 +89,7 @@ public class ABLMediaServerStatusManger {
         if (serverItem == null) {
             return;
         }
-        logger.info("[ABL-HOOK事件-服务启动] ID：" + event.getMediaServerItem().getId());
+        log.info("[ABL-HOOK事件-服务启动] ID：" + event.getMediaServerItem().getId());
         online(serverItem, null);
     }
 
@@ -101,7 +103,7 @@ public class ABLMediaServerStatusManger {
         if (serverItem == null) {
             return;
         }
-        logger.info("[ABL-HOOK事件-心跳] ID：" + event.getMediaServerItem().getId());
+        log.info("[ABL-HOOK事件-心跳] ID：" + event.getMediaServerItem().getId());
         online(serverItem, null);
     }
 
@@ -111,7 +113,7 @@ public class ABLMediaServerStatusManger {
         if (event.getMediaServer() == null) {
             return;
         }
-        logger.info("[ABL-节点被移除] ID：" + event.getMediaServer().getServerId());
+        log.info("[ABL-节点被移除] ID：" + event.getMediaServer().getServerId());
         offlineABLPrimaryMap.remove(event.getMediaServer().getServerId());
         offlineAblsecondaryMap.remove(event.getMediaServer().getServerId());
         offlineAblTimeMap.remove(event.getMediaServer().getServerId());
@@ -130,17 +132,17 @@ public class ABLMediaServerStatusManger {
                     offlineABLPrimaryMap.remove(mediaServerItem.getId());
                     continue;
                 }
-                logger.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                log.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                 ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
                 AblServerConfig ablServerConfig = null;
                 if (ablResult.getCode() != 0) {
-                    logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                    log.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     continue;
                 }
                 JSONArray params = ablResult.getParams();
 
                 if (params == null || params.isEmpty()) {
-                    logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                    log.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                 }else {
                     ablServerConfig = AblServerConfig.getInstance(params);
                     initPort(mediaServerItem, ablServerConfig);
@@ -153,17 +155,17 @@ public class ABLMediaServerStatusManger {
                 if (offlineAblTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
                     continue;
                 }
-                logger.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                log.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                 ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServerItem);
                 AblServerConfig ablServerConfig = null;
                 if (ablResult.getCode() != 0) {
-                    logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                    log.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
                     continue;
                 }
                 JSONArray params = ablResult.getParams();
                 if (params == null || params.isEmpty()) {
-                    logger.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                    log.info("[ABL-尝试连接]失败, ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                     offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
                 }else {
                     ablServerConfig = AblServerConfig.getInstance(params);
@@ -175,33 +177,30 @@ public class ABLMediaServerStatusManger {
     }
 
     private void online(MediaServer mediaServer, AblServerConfig config) {
+        if (config == null) {
+            ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServer);
+            JSONArray data = ablResult.getParams();
+            if (data != null && !data.isEmpty()) {
+                config = AblServerConfig.getInstance(data);
+            }else {
+                log.info("[ABL-连接成功] 读取流媒体配置失败 ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+                return;
+            }
+        }
         offlineABLPrimaryMap.remove(mediaServer.getId());
         offlineAblsecondaryMap.remove(mediaServer.getId());
         offlineAblTimeMap.remove(mediaServer.getId());
-        if (!mediaServer.isStatus()) {
-            logger.info("[ABL-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
-            mediaServer.setStatus(true);
-            mediaServer.setHookAliveInterval(10F);
-            mediaServerService.update(mediaServer);
-            if(mediaServer.isAutoConfig()) {
-                if (config == null) {
-                    ABLResult ablResult = ablResTfulUtils.getServerConfig(mediaServer);
-                    JSONArray data = ablResult.getParams();
-                    if (data != null && !data.isEmpty()) {
-                        config = AblServerConfig.getInstance(data);
-                    }
-                }
-                if (config != null) {
-                    initPort(mediaServer, config);
-                    setAblConfig(mediaServer, false, config);
-                }
-            }
-            mediaServerService.update(mediaServer);
-        }
+        log.info("[ABL-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+        mediaServer.setStatus(true);
+        mediaServer.setHookAliveInterval(10F);
+        initPort(mediaServer, config);
+        // 发送上线通知
+        eventPublisher.mediaServerOnlineEventPublish(mediaServer);
+        mediaServerService.update(mediaServer);
         // 设置两次心跳未收到则认为zlm离线
         String key = "ABL-keepalive-" + mediaServer.getId();
         dynamicTask.startDelay(key, ()->{
-            logger.warn("[ABL-心跳超时] ID：{}", mediaServer.getId());
+            log.warn("[ABL-心跳超时] ID：{}", mediaServer.getId());
             mediaServer.setStatus(false);
             offlineABLPrimaryMap.put(mediaServer.getId(), mediaServer);
             offlineAblTimeMap.put(mediaServer.getId(), System.currentTimeMillis());
@@ -238,16 +237,16 @@ public class ABLMediaServerStatusManger {
     public void setAblConfig(MediaServer mediaServerItem, boolean restart, AblServerConfig config) {
         try {
             if (config.getHookEnable() == 0) {
-                logger.info("[媒体服务节点-ABL]  开启HOOK功能 ：{}", mediaServerItem.getId());
+                log.info("[媒体服务节点-ABL]  开启HOOK功能 ：{}", mediaServerItem.getId());
                 ABLResult ablResult = ablResTfulUtils.setConfigParamValue(mediaServerItem, "hook_enable", "1");
                 if (ablResult.getCode() == 0) {
-                    logger.info("[媒体服务节点-ABL]  开启HOOK功能成功 ：{}", mediaServerItem.getId());
+                    log.info("[媒体服务节点-ABL]  开启HOOK功能成功 ：{}", mediaServerItem.getId());
                 }else {
-                    logger.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}->{}", mediaServerItem.getId(), ablResult.getMemo());
+                    log.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}->{}", mediaServerItem.getId(), ablResult.getMemo());
                 }
             }
         }catch (Exception e) {
-            logger.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}", mediaServerItem.getId(), e);
+            log.info("[媒体服务节点-ABL]  开启HOOK功能失败 ：{}", mediaServerItem.getId(), e);
         }
         // 设置相关的HOOK
         String[] hookUrlArray = {
@@ -280,16 +279,16 @@ public class ABLMediaServerStatusManger {
                             if (!hookUrl.equals(field.get(config))) {
                                 ABLResult ablResult = ablResTfulUtils.setConfigParamValue(mediaServerItem, hook, hookUrl);
                                 if (ablResult.getCode() == 0) {
-                                    logger.info("[媒体服务节点-ABL]  设置HOOK {} 成功 ：{}", hook, mediaServerItem.getId());
+                                    log.info("[媒体服务节点-ABL]  设置HOOK {} 成功 ：{}", hook, mediaServerItem.getId());
                                 }else {
-                                    logger.info("[媒体服务节点-ABL]  设置HOOK {} 失败 ：{}->{}", hook, mediaServerItem.getId(), ablResult.getMemo());
+                                    log.info("[媒体服务节点-ABL]  设置HOOK {} 失败 ：{}->{}", hook, mediaServerItem.getId(), ablResult.getMemo());
                                 }
                             }
                         }
                     }
                 }
             }catch (Exception e) {
-                logger.info("[媒体服务节点-ABL]  设置HOOK 失败 ：{}", mediaServerItem.getId(), e);
+                log.info("[媒体服务节点-ABL]  设置HOOK 失败 ：{}", mediaServerItem.getId(), e);
             }
         }
 
@@ -342,15 +341,15 @@ public class ABLMediaServerStatusManger {
 //
 //        if (responseJSON != null && responseJSON.getInteger("code") == 0) {
 //            if (restart) {
-//                logger.info("[媒体服务节点] 设置成功,开始重启以保证配置生效 {} -> {}:{}",
+//                log.info("[媒体服务节点] 设置成功,开始重启以保证配置生效 {} -> {}:{}",
 //                        mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
 //                ablResTfulUtils.restartServer(mediaServerItem);
 //            }else {
-//                logger.info("[媒体服务节点] 设置成功 {} -> {}:{}",
+//                log.info("[媒体服务节点] 设置成功 {} -> {}:{}",
 //                        mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
 //            }
 //        }else {
-//            logger.info("[媒体服务节点] 设置媒体服务节点失败 {} -> {}:{}",
+//            log.info("[媒体服务节点] 设置媒体服务节点失败 {} -> {}:{}",
 //                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
 //        }
     }

@@ -340,7 +340,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public void update(MediaServer mediaSerItem) {
-        mediaServerMapper.update(mediaSerItem);
+        if (mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId()) != null) {
+            mediaServerMapper.update(mediaSerItem);
+        }else {
+            mediaServerMapper.add(mediaSerItem);
+        }
+
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
         // 获取完整数据
         MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId());
@@ -409,8 +414,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
     @Override
-    public List<MediaServer> getAllFromDatabase() {
-        return mediaServerMapper.queryAll(userSetting.getServerId());
+    public List<MediaServer> getAllFromDatabaseWithOutDefault() {
+        return mediaServerMapper.queryAllWithOutDefault(userSetting.getServerId());
     }
 
     @Override
@@ -441,7 +446,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
-        return (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
+        MediaServer mediaServer = (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
+        if (mediaServer == null) {
+            // 尝试从数据库获取
+            mediaServer = mediaServerMapper.queryOne(mediaServerId, userSetting.getServerId());
+            if (mediaServer != null) {
+                redisTemplate.opsForHash().put(key, mediaServer.getId(), mediaServer);
+            }
+        }
+        return mediaServer;
     }
 
     /**
@@ -990,6 +1003,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
         mediaNodeServerService.loadMP4File(mediaServer, app, stream, filePath, fileName, callback);
+    }
+
+    @Override
+    public void deleteDefault() {
+        mediaServerMapper.deleteDefault(userSetting.getServerId());
     }
 
     @Override

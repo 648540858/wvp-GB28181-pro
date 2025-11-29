@@ -39,26 +39,14 @@ public class MediaServerConfig implements CommandLineRunner {
     public void run(String... strings) throws Exception {
         // 清理所有在线节点的缓存信息
         mediaServerService.clearMediaServerForOnline();
-        MediaServer defaultMediaServer = mediaServerService.getDefaultMediaServer();
-        MediaServer mediaSerItemInConfig = mediaConfig.getMediaSerItem();
+        MediaServer mediaSerItemInConfig = mediaConfig.buildMediaSer();
         mediaSerItemInConfig.setServerId(userSetting.getServerId());
-        if (defaultMediaServer != null && mediaSerItemInConfig.getId().equals(defaultMediaServer.getId())) {
-            mediaServerService.update(mediaSerItemInConfig);
-        }else {
-            if (defaultMediaServer != null) {
-                mediaServerService.delete(defaultMediaServer);
-            }
-            MediaServer mediaServerItem = mediaServerService.getOneFromDatabase(mediaSerItemInConfig.getId());
-            if (mediaServerItem == null) {
-                mediaServerService.add(mediaSerItemInConfig);
-            }else {
-                mediaServerService.update(mediaSerItemInConfig);
-            }
-        }
+        mediaServerService.deleteDefault();
         // 发送媒体节点变化事件
         mediaServerService.syncCatchFromDatabase();
         // 获取所有的zlm， 并开启主动连接
-        List<MediaServer> all = mediaServerService.getAllFromDatabase();
+        List<MediaServer> all = mediaServerService.getAllFromDatabaseWithOutDefault();
+        all.add(mediaSerItemInConfig);
         log.info("[媒体节点] 加载节点列表， 共{}个节点", all.size());
         MediaServerChangeEvent event = new MediaServerChangeEvent(this);
         event.setMediaServerItemList(all);

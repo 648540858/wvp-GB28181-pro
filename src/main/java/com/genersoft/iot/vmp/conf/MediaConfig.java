@@ -44,42 +44,6 @@ public class MediaConfig{
     @Value("${media.http-port:0}")
     private Integer httpPort;
 
-    @Value("${media.flv-port:0}")
-    private Integer flvPort = 0;
-
-    @Value("${media.mp4-port:0}")
-    private Integer mp4Port = 0;
-
-    @Value("${media.ws-flv-port:0}")
-    private Integer wsFlvPort = 0;
-
-    @Value("${media.http-ssl-port:0}")
-    private Integer httpSSlPort = 0;
-
-    @Value("${media.flv-ssl-port:0}")
-    private Integer flvSSlPort = 0;
-
-    @Value("${media.ws-flv-ssl-port:0}")
-    private Integer wsFlvSSlPort = 0;
-
-    @Value("${media.rtmp-port:0}")
-    private Integer rtmpPort = 0;
-
-    @Value("${media.rtmp-ssl-port:0}")
-    private Integer rtmpSSlPort = 0;
-
-    @Value("${media.rtp-proxy-port:0}")
-    private Integer rtpProxyPort = 0;
-
-    @Value("${media.jtt-proxy-port:0}")
-    private Integer jttProxyPort = 0;
-
-    @Value("${media.rtsp-port:0}")
-    private Integer rtspPort = 0;
-
-    @Value("${media.rtsp-ssl-port:0}")
-    private Integer rtspSSLPort = 0;
-
     @Value("${media.auto-config:true}")
     private boolean autoConfig = true;
 
@@ -108,24 +72,6 @@ public class MediaConfig{
     private String type;
 
 
-
-    public int getRtpProxyPort() {
-        if (rtpProxyPort == null) {
-            return 0;
-        }else {
-            return rtpProxyPort;
-        }
-
-    }
-
-    public Integer getJttProxyPort() {
-        if (jttProxyPort == null) {
-            return 0;
-        }else {
-            return jttProxyPort;
-        }
-    }
-
     public String getSdpIp() {
         if (ObjectUtils.isEmpty(sdpIp)){
             return ip;
@@ -153,7 +99,7 @@ public class MediaConfig{
         }
     }
 
-    public MediaServer getMediaSerItem(){
+    public MediaServer buildMediaSer(){
         MediaServer mediaServer = new MediaServer();
         mediaServer.setId(id);
         mediaServer.setIp(ip);
@@ -162,19 +108,6 @@ public class MediaConfig{
         mediaServer.setSdpIp(getSdpIp());
         mediaServer.setStreamIp(getStreamIp());
         mediaServer.setHttpPort(httpPort);
-        mediaServer.setFlvPort(flvPort);
-        mediaServer.setMp4Port(mp4Port);
-        mediaServer.setWsFlvPort(wsFlvPort);
-        mediaServer.setFlvSSLPort(flvSSlPort);
-        mediaServer.setWsFlvSSLPort(wsFlvSSlPort);
-
-        mediaServer.setHttpSSlPort(httpSSlPort);
-        mediaServer.setRtmpPort(rtmpPort);
-        mediaServer.setRtmpSSlPort(rtmpSSlPort);
-        mediaServer.setRtpProxyPort(getRtpProxyPort());
-        mediaServer.setJttProxyPort(getJttProxyPort());
-        mediaServer.setRtspPort(rtspPort);
-        mediaServer.setRtspSSLPort(rtspSSLPort);
         mediaServer.setAutoConfig(autoConfig);
         mediaServer.setSecret(secret);
         mediaServer.setRtpEnable(rtpEnable);

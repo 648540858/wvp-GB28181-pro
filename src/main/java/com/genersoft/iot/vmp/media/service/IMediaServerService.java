@@ -22,7 +22,7 @@ public interface IMediaServerService {
 
     List<MediaServer> getAll();
 
-    List<MediaServer> getAllFromDatabase();
+    List<MediaServer> getAllFromDatabaseWithOutDefault();
 
     List<MediaServer> getAllOnline();
 
@@ -175,4 +175,7 @@ public interface IMediaServerService {
     DownloadFileInfo getDownloadFilePath(MediaServer mediaServer, RecordInfo recordInfo);
 
     void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback);
+
+    void deleteDefault();
+
 }

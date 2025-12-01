@@ -161,18 +161,6 @@ media:
     hook-ip: 172.19.128.50
     # [必须修改] zlm服务器的http.port
     http-port: 80
-    # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-    http-ssl-port:
-    # [可选] zlm服务器的rtmp.port, 置空使用zlm配置文件配置
-    rtmp-port:
-    # [可选] zlm服务器的rtmp.sslport, 置空使用zlm配置文件配置
-    rtmp-ssl-port:
-    # [可选] zlm服务器的 rtp_proxy.port, 置空使用zlm配置文件配置
-    rtp-proxy-port:
-    # [可选] zlm服务器的 rtsp.port, 置空使用zlm配置文件配置
-    rtsp-port:
-    # [可选] zlm服务器的 rtsp.sslport, 置空使用zlm配置文件配置
-    rtsp-ssl-port:
     # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
     auto-config: true
     # [可选] zlm服务器的hook.admin_params=secret

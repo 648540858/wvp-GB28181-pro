@@ -343,6 +343,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId()) != null) {
             mediaServerMapper.update(mediaSerItem);
         }else {
+            if(mediaSerItem.getServerId().isEmpty()){
+                mediaSerItem.setServerId(userSetting.getServerId());
+            }
             mediaServerMapper.add(mediaSerItem);
         }
 

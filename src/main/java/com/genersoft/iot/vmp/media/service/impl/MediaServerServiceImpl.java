@@ -343,6 +343,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId()) != null) {
             mediaServerMapper.update(mediaSerItem);
         }else {
+            if(mediaSerItem.getServerId().isEmpty()){
+                mediaSerItem.setServerId(userSetting.getServerId());
+            }
             mediaServerMapper.add(mediaSerItem);
         }
 
@@ -505,7 +508,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[添加媒体节点] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-
+        if(mediaServer.getServerId().isEmpty()){
+            mediaServer.setServerId(userSetting.getServerId());
+        }
         mediaServerMapper.add(mediaServer);
         if (mediaServer.isStatus()) {
             mediaNodeServerService.online(mediaServer);

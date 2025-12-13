@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,9 @@ import java.util.*;
  * 区域管理类
  */
 @Service
+@Slf4j
 public class RegionServiceImpl implements IRegionService {
 
-
-    private static final Logger log = LoggerFactory.getLogger(RegionServiceImpl.class);
     @Autowired
     private RegionMapper regionMapper;
 

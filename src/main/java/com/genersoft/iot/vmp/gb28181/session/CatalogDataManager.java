@@ -221,13 +221,22 @@ public class CatalogDataManager implements CommandLineRunner {
             return;
         }
         Set<String> keys = dataMap.keySet();
-
+        // 消息间等待间隔最大五秒
         Instant instantBefore5S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(5));
+        // 消息接收完毕，等待30秒后移除数据
         Instant instantBefore30S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(30));
+        // 初次等待的时间长度，兼容部分下级平台发送初次数据很慢的情况
+        Instant instantBefore2M = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(2));
         for (String dataKey : keys) {
             CatalogData catalogData = dataMap.get(dataKey);
-            if ( catalogData.getTime().isBefore(instantBefore5S)) {
-                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
+                if ( catalogData.getTime().isBefore(instantBefore2M)) {
+                    String errorMsg = "同步失败，等待回复超时";
+                    catalogData.setErrorMsg(errorMsg);
+                    catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+                }
+            }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                if ( catalogData.getTime().isBefore(instantBefore5S)) {
                     String deviceId = catalogData.getDevice().getDeviceId();
                     int sn = catalogData.getSn();
                     List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
@@ -251,30 +260,27 @@ public class CatalogDataManager implements CommandLineRunner {
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
                     catalogData.setErrorMsg(errorMsg);
                     catalogData.setStatus(CatalogData.CatalogDataStatus.end);
-                }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
-                    String errorMsg = "同步失败，等待回复超时";
-                    catalogData.setErrorMsg(errorMsg);
                 }
-            }
-            if ((catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready))
-                    && catalogData.getTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
-                dataMap.remove(dataKey);
-                Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
-                if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
-                    for (String deleteKey : redisKeysForChannel) {
-                        redisTemplate.opsForHash().delete(key, deleteKey);
+            }else {
+                if (catalogData.getTime().isBefore(instantBefore30S)) {
+                    dataMap.remove(dataKey);
+                    Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
+                    if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
+                        for (String deleteKey : redisKeysForChannel) {
+                            redisTemplate.opsForHash().delete(key, deleteKey);
+                        }
                     }
-                }
-                Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
-                if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
-                    for (String deleteKey : redisKeysForRegion) {
-                        redisTemplate.opsForHash().delete(key, deleteKey);
+                    Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
+                    if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
+                        for (String deleteKey : redisKeysForRegion) {
+                            redisTemplate.opsForHash().delete(key, deleteKey);
+                        }
                     }
-                }
-                Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
-                if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
-                    for (String deleteKey : redisKeysForGroup) {
-                        redisTemplate.opsForHash().delete(key, deleteKey);
+                    Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
+                    if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
+                        for (String deleteKey : redisKeysForGroup) {
+                            redisTemplate.opsForHash().delete(key, deleteKey);
+                        }
                     }
                 }
             }

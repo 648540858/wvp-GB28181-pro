@@ -347,23 +347,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
-        // 获取完整数据
-        MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId());
-        if (mediaServerInDataBase == null) {
-            return;
+
+        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
+            ssrcFactory.initMediaServerSSRC(mediaSerItem.getId(),null);
         }
-        mediaServerInDataBase.setStatus(mediaSerItem.isStatus());
-        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServerInDataBase.getId())) {
-            ssrcFactory.initMediaServerSSRC(mediaServerInDataBase.getId(),null);
-        }
-        if (mediaSerItem.getSecret() != null && !mediaServerInDataBase.getSecret().equals(mediaSerItem.getSecret())) {
-            mediaServerInDataBase.setSecret(mediaSerItem.getSecret());
-        }
-        mediaServerInDataBase.setSecret(mediaSerItem.getSecret());
+
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
-        redisTemplate.opsForHash().put(key, mediaServerInDataBase.getId(), mediaServerInDataBase);
-        if (mediaServerInDataBase.isStatus()) {
-            resetOnlineServerItem(mediaServerInDataBase);
+        redisTemplate.opsForHash().put(key, mediaSerItem.getId(), mediaSerItem);
+        if (mediaSerItem.isStatus()) {
+            resetOnlineServerItem(mediaSerItem);
         }
     }
 

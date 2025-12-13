@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
@@ -47,6 +48,9 @@ public class ZLMMediaServerStatusManager {
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @Value("${server.ssl.enabled:false}")
     private boolean sslEnabled;
@@ -176,26 +180,31 @@ public class ZLMMediaServerStatusManager {
     }
 
     private void online(MediaServer mediaServer, ZLMServerConfig config) {
-        if (config == null) {
-            ZLMResult<List<JSONObject>> mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServer);
-            List<JSONObject> data = mediaServerConfig.getData();
-            if (data != null && !data.isEmpty()) {
-                config = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
-            }else {
-                log.info("[ZLM-连接成功] 读取流媒体配置失败 ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
-                return;
+        MediaServer mediaServerInDb = mediaServerService.getOneFromDatabase(mediaServer.getId());
+        if (mediaServerInDb == null || mediaServerService.getOne(mediaServer.getId()) == null) {
+            log.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+            if (config == null) {
+                ZLMResult<List<JSONObject>> mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServer);
+                List<JSONObject> data = mediaServerConfig.getData();
+                if (data != null && !data.isEmpty()) {
+                    config = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
+                }else {
+                    log.info("[ZLM-连接成功] 读取流媒体配置失败 ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+                    return;
+                }
             }
+            // 发送上线通知
+            eventPublisher.mediaServerOnlineEventPublish(mediaServer);
+            mediaServer.setStatus(true);
+            mediaServer.setServerId(userSetting.getServerId());
+            mediaServer.setHookAliveInterval(config.getHookAliveInterval());
+            initPort(mediaServer, config);
+            mediaServerService.update(mediaServer);
+            setZLMConfig(mediaServer, true);
         }
         offlineZlmPrimaryMap.remove(mediaServer.getId());
         offlineZlmsecondaryMap.remove(mediaServer.getId());
         offlineZlmTimeMap.remove(mediaServer.getId());
-        mediaServer.setStatus(true);
-        mediaServer.setHookAliveInterval(config.getHookAliveInterval());
-        initPort(mediaServer, config);
-        log.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
-        // 发送上线通知
-        eventPublisher.mediaServerOnlineEventPublish(mediaServer);
-        mediaServerService.update(mediaServer);
         // 设置两次心跳未收到则认为zlm离线
         String key = "zlm-keepalive-" + mediaServer.getId();
         dynamicTask.startDelay(key, ()->{

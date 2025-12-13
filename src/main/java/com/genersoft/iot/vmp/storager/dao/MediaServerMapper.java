@@ -95,7 +95,7 @@ public interface MediaServerMapper {
             ", send_rtp_port_range=#{sendRtpPortRange}, secret=#{secret}, record_assist_port=#{recordAssistPort}" +
             ", hook_alive_interval=#{hookAliveInterval}, record_day=#{recordDay}, record_path=#{recordPath}" +
             ", server_id=#{serverId}, type=#{type}" +
-            "WHERE id=#{id}"+
+            " WHERE id=#{id}"+
             " </script>"})
     int update(MediaServer mediaServerItem);
 
@@ -130,7 +130,7 @@ public interface MediaServerMapper {
             "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
-            "WHERE ip=#{ip} and http_port=#{httpPort}"+
+            " WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})
     int updateByHostAndPort(MediaServer mediaServerItem);
 

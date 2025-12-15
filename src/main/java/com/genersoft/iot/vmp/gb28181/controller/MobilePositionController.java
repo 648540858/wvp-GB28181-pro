@@ -100,7 +100,7 @@ public class MobilePositionController {
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + deviceId;
         try {
-            cmder.mobilePostitionQuery(device, event -> {
+            cmder.mobilePositionQuery(device, event -> {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(uuid);
                 msg.setKey(key);

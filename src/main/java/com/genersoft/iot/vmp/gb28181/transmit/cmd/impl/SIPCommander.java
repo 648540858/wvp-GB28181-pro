@@ -1153,21 +1153,21 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void mobilePositionQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
-        StringBuffer mobilePostitionXml = new StringBuffer(200);
+        StringBuffer mobilePositionXml = new StringBuffer(200);
         String charset = device.getCharset();
-        mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        mobilePostitionXml.append("<Query>\r\n");
-        mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
-        mobilePostitionXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-        mobilePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        mobilePostitionXml.append("<Interval>60</Interval>\r\n");
-        mobilePostitionXml.append("</Query>\r\n");
+        mobilePositionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        mobilePositionXml.append("<Query>\r\n");
+        mobilePositionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+        mobilePositionXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        mobilePositionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        mobilePositionXml.append("<Interval>60</Interval>\r\n");
+        mobilePositionXml.append("</Query>\r\n");
 
 
 
-        Request request = headerProvider.createMessageRequest(device, mobilePostitionXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        Request request = headerProvider.createMessageRequest(device, mobilePositionXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
 
@@ -1182,19 +1182,19 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public SIPRequest mobilePositionSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
-        StringBuffer subscribePostitionXml = new StringBuffer(200);
+        StringBuffer subscribePositionXml = new StringBuffer(200);
         String charset = device.getCharset();
-        subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        subscribePostitionXml.append("<Query>\r\n");
-        subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
-        subscribePostitionXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-        subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        subscribePositionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        subscribePositionXml.append("<Query>\r\n");
+        subscribePositionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+        subscribePositionXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        subscribePositionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         if (device.getSubscribeCycleForMobilePosition() > 0) {
-            subscribePostitionXml.append("<Interval>" + device.getMobilePositionSubmissionInterval() + "</Interval>\r\n");
+            subscribePositionXml.append("<Interval>" + device.getMobilePositionSubmissionInterval() + "</Interval>\r\n");
         }else {
-            subscribePostitionXml.append("<Interval>5</Interval>\r\n");
+            subscribePositionXml.append("<Interval>5</Interval>\r\n");
         }
-        subscribePostitionXml.append("</Query>\r\n");
+        subscribePositionXml.append("</Query>\r\n");
 
         CallIdHeader callIdHeader;
 
@@ -1209,7 +1209,7 @@ public class SIPCommander implements ISIPCommander {
             // 移动位置订阅有效期不小于 30 秒
             subscribeCycleForMobilePosition = Math.max(subscribeCycleForMobilePosition, 30);
         }
-        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), sipTransactionInfo, subscribeCycleForMobilePosition, "presence",callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, subscribePositionXml.toString(), sipTransactionInfo, subscribeCycleForMobilePosition, "presence",callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
         return request;

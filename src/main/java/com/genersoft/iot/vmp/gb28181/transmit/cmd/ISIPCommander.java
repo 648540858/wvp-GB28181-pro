@@ -264,7 +264,7 @@ public interface ISIPCommander {
 	 *
 	 * @param device 视频设备
 	 */
-	void mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void mobilePositionQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 订阅、取消订阅移动位置

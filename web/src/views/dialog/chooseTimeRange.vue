@@ -12,8 +12,9 @@
       @close="close()"
     >
       <div style="width:fit-content; margin: 0 auto">
-        <el-time-picker
+        <el-date-picker
           v-model="timeRange"
+          type="datetimerange"
           is-range
           range-separator="至"
           start-placeholder="开始时间"
@@ -31,8 +32,13 @@
 
 <script>
 
+import elDragDialog from '@/directive/el-drag-dialog'
+
 export default {
   name: 'ChooseDateTimeRange',
+  directives: {
+    elDragDialog
+  },
   props: {},
   data() {
     return {

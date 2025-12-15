@@ -360,7 +360,15 @@ export default {
           setTimeout(() => {
             this.initData()
           }, 1000)
-        }).finally(() => {
+        })
+        .catch((error) => {
+          console.log(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
+        })
+        .finally(() => {
           itemData.playLoading = false
         })
     },

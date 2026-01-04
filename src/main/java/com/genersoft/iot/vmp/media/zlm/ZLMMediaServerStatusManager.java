@@ -180,8 +180,8 @@ public class ZLMMediaServerStatusManager {
     }
 
     private void online(MediaServer mediaServer, ZLMServerConfig config) {
-        MediaServer mediaServerInDb = mediaServerService.getOneFromDatabase(mediaServer.getId());
-        if (mediaServerInDb == null || mediaServerService.getOne(mediaServer.getId()) == null) {
+        MediaServer mediaServerInDb = mediaServerService.getOne(mediaServer.getId());
+        if (mediaServerInDb == null || !mediaServerInDb.isStatus()) {
             log.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
             if (config == null) {
                 ZLMResult<List<JSONObject>> mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServer);
@@ -200,7 +200,7 @@ public class ZLMMediaServerStatusManager {
             mediaServer.setHookAliveInterval(config.getHookAliveInterval());
             initPort(mediaServer, config);
             mediaServerService.update(mediaServer);
-            setZLMConfig(mediaServer, true);
+            setZLMConfig(mediaServer, false);
         }
         offlineZlmPrimaryMap.remove(mediaServer.getId());
         offlineZlmsecondaryMap.remove(mediaServer.getId());
@@ -233,7 +233,7 @@ public class ZLMMediaServerStatusManager {
             mediaServerItem.setTranscodeSuffix(zlmServerConfig.getTranscodeSuffix());
         }
         mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
-        mediaServerItem.setHookAliveInterval(10F);
+        mediaServerItem.setHookAliveInterval(zlmServerConfig.getHookAliveInterval());
     }
 
     public void setZLMConfig(MediaServer mediaServerItem, boolean restart) {
@@ -264,7 +264,6 @@ public class ZLMMediaServerStatusManager {
         param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
         param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrefix));
         param.put("hook.timeoutSec","30");
-        param.put("hook.alive_interval", mediaServerItem.getHookAliveInterval());
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间

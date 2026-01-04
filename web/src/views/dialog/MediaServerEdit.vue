@@ -257,6 +257,13 @@ export default {
           this.sendRtpPortRange2 = 60000
           this.serverCheck = 1
         })
+        .catch(() => {
+          this.$message({
+            showClose: true,
+            message: '测试失败，请检查媒体服务地址及端口是否正确！',
+            type: 'warning'
+          })
+        })
     },
     next: function() {
       this.currentStep = 2

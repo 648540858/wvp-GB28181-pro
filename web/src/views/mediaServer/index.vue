@@ -10,9 +10,12 @@
           <div v-if="item.type === 'abl'" class="card-img-abl" />
           <div style="padding: 14px;text-align: left">
             <span style="font-size: 16px">{{ item.id }}</span>
-            <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
-            <el-button v-if="item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">查看</el-button>
-            <el-button v-if="!item.defaultServer" icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
+            <div style="float: right">
+              <el-button v-if="!item.defaultServer" icon="el-icon-delete" circle size="mini" @click="del(item)"></el-button>
+              <el-button v-if="!item.defaultServer" icon="el-icon-edit"  circle size="mini" @click="edit(item)"></el-button>
+              <el-button v-if="item.defaultServer" icon="el-icon-edit"  circle size="mini" @click="edit(item)"></el-button>
+            </div>
+
             <div style="margin-top: 13px; line-height: 12px; ">
               <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{ item.ip }}</span>
               <span style="font-size: 14px; color: #999; margin-top: 5px; float: right;">{{ item.createTime }}</span>
@@ -87,6 +90,7 @@ export default {
               type: 'success',
               message: '删除成功!'
             })
+            this.getServerList()
           })
       }).catch(() => {
       })
@@ -94,7 +98,7 @@ export default {
     getNumberByWidth() {
       const candidateNums = [1, 2, 3, 4, 6, 8, 12, 24]
       const clientWidth = window.innerWidth - 30
-      const interval = 20
+      const interval = 40
       const itemWidth = 360
       const num = (clientWidth + interval) / (itemWidth + interval)
       const result = Math.ceil(24 / num)

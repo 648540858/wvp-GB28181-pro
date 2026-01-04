@@ -134,8 +134,11 @@ public interface MediaServerMapper {
             " </script>"})
     int updateByHostAndPort(MediaServer mediaServerItem);
 
+    @Select("SELECT * FROM wvp_media_server WHERE id=#{id}")
+    MediaServer queryOne(@Param("id") String id);
+
     @Select("SELECT * FROM wvp_media_server WHERE id=#{id} and server_id = #{serverId}")
-    MediaServer queryOne(@Param("id") String id, @Param("serverId") String serverId);
+    MediaServer queryOneWithServerId(@Param("id") String id, @Param("serverId") String serverId);
 
     @Select("SELECT * FROM wvp_media_server where server_id = #{serverId}")
     List<MediaServer> queryAll(@Param("serverId") String serverId);

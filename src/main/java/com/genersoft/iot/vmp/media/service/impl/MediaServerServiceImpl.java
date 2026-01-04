@@ -339,23 +339,23 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void update(MediaServer mediaSerItem) {
-        if (mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId()) != null) {
-            mediaServerMapper.update(mediaSerItem);
+    public void update(MediaServer mediaServer) {
+        if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
+            mediaServerMapper.update(mediaServer);
         }else {
-            mediaServerMapper.add(mediaSerItem);
+            mediaServerMapper.add(mediaServer);
         }
 
-        MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
+        MediaServer mediaServerInRedis = getOne(mediaServer.getId());
 
-        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
-            ssrcFactory.initMediaServerSSRC(mediaSerItem.getId(),null);
+        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServer.getId())) {
+            ssrcFactory.initMediaServerSSRC(mediaServer.getId(),null);
         }
 
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
-        redisTemplate.opsForHash().put(key, mediaSerItem.getId(), mediaSerItem);
-        if (mediaSerItem.isStatus()) {
-            resetOnlineServerItem(mediaSerItem);
+        redisTemplate.opsForHash().put(key, mediaServer.getId(), mediaServer);
+        if (mediaServer.isStatus()) {
+            resetOnlineServerItem(mediaServer);
         }
     }
 
@@ -441,7 +441,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         MediaServer mediaServer = (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
         if (mediaServer == null) {
             // 尝试从数据库获取
-            mediaServer = mediaServerMapper.queryOne(mediaServerId, userSetting.getServerId());
+            mediaServer = mediaServerMapper.queryOneWithServerId(mediaServerId, userSetting.getServerId());
             if (mediaServer != null) {
                 redisTemplate.opsForHash().put(key, mediaServer.getId(), mediaServer);
             }
@@ -488,7 +488,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[添加媒体节点] 失败, mediaServer的类型：为空");
             return;
         }
-        if (mediaServerMapper.queryOne(mediaServer.getId(), userSetting.getServerId()) != null) {
+        if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
             log.info("[添加媒体节点] 失败, 媒体服务ID已存在，请修改媒体服务器配置, {}", mediaServer.getId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"保存失败，媒体服务ID [ " + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
         }
@@ -597,7 +597,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         MediaServer mediaServer = mediaNodeServerService.checkMediaServer(ip, port, secret);
         if (mediaServer != null) {
-            if (mediaServerMapper.queryOne(mediaServer.getId(), userSetting.getServerId()) != null) {
+            if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体服务ID [" + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
             }
         }
@@ -637,7 +637,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServer getOneFromDatabase(String mediaServerId) {
-        return mediaServerMapper.queryOne(mediaServerId, userSetting.getServerId());
+        return mediaServerMapper.queryOne(mediaServerId);
     }
 
     @Override

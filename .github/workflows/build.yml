@@ -24,7 +24,7 @@ jobs:
           cp Release.txt LICENSE release/
           cat Release.txt
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           # Eclipse基金会维护的开源Java发行版 因为github action参考java的用这个 所以用这个

@@ -517,7 +517,7 @@ export default {
           command,
           parseInt(this.controSpeed * 255 / 100),
           parseInt(this.controSpeed * 255 / 100),
-          parseInt(this.controSpeed * 16 / 100)
+          parseInt(this.controSpeed * 15 / 100)
         ])
     },
     irisCamera: function(command) {

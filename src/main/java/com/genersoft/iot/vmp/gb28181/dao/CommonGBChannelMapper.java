@@ -634,14 +634,14 @@ public interface CommonGBChannelMapper {
                                        @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForMysql", databaseId = "mysql")
-    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForH2", databaseId = "h2")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForMysql", databaseId = "h2")
     @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForKingBase", databaseId = "kingbase")
     @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForKingBase", databaseId = "postgresql")
     List<CameraChannel> queryListInCircle(@Param("centerLongitude") Double centerLongitude, @Param("centerLatitude") Double centerLatitude,
                                           @Param("radius") Double radius, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForMysql", databaseId = "mysql")
-    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForH2", databaseId = "h2")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForMysql", databaseId = "h2")
     @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "kingbase")
     @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "postgresql")
     List<CameraChannel> queryListInPolygon(@Param("pointList") List<Point> pointList, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);

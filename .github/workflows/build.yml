@@ -37,10 +37,12 @@ jobs:
         with:
           node-version: '20.x' # Node.js版本 20系列的最新稳定版
 
-      - name: Compile backend
+      - name: clean maven cache
+        run: rm -rf ~/.m2/repository/io/github/git-commit-id
+
+      - name: Build Backend
         run: |
-          mvn package
-          mvn package -P war
+          mvn clean package
 
       - name: Compile frontend
         run: |

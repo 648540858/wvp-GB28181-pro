@@ -40,7 +40,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        log.info("接收到DeviceStatus应答消息");
+        log.info("[DeviceStatus Response] \n {}", element.asXML());
         // 检查设备是否存在， 不存在则不回复
         if (device == null) {
             return;

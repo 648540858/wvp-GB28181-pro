@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
@@ -151,21 +150,13 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 								mobilePosition.setAltitude(0.0);
 							}
 							break;
-
 					}
 				}
 
-				logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+				logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 
-				mobilePositionService.add(mobilePosition);
-				// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
-				try {
-					eventPublisher.mobilePositionEventPublish(mobilePosition);
-				}catch (Exception e) {
-					logger.error("[向上级转发移动位置失败] ", e);
-				}
 				if (mobilePosition.getChannelId() == null || mobilePosition.getChannelId().equals(mobilePosition.getDeviceId()) ) {
 					List<DeviceChannel> channels = deviceChannelService.queryChaneListByDeviceId(mobilePosition.getDeviceId());
 					channels.forEach(channel -> {
@@ -194,6 +185,15 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					jsonObject.put("speed", mobilePosition.getSpeed());
 					redisCatchStorage.sendMobilePositionMsg(jsonObject);
 				}
+
+				mobilePositionService.add(mobilePosition);
+				// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
+				try {
+					eventPublisher.mobilePositionEventPublish(mobilePosition);
+				}catch (Exception e) {
+					logger.error("[向上级转发移动位置失败] ", e);
+				}
+
 			} catch (DocumentException e) {
 				logger.error("未处理的异常 ", e);
 			}

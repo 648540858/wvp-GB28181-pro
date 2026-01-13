@@ -181,26 +181,26 @@
 		<!-- 手动下载驱动后安装 -->
 		<!-- mvn install:install-file -Dfile=/home/lin/soft/kingbase/jdbc-aarch/kingbase8-8.6.0.jar -DgroupId=com.kingbase -DartifactId=kingbase8 -Dversion=8.6.0 -Dpackaging=jar
  -->
-		<dependency>
-			<groupId>com.kingbase</groupId>
-			<artifactId>kingbase8</artifactId>
-			<version>8.6.0</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/libs/jdbc-aarch/kingbase8-8.6.0.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>com.kingbase</groupId>
-			<artifactId>kingbase8</artifactId>
-			<version>8.6.0</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/libs/jdbc-x86/kingbase8-8.6.0.jar</systemPath>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.kingbase</groupId>-->
+<!--			<artifactId>kingbase8</artifactId>-->
+<!--			<version>8.6.0</version>-->
+<!--			<scope>system</scope>-->
+<!--			<systemPath>${basedir}/libs/jdbc-aarch/kingbase8-8.6.0.jar</systemPath>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>com.kingbase</groupId>-->
+<!--			<artifactId>kingbase8</artifactId>-->
+<!--			<version>8.6.0</version>-->
+<!--			<scope>system</scope>-->
+<!--			<systemPath>${basedir}/libs/jdbc-x86/kingbase8-8.6.0.jar</systemPath>-->
+<!--		</dependency>-->
 
-<!--        <dependency>-->
-<!--            <groupId>cn.com.kingbase</groupId>-->
-<!--            <artifactId>kingbase8</artifactId>-->
-<!--            <version>8.6.0</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>cn.com.kingbase</groupId>
+            <artifactId>kingbase8</artifactId>
+            <version>8.6.0</version>
+        </dependency>
 
         <!--Mybatis分页插件 -->
         <dependency>

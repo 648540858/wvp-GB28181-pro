@@ -73,7 +73,13 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
         }
         CommonGBChannel channel= channelService.queryOneWithPlatform(platform.getId(), channelId);
         if (channel ==null){
-            log.error("[平台没有该通道的使用权限]:platformId"+platform.getServerGBId()+"  deviceID:"+channelId);
+            log.error("[平台没有该通道的使用权限]:platformId: {}  deviceID:{}", platform.getServerGBId(), channelId);
+            // 上级平台查询本平台状态
+            try {
+                cmderFroPlatform.deviceStatusResponse(platform, channelId, sn, fromHeader.getTag(), null);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
+            }
             return;
         }
         try {

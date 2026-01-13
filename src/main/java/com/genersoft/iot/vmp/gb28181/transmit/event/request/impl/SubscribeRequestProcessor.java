@@ -86,14 +86,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			} else if (CmdType.CATALOG.equals(cmd)) {
 				processNotifyCatalogList(request, rootElement);
 			} else {
-				log.info("接收到消息：" + cmd);
+                log.info("接收到消息：{}", cmd);
 
 				Response response = getMessageFactory().createResponse(200, request);
 				if (response != null) {
 					ExpiresHeader expireHeader = getHeaderFactory().createExpiresHeader(30);
 					response.setExpires(expireHeader);
 				}
-				log.info("response : " + response);
+                log.info("response : {}", response);
 				sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
@@ -126,9 +126,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("<DeviceID>").append(deviceId).append("</DeviceID>\r\n")
 				.append("<Result>OK</Result>\r\n")
 				.append("</Response>\r\n");
-
-
-
 		try {
 			int expires = request.getExpires().getExpires();
 			SIPResponse response = responseXmlAck(request, resultXml.toString(), platform, expires);

@@ -117,7 +117,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                         device.setRegisterTime(DateUtil.getNow());
                         deviceService.online(device, null);
                     } else {
-                        deviceService.offline(deviceId, "主动注销");
+                        deviceService.offline(deviceId, "主动注销", false);
                     }
                     return;
                 }else {
@@ -228,7 +228,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 deviceService.online(device, sipTransactionInfo);
             } else {
                 log.info("[注销成功] deviceId: {}->{}", deviceId, requestAddress);
-                deviceService.offline(deviceId, "主动注销");
+                deviceService.offline(deviceId, "主动注销", false);
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             log.error("未处理的异常 ", e);

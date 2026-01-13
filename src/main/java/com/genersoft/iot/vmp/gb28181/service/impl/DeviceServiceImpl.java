@@ -274,7 +274,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     private void deviceStatusExpire(String deviceId, SipTransactionInfo transactionInfo) {
         log.info("[设备状态] 到期， 编号： {}", deviceId);
-        offline(deviceId, "保活到期");
+        offline(deviceId, "保活到期", true);
     }
 
     @Override
@@ -383,7 +383,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     @Transactional
-    public void offline(String deviceId, String reason) {
+    public void offline(String deviceId, String reason, boolean check) {
         Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
             log.warn("[设备不存在] device：{}", deviceId);
@@ -391,7 +391,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
 
         // 主动查询设备状态, 没有HostAddress无法发送请求，可能是手动添加的设备
-        if (device.getHostAddress() != null) {
+        if (check && device.getHostAddress() != null) {
             Boolean deviceStatus = getDeviceStatus(device);
             if (deviceStatus != null && deviceStatus) {
                 log.info("[设备离线] 主动探测发现设备在线，暂不处理  device：{}", deviceId);
@@ -471,7 +471,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             }
             if (!deviceStatusTaskRunner.containsKey(device.getDeviceId())) {
                 log.debug("[状态丢失] 执行设备离线， 编号： {},", device.getDeviceId());
-                offline(device.getDeviceId(), "");
+                offline(device.getDeviceId(), "", true);
             }
         }
     }
@@ -1202,7 +1202,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 if ("ONLINE".equalsIgnoreCase(data.trim())) {
                     online(device, null);
                 }else {
-                    offline(device.getDeviceId(), "设备状态查询结果：" + data.trim());
+                    offline(device.getDeviceId(), "设备状态查询结果：" + data.trim(), true);
                 }
                 if (callback != null) {
                     callback.run(code, msg, data);

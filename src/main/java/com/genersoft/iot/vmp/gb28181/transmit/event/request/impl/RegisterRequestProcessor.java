@@ -154,7 +154,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
-                log.info(title + " 设备：{}, 密码/SIP服务器ID错误, 回复403: {}", deviceId, requestAddress);
+                log.info("{} 设备：{}, 密码/SIP服务器ID错误, 回复403: {}", title, deviceId, requestAddress);
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
@@ -163,7 +163,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             response = getMessageFactory().createResponse(Response.OK, request);
             // 如果主动禁用了Date头，则不添加
             if (!userSetting.isDisableDateHeader()) {
-                // 添加date头
+                // 添加 date头
                 SIPDateHeader dateHeader = new SIPDateHeader();
                 // 使用自己修改的
                 GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
@@ -176,9 +176,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
-            // 添加Contact头
+            // 添加 Contact头
             response.addHeader(request.getHeader(ContactHeader.NAME));
-            // 添加Expires头
+            // 添加 Expires头
             response.addHeader(request.getExpires());
 
             if (device == null) {

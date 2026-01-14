@@ -460,6 +460,16 @@ public interface DeviceMapper {
             "</script>"})
     void batchUpdate(List<Device> devices);
 
+    @Update({"<script>" +
+            "<foreach collection='devices' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device" +
+            " SET keepalive_time=#{item.keepaliveTime}" +
+            " WHERE device_id=#{item.deviceId}"+
+            "</foreach>" +
+            "</script>"})
+    void batchUpdateForKeepalive(List<Device> devices);
+
 
     @Select(value = {" <script>" +
             "SELECT " +

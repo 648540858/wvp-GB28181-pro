@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +70,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	}
 
 	@Scheduled(fixedDelay = 400)   //每400毫秒执行一次
+	@Async
 	public void executeTaskQueue(){
 		if (taskQueue.isEmpty()) {
 			return;

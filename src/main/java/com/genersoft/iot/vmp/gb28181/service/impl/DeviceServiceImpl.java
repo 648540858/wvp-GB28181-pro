@@ -306,7 +306,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             device.setHeartBeatCount(3);
             device.setHeartBeatInterval(60);
             device.setPositionCapability(0);
-
         }
         if (sipTransactionInfo != null) {
             device.setSipTransactionInfo(sipTransactionInfo);
@@ -777,6 +776,30 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                     redisCatchStorage.updateDevice(device);
                 }
             }
+        }
+    }
+
+    @Transactional
+    @Override
+    public void updateDeviceListForKeepalive(List<Device> deviceList) {
+        if (deviceList.isEmpty()){
+            log.info("[批量更新设备] 列表为空，更细失败");
+            return;
+        }
+        int limitCount = 300;
+        if (deviceList.size() > limitCount) {
+            for (int i = 0; i < deviceList.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > deviceList.size()) {
+                    toIndex = deviceList.size();
+                }
+                deviceMapper.batchUpdateForKeepalive(deviceList.subList(i, toIndex));
+            }
+        }else {
+            deviceMapper.batchUpdateForKeepalive(deviceList);
+        }
+        for (Device device : deviceList) {
+            redisCatchStorage.updateDevice(device);
         }
     }
 

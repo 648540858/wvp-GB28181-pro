@@ -57,7 +57,6 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 	private IMobilePositionService mobilePositionService;
 
 	public void process(RequestEvent evt) {
-		logger.warn("[notify-移动位置-未解析] 收到移动位置请求,{}", evt.getRequest());
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
 			logger.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
 			return;

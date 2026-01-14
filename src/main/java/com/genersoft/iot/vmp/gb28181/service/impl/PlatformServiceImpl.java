@@ -298,7 +298,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByStream(event.getStream());
@@ -325,7 +325,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
     /**
      * 发流停止
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
         List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByStream(event.getStream());

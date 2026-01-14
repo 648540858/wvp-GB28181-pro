@@ -97,7 +97,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     /**
      * 监听录像查询结束事件
      */
-    @Async("taskExecutor")
+    @Async
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(RecordInfoEndEvent event) {
         SynchronousQueue<RecordInfo> queue = topicSubscribers.get("record" + event.getRecordInfo().getSn());

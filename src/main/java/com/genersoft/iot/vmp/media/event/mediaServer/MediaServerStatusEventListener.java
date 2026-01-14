@@ -22,14 +22,14 @@ public class MediaServerStatusEventListener {
 	@Autowired
 	private IPlayService playService;
 
-	@Async("taskExecutor")
+	@Async
 	@EventListener
 	public void onApplicationEvent(MediaServerOnlineEvent event) {
 		log.info("[媒体节点] 上线 ID：" + event.getMediaServer().getId());
 		playService.zlmServerOnline(event.getMediaServer());
 	}
 
-	@Async("taskExecutor")
+	@Async
 	@EventListener
 	public void onApplicationEvent(MediaServerOfflineEvent event) {
 

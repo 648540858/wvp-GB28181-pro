@@ -87,7 +87,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("rtsp".equals(event.getSchema())) {
@@ -101,7 +101,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema())) {
@@ -120,7 +120,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     /**
      * 流媒体节点上线
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOnlineEvent event) {
@@ -131,7 +131,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     /**
      * 流媒体节点离线
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOfflineEvent event) {

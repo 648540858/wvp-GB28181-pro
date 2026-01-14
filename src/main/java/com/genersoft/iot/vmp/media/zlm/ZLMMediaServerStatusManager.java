@@ -66,7 +66,7 @@ public class ZLMMediaServerStatusManager {
 
     private final String type = "zlm";
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaServerChangeEvent event) {
         if (event.getMediaServerItemList() == null
@@ -84,7 +84,7 @@ public class ZLMMediaServerStatusManager {
         }
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(HookZlmServerStartEvent event) {
         if (event.getMediaServer() == null
@@ -96,7 +96,7 @@ public class ZLMMediaServerStatusManager {
         online(event.getMediaServer(), event.getConfig());
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(HookZlmServerKeepaliveEvent event) {
         if (event.getMediaServerItem() == null) {
@@ -110,7 +110,7 @@ public class ZLMMediaServerStatusManager {
         online(mediaServer, null);
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaServerDeleteEvent event) {
         if (event.getMediaServer() == null) {

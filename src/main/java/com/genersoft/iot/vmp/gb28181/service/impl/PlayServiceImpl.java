@@ -129,7 +129,7 @@ public class PlayServiceImpl implements IPlayService {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("broadcast".equals(event.getApp()) || "talk".equals(event.getApp())) {
@@ -177,7 +177,7 @@ public class PlayServiceImpl implements IPlayService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         List<SendRtpInfo> sendRtpInfos = sendRtpServerService.queryByStream(event.getStream());
@@ -246,7 +246,7 @@ public class PlayServiceImpl implements IPlayService {
     /**
      * 流未找到的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
         if (!"rtp".equals(event.getApp())) {

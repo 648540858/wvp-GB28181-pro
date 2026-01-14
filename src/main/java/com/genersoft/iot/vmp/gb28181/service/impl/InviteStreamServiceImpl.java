@@ -46,7 +46,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema()) && "rtp".equals(event.getApp())) {

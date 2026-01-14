@@ -32,7 +32,7 @@ public class HookSubscribe {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if (event.getSchema() == null || "rtsp".equals(event.getSchema())) {
@@ -44,7 +44,7 @@ public class HookSubscribe {
     /**
      * 流结束事件
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         if (event.getSchema() == null || "rtsp".equals(event.getSchema())) {
@@ -55,7 +55,7 @@ public class HookSubscribe {
     /**
      * 推流鉴权事件
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaPublishEvent event) {
         sendNotify(HookType.on_publish, event);
@@ -63,7 +63,7 @@ public class HookSubscribe {
     /**
      * 生成录像文件事件
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
         sendNotify(HookType.on_record_mp4, event);

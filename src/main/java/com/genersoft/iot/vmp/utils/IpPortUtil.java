@@ -42,49 +42,4 @@ public class IpPortUtil {
             throw new IllegalArgumentException("无效的IP地址: " + ip, e);
         }
     }
-
-    // 测试用例
-    public static void main(String[] args) {
-        // IPv4测试
-        String ipv4 = "192.168.1.1";
-        String port1 = "8080";
-        System.out.println(concatenateIpAndPort(ipv4, port1));  // 输出: 192.168.1.1:8080
-
-        // IPv6测试
-        String ipv6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
-        String port2 = "80";
-        System.out.println(concatenateIpAndPort(ipv6, port2));  // 输出: [2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80
-
-        // 压缩格式IPv6测试
-        String ipv6Compressed = "2001:db8::1";
-        System.out.println(concatenateIpAndPort(ipv6Compressed, port2));  // 输出: [2001:db8::1]:80
-
-        // 无效IP测试
-        try {
-            System.out.println(concatenateIpAndPort("invalid.ip", "1234"));
-        } catch (IllegalArgumentException e) {
-            System.out.println("捕获到预期异常: " + e.getMessage());
-        }
-
-        // 无效端口测试 - 非数字
-        try {
-            System.out.println(concatenateIpAndPort(ipv4, "abc"));
-        } catch (IllegalArgumentException e) {
-            System.out.println("捕获到预期异常: " + e.getMessage());
-        }
-
-        // 无效端口测试 - 超出范围
-        try {
-            System.out.println(concatenateIpAndPort(ipv4, "70000"));
-        } catch (IllegalArgumentException e) {
-            System.out.println("捕获到预期异常: " + e.getMessage());
-        }
-
-        // 空端口测试
-        try {
-            System.out.println(concatenateIpAndPort(ipv4, ""));
-        } catch (IllegalArgumentException e) {
-            System.out.println("捕获到预期异常: " + e.getMessage());
-        }
-    }
 }

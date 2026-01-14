@@ -83,7 +83,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if (event.getApp().equals(talkApp) && event.getStream().endsWith("_talk")) {
@@ -112,7 +112,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
 
@@ -121,7 +121,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     /**
      * 流未找到的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
         if (!userSetting.getAutoApplyPlay()) {

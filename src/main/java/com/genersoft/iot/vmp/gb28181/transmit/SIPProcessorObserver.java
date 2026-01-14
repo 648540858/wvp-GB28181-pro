@@ -59,7 +59,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param requestEvent RequestEvent事件
      */
     @Override
-    @Async("taskExecutor")
+    @Async
     public void processRequest(RequestEvent requestEvent) {
         String method = requestEvent.getRequest().getMethod();
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
@@ -77,7 +77,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param responseEvent responseEvent事件
      */
     @Override
-    @Async("taskExecutor")
+    @Async
     public void processResponse(ResponseEvent responseEvent) {
         SIPResponse response = (SIPResponse)responseEvent.getResponse();
         int status = response.getStatusCode();

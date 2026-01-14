@@ -2,11 +2,11 @@ package com.genersoft.iot.vmp.conf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -23,20 +23,12 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class DynamicTask {
 
-    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+    @Autowired
+    private TaskScheduler taskScheduler;
 
     private final Map<String, ScheduledFuture<?>> futureMap = new ConcurrentHashMap<>();
     private final Map<String, Runnable> runnableMap = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    public void DynamicTask() {
-        threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(300);
-        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
-        threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
-        threadPoolTaskScheduler.setThreadNamePrefix("dynamicTask-");
-        threadPoolTaskScheduler.initialize();
-    }
 
     /**
      * 循环执行的任务
@@ -60,7 +52,7 @@ public class DynamicTask {
         }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
 
-        future = threadPoolTaskScheduler.scheduleAtFixedRate(task, new Date(System.currentTimeMillis() + cycleForCatalog), cycleForCatalog);
+        future = taskScheduler.scheduleAtFixedRate(task, new Date(System.currentTimeMillis() + cycleForCatalog), cycleForCatalog);
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
@@ -96,7 +88,7 @@ public class DynamicTask {
             }
         }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        future = threadPoolTaskScheduler.schedule(task, startInstant);
+        future = taskScheduler.schedule(task, startInstant);
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);

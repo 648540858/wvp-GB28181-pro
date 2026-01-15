@@ -12,6 +12,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -74,9 +75,8 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
         }
     }
 
-
+    @Async
     public void handMessageEvent(Element element, Object data) {
-
         String cmd = getText(element, "CmdType");
         String sn = getText(element, "SN");
         MessageEvent<Object> subscribe = (MessageEvent<Object>)messageSubscribe.getSubscribe(cmd + sn);

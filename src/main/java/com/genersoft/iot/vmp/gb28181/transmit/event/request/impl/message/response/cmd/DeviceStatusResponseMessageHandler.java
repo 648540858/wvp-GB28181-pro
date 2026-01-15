@@ -51,13 +51,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
         }
-        Element onlineElement = element.element("Online");
-        JSONObject json = new JSONObject();
-        XmlUtil.node2Json(element, json);
-        if (log.isDebugEnabled()) {
-            log.debug(json.toJSONString());
-        }
-        String text = onlineElement.getText();
+        String text = element.elementText("Online");
         responseMessageHandler.handMessageEvent(element, text);
 
     }

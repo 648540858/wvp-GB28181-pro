@@ -28,6 +28,7 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 状态信息(心跳)报送
@@ -82,9 +83,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         if (device.isOnLine()) {
             taskQueue.add(device);
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
-            if (statusTaskRunner.containsKey(device.getDeviceId())) {
-                statusTaskRunner.updateDelay(device.getDeviceId(), expiresTime + System.currentTimeMillis());
-            }
+            statusTaskRunner.addTask(device.getDeviceId(), expiresTime + System.currentTimeMillis());
         } else {
             if (userSetting.getGbDeviceOnline() == 1) {
                 // 对于已经离线的设备判断他的注册是否已经过期
@@ -92,7 +91,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
         }
     }
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 1000, timeUnit = TimeUnit.MILLISECONDS)
     @Async
     public void executeUpdateDeviceList() {
         if (!taskQueue.isEmpty()) {

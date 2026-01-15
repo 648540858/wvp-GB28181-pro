@@ -118,6 +118,8 @@ call wvp_20251027();
 DROP PROCEDURE wvp_20251027;
 DELIMITER ;
 
+drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+
 
 
 

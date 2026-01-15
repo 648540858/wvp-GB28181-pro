@@ -207,8 +207,7 @@ create table IF NOT EXISTS wvp_media_server
     record_path         character varying(255) COMMENT '录像目录',
     record_day          integer               default 7 COMMENT '录像保留天数',
     transcode_suffix    character varying(255) COMMENT '转码指令后缀',
-    server_id           character varying(50) COMMENT '对应信令服务器ID',
-    constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
+    server_id           character varying(50) COMMENT '对应信令服务器ID'
 );
 
 -- 上级国标平台注册信息

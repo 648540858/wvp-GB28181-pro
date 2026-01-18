@@ -76,7 +76,9 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				String contentString = new String(response.getRawContent());
 				Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
 				SessionDescription sdp = gb28181Sdp.getBaseSdb();
-				SipURI requestUri = SipFactory.getInstance().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), IpPortUtil.concatenateIpAndPort(event.getRemoteIpAddress(), String.valueOf(event.getRemotePort())));
+				// Yulong device return a user name something like: 34020000001329000008@192.168.1.252, and it is causing trouble in SIP stack
+				String[] userName = sdp.getOrigin().getUsername().split("@");
+				SipURI requestUri = SipFactory.getInstance().createAddressFactory().createSipURI(userName[0], IpPortUtil.concatenateIpAndPort(event.getRemoteIpAddress(), String.valueOf(event.getRemotePort())));
 				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 
 				log.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());

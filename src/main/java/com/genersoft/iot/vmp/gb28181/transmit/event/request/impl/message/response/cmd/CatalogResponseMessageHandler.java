@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.lang.Thread;
 
 /**
  * 目录查询的回复

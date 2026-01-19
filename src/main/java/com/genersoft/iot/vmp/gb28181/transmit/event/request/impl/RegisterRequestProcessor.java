@@ -23,6 +23,7 @@ import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -38,6 +39,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * SIP命令类型： REGISTER请求
@@ -62,6 +66,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     @Autowired
     private UserSetting userSetting;
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -115,9 +120,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                         device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
                         sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
                         device.setRegisterTime(DateUtil.getNow());
-                        deviceService.online(device, null);
+                        deviceService.online(device);
                     } else {
-                        deviceService.offline(deviceId, "主动注销", false);
+                        deviceService.offline(device);
                     }
                     return;
                 }else {
@@ -125,6 +130,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     if (!ObjectUtils.isEmpty(device.getPassword()) || !ObjectUtils.isEmpty(sipConfig.getPassword())) {
                         password = (!ObjectUtils.isEmpty(device.getPassword())) ? device.getPassword() : sipConfig.getPassword();
                     }
+                    // 如果设置了一个无密码的设备，那么这里就会自动跳动，后续会直接注册成功
                 }
             }else {
                 if (ObjectUtils.isEmpty(sipConfig.getPassword())) {
@@ -225,10 +231,11 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 log.info("[注册成功] deviceId: {}->{}", deviceId, requestAddress);
                 device.setRegisterTime(DateUtil.getNow());
                 SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse) response);
-                deviceService.online(device, sipTransactionInfo);
+                device.setSipTransactionInfo(sipTransactionInfo);
+                deviceService.online(device);
             } else {
                 log.info("[注销成功] deviceId: {}->{}", deviceId, requestAddress);
-                deviceService.offline(deviceId, "主动注销", false);
+                deviceService.offline(device);
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             log.error("未处理的异常 ", e);
@@ -256,4 +263,5 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         return response;
 
     }
+
 }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp;
 
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.jt1078.util.ClassUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -43,6 +44,7 @@ public class VManageBootstrap extends SpringBootServletInitializer {
 			log.info("构建时间： {}", gitUtil.getBuildDate());
 			log.info("GIT信息： 分支: {}, ID: {},  时间: {}", gitUtil.getBranch(), gitUtil.getCommitIdShort(), gitUtil.getCommitTime());
 		}
+
 	}
 	// 项目重启
 	public static void restart() {

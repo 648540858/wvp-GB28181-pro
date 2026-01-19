@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskRunner;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
@@ -49,7 +49,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     private IDeviceService deviceService;
 
     @Autowired
-    private DeviceStatusTaskRunner statusTaskRunner;
+    private DeviceStatusManager statusTaskRunner;
 
     @Autowired
     private UserSetting userSetting;
@@ -71,7 +71,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
         if (device.getIp() == null || !device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
-            log.info("[收到心跳] 地址变化, {}({}), {}:{}->{}", device.getName(), device.getDeviceId(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort(), request.getLocalAddress().getHostAddress());
+            log.info("[收到心跳] 地址变化, {}({}), {}:{}->{}:{}", device.getName(), device.getDeviceId(), device.getIp(), device.getPort(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
@@ -83,11 +83,11 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         if (device.isOnLine()) {
             taskQueue.add(device);
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
-            statusTaskRunner.addTask(device.getDeviceId(), expiresTime + System.currentTimeMillis());
+            statusTaskRunner.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());
         } else {
             if (userSetting.getGbDeviceOnline() == 1) {
                 // 对于已经离线的设备判断他的注册是否已经过期
-                deviceService.online(device, null);
+                deviceService.online(device);
             }
         }
     }

@@ -20,13 +20,12 @@ public interface IDeviceService {
      * 设备上线
      * @param device 设备信息
      */
-    void online(Device device, SipTransactionInfo sipTransactionInfo);
+    void online(Device device);
 
     /**
      * 设备下线
-     * @param deviceId 设备编号
      */
-    void offline(String deviceId, String reason, boolean check);
+    void offline(Device device);
 
     /**
      * 添加目录订阅

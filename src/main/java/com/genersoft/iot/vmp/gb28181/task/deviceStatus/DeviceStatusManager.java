@@ -4,23 +4,20 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.lang.Thread;
 
 @Slf4j
 @Component
-public class DeviceStatusTaskRunner {
+public class DeviceStatusManager {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -41,9 +38,9 @@ public class DeviceStatusTaskRunner {
     }
 
     /**
-     *  状态过期检查
+     *  状态过期检查, 每秒检查一次， 系统启动10秒后开始检查
      */
-    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 1, initialDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void expirationCheck(){
         long now = System.currentTimeMillis();
         // 获取已过期的 deviceId (Score 介于 0 到 现在之间)
@@ -56,7 +53,7 @@ public class DeviceStatusTaskRunner {
             for (String deviceId : expiredIds) {
                 Thread.startVirtualThread(() -> {
                     // 获取详情后删除缓存
-                    Device device = redisCatchStorage.getDevice(deviceId);
+//                    Device device = redisCatchStorage.getDevice(deviceId);
 //                    redisCatchStorage.removeDevice(deviceId);
                     // 发送 Spring 异步事件
                     eventPublisher.deviceOfflineEventPublish(deviceId);
@@ -65,15 +62,15 @@ public class DeviceStatusTaskRunner {
         }
     }
 
-    public void addTask(String deviceId, long expireTime) {
+    public void add(String deviceId, long expireTime) {
         redisTemplate.opsForZSet().add(redisKey(), deviceId, expireTime);
     }
 
-    public void removeTask(String deviceId) {
+    public void remove(String deviceId) {
         redisTemplate.opsForZSet().remove(redisKey(), deviceId);
     }
 
-    public boolean containsKey(String deviceId) {
+    public boolean contains(String deviceId) {
         if (ObjectUtils.isEmpty(deviceId)) {
             return false;
         }

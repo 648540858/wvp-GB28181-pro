@@ -20,22 +20,22 @@ public class SystemInfoTimerTask {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-    @Scheduled(fixedRate = 2000)   //每1秒执行一次
-    public void execute(){
-        try {
-            double cpuInfo = SystemInfoUtils.getCpuInfo();
-            redisCatchStorage.addCpuInfo(cpuInfo);
-            double memInfo = SystemInfoUtils.getMemInfo();
-            redisCatchStorage.addMemInfo(memInfo);
-            Map<String, Double> networkInterfaces = SystemInfoUtils.getNetworkInterfaces();
-            redisCatchStorage.addNetInfo(networkInterfaces);
-            List<Map<String, Object>> diskInfo =SystemInfoUtils.getDiskInfo();
-            redisCatchStorage.addDiskInfo(diskInfo);
-        } catch (InterruptedException e) {
-            log.error("[获取系统信息失败] {}", e.getMessage());
-        }
-
-    }
+//    @Scheduled(fixedRate = 2000)   //每1秒执行一次
+//    public void execute(){
+//        try {
+//            double cpuInfo = SystemInfoUtils.getCpuInfo();
+//            redisCatchStorage.addCpuInfo(cpuInfo);
+//            double memInfo = SystemInfoUtils.getMemInfo();
+//            redisCatchStorage.addMemInfo(memInfo);
+//            Map<String, Double> networkInterfaces = SystemInfoUtils.getNetworkInterfaces();
+//            redisCatchStorage.addNetInfo(networkInterfaces);
+//            List<Map<String, Object>> diskInfo =SystemInfoUtils.getDiskInfo();
+//            redisCatchStorage.addDiskInfo(diskInfo);
+//        } catch (InterruptedException e) {
+//            log.error("[获取系统信息失败] {}", e.getMessage());
+//        }
+//
+//    }
 
 
 }

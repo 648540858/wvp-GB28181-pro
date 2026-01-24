@@ -278,15 +278,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     @Async
     @EventListener
     public void onApplicationEvent(DeviceOfflineEvent event) {
-        log.info("[设备状态] 到期， 编号： {}", event.getDeviceId());
-        Device device = getDeviceByDeviceId(event.getDeviceId());
-        Boolean deviceStatus = getDeviceStatus(device);
-        if (deviceStatus != null && deviceStatus) {
-            log.info("[设备离线] 主动探测发现设备在线，暂不处理  device：{}", event.getDeviceId());
-            online(device);
-            return;
-        }
-        offline(device);
+        log.info("[设备状态] 到期， 编号： {}", event.getDeviceIds().toString());
+        List<Device> deviceList = redisCatchStorage.getDeviceList(event.getDeviceIds());
+        offline(deviceList);
     }
 
     @Override
@@ -392,17 +386,44 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
         }
         if (isDevice(deviceId)) {
-            channelOfflineByDevice(device);
+            channelOfflineByDevice(List.of(device));
         }
     }
 
-    private void channelOfflineByDevice(Device device) {
+    public void offline(List<Device> deviceList) {
+        if (deviceList == null  || deviceList.isEmpty()) {
+            log.warn("[设备不存在]");
+            return;
+        }
+        List<Device> realDeviceList = new ArrayList<>();
+        for (Device device : deviceList) {
+            log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", device.getDeviceId(),
+                    device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
+            device.setOnLine(false);
+            cleanOfflineDevice(device);
+            if (isDevice(device.getDeviceId())) {
+                realDeviceList.add(device);
+            }
+            redisCatchStorage.updateDevice(device);
+            if (userSetting.getDeviceStatusNotify()) {
+                // 发送 redis 消息
+                redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
+            }
+        }
+        deviceMapper.offlineByList(deviceList);
+
+        if (!realDeviceList.isEmpty()) {
+            channelOfflineByDevice(realDeviceList);
+        }
+    }
+
+    private void channelOfflineByDevice(List<Device> deviceList) {
         // 进行通道离线
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryOnlineListsByGbDeviceId(device.getId());
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryOnlineListsByGbDeviceIds(deviceList);
         if (channelList.isEmpty()) {
             return;
         }
-        deviceChannelMapper.offlineByDeviceId(device.getId());
+        deviceChannelMapper.offlineByDeviceIds(deviceList);
         // 发送通道离线通知
         eventPublisher.channelEventPublish(channelList, ChannelEvent.ChannelEventMessageType.OFF);
     }

@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IRedisCatchStorage {
 
@@ -78,6 +79,11 @@ public interface IRedisCatchStorage {
      * 获取Device
      */
     Device getDevice(String deviceId);
+
+    /**
+     * 获取Device
+     */
+    List<Device> getDeviceList(Set<String> deviceIds);
 
     void resetAllCSEQ();
 

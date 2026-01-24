@@ -118,9 +118,9 @@ public class EventPublisher {
 	}
 
 
-    public void deviceOfflineEventPublish(String deviceId) {
+    public void deviceOfflineEventPublish(Set<String> deviceIds) {
 		DeviceOfflineEvent event = new DeviceOfflineEvent(this);
-		event.setDeviceId(deviceId);
+		event.setDeviceIds(deviceIds);
 		applicationEventPublisher.publishEvent(event);
     }
 }

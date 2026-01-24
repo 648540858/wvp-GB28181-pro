@@ -6,12 +6,13 @@ import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.Serial;
+import java.util.Set;
 
 @Getter
 @Setter
 public class DeviceOfflineEvent extends ApplicationEvent {
 
-    private String deviceId;
+    private Set<String> deviceIds;
 
     @Serial
     private static final long serialVersionUID = 1L;

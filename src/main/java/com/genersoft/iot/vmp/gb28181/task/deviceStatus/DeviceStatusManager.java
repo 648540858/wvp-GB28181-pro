@@ -48,17 +48,15 @@ public class DeviceStatusManager {
 
         if (expiredIds != null && !expiredIds.isEmpty()) {
             redisTemplate.opsForZSet().remove(redisKey(), expiredIds.toArray());
-
             // 使用 JDK 21 虚拟线程异步分发事件
-            for (String deviceId : expiredIds) {
-                Thread.startVirtualThread(() -> {
-                    // 获取详情后删除缓存
+            Thread.startVirtualThread(() -> {
+                // 获取详情后删除缓存
 //                    Device device = redisCatchStorage.getDevice(deviceId);
 //                    redisCatchStorage.removeDevice(deviceId);
-                    // 发送 Spring 异步事件
-                    eventPublisher.deviceOfflineEventPublish(deviceId);
-                });
-            }
+                // 发送 Spring 异步事件
+                eventPublisher.deviceOfflineEventPublish(expiredIds);
+            });
+
         }
     }
 

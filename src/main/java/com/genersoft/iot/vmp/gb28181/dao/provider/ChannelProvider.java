@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao.provider;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.custom.bean.CameraGroup;
@@ -598,6 +599,28 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_TABLE_NAME);
         sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 AND data_device_id = #{deviceId}");
+        return sqlBuild.toString();
+    }
+
+    public String queryOnlineListsByGbDeviceIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_TABLE_NAME);
+        sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 ");
+
+        List<Device> deviceList = (List<Device>)params.get("deviceList");
+        if (deviceList != null && !deviceList.isEmpty()) {
+            sqlBuild.append(" AND data_device_id in (");
+            boolean first = true;
+            for (Device device : deviceList) {
+                if (!first) {
+                    sqlBuild.append(",");
+                }
+                sqlBuild.append("'" + device.getId() + "'");
+                first = false;
+            }
+            sqlBuild.append(" )");
+        }
+
         return sqlBuild.toString();
     }
 

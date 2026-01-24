@@ -591,6 +591,9 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceId")
     List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceIds")
+    List<CommonGBChannel> queryOnlineListsByGbDeviceIds(List<Device> deviceList);
+
     @SelectProvider(type = ChannelProvider.class, method = "queryCommonChannelByDeviceChannel")
     CommonGBChannel queryCommonChannelByDeviceChannel(@Param("dataType") Integer dataType, @Param("dataDeviceId") Integer dataDeviceId, @Param("deviceId") String deviceId);
 

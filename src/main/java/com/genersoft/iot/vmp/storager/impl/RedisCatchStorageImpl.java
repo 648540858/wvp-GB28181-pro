@@ -185,6 +185,17 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public List<Device> getDeviceList(Set<String> deviceIds) {
+        String key = VideoManagerConstants.DEVICE_PREFIX;
+        List<Device> deviceList  = new ArrayList<>();
+        List<Object> objectList = redisTemplate.opsForHash().multiGet(key, Arrays.asList(deviceIds.toArray()));
+        for (Object object : objectList) {
+            deviceList.add((Device)object);
+        }
+        return deviceList;
+    }
+
+    @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(60L);

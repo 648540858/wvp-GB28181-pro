@@ -216,4 +216,18 @@ public class Device {
     public boolean checkWgs84() {
         return geoCoordSys.equalsIgnoreCase("WGS84");
     }
+
+	public Integer getHeartBeatCount() {
+		if (heartBeatCount == null) {
+			return 3;
+		}
+		return heartBeatCount;
+	}
+
+	public Integer getHeartBeatInterval() {
+		if (heartBeatCount == null) {
+			return 60;
+		}
+		return heartBeatInterval;
+	}
 }

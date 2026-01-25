@@ -465,7 +465,7 @@ public interface DeviceMapper {
             " UPDATE" +
             " wvp_device" +
             " SET keepalive_time=#{item.keepaliveTime}" +
-            " WHERE device_id=#{item.deviceId}"+
+            " WHERE id=#{item.id}"+
             "</foreach>" +
             "</script>"})
     void batchUpdateForKeepalive(List<Device> devices);

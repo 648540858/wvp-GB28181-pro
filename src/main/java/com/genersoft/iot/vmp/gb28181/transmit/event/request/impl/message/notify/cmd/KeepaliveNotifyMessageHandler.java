@@ -26,6 +26,7 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     private IDeviceService deviceService;
 
     @Autowired
-    private DeviceStatusManager statusTaskRunner;
+    private DeviceStatusManager deviceStatusManager;
 
     @Autowired
     private UserSetting userSetting;
@@ -83,7 +84,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         if (device.isOnLine()) {
             taskQueue.add(device);
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
-            statusTaskRunner.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());
+            deviceStatusManager.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());
         } else {
             if (userSetting.getGbDeviceOnline() == 1) {
                 // 对于已经离线的设备判断他的注册是否已经过期
@@ -91,8 +92,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
         }
     }
-    @Scheduled(fixedDelay = 1000, timeUnit = TimeUnit.MILLISECONDS)
-    @Async
+    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     public void executeUpdateDeviceList() {
         if (!taskQueue.isEmpty()) {
             deviceService.updateDeviceListForKeepalive(taskQueue.stream().toList());

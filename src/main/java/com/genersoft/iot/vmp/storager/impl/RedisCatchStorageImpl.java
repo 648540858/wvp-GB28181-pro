@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.genersoft.iot.vmp.common.ServerInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -22,6 +23,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -541,5 +543,28 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             return null;
         }
         return (String) range.iterator().next();
+    }
+
+    @Override
+    public void updateDeviceKeepaliveTime(List<Device> deviceList) {
+//        if (deviceList == null || deviceList.isEmpty()) {
+//            return;
+//        }
+//        // 使用 SessionCallback 保证批量操作在同一个连接中执行
+//        SessionCallback<Boolean> sessionCallback = session -> {
+//            // 1. 批量添加心跳数据到列表尾部
+//            for (Device device : deviceList) {
+//                session.opsForList().rightPush(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId(), device);
+//            }
+//            // 2. 截取列表，只保留最新 100 条
+//            session.opsForList().trim(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX, -1000, -1);
+//            return true;
+//        };
+//        redisTemplate.execute(sessionCallback);
+    }
+
+    @Override
+    public void updateDeviceRegisterTime(List<Device> deviceList) {
+
     }
 }

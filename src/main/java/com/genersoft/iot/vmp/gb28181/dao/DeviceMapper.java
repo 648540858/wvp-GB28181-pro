@@ -30,8 +30,6 @@ public interface DeviceMapper {
             "port," +
             "host_address," +
             "expires," +
-            "register_time," +
-            "keepalive_time," +
             "create_time," +
             "update_time," +
             "charset," +
@@ -65,8 +63,6 @@ public interface DeviceMapper {
                 "port," +
                 "host_address," +
                 "expires," +
-                "register_time," +
-                "keepalive_time," +
                 "heart_beat_interval," +
                 "heart_beat_count," +
                 "position_capability," +
@@ -98,8 +94,6 @@ public interface DeviceMapper {
                 "#{port}," +
                 "#{hostAddress}," +
                 "#{expires}," +
-                "#{registerTime}," +
-                "#{keepaliveTime}," +
                 "#{heartBeatInterval}," +
                 "#{heartBeatCount}," +
                 "#{positionCapability}," +
@@ -133,8 +127,6 @@ public interface DeviceMapper {
                 ", port=#{port}" +
                 ", host_address=#{hostAddress}" +
                 ", on_line=#{onLine}" +
-                ", register_time=#{registerTime}" +
-                ", keepalive_time=#{keepaliveTime}" +
                 ", heart_beat_interval=#{heartBeatInterval}" +
                 ", position_capability=#{positionCapability}" +
                 ", heart_beat_count=#{heartBeatCount}" +
@@ -166,8 +158,6 @@ public interface DeviceMapper {
             "port,"+
             "host_address,"+
             "expires,"+
-            "register_time,"+
-            "keepalive_time,"+
             "create_time,"+
             "update_time,"+
             "charset,"+
@@ -208,8 +198,6 @@ public interface DeviceMapper {
             "port,"+
             "host_address,"+
             "expires,"+
-            "register_time,"+
-            "keepalive_time,"+
             "create_time,"+
             "update_time,"+
             "charset,"+
@@ -242,8 +230,6 @@ public interface DeviceMapper {
             "port,"+
             "host_address,"+
             "expires,"+
-            "register_time,"+
-            "keepalive_time,"+
             "create_time,"+
             "update_time,"+
             "charset,"+
@@ -277,8 +263,6 @@ public interface DeviceMapper {
             "port,"+
             "host_address,"+
             "expires,"+
-            "register_time,"+
-            "keepalive_time,"+
             "create_time,"+
             "update_time,"+
             "charset,"+
@@ -356,8 +340,6 @@ public interface DeviceMapper {
             ",transport" +
             ",stream_mode" +
             ",on_line" +
-            ",register_time" +
-            ",keepalive_time" +
             ",ip" +
             ",create_time" +
             ",update_time" +
@@ -444,8 +426,6 @@ public interface DeviceMapper {
             ", port=#{item.port}" +
             ", host_address=#{item.hostAddress}" +
             ", on_line=#{item.onLine}" +
-            ", register_time=#{item.registerTime}" +
-            ", keepalive_time=#{item.keepaliveTime}" +
             ", heart_beat_interval=#{item.heartBeatInterval}" +
             ", position_capability=#{item.positionCapability}" +
             ", heart_beat_count=#{item.heartBeatCount}" +
@@ -460,17 +440,6 @@ public interface DeviceMapper {
             "</script>"})
     void batchUpdate(List<Device> devices);
 
-    @Update({"<script>" +
-            "<foreach collection='devices' item='item' separator=';'>" +
-            " UPDATE" +
-            " wvp_device" +
-            " SET keepalive_time=#{item.keepaliveTime}" +
-            " WHERE id=#{item.id}"+
-            "</foreach>" +
-            "</script>"})
-    void batchUpdateForKeepalive(List<Device> devices);
-
-
     @Select(value = {" <script>" +
             "SELECT " +
             "coalesce(custom_name, name) as name, " +
@@ -482,8 +451,6 @@ public interface DeviceMapper {
             ",transport" +
             ",stream_mode" +
             ",on_line" +
-            ",register_time" +
-            ",keepalive_time" +
             ",ip" +
             ",create_time" +
             ",update_time" +

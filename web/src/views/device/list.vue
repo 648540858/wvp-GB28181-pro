@@ -106,8 +106,6 @@
           <!--          <el-checkbox label="报警" disabled :checked="scope.row.subscribeCycleForAlarm > 0"></el-checkbox>-->
         </template>
       </el-table-column>
-      <el-table-column prop="keepaliveTime" label="最近心跳" min-width="140" />
-      <el-table-column prop="registerTime" label="最近注册" min-width="140" />
       <el-table-column label="操作" min-width="300" fixed="right">
         <template v-slot:default="scope">
           <el-button

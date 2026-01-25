@@ -120,6 +120,27 @@ DELIMITER ;
 
 drop index uk_media_server_unique_ip_http_port on wvp_media_server;
 
+/*
+* 202601025
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_202601025`()
+BEGIN
+    IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device' and column_name = 'register_time')
+    THEN
+        ALTER TABLE wvp_device DROP register_time;
+    END IF;
+    IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device' and column_name = 'keepalive_time')
+    THEN
+        ALTER TABLE wvp_device DROP keepalive_time;
+    END IF;
+END; //
+call wvp_202601025();
+DROP PROCEDURE wvp_202601025;
+DELIMITER ;
+
 
 
 

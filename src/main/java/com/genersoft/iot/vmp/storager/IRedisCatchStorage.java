@@ -184,5 +184,8 @@ public interface IRedisCatchStorage {
 
     String chooseOneServer(String serverId);
 
+    void updateDeviceKeepaliveTime(List<Device> deviceList);
+
+    void updateDeviceRegisterTime(List<Device> deviceList);
 
 }

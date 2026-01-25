@@ -44,3 +44,6 @@ ALTER table wvp_common_group ADD COLUMN IF NOT EXISTS alias varchar(255) default
 ALTER table wvp_stream_proxy DROP COLUMN IF EXISTS enable_remove_none_reader;
 
 drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+
+ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
+ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;

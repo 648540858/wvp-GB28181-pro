@@ -79,7 +79,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setLocalIp(request.getLocalAddress().getHostAddress());
         }
 
-        device.setKeepaliveTime(DateUtil.getNow());
 
         if (device.isOnLine()) {
             taskQueue.add(device);
@@ -92,10 +91,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
         }
     }
-    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void executeUpdateDeviceList() {
         if (!taskQueue.isEmpty()) {
-            deviceService.updateDeviceListForKeepalive(taskQueue.stream().toList());
             taskQueue.clear();
         }
     }

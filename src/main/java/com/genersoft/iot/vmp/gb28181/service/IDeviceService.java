@@ -120,9 +120,6 @@ public interface IDeviceService {
     @Transactional
     void updateDeviceList(List<Device> deviceList);
 
-    @Transactional
-    void updateDeviceListForKeepalive(List<Device> deviceList);
-
     /**
      * 检查设备编号是否已经存在
      * @param deviceId 设备编号

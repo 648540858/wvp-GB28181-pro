@@ -295,7 +295,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             inviteStreamService.clearInviteInfo(device.getDeviceId());
         }
         device.setUpdateTime(now);
-        device.setKeepaliveTime(now);
         if (device.getHeartBeatCount() == null) {
             // 读取设备配置， 获取心跳间隔和心跳超时次数， 在次之前暂时设置为默认值
             device.setHeartBeatCount(3);
@@ -375,8 +374,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
         String deviceId = device.getDeviceId();
-        log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", deviceId,
-                device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
+        log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}", deviceId, device.getHeartBeatInterval(), device.getHeartBeatCount());
         device.setOnLine(false);
         cleanOfflineDevice(device);
         redisCatchStorage.updateDevice(device);
@@ -400,8 +398,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             if (device == null) {
                 continue;
             }
-            log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", device.getDeviceId(),
-                    device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
+            log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}", device.getDeviceId(), device.getHeartBeatInterval(), device.getHeartBeatCount());
             device.setOnLine(false);
             cleanOfflineDevice(device);
             if (isDevice(device.getDeviceId())) {
@@ -753,30 +750,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                     redisCatchStorage.updateDevice(device);
                 }
             }
-        }
-    }
-
-    @Transactional
-    @Override
-    public void updateDeviceListForKeepalive(List<Device> deviceList) {
-        if (deviceList.isEmpty()){
-            log.info("[批量更新设备] 列表为空，更细失败");
-            return;
-        }
-        int limitCount = 300;
-        if (deviceList.size() > limitCount) {
-            for (int i = 0; i < deviceList.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > deviceList.size()) {
-                    toIndex = deviceList.size();
-                }
-                deviceMapper.batchUpdateForKeepalive(deviceList.subList(i, toIndex));
-            }
-        }else {
-            deviceMapper.batchUpdateForKeepalive(deviceList);
-        }
-        for (Device device : deviceList) {
-            redisCatchStorage.updateDevice(device);
         }
     }
 

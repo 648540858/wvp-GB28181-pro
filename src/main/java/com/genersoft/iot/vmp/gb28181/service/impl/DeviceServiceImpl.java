@@ -397,6 +397,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
         List<Device> realDeviceList = new ArrayList<>();
         for (Device device : deviceList) {
+            if (device == null) {
+                continue;
+            }
             log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", device.getDeviceId(),
                     device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
             device.setOnLine(false);

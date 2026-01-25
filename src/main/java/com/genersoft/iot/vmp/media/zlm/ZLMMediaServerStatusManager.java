@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ZLMMediaServerStatusManager {
 
+
     private final Map<Object, MediaServer> offlineZlmPrimaryMap = new ConcurrentHashMap<>();
     private final Map<Object, MediaServer> offlineZlmsecondaryMap = new ConcurrentHashMap<>();
     private final Map<Object, Long> offlineZlmTimeMap = new ConcurrentHashMap<>();
@@ -80,7 +81,6 @@ public class ZLMMediaServerStatusManager {
             log.info("[ZLM-添加待上线节点] ID：{}", mediaServerItem.getId());
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
-            execute();
         }
     }
 
@@ -183,6 +183,8 @@ public class ZLMMediaServerStatusManager {
         MediaServer mediaServerInDb = mediaServerService.getOne(mediaServer.getId());
         if (mediaServerInDb == null || !mediaServerInDb.isStatus()) {
             log.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServer.getId(), mediaServer.getIp(), mediaServer.getHttpPort());
+            offlineZlmPrimaryMap.remove(mediaServer.getId());
+            offlineZlmsecondaryMap.remove(mediaServer.getId());
             if (config == null) {
                 ZLMResult<List<JSONObject>> mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServer);
                 List<JSONObject> data = mediaServerConfig.getData();

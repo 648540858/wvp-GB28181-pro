@@ -10,14 +10,13 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.IpPortUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,6 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +53,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -78,8 +79,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setIp(remoteAddressInfo.getIp());
             device.setLocalIp(request.getLocalAddress().getHostAddress());
         }
-
-
+        device.setKeepaliveTimeStamp(System.currentTimeMillis());
         if (device.isOnLine()) {
             taskQueue.add(device);
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
@@ -94,6 +94,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void executeUpdateDeviceList() {
         if (!taskQueue.isEmpty()) {
+            redisCatchStorage.updateDeviceKeepaliveTimeStamp(taskQueue.stream().toList());
             taskQueue.clear();
         }
     }

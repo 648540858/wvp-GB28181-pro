@@ -243,4 +243,24 @@ export function queryDeviceTree(params, deviceId) {
     }
   })
 }
+export function getKeepaliveTimeStatistics({ deviceId, count }) {
+  return request({
+    method: 'get',
+    url: '/api/device/query/statistics/keepalive',
+    params: {
+      deviceId: deviceId,
+      count: count
+    }
+  })
+}
+export function getRegisterTimeStatistics({ deviceId, count }) {
+  return request({
+    method: 'get',
+    url: '/api/device/query/statistics/register',
+    params: {
+      deviceId: deviceId,
+      count: count
+    }
+  })
+}
 

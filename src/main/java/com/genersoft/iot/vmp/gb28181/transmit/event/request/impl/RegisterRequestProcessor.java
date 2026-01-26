@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.GbSipDate;
-import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.IpPortUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -23,7 +23,6 @@ import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -38,10 +37,8 @@ import javax.sip.message.Response;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * SIP命令类型： REGISTER请求
@@ -66,6 +63,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
 
     @Override
@@ -119,7 +119,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                         String transport = reqViaHeader.getTransport();
                         device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
                         sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
-                        device.setRegisterTime(DateUtil.getNow());
+                        device.setRegisterTimeStamp(System.currentTimeMillis());
                         deviceService.online(device);
                     } else {
                         deviceService.offline(device);
@@ -218,7 +218,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册成功
                 device.setExpires(request.getExpires().getExpires());
                 registerFlag = true;
-                // 判断TCP还是UDP
+                // 判断 TCP/UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
                 String transport = reqViaHeader.getTransport();
                 device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
@@ -226,10 +226,10 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
             // 注册成功
-            // 保存到redis
+            device.setRegisterTimeStamp(System.currentTimeMillis());
+            // 保存到 redis
             if (registerFlag) {
                 log.info("[注册成功] deviceId: {}->{}", deviceId, requestAddress);
-                device.setRegisterTime(DateUtil.getNow());
                 SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse) response);
                 device.setSipTransactionInfo(sipTransactionInfo);
                 deviceService.online(device);
@@ -237,6 +237,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 log.info("[注销成功] deviceId: {}->{}", deviceId, requestAddress);
                 deviceService.offline(device);
             }
+            redisCatchStorage.updateDeviceRegisterTimeStamp(List.of(device));
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             log.error("未处理的异常 ", e);
         }

@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id 1291092 */
-  src: url('iconfont.woff2?t=1758784486763') format('woff2')
+  src: url('iconfont.woff2?t=1769409737891') format('woff2')
 }
 
 .iconfont {
@@ -9,6 +9,18 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-xintiao:before {
+  content: "\e7f4";
+}
+
+.icon-register:before {
+  content: "\e7f5";
+}
+
+.icon-tongji-Statistics:before {
+  content: "\e7f3";
 }
 
 .icon-mti-duobianxingxuan:before {

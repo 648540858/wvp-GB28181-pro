@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.TimeStatistics;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
@@ -21,8 +22,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.ibatis.annotations.Options;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -31,12 +34,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.List;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -136,7 +138,7 @@ public class DeviceQuery {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		if (device.getRegisterTime() == null) {
+		if (device.getTransport() == null) {
 			WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("设备尚未注册过");
@@ -155,7 +157,7 @@ public class DeviceQuery {
 			log.debug("设备信息删除API调用，deviceId：" + deviceId);
 		}
 
-		// 清除redis记录
+		// 清除 redis 记录
 		deviceService.delete(deviceId);
 		JSONObject json = new JSONObject();
 		json.put("deviceId", deviceId);
@@ -181,8 +183,7 @@ public class DeviceQuery {
 
 		DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId,channelId);
 		if (deviceChannel == null) {
-			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
-			return deviceChannelPageResult;
+            return new PageInfo<>();
 		}
 
 		return deviceChannelService.getSubChannels(deviceChannel.getDataDeviceId(), channelId, query, channelType, online, page, count);
@@ -430,4 +431,28 @@ public class DeviceQuery {
 	public void subscribeMobilePosition(int id, int cycle, int interval) {
 		deviceService.subscribeMobilePosition(id, cycle, interval);
 	}
+
+	@GetMapping("/statistics/keepalive")
+	@Operation(summary = "请求心跳统计")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "count", description = "返回的数量，按时间正向排序，返回的最新的", required = true)
+	public List<TimeStatistics> getKeepaliveTimeStatistics(String deviceId, Integer count) {
+		if (ObjectUtils.isEmpty(deviceId)) {
+			return List.of();
+		}
+		return deviceService.getKeepaliveTimeStatistics(deviceId, count);
+	}
+
+	@GetMapping("/statistics/register")
+	@Operation(summary = "请求注册统计")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "count", description = "返回的数量，按时间正向排序，返回的最新的", required = true)
+	public List<TimeStatistics> getRegisterTimeStatistics(String deviceId, Integer count) {
+		if (ObjectUtils.isEmpty(deviceId)) {
+			return List.of();
+		}
+		return deviceService.getRegisterTimeStatistics(deviceId, count);
+	}
+
+
 }

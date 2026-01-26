@@ -89,15 +89,15 @@ public class Device {
 	/**
 	 * 注册时间
 	 */
-	@Schema(description = "注册时间")
-	private String registerTime;
+	@Schema(description = "注册时间戳")
+	private Long registerTimeStamp;
 
 
 	/**
 	 * 心跳时间
 	 */
 	@Schema(description = "心跳时间")
-	private String keepaliveTime;
+	private Long keepaliveTimeStamp;
 
 
 	/**

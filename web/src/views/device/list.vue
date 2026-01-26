@@ -106,6 +106,28 @@
           <!--          <el-checkbox label="报警" disabled :checked="scope.row.subscribeCycleForAlarm > 0"></el-checkbox>-->
         </template>
       </el-table-column>
+      <el-table-column label="统计" min-width="160">
+        <template v-slot:default="scope">
+          <el-button
+            type="text"
+            size="mini"
+            :disabled="scope.row.online===0"
+            icon="iconfont-14 icon-xintiao"
+            title="心跳时间统计"
+            @click="getKeepaliveTimeStatistics(scope.row.deviceId)"
+          >心跳
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
+            :disabled="scope.row.online===0"
+            icon="iconfont-14 icon-register"
+            title="注册时间统计"
+            @click="getRegisterTimeStatistics(scope.row.deviceId)"
+          >注册
+          </el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" min-width="300" fixed="right">
         <template v-slot:default="scope">
           <el-button
@@ -163,6 +185,7 @@
     <deviceEdit ref="deviceEdit" />
     <syncChannelProgress ref="syncChannelProgress" />
     <configInfo ref="configInfo" />
+    <timeStatistics ref="timeStatistics" />
   </div>
 </template>
 
@@ -170,6 +193,7 @@
 import deviceEdit from './edit.vue'
 import syncChannelProgress from '../dialog/SyncChannelProgress.vue'
 import configInfo from '../dialog/configInfo.vue'
+import timeStatistics from './timeStatistics.vue'
 import Vue from 'vue'
 
 export default {
@@ -177,7 +201,8 @@ export default {
   components: {
     configInfo,
     deviceEdit,
-    syncChannelProgress
+    syncChannelProgress,
+    timeStatistics
   },
   data() {
     return {
@@ -440,6 +465,12 @@ export default {
             message: error.message
           })
         })
+    },
+    getKeepaliveTimeStatistics: function(deviceId) {
+      this.$refs.timeStatistics.openDialog('心跳时间统计', 'device/getKeepaliveTimeStatistics', deviceId, 10)
+    },
+    getRegisterTimeStatistics: function(deviceId) {
+      this.$refs.timeStatistics.openDialog('注册时间统计', 'device/getRegisterTimeStatistics', deviceId, 10)
     }
   }
 }

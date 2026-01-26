@@ -2,7 +2,7 @@ import {
   add,
   changeChannelAudio,
   deleteDevice,
-  deviceRecord,
+  deviceRecord, getKeepaliveTimeStatistics, getRegisterTimeStatistics,
   queryBasicParam,
   queryChannelOne,
   queryChannels,
@@ -236,6 +236,26 @@ const actions = {
   deleteDevice({ commit }, deviceId) {
     return new Promise((resolve, reject) => {
       deleteDevice(deviceId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getKeepaliveTimeStatistics({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getKeepaliveTimeStatistics(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getRegisterTimeStatistics({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      getRegisterTimeStatistics(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

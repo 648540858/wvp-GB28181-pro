@@ -184,8 +184,11 @@ public interface IRedisCatchStorage {
 
     String chooseOneServer(String serverId);
 
-    void updateDeviceKeepaliveTime(List<Device> deviceList);
+    void updateDeviceKeepaliveTimeStamp(List<Device> deviceList);
 
-    void updateDeviceRegisterTime(List<Device> deviceList);
+    List<Long> getDeviceKeepaliveTimeStamp(String deviceId, Integer count);
 
+    void updateDeviceRegisterTimeStamp(List<Device> deviceList);
+
+    List<Long> getDeviceRegisterTimeStamp(String deviceId, Integer count);
 }

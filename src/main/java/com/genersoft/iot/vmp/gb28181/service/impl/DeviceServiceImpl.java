@@ -54,7 +54,6 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -678,13 +677,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     }
 
     @Override
-    public boolean expire(Device device) {
-        Instant registerTimeDate = Instant.from(DateUtil.formatter.parse(device.getRegisterTime()));
-        Instant expireInstant = registerTimeDate.plusMillis(TimeUnit.SECONDS.toMillis(device.getExpires()));
-        return expireInstant.isBefore(Instant.now());
-    }
-
-    @Override
     public Boolean getDeviceStatus(@NotNull Device device) {
         SynchronousQueue<String> queue = new SynchronousQueue<>();
         try {
@@ -1258,5 +1250,36 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
     }
 
+    @Override
+    public List<TimeStatistics> getKeepaliveTimeStatistics(String deviceId, Integer count) {
+        List<Long> timeStampList = redisCatchStorage.getDeviceKeepaliveTimeStamp(deviceId, count);
+        return formateTimeStatistics(timeStampList, count);
+    }
 
+    @Override
+    public List<TimeStatistics> getRegisterTimeStatistics(String deviceId, Integer count) {
+        List<Long> timeStampList = redisCatchStorage.getDeviceRegisterTimeStamp(deviceId, count);
+        return formateTimeStatistics(timeStampList, count);
+    }
+
+    private List<TimeStatistics> formateTimeStatistics(List<Long> timeStampList, Integer count) {
+        if (timeStampList.isEmpty()) {
+            return List.of();
+        }
+        List<TimeStatistics> timeStatisticsList = new ArrayList<>();
+        for (int i = 0; i < timeStampList.size(); i++) {
+            Long timeStamp = timeStampList.get(i);
+            TimeStatistics timeStatistics = new TimeStatistics();
+            timeStatistics.setTime(DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(timeStamp));
+            if (i > 0) {
+                Long lastTimeStamp = timeStampList.get(i - 1);
+                timeStatistics.setTimeDiff((timeStamp - lastTimeStamp) / 1000);
+            }
+            timeStatisticsList.add(timeStatistics);
+        }
+        if (timeStatisticsList.size() > count) {
+            timeStatisticsList = timeStatisticsList.subList(timeStatisticsList.size() - count, timeStatisticsList.size());
+        }
+        return timeStatisticsList;
+    }
 }

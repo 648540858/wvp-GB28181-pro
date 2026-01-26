@@ -91,13 +91,6 @@ public interface IDeviceService {
     List<Device> getAllByStatus(Boolean status);
 
     /**
-     * 判断是否注册已经失效
-     * @param device 设备信息
-     * @return 布尔
-     */
-    boolean expire(Device device);
-
-    /**
      * 检查设备状态
      * @param device 设备信息
      */
@@ -201,4 +194,7 @@ public interface IDeviceService {
 
     void queryPreset(Device device, String channelId, ErrorCallback<List<Preset>> callback);
 
+    List<TimeStatistics> getKeepaliveTimeStatistics(String deviceId, Integer count);
+
+    List<TimeStatistics> getRegisterTimeStatistics(String deviceId, Integer count);
 }

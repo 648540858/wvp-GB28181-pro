@@ -561,9 +561,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             public Boolean execute(@NonNull RedisOperations operations) {
                 // 1. 批量添加心跳数据到列表尾部
                 for (Device device : deviceList) {
-                    operations.opsForList().rightPush(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId(), device.getKeepaliveTimeStamp());
+                    Duration duration = Duration.ofHours(1);
+                    String key = VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId();
+                    operations.opsForList().rightPush(key, device.getKeepaliveTimeStamp());
                     // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim((VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId()), -100, -1);
+                    operations.opsForList().trim(key, -100, -1);
+
+                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
+                    operations.expire(key, duration);
                 }
                 return true;
             }
@@ -597,9 +602,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             public Boolean execute(@NonNull RedisOperations operations) {
                 // 1. 批量添加心跳数据到列表尾部
                 for (Device device : deviceList) {
-                    operations.opsForList().rightPush(VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId(), device.getRegisterTimeStamp());
+                    Duration duration = Duration.ofHours(3);
+                    String key = VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId();
+                    operations.opsForList().rightPush(key, device.getRegisterTimeStamp());
                     // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim((VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId()), -100, -1);
+                    operations.opsForList().trim(key, -100, -1);
+
+                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
+                    operations.expire(key, duration);
+
                 }
                 return true;
             }

@@ -69,6 +69,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 心跳回复: {}", e.getMessage());
         }
+        taskQueue.add(device);
         SIPRequest request = (SIPRequest) evt.getRequest();
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
@@ -80,7 +81,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setLocalIp(request.getLocalAddress().getHostAddress());
         }
         device.setKeepaliveTimeStamp(System.currentTimeMillis());
-        taskQueue.add(device);
+
         if (device.isOnLine()) {
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
             deviceStatusManager.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());

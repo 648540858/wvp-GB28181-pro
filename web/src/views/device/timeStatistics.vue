@@ -28,7 +28,7 @@
 
         <el-table
           v-if="viewMode === 'table'"
-          :data="list"
+          :data="tableData"
           border
           stripe
           size="mini"
@@ -108,6 +108,9 @@ export default {
         columns: ['time', 'timeDiff'],
         rows: this.list
       }
+    },
+    tableData() {
+      return this.list.slice().reverse();
     },
     timeDiffDelta() {
       if (!this.list.length) return 0

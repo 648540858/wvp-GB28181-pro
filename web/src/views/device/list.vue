@@ -467,7 +467,7 @@ export default {
         })
     },
     getKeepaliveTimeStatistics: function(deviceId) {
-      this.$refs.timeStatistics.openDialog('心跳时间统计', 'device/getKeepaliveTimeStatistics', deviceId, 10)
+      this.$refs.timeStatistics.openDialog('心跳时间统计', 'device/getKeepaliveTimeStatistics', deviceId, 60)
     },
     getRegisterTimeStatistics: function(deviceId) {
       this.$refs.timeStatistics.openDialog('注册时间统计', 'device/getRegisterTimeStatistics', deviceId, 10)

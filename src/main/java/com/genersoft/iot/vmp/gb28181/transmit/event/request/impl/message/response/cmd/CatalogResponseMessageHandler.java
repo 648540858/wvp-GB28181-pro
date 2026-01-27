@@ -174,7 +174,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                     } else {
                         catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, null);
                     }
-                }).start();
+                });
             }
         }
     }

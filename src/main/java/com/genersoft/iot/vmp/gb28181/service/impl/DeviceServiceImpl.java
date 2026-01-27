@@ -151,6 +151,15 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         // 重置 cseq 计数
         redisCatchStorage.resetAllCSEQ();
         // 处理设备状态
+        dbStatusCheck();
+    }
+
+    /**
+     *  数据库状态检查, 每6小时检查一次
+     */
+    @Scheduled(fixedDelay = 6, initialDelay = 6, timeUnit = TimeUnit.HOURS)
+    public void dbStatusCheck(){
+        // 处理设备状态
         Set<String> allDeviceIds = deviceStatusManager.getAll();
         if (!allDeviceIds.isEmpty()) {
             // 除了记录的设备以外， 其他设备全部离线
@@ -210,6 +219,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 }
             }
         }
+
     }
 
     private void offlineByIds(List<Device> offlineDevices) {
@@ -318,6 +328,14 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
             }
+            // 上线添加订阅
+            if (userSetting.isSubscribeMobilePosition() && isDevice(device.getDeviceId())) {
+                // 开启订阅
+                device.setSubscribeCycleForMobilePosition(60);
+                device.setMobilePositionSubmissionInterval(5);
+                addMobilePositionSubscribe(device, null);
+            }
+
             sync(device);
         }else {
             device.setServerId(userSetting.getServerId());
@@ -346,6 +364,13 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 }
                 if (device.getSubscribeCycleForMobilePosition() > 0 && !subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
                     addMobilePositionSubscribe(device, null);
+                }else{
+                    if (userSetting.isSubscribeMobilePosition() && isDevice(device.getDeviceId())) {
+                        // 开启订阅
+                        device.setSubscribeCycleForMobilePosition(60);
+                        device.setMobilePositionSubmissionInterval(5);
+                        addMobilePositionSubscribe(device, null);
+                    }
                 }
 
                 if (userSetting.getDeviceStatusNotify()) {
@@ -361,6 +386,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 sync(device);
             }
         }
+
         // 设备状态任务添加
         long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
         deviceStatusManager.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());

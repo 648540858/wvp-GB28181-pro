@@ -219,4 +219,11 @@ public class UserSetting {
      */
     private boolean useAliasForGroupSync = false;
 
+    /**
+     * 对于识别为设备的国标设备的，是否默认开启位置订阅
+     */
+    private boolean subscribeMobilePosition = false;
+
+
+
 }

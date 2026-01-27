@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.task.deviceStatus;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.lang.Thread;
 
 @Slf4j
 @Component
@@ -56,7 +54,6 @@ public class DeviceStatusManager {
                 // 发送 Spring 异步事件
                 eventPublisher.deviceOfflineEventPublish(expiredIds);
             });
-
         }
     }
 

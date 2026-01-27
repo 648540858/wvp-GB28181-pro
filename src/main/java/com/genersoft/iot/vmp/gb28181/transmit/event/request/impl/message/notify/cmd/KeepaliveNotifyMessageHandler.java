@@ -80,8 +80,8 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setLocalIp(request.getLocalAddress().getHostAddress());
         }
         device.setKeepaliveTimeStamp(System.currentTimeMillis());
+        taskQueue.add(device);
         if (device.isOnLine()) {
-            taskQueue.add(device);
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
             deviceStatusManager.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());
         } else {

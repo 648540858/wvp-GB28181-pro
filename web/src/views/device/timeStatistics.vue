@@ -30,6 +30,7 @@
           v-if="viewMode === 'table'"
           :data="list"
           border
+          stripe
           size="mini"
           height="400px"
           style="width: 100%;"

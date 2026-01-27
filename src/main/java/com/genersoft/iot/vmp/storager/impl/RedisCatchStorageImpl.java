@@ -563,7 +563,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 for (Device device : deviceList) {
                     operations.opsForList().rightPush(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId(), device.getKeepaliveTimeStamp());
                     // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim((VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId()), -1000, -1);
+                    operations.opsForList().trim((VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId()), -100, -1);
                 }
                 return true;
             }
@@ -580,7 +580,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (count == null) {
             count = 20;
         }
-        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + deviceId, 0, count + 1);
+        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + deviceId, -count - 1, -1);
     }
 
 
@@ -599,7 +599,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 for (Device device : deviceList) {
                     operations.opsForList().rightPush(VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId(), device.getRegisterTimeStamp());
                     // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim((VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId()), -1000, -1);
+                    operations.opsForList().trim((VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId()), -100, -1);
                 }
                 return true;
             }
@@ -615,6 +615,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (count == null) {
             count = 20;
         }
-        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_REGISTER_PREFIX + deviceId, 0, count + 1);
+        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_REGISTER_PREFIX + deviceId, -count - 1, -1);
     }
 }

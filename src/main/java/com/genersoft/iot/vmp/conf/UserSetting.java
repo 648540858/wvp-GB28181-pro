@@ -219,4 +219,9 @@ public class UserSetting {
      */
     private boolean useAliasForGroupSync = false;
 
+    /**
+     * 设备ID严格模式，开启后设备注册时如果设备ID不符合规范则拒绝注册, 默认开启
+     */
+    private boolean deviceIdStrict = true;
+
 }

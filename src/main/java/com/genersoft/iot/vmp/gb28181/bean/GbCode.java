@@ -29,7 +29,7 @@ public class GbCode {
      * 解析国标编号
      */
     public static GbCode decode(String code){
-        if (code == null || code.trim().length() != 20) {
+        if (code == null || code.trim().length() != 20 || !code.matches("\\d{20}")) {
             return null;
         }
         code = code.trim();

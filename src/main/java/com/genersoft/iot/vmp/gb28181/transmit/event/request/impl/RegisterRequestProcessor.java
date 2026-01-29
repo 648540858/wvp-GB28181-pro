@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.GbCode;
 import com.genersoft.iot.vmp.gb28181.bean.GbSipDate;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
@@ -93,6 +94,17 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
+            if (userSetting.isDeviceIdStrict()) {
+                // 严格模式下，非20位设备ID不予处理
+                GbCode decode = GbCode.decode(deviceId);
+                if (decode == null) {
+                    // 注册失败
+                    response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
+                    sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                    return;
+                }
+
+            }
             // 调整逻辑，如果为设置公共密码，那么就必须要预设用户信息，否则无法注册。
             Device device = deviceService.getDeviceByDeviceId(deviceId);
 

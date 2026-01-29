@@ -220,6 +220,11 @@ public class UserSetting {
     private boolean useAliasForGroupSync = false;
 
     /**
+     * 设备ID严格模式，开启后设备注册时如果设备ID不符合规范则拒绝注册, 默认开启
+     */
+    private boolean deviceIdStrict = true;
+
+    /**
      * 对于识别为设备的国标设备的，是否默认开启位置订阅
      */
     private boolean subscribeMobilePosition = false;

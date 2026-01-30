@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.EnvUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.IpPortUtil;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -334,6 +335,9 @@ public class SIPRequestHeaderProvider {
 	public Request createAckRequest(String localIp, SipURI sipURI, SIPResponse sipResponse) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 
 
+		if(EnvUtil.isDockerEnv()){
+			localIp = sipLayer.getLocalIp(localIp);
+		}
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 		ViaHeader viaHeader = SipFactory.getInstance().createHeaderFactory().createViaHeader(localIp, sipConfig.getPort(), sipResponse.getTopmostViaHeader().getTransport(), SipUtils.getNewViaTag());

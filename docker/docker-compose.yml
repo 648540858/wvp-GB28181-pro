@@ -101,6 +101,8 @@ services:
       - ./logs/wvp:/opt/wvp/logs/
     environment:
       TZ: "Asia/Shanghai"
+      # docker env
+      RUN_ENV: "docker"
       # 流链接的IP
       Stream_IP: ${Stream_IP}
       # SDP里的IP

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStringMsgParserFactory;
 import com.genersoft.iot.vmp.gb28181.conf.DefaultProperties;
 import com.genersoft.iot.vmp.gb28181.transmit.ISIPProcessorObserver;
+import com.genersoft.iot.vmp.utils.EnvUtil;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -174,6 +175,9 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public String getLocalIp(String deviceLocalIp) {
+		if(EnvUtil.isDockerEnv()){
+			return sipConfig.getShowIp();
+		}
 		if (monitorIps.size() == 1) {
 			return monitorIps.get(0);
 		}

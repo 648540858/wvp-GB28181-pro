@@ -33,7 +33,7 @@ WVP-PRO使用Spring boot开发，maven管理依赖。对于熟悉spring开发的
 ubuntu环境，以ubuntu 18为例：
 
 ``` bash
-apt-get install -y openjdk-21-jre git maven nodejs npm
+apt-get install -y openjdk-21-jdk git maven nodejs npm
 ```
 
 window环境，以windows10为例：

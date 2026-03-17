@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.service;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
@@ -67,7 +68,7 @@ public interface IMediaNodeServerService {
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
-    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+    Integer startSendRtpTalk(MediaServer mediaServer, TalkRtpInfo talkRtpInfo, Integer timeout);
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 

@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
@@ -371,17 +372,17 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+    public Integer startSendRtpTalk(MediaServer mediaServer, TalkRtpInfo talkRtpInfo, Integer timeout) {
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
-        param.put("app", sendRtpItem.getApp());
-        param.put("stream", sendRtpItem.getStream());
-        param.put("ssrc", sendRtpItem.getSsrc());
-        param.put("pt", sendRtpItem.getPt());
-        param.put("type", sendRtpItem.isUsePs() ? "1" : "0");
-        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-        param.put("recv_stream_id", sendRtpItem.getReceiveStream());
-        param.put("enable_origin_recv_limit", "1");
+        param.put("app", talkRtpInfo.getApp());
+        param.put("stream", talkRtpInfo.getStream());
+        param.put("ssrc", talkRtpInfo.getSsrc());
+        param.put("pt", talkRtpInfo.getPt());
+        param.put("type", talkRtpInfo.getType());
+        param.put("only_audio", talkRtpInfo.getOnlyAudio());
+        param.put("recv_stream_id", talkRtpInfo.getReceiveStreamId());
+        param.put("enable_origin_recv_limit", talkRtpInfo.getEnableOriginReceiveLimit() != null && talkRtpInfo.getEnableOriginReceiveLimit() == 1 ? "1" : "0");
         ZLMResult<?> zlmResult = zlmServerFactory.startSendRtpTalk(mediaServer, param, null);
         if (zlmResult.getCode() != 0 ) {
             log.error("启动监听TCP被动推流失败: {}, 参数：{}", zlmResult.getMsg(), JSON.toJSONString(param));

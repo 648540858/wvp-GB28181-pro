@@ -1307,7 +1307,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             }
             timeStatisticsList.add(timeStatistics);
         }
-        if (timeStatisticsList.size() > count) {
+        // 第一个数据由于没有上一个时间戳，无法计算时间差，去掉
+        timeStatisticsList.removeFirst();
+        if (timeStatisticsList.size() - 1 > count) {
             timeStatisticsList = timeStatisticsList.subList(timeStatisticsList.size() - count, timeStatisticsList.size());
         }
         return timeStatisticsList;

@@ -94,9 +94,13 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     }
     @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void executeUpdateDeviceList() {
-        if (!taskQueue.isEmpty()) {
-            redisCatchStorage.updateDeviceKeepaliveTimeStamp(taskQueue.stream().toList());
-            taskQueue.clear();
+        try {
+            if (!taskQueue.isEmpty()) {
+                redisCatchStorage.updateDeviceKeepaliveTimeStamp(taskQueue.stream().toList());
+                taskQueue.clear();
+            }
+        } catch (Exception e) {
+            log.error("[定时任务] 更新心跳记录 执行异常", e);
         }
     }
 

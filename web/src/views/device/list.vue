@@ -91,7 +91,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="订阅" min-width="160">
+      <el-table-column label="订阅" min-width="240">
         <template v-slot:default="scope">
           <el-checkbox
             label="目录"

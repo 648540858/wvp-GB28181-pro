@@ -78,6 +78,12 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             log.error("[Alarm] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
             return;
         }
+        // 回复200 OK
+        try {
+            responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            log.error("[命令发送失败] 报警通知回复: {}", e.getMessage());
+        }
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
     }
 
@@ -102,12 +108,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 continue;
             }
             RequestEvent evt = sipMsgInfo.getEvt();
-            // 回复200 OK
-            try {
-                responseAck((SIPRequest) evt.getRequest(), Response.OK);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 报警通知回复: {}", e.getMessage());
-            }
+
             try {
                 Device device = sipMsgInfo.getDevice();
                 Element deviceIdElement = sipMsgInfo.getRootElement().element("DeviceID");

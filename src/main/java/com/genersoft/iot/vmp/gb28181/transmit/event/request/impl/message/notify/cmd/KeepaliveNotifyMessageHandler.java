@@ -103,10 +103,11 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Override
     public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
         // 个别平台保活不回复200OK会判定离线
+        // 回复200 OK
         try {
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            log.error("[命令发送失败] 心跳回复: {}", e.getMessage());
+            log.error("[命令发送失败] 报警通知回复: {}", e.getMessage());
         }
     }
 }

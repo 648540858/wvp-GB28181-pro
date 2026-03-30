@@ -78,7 +78,7 @@ public abstract class SIPRequestProcessorParent {
 		return responseAck(sipRequest, statusCode, null);
 	}
 
-	@Async("taskExecutor")
+	@Async
 	public void responseAckAsync(SIPRequest sipRequest, int statusCode) throws SipException, InvalidArgumentException, ParseException {
 		responseAck(sipRequest, statusCode, null);
 	}

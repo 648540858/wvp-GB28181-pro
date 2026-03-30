@@ -509,21 +509,25 @@ public class ZLMRESTfulUtils {
     }
 
     public ZLMResult<?> startSendRtpPassive(MediaServer mediaServer, Map<String, Object> param, ResultCallback callback) {
-        String response = sendPost(mediaServer, "startSendRtpPassive",param, (responseStr -> {
-            if (callback == null) {
-                return;
-            }
-            if (responseStr == null) {
-                callback.run(ZLMResult.getFailForMediaServer());
-            }else {
-                ZLMResult<?> zlmResult = JSON.parseObject(responseStr, ZLMResult.class);
-                if (zlmResult == null) {
+        RequestCallback requestCallback = null;
+        if (callback != null) {
+            requestCallback = (responseStr -> {
+                if (callback == null) {
+                    return;
+                }
+                if (responseStr == null) {
                     callback.run(ZLMResult.getFailForMediaServer());
                 }else {
-                    callback.run(zlmResult);
+                    ZLMResult<?> zlmResult = JSON.parseObject(responseStr, ZLMResult.class);
+                    if (zlmResult == null) {
+                        callback.run(ZLMResult.getFailForMediaServer());
+                    }else {
+                        callback.run(zlmResult);
+                    }
                 }
-            }
-        }));
+            });
+        }
+        String response = sendPost(mediaServer, "startSendRtpPassive",param, requestCallback);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
         }else {
@@ -694,10 +698,11 @@ public class ZLMRESTfulUtils {
         }
     }
 
-    public ZLMResult<?> connectRtpServer(MediaServer mediaServer, String dst_url, int dst_port, String stream_id) {
+    public ZLMResult<?> connectRtpServer(MediaServer mediaServer, String dst_url, int dst_port, String app, String stream_id) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("dst_url", dst_url);
         param.put("dst_port", dst_port);
+        param.put("app", app);
         param.put("stream_id", stream_id);
         String response = sendPost(mediaServer, "connectRtpServer", param, null);
         if (response == null) {
@@ -712,9 +717,10 @@ public class ZLMRESTfulUtils {
         }
     }
 
-    public ZLMResult<?> updateRtpServerSSRC(MediaServer mediaServer, String streamId, String ssrc) {
+    public ZLMResult<?> updateRtpServerSSRC(MediaServer mediaServer, String app, String streamId, String ssrc) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("ssrc", ssrc);
+        param.put("app", app);
         param.put("stream_id", streamId);
 
         String response = sendPost(mediaServer, "updateRtpServerSSRC", param, null);

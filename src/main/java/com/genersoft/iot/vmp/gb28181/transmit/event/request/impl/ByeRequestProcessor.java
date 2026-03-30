@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -84,6 +85,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IRedisRpcService redisRpcService;
+
+	@Autowired
+	private IReceiveRtpServerService receiveRtpServerService;
 
 
 	@Override
@@ -228,7 +232,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						deviceChannelService.stopPlay(channel.getId());
 						inviteStreamService.removeInviteInfo(inviteInfo);
 						if (inviteInfo.getStreamInfo() != null) {
-							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getStreamInfo().getStream());
+							receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream());
 						}
 					}
 					break;

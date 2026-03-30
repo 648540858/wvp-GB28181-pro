@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.service;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
@@ -34,20 +35,11 @@ public interface IMediaServerService {
 
     void updateVmServer(List<MediaServer>  mediaServerItemList);
 
-    SSRCInfo openRTPServer(MediaServer mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
-                           boolean isPlayback, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode);
+    void closeRTPServer(MediaServer mediaServerItem, String app, String streamId);
 
-    void closeRTPServer(MediaServer mediaServerItem, String streamId);
+    void closeRTPServer(MediaServer mediaServerItem, String app, String streamId, CommonCallback<Boolean> callback);
 
-    void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
-
-    SSRCInfo openJTTServer(MediaServer mediaServerItem, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
-
-    void closeJTTServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
-
-    Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc);
-
-    void closeRTPServer(String mediaServerId, String streamId);
+    Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String app, String streamId, String ssrc);
 
     void clearRTPServer(MediaServer mediaServerItem);
 
@@ -89,7 +81,7 @@ public interface IMediaServerService {
 
     List<StreamInfo> getMediaList(MediaServer mediaInfo, String app, String stream, String callId);
 
-    Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream);
+    Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String app, String stream);
 
     void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, int expireSec, String path, String fileName);
 
@@ -148,7 +140,7 @@ public interface IMediaServerService {
 
     Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
-    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+    Integer startSendRtpTalk(MediaServer mediaServer, TalkRtpInfo talkRtpInfo, Integer timeout);
 
     void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
@@ -162,7 +154,7 @@ public interface IMediaServerService {
 
     StreamInfo getMediaByAppAndStream(String app, String stream);
 
-    int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode);
+    int createRTPServer(MediaServer mediaServerItem, String app, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode);
 
     List<String> listRtpServer(MediaServer mediaServer);
 

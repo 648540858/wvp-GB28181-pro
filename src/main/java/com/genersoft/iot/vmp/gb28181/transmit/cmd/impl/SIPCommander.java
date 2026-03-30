@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -279,7 +280,7 @@ public class SIPCommander implements ISIPCommander {
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
-//			content.append("f=v/2/5/25/1/4000a/1/8/1" + "\r\n"); // 未发现支持此特性的设备
+//			content.append("f=v/2/6/25/1/4000a/6/8/1" + "\r\n"); // 未发现支持此特性的设备
 
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
@@ -505,7 +506,7 @@ public class SIPCommander implements ISIPCommander {
         }
 
         log.info("[语音喊话] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), sendRtpItem.getPort());
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServerItem.getId());
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaApp.GB28181, stream, mediaServerItem.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             if (event != null) {
                 event.response(hookData);
@@ -515,7 +516,7 @@ public class SIPCommander implements ISIPCommander {
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
         callIdHeader.setCallId(callId);
-        Hook publishHook = Hook.getInstance(HookType.on_publish, "rtp", stream, mediaServerItem.getId());
+        Hook publishHook = Hook.getInstance(HookType.on_publish, MediaApp.GB28181, stream, mediaServerItem.getId());
         subscribe.addSubscribe(publishHook, (hookData) -> {
             if (eventForPush != null) {
                 eventForPush.response(hookData);
@@ -549,7 +550,7 @@ public class SIPCommander implements ISIPCommander {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), "talk",sendRtpItem.getApp(), stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), MediaApp.GB28181_TALK,sendRtpItem.getApp(), stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         }, timeout);
@@ -1388,7 +1389,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackControlCmd(Device device, DeviceChannel channel, String stream, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream("rtp", stream);
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaApp.GB28181, stream);
         if (ssrcTransaction == null) {
             log.info("[回放控制]未找到视频流信息，设备：{}, 流ID: {}", device.getDeviceId(), stream);
             return;

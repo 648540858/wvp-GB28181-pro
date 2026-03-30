@@ -145,6 +145,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         sourceChannelPlayService.stopPlay(channel);
+        channelMapper.updateStream(channel.getGbId(), null);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.*;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -28,6 +29,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
@@ -109,6 +111,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
+    @Autowired
+    private IReceiveRtpServerService receiveRtpServerService;
 
     @Autowired
     private PlatformStatusTaskRunner statusTaskRunner;
@@ -618,7 +623,37 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         } else {
             tcpMode = 0;
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true, false, false, tcpMode);
+
+
+        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServer(mediaServerItem, streamId, null, tcpMode,
+                false, ssrcCheck, true, false, ((code, msg, data) -> {
+                    if (code == InviteErrorCode.SUCCESS.getCode() && data != null && data.getHookData() != null) {
+                        log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
+                        HookData hookData = data.getHookData();
+                        // hook响应
+                        onPublishHandlerForBroadcast(hookData.getMediaServer(), hookData.getMediaInfo(), platform, channel);
+                        // 收到流
+                        if (hookEvent != null) {
+                            hookEvent.response(hookData);
+                        }
+                    }else {
+                        InviteInfo inviteInfoForBroadcast = inviteStreamService.getInviteInfo(InviteSessionType.BROADCAST, channel.getGbId(), null);
+                        if (inviteInfoForBroadcast == null) {
+                            log.info("[国标级联] 发起语音喊话 收流超时 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
+                            // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                            try {
+                                commanderForPlatform.streamByeCmd(platform, channel, data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream(), null, null);
+                            } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+                                log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
+                            } finally {
+                                timeoutCallback.run(1, "收流超时");
+                                mediaServerService.releaseSsrc(mediaServerItem.getId(), data.getSsrcInfo().getSsrc());
+                                receiveRtpServerService.closeRTPServer(mediaServerItem, data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
+                                sessionManager.removeByStream(data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
+                            }
+                        }
+                    }
+                }));
         if (ssrcInfo == null || ssrcInfo.getPort() < 0) {
             log.info("[国标级联] 发起语音喊话 开启端口监听失败， platform: {}, channel： {}", platform.getServerGBId(), channel.getGbDeviceId());
             SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
@@ -636,37 +671,8 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), InviteSessionType.BROADCAST,
                 InviteSessionStatus.ready, userSetting.getRecordSip());
         inviteStreamService.updateInviteInfo(inviteInfo);
-        String timeOutTaskKey = UUID.randomUUID().toString();
-        dynamicTask.startDelay(timeOutTaskKey, () -> {
-            // 执行超时任务时查询是否已经成功，成功了则不执行超时任务，防止超时任务取消失败的情况
-            InviteInfo inviteInfoForBroadcast = inviteStreamService.getInviteInfo(InviteSessionType.BROADCAST, channel.getGbId(), null);
-            if (inviteInfoForBroadcast == null) {
-                log.info("[国标级联] 发起语音喊话 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), ssrcInfo.getSsrc());
-                // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
-                try {
-                    commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getApp(), ssrcInfo.getStream(), null, null);
-                } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-                    log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
-                } finally {
-                    timeoutCallback.run(1, "收流超时");
-                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                    sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-                }
-            }
-        }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, (hookData)->{
-            log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
-            dynamicTask.stop(timeOutTaskKey);
-            // hook响应
-            onPublishHandlerForBroadcast(hookData.getMediaServer(), hookData.getMediaInfo(), platform, channel);
-            // 收到流
-            if (hookEvent != null) {
-                hookEvent.response(hookData);
-            }
-        }, event -> {
-
-            inviteOKHandler(event, ssrcInfo, tcpMode, ssrcCheck, mediaServerItem, platform, channel, timeOutTaskKey,
+        commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, event -> {
+            inviteOKHandler(event, ssrcInfo, tcpMode, ssrcCheck, mediaServerItem, platform, channel,
                     null, inviteInfo, InviteSessionType.BROADCAST);
         }, eventResult -> {
             // 收到错误回复
@@ -689,7 +695,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
     }
 
     private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, int tcpMode, boolean ssrcCheck, MediaServer mediaServerItem,
-                                 Platform platform, CommonGBChannel channel, String timeOutTaskKey, ErrorCallback<Object> callback,
+                                 Platform platform, CommonGBChannel channel, ErrorCallback<Object> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
@@ -705,7 +711,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 // 多端口
                 if (tcpMode == 2) {
                     tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
-                            timeOutTaskKey, ssrcInfo, callback);
+                            ssrcInfo, callback);
                 }
             }else {
                 // 单端口
@@ -724,27 +730,25 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     log.info("[Invite 200OK] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
                     // 释放ssrc
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                    Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse);
+                    Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse);
                     if (!result) {
                         try {
                             log.warn("[Invite 200OK] 更新ssrc失败，停止喊话 {}/{}", platform.getServerGBId(), channel.getGbDeviceId());
                             commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getApp(), ssrcInfo.getStream(), null, null);
                         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                             log.error("[命令发送失败] 停止播放， 发送BYE: {}", e.getMessage());
+                        } finally {
+                            // 释放ssrc
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
+                            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
+
+                            callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                    "下级自定义了ssrc,重新设置收流信息失败", null);
+                            inviteStreamService.call(inviteSessionType, channel.getGbId(), null,
+                                    InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                    "下级自定义了ssrc,重新设置收流信息失败", null);
                         }
-
-                        dynamicTask.stop(timeOutTaskKey);
-                        // 释放ssrc
-                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-
-                        sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-
-                        callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
-                                "下级自定义了ssrc,重新设置收流信息失败", null);
-                        inviteStreamService.call(inviteSessionType, channel.getGbId(), null,
-                                InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
-                                "下级自定义了ssrc,重新设置收流信息失败", null);
-
                     }else {
                         ssrcInfo.setSsrc(ssrcInResponse);
                         inviteInfo.setSsrcInfo(ssrcInfo);
@@ -752,7 +756,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                         if (tcpMode == 2) {
                             if (mediaServerItem.isRtpEnable()) {
                                 tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
-                                        timeOutTaskKey, ssrcInfo, callback);
+                                        ssrcInfo, callback);
                             }else {
                                 log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
                             }
@@ -766,7 +770,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     if (tcpMode == 2) {
                         if (mediaServerItem.isRtpEnable()) {
                             tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
-                                    timeOutTaskKey, ssrcInfo, callback);
+                                    ssrcInfo, callback);
                         }else {
                             log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
                         }
@@ -799,7 +803,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
     private void tcpActiveHandler(Platform platform, CommonGBChannel channel, String contentString,
                                   MediaServer mediaServerItem, int tcpMode, boolean ssrcCheck,
-                                  String timeOutTaskKey, SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
+                                  SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
         if (tcpMode != 2) {
             return;
         }
@@ -826,15 +830,13 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             }
             log.info("[TCP主动连接对方] serverGbId: {}, channelId: {}, 连接对方的地址：{}:{}, SSRC: {}, SSRC校验：{}",
                     platform.getServerGBId(), channel.getGbDeviceId(), sdp.getConnection().getAddress(), port, ssrcInfo.getSsrc(), ssrcCheck);
-            Boolean result = mediaServerService.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+            Boolean result = mediaServerService.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getApp(), ssrcInfo.getStream());
             log.info("[TCP主动连接对方] 结果： {}", result);
         } catch (SdpException e) {
             log.error("[TCP主动连接对方] serverGbId: {}, channelId: {}, 解析200OK的SDP信息失败", platform.getServerGBId(), channel.getGbDeviceId(), e);
-            dynamicTask.stop(timeOutTaskKey);
-            mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+            receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
@@ -855,7 +857,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
             log.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getGbDeviceId() );
         } finally {
-            mediaServerService.closeRTPServer(mediaServerItem, stream);
+            receiveRtpServerService.closeRTPServer(mediaServerItem, app, stream);
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, channel.getGbId(), stream);
             if (inviteInfo != null) {
                 // 释放ssrc

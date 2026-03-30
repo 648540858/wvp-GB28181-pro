@@ -65,7 +65,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         // 回复200 OK
         try {
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 心跳回复: {}", e.getMessage());
         }

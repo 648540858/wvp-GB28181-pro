@@ -5,4 +5,4 @@ spring:
     virtual:
       enabled: true
   profiles:
-    active: 274-dev
+    active: dev

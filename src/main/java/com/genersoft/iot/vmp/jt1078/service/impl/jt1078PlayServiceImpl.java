@@ -3,14 +3,13 @@ package com.genersoft.iot.vmp.jt1078.service.impl;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
-import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
@@ -26,11 +25,12 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.RTPServerParam;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -73,6 +73,9 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private IReceiveRtpServerService receiveRtpServerService;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -197,7 +200,6 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     private void play(JTDevice device, JTChannel channel, int type, CommonCallback<WVPResult<StreamInfo>> callback) {
         String phoneNumber = device.getPhoneNumber();
         int channelId = channel.getChannelId();
-        String app = "1078";
         String stream = phoneNumber + "_" + channelId;
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
@@ -208,7 +210,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             MediaServer mediaServer = streamInfo.getMediaServer();
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, app, streamInfo.getStream());
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaApp.JT1078, streamInfo.getStream());
                 if (mediaInfo != null) {
                     log.info("[JT-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                     for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
@@ -233,61 +235,67 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             }
             return;
         }
-        // 设置hook监听
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
-        subscribe.addSubscribe(hook, (hookData) -> {
-            dynamicTask.stop(playKey);
-            log.info("[JT-点播] 点播成功， 手机号： {}， 通道： {}", phoneNumber, channelId);
-            // TODO 发送9105 实时音视频传输状态通知， 通知丢包率
-            StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
-
-            for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                if (errorCallback == null) {
-                    continue;
-                }
-                errorCallback.run(new WVPResult<>(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info));
-            }
-            subscribe.removeSubscribe(hook);
-            redisTemplate.opsForValue().set(playKey, info);
-            // 截图
-            String path = "snap";
-            String fileName = phoneNumber + "_" + channelId + ".jpg";
-            // 请求截图
-            log.info("[请求截图]: " + fileName);
-            mediaServerService.getSnap(mediaServer, app, stream, 15, 1, path, fileName);
-        });
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openJTTServer(mediaServer, stream, null, false, !channel.isHasAudio(), 1);
-        if (ssrcInfo == null) {
+        RTPServerParam rtpServerParam = new RTPServerParam();
+        rtpServerParam.setMediaServer(mediaServer);
+        rtpServerParam.setApp(MediaApp.JT1078);
+        rtpServerParam.setStreamId(stream);
+        rtpServerParam.setPort(0);
+        rtpServerParam.setTcpMode(1); // 1 表示tcp被动
+        rtpServerParam.setOnlyAuto(false);
+        rtpServerParam.setDisableAudio(!channel.isHasAudio());
+
+        int port = receiveRtpServerService.openRTPServer(rtpServerParam, (code, msg, hookData) -> {
+
+            if (code == InviteErrorCode.SUCCESS.getCode() && hookData != null ) {
+                // hook响应
+                log.info("[JT-点播] 点播成功， 手机号： {}， 通道： {}", phoneNumber, channelId);
+                // TODO 发送9105 实时音视频传输状态通知， 通知丢包率
+                StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
+
+                for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
+                    if (errorCallback == null) {
+                        continue;
+                    }
+                    errorCallback.run(new WVPResult<>(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info));
+                }
+                redisTemplate.opsForValue().set(playKey, info);
+                // 截图
+                String path = "snap";
+                String fileName = phoneNumber + "_" + channelId + ".jpg";
+                // 请求截图
+                log.info("[请求截图]: " + fileName);
+                mediaServerService.getSnap(mediaServer, MediaApp.JT1078, stream, 15, 1, path, fileName);
+            }else {
+                if (callback != null) {
+                    callback.run(WVPResult.fail(code, msg));
+                }
+                log.info("[JT-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+                for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
+                    errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(),
+                            InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null));
+                }
+                stopPlay(phoneNumber, channelId);
+            }
+        });
+        if (port <= 0) {
             stopPlay(phoneNumber, channelId);
             return;
         }
 
-        // 设置超时监听
-        dynamicTask.startDelay(playKey, () -> {
-            log.info("[JT-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
-            for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(),
-                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null));
-            }
-            mediaServerService.closeJTTServer(mediaServer, stream, null);
-            subscribe.removeSubscribe(hook);
-            stopPlay(phoneNumber, channelId);
-        }, userSetting.getPlayTimeout());
-
-        log.info("[JT-点播] phoneNumber： {}， channelId： {}，IP: {}, 端口： {}", phoneNumber, channelId, mediaServer.getSdpIp(), ssrcInfo.getPort());
+        log.info("[JT-点播] phoneNumber： {}， channelId： {}，IP: {}, 端口： {}", phoneNumber, channelId, mediaServer.getSdpIp(), port);
         J9101 j9101 = new J9101();
         j9101.setChannel(channelId);
         j9101.setIp(mediaServer.getSdpIp());
         j9101.setRate(1);
-        j9101.setTcpPort(ssrcInfo.getPort());
-        j9101.setUdpPort(ssrcInfo.getPort());
+        j9101.setTcpPort(port);
+        j9101.setUdpPort(port);
         j9101.setType(type);
         jt1078Template.startLive(phoneNumber, j9101, 6);
     }
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, Integer channelId) {
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "1078", hookData.getStream(), hookData.getMediaInfo(), null);
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaApp.JT1078, hookData.getStream(), hookData.getMediaInfo(), null);
         streamInfo.setDeviceId(phoneNumber);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -317,7 +325,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 删除缓存数据
         if (streamInfo != null) {
             // 关闭rtpServer
-            mediaServerService.closeJTTServer(streamInfo.getMediaServer(), streamInfo.getStream(), null);
+            receiveRtpServerService.closeRTPServer(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
             redisTemplate.delete(playKey);
         }
 
@@ -425,12 +433,12 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playbackKey);
         if (streamInfo != null) {
 
-            mediaServerService.closeJTTServer(streamInfo.getMediaServer(), streamInfo.getStream(), null);
+            receiveRtpServerService.closeRTPServer(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
             // 清理数据
             redisTemplate.delete(playbackKey);
         }
 
-        String app = "1078";
+        String app = MediaApp.JT1078;
         String stream = String.format("%s_%s_%s_%s", phoneNumber, channelId,
                 DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime), DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
         MediaServer mediaServer;
@@ -445,36 +453,41 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             }
             return;
         }
-        // 设置hook监听
-        Hook hookSubscribe = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
-        subscribe.addSubscribe(hookSubscribe, (hookData) -> {
-            dynamicTask.stop(playbackKey);
-            log.info("[JT-回放] 回放成功， logInfo： {}", logInfo);
-            StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
-
-            for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                if (errorCallback == null) {
-                    continue;
-                }
-                errorCallback.run(new WVPResult<>(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info));
-            }
-            subscribe.removeSubscribe(hookSubscribe);
-            redisTemplate.opsForValue().set(playbackKey, info);
-        });
-        // 设置超时监听
-        dynamicTask.startDelay(playbackKey, () -> {
-            log.info("[JT-回放] 回放超时， logInfo： {}", logInfo);
-            for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
-                        InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null));
-            }
-            mediaServerService.closeJTTServer(mediaServer, stream, null);
-            subscribe.removeSubscribe(hookSubscribe);
-        }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openJTTServer(mediaServer, stream, null, false, !channel.isHasAudio(), 1);
-        log.info("[JT-回放] logInfo： {}， 端口： {}", logInfo, ssrcInfo.getPort());
+        RTPServerParam rtpServerParam = new RTPServerParam();
+        rtpServerParam.setMediaServer(mediaServer);
+        rtpServerParam.setApp(MediaApp.JT1078);
+        rtpServerParam.setStreamId(stream);
+        rtpServerParam.setPort(0);
+        rtpServerParam.setTcpMode(1); // 1 表示tcp被动
+        rtpServerParam.setOnlyAuto(false);
+        rtpServerParam.setDisableAudio(!channel.isHasAudio());
+
+        int port = receiveRtpServerService.openRTPServer(rtpServerParam, (code, msg, hookData) -> {
+
+            if (code == InviteErrorCode.SUCCESS.getCode() && hookData != null ) {
+                // hook 响应
+                log.info("[JT-回放] 回放成功， logInfo： {}", logInfo);
+                StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
+
+                for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
+                    if (errorCallback == null) {
+                        continue;
+                    }
+                    errorCallback.run(new WVPResult<>(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info));
+                }
+                redisTemplate.opsForValue().set(playbackKey, info);
+            }else {
+                log.info("[JT-回放] 回放超时， logInfo： {}", logInfo);
+                for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
+                    errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                            InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null));
+                }
+                receiveRtpServerService.closeRTPServer(mediaServer, app, stream);
+            }
+        });
+        log.info("[JT-回放] logInfo： {}， 端口： {}", logInfo, port);
         J9201 j9201 = new J9201();
         j9201.setChannel(channelId);
         j9201.setIp(mediaServer.getSdpIp());
@@ -488,8 +501,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             j9201.setPlaybackSpeed(playbackSpeed);
         }
 
-        j9201.setTcpPort(ssrcInfo.getPort());
-        j9201.setUdpPort(ssrcInfo.getPort());
+        j9201.setTcpPort(port);
+        j9201.setUdpPort(port);
         j9201.setType(type);
         j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
@@ -509,7 +522,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             // 删除缓存数据
             if (streamInfo != null) {
                 // 关闭rtpServer
-                mediaServerService.closeJTTServer(streamInfo.getMediaServer(), streamInfo.getStream(), null);
+                receiveRtpServerService.closeRTPServer(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
             }
             // 清理回调
             List<CommonCallback<WVPResult<StreamInfo>>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
@@ -615,7 +628,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         sendRtpInfo.setReceiveStream(stream + "_talk");
 
         // 设置hook监听
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, "1078", sendRtpInfo.getReceiveStream(), mediaServer.getId());
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaApp.JT1078, sendRtpInfo.getReceiveStream(), mediaServer.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             log.info("[JT-对讲] 对讲连接建立， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             subscribe.removeSubscribe(hook);
@@ -662,8 +675,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 删除缓存数据
         if (streamInfo != null) {
             redisTemplate.delete(playKey);
-            // 关闭rtpServer
-            mediaServerService.closeJTTServer(streamInfo.getMediaServer(), streamInfo.getStream(), null);
+            // 关闭 rtpServer
+            receiveRtpServerService.closeRTPServer(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
         }
         // 清理回调
         List<CommonCallback<WVPResult<StreamInfo>>> generalCallbacks = inviteErrorCallbackMap.get(playKey);

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
@@ -188,14 +189,14 @@ public class ABLHttpHookListener {
 
         logger.info("[ABL HOOK] 码流不到达通知：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
         try {
-            if ("rtp".equals(param.getApp())) {
+            if (MediaApp.GB28181.equals(param.getApp())) {
                 return HookResult.SUCCESS();
             }
             MediaRtpServerTimeoutEvent event = new MediaRtpServerTimeoutEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServer(mediaServerItem);
-                event.setApp("rtp");
+                event.setApp(MediaApp.GB28181);
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {

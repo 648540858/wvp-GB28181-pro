@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -82,7 +83,7 @@ public class MediaServiceImpl implements IMediaService {
         if (app == null || stream == null) {
             return false;
         }
-        if ("rtp".equals(app)) {
+        if (MediaApp.GB28181.equals(app)) {
             return true;
         }
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
@@ -95,8 +96,8 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
-        if (!"rtp".equals(app) && !"1078".equals(app) ) {
-            if ("talk".equals(app) && stream.endsWith("_talk")) {
+        if (!MediaApp.GB28181.equals(app) && !MediaApp.JT1078.equals(app) ) {
+            if (MediaApp.GB28181_TALK.equals(app) && stream.endsWith("_talk")) {
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_mp4(false);
                 result.setEnable_audio(true);
@@ -156,7 +157,7 @@ public class MediaServiceImpl implements IMediaService {
         result.setEnable_audio(true);
 
         // 国标流
-        if ("rtp".equals(app)) {
+        if (MediaApp.GB28181.equals(app)) {
 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
 
@@ -214,16 +215,16 @@ public class MediaServiceImpl implements IMediaService {
                     result.setEnable_audio(true);
                 }
             }
-        } else if (app.equals("broadcast")) {
+        } else if (app.equals(MediaApp.GB28181_BROADCAST)) {
             result.setEnable_audio(true);
             result.setEnable_mp4(userSetting.getRecordSip());
-        } else if (app.equals("talk")) {
+        } else if (app.equals(MediaApp.GB28181_TALK)) {
             result.setEnable_audio(true);
             result.setEnable_mp4(userSetting.getRecordSip());
         }else {
             result.setEnable_mp4(userSetting.getRecordPushLive());
         }
-        if (app.equalsIgnoreCase("rtp")) {
+        if (app.equalsIgnoreCase(MediaApp.GB28181)) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + stream;
             OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo) redisTemplate.opsForValue().get(receiveKey);
 
@@ -243,7 +244,7 @@ public class MediaServiceImpl implements IMediaService {
             return false;
         }
         // 国标类型的流
-        if ("rtp".equals(app)) {
+        if (MediaApp.GB28181.equals(app)) {
             result = userSetting.getStreamOnDemand();
             // 国标流， 点播/录像回放/录像下载
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
@@ -260,7 +261,7 @@ public class MediaServiceImpl implements IMediaService {
                 }
                 return result;
             }
-        }else if ("1078".equals(app)) {
+        }else if (MediaApp.JT1078.equals(app)) {
             // 判断是否是1078播放类型
             JTMediaStreamType jtMediaStreamType = ijt1078Service.checkStreamFromJt(stream);
             if (jtMediaStreamType != null) {
@@ -273,7 +274,7 @@ public class MediaServiceImpl implements IMediaService {
             }else {
                 return false;
             }
-        }else if ("talk".equals(app) || "broadcast".equals(app)) {
+        }else if (MediaApp.GB28181_TALK.equals(app) || MediaApp.GB28181_BROADCAST.equals(app)) {
             return false;
         } else if ("mp4_record".equals(app)) {
             return true;

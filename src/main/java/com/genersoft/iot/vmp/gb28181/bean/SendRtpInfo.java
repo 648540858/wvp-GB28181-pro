@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import lombok.Data;
@@ -199,7 +200,7 @@ public class SendRtpInfo {
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(isTcp);
         sendRtpItem.setRtcp(rtcp);
-        sendRtpItem.setApp("rtp");
+        sendRtpItem.setApp(MediaApp.GB28181);
         sendRtpItem.setLocalPort(localPort);
         sendRtpItem.setServerId(serverId);
         sendRtpItem.setMediaServerId(mediaServer.getId());

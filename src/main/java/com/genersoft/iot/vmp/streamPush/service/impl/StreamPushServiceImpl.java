@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.streamPush.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
@@ -101,7 +102,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             updatePushStatus(streamPushInDb);
         }
         // 冗余数据，自己系统中自用
-        if (!"broadcast".equals(event.getApp()) && !"talk".equals(event.getApp())) {
+        if (!MediaApp.GB28181_BROADCAST.equals(event.getApp()) && !MediaApp.GB28181_TALK.equals(event.getApp())) {
             redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event.getMediaInfo());
         }
 

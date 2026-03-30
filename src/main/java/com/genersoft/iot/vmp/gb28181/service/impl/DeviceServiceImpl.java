@@ -27,6 +27,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
@@ -107,6 +108,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private IReceiveRtpServerService receiveRtpServerService;
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
@@ -259,7 +263,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
             for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
                 mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
-                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
+                receiveRtpServerService.closeRTPServerByMediaServerId(ssrcTransaction.getMediaServerId(), ssrcTransaction.getApp(), ssrcTransaction.getStream());
                 sessionManager.removeByCallId(ssrcTransaction.getCallId());
             }
         }

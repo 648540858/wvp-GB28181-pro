@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -262,7 +263,7 @@ public class ZLMHttpHookListener {
         log.info("[ZLM HOOK] rtp发送关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
 
         // 查找对应的上级推流，发送停止
-        if (!"rtp".equals(param.getApp())) {
+        if (!MediaApp.GB28181.equals(param.getApp())) {
             return HookResult.SUCCESS();
         }
         try {
@@ -293,7 +294,7 @@ public class ZLMHttpHookListener {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServer(mediaServerItem);
-                event.setApp("rtp");
+                event.setApp(MediaApp.GB28181);
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {

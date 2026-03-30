@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -246,7 +247,7 @@ public class ApiStreamController {
         }
 
         try {
-            cmder.streamByeCmd(device, code, "rtp", inviteInfo.getStream(), null, null);
+            cmder.streamByeCmd(device, code, MediaApp.GB28181, inviteInfo.getStream(), null, null);
         } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
             JSONObject result = new JSONObject();
             result.put("error","发送BYE失败：" + e.getMessage());

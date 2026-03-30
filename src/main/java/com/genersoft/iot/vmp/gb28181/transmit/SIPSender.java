@@ -143,7 +143,7 @@ public class SIPSender {
 
     public CallIdHeader getNewCallIdHeader(String ip, String transport) {
         if (ObjectUtils.isEmpty(transport)) {
-            return sipLayer.getUdpSipProvider().getNewCallId();
+            return sipLayer.getUdpSipProvider() != null ? sipLayer.getUdpSipProvider().getNewCallId() : sipLayer.getTcpSipProvider().getNewCallId();
         }
         SipProviderImpl sipProvider;
         if (ObjectUtils.isEmpty(ip)) {
@@ -155,7 +155,8 @@ public class SIPSender {
         }
 
         if (sipProvider == null) {
-            sipProvider = sipLayer.getUdpSipProvider();
+            sipProvider = transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider()
+                    : sipLayer.getUdpSipProvider();
         }
 
         if (sipProvider != null) {

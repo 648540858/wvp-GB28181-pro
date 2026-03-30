@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 WORD_DIR=$(cd $(dirname $0); pwd)
 SERVICE_NAME="wvp"
@@ -13,7 +13,7 @@ if [ "$(id -u)" -ne 0 ]; then
   echo
 fi
 
-# 当前目录直接搜索（不含子目录）
+# 当前目录直接搜索（不含子目录） bugfix： 这里使用了需要bash才可以支持的内容
 jar_files=(*.jar)
 
 if [ ${#jar_files[@]} -eq 0 ]; then

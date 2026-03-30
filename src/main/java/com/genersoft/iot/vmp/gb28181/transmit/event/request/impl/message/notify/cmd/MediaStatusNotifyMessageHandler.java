@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
@@ -98,7 +99,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                     playService.stop(inviteInfo);
                 }
                 // 去除监听流注销自动停止下载的监听
-                Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
+                Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaApp.GB28181, ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
                 subscribe.removeSubscribe(hook);
                 if (ssrcTransaction.getPlatformId() != null) {
                     // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定

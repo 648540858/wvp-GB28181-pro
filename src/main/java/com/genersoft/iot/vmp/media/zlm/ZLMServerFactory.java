@@ -98,10 +98,11 @@ public class ZLMServerFactory {
         return result;
     }
 
-    public boolean closeRtpServer(MediaServer serverItem, String streamId) {
+    public boolean closeRtpServer(MediaServer serverItem, String app, String streamId) {
         boolean result = false;
         if (serverItem !=null){
             Map<String, Object> param = new HashMap<>();
+            param.put("app", app);
             param.put("stream_id", streamId);
             ZLMResult<?> zlmResult = zlmresTfulUtils.closeRtpServer(serverItem, param);
             if (zlmResult != null ) {
@@ -118,7 +119,7 @@ public class ZLMServerFactory {
         return result;
     }
 
-    public void closeRtpServer(MediaServer serverItem, String streamId, CommonCallback<Boolean> callback) {
+    public void closeRtpServer(MediaServer serverItem, String app, String streamId, CommonCallback<Boolean> callback) {
         if (serverItem == null) {
             if (callback != null) {
                 callback.run(false);
@@ -126,6 +127,7 @@ public class ZLMServerFactory {
             return;
         }
         Map<String, Object> param = new HashMap<>();
+        param.put("app", app);
         param.put("stream_id", streamId);
         zlmresTfulUtils.closeRtpServer(serverItem, param, zlmResult -> {
             if (zlmResult.getCode() == 0) {
@@ -223,9 +225,9 @@ public class ZLMServerFactory {
         return zlmResult;
     }
 
-    public Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc) {
+    public Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String app, String streamId, String ssrc) {
         boolean result = false;
-        ZLMResult<?> zlmResult = zlmresTfulUtils.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
+        ZLMResult<?> zlmResult = zlmresTfulUtils.updateRtpServerSSRC(mediaServerItem, app, streamId, ssrc);
         if (zlmResult.getCode() == 0) {
             result= true;
             log.info("[更新RTPServer] 成功");

@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -24,7 +25,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -163,49 +163,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
     }
 
-
     @Override
-    public SSRCInfo openRTPServer(MediaServer mediaServer, String streamId, String presetSsrc, boolean ssrcCheck,
-                                  boolean isPlayback, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
-        if (mediaServer == null || mediaServer.getId() == null) {
-            log.info("[openRTPServer] 失败, mediaServer == null || mediaServer.getId() == null");
-            return null;
-        }
-        // 获取mediaServer可用的ssrc
-        String ssrc;
-        if (presetSsrc != null) {
-            ssrc = presetSsrc;
-        }else {
-            if (isPlayback) {
-                ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
-            }else {
-                ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
-            }
-        }
-
-        if (streamId == null) {
-            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
-        }
-        if (ssrcCheck && tcpMode > 0) {
-            // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
-            log.warn("[openRTPServer] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
-        }
-        int rtpServerPort;
-        if (mediaServer.isRtpEnable()) {
-            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
-            if (mediaNodeServerService == null) {
-                log.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-                return null;
-            }
-            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, disableAudio, reUsePort, tcpMode);
-        } else {
-            rtpServerPort = mediaServer.getRtpProxyPort();
-        }
-        return new SSRCInfo(rtpServerPort, ssrc, "rtp", streamId, null);
-    }
-
-    @Override
-    public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode) {
+    public int createRTPServer(MediaServer mediaServer, String app,  String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode) {
         int rtpServerPort;
         if (mediaServer.isRtpEnable()) {
             IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
@@ -213,32 +172,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 log.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
                 return 0;
             }
-            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrc, port, onlyAuto, disableAudio, reUsePort, tcpMode);
+            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, app, streamId, ssrc, port, onlyAuto, disableAudio, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServer.getRtpProxyPort();
         }
         return rtpServerPort;
-    }
-
-    @Override
-    public SSRCInfo openJTTServer(MediaServer mediaServer, @NotNull String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode) {
-        if (mediaServer == null || mediaServer.getId() == null) {
-            log.info("[openJTTServer] 失败, mediaServer == null || mediaServer.getId() == null");
-            return null;
-        }
-
-        int rtpServerPort;
-        if (mediaServer.isRtpEnable()) {
-            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
-            if (mediaNodeServerService == null) {
-                log.info("[openJTTServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-                return null;
-            }
-            rtpServerPort = mediaNodeServerService.createJTTServer(mediaServer, streamId, port, disableVideo, disableAudio, tcpMode);
-        } else {
-            rtpServerPort = mediaServer.getJttProxyPort();
-        }
-        return new SSRCInfo(rtpServerPort, null, "1078", streamId, null);
     }
 
     @Override
@@ -252,7 +190,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void closeRTPServer(MediaServer mediaServer, String streamId) {
+    public void closeRTPServer(MediaServer mediaServer, String app, String streamId) {
         if (mediaServer == null) {
             return;
         }
@@ -261,11 +199,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServer, streamId, null);
+        mediaNodeServerService.closeRtpServer(mediaServer, app, streamId, null);
     }
 
     @Override
-    public void closeRTPServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+    public void closeRTPServer(MediaServer mediaServer, String app, String streamId, CommonCallback<Boolean> callback) {
         if (mediaServer == null) {
             callback.run(false);
             return;
@@ -275,42 +213,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServer, streamId, callback);
+        mediaNodeServerService.closeRtpServer(mediaServer, app, streamId, callback);
     }
 
     @Override
-    public void closeRTPServer(String mediaServerId, String streamId) {
-        MediaServer mediaServer = this.getOne(mediaServerId);
-        if (mediaServer == null) {
-            return;
-        }
-        if (mediaServer.isRtpEnable()) {
-            closeRTPServer(mediaServer, streamId);
-        }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
-        if (mediaNodeServerService == null) {
-            log.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-            return;
-        }
-        mediaNodeServerService.closeStreams(mediaServer, "rtp", streamId);
-    }
-
-    @Override
-    public void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
-        if (mediaServer == null) {
-            callback.run(false);
-            return;
-        }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
-        if (mediaNodeServerService == null) {
-            log.info("[closeJTTServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-            return;
-        }
-        mediaNodeServerService.closeJTTServer(mediaServer, streamId, callback);
-    }
-
-    @Override
-    public Boolean updateRtpServerSSRC(MediaServer mediaServer, String streamId, String ssrc) {
+    public Boolean updateRtpServerSSRC(MediaServer mediaServer, String app, String streamId, String ssrc) {
         if (mediaServer == null) {
             return false;
         }
@@ -319,7 +226,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[updateRtpServerSSRC] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.updateRtpServerSSRC(mediaServer, streamId, ssrc);
+        return mediaNodeServerService.updateRtpServerSSRC(mediaServer, app, streamId, ssrc);
     }
 
     @Override
@@ -717,13 +624,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String stream) {
+    public Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String app, String stream) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[connectRtpServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.connectRtpServer(mediaServer, address, port, stream);
+        return mediaNodeServerService.connectRtpServer(mediaServer, address, port, app, stream);
     }
 
     @Override
@@ -897,14 +804,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+    public Integer startSendRtpTalk(MediaServer mediaServer, TalkRtpInfo talkRtpInfo, Integer timeout) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startSendRtpPassive] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        return mediaNodeServerService.startSendRtpTalk(mediaServer, sendRtpItem, timeout);
+        return mediaNodeServerService.startSendRtpTalk(mediaServer, talkRtpInfo, timeout);
     }
+
 
     @Override
     public void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem) {

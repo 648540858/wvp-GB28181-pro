@@ -89,7 +89,7 @@ export default {
         container: this.$refs.container,
         videoBuffer: 0,
         isResize: true,
-        useMSE: true,
+        useMSE: false,
         useWCS: false,
         text: '',
         // background: '',

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.service;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
@@ -15,19 +16,19 @@ import java.util.List;
 import java.util.Map;
 
 public interface IMediaNodeServerService {
-    int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode);
+    int createRTPServer(MediaServer mediaServer, String app, String stream, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode);
 
-    void closeRtpServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback);
+    void closeRtpServer(MediaServer mediaServer, String app, String stream, CommonCallback<Boolean> callback);
 
 
-    int createJTTServer(MediaServer mediaServer, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
-
-    void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback);
+//    int createJTTServer(MediaServer mediaServer, String streamId, Integer port, Boolean disableVideo, Boolean disableAudio, Integer tcpMode);
+//
+//    void closeJTTServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback);
 
 
     void closeStreams(MediaServer mediaServer, String app, String stream);
 
-    Boolean updateRtpServerSSRC(MediaServer mediaServer, String stream, String ssrc);
+    Boolean updateRtpServerSSRC(MediaServer mediaServer, String app, String stream, String ssrc);
 
     boolean checkNodeId(MediaServer mediaServer);
 
@@ -43,7 +44,7 @@ public interface IMediaNodeServerService {
 
     List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId);
 
-    Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String stream);
+    Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String app, String stream);
 
     void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, int expireSec, String path, String fileName);
 
@@ -67,7 +68,7 @@ public interface IMediaNodeServerService {
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
-    Integer startSendRtpTalk(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+    Integer startSendRtpTalk(MediaServer mediaServer, TalkRtpInfo talkRtpInfo, Integer timeout);
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 

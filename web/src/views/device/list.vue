@@ -103,7 +103,11 @@
             :checked="scope.row.subscribeCycleForMobilePosition > 0"
             @change="(e)=>subscribeForMobilePosition(scope.row.id, e)"
           />
-          <!--          <el-checkbox label="报警" disabled :checked="scope.row.subscribeCycleForAlarm > 0"></el-checkbox>-->
+          <el-checkbox
+            label="报警"
+            :checked="scope.row.subscribeCycleForAlarm > 0"
+            @change="(e)=>subscribeForAlarm(scope.row.id, e)"
+          />
         </template>
       </el-table-column>
       <el-table-column prop="keepaliveTime" label="最近心跳" min-width="140" />
@@ -414,6 +418,23 @@ export default {
     },
     subscribeForMobilePosition: function(data, value) {
       this.$store.dispatch('device/subscribeMobilePosition', {
+        id: data,
+        cycle: value ? 60 : 0,
+        interval: value ? 5 : 0
+      }).then((data) => {
+        this.$message.success({
+          showClose: true,
+          message: value ? '订阅成功' : '取消订阅成功'
+        })
+      }).catch((error) => {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      })
+    },
+    subscribeForAlarm: function(data, value) {
+      this.$store.dispatch('device/subscribeForAlarm', {
         id: data,
         cycle: value ? 60 : 0,
         interval: value ? 5 : 0

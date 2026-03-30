@@ -229,6 +229,15 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
+    public void subscribeAlarm(int id, int cycle) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("cycle", cycle);
+        RedisRpcRequest request = buildRequest("device/subscribeAlarm", jsonObject);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
     public boolean updatePlatform(String serverId, Platform platform) {
         RedisRpcRequest request = buildRequest("platform/update", platform);
         request.setToId(serverId);

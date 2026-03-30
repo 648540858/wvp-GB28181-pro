@@ -70,7 +70,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
 				log.error("处理NOTIFY消息时未获取到消息体,{}", evt.getRequest());
-				responseAck((SIPRequest) evt.getRequest(), Response.OK, null, null);
 				return;
 			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");

@@ -41,6 +41,7 @@ import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -1219,17 +1220,9 @@ public class SIPCommander implements ISIPCommander {
     /**
      * 订阅、取消订阅报警信息
      *
-     * @param device        视频设备
-     * @param expires       订阅过期时间（0 = 取消订阅）
-     * @param startPriority 报警起始级别（可选）
-     * @param endPriority   报警终止级别（可选）
-     * @param alarmMethod   报警方式条件（可选）
-     * @param startTime     报警发生起始时间（可选）
-     * @param endTime       报警发生终止时间（可选）
-     * @return true = 命令发送成功
      */
     @Override
-    public void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException {
+    public SIPRequest alarmSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
@@ -1238,28 +1231,39 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
         cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        if (!ObjectUtils.isEmpty(startPriority)) {
-            cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
-        }
-        if (!ObjectUtils.isEmpty(endPriority)) {
-            cmdXml.append("<EndAlarmPriority>" + endPriority + "</EndAlarmPriority>\r\n");
-        }
-        if (!ObjectUtils.isEmpty(alarmMethod)) {
-            cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
-        }
-        if (!ObjectUtils.isEmpty(startTime)) {
-            cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
-        }
-        if (!ObjectUtils.isEmpty(endTime)) {
-            cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
-        }
+        cmdXml.append("<StartAlarmPriority>1</StartAlarmPriority>\r\n");
+        cmdXml.append("<EndAlarmPriority>4/EndAlarmPriority>\r\n");
+        cmdXml.append("<AlarmMethod>0</AlarmMethod>\r\n");
+
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        String startTime = DateUtil.formatterISO8601.format(nowDateTime);
+        // 退后一个月作为结束时间
+        String endTime = DateUtil.formatterISO8601.format(nowDateTime.plusMonths(1));
+
+        cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
+        cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
+
         cmdXml.append("</Query>\r\n");
 
+        CallIdHeader callIdHeader;
 
+        if (sipTransactionInfo != null) {
+            callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(sipTransactionInfo.getCallId());
+        } else {
+            callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
+        }
 
-        Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), null, expires, "presence",sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request);
+        int subscribeCycleForCatalog = device.getSubscribeCycleForCatalog();
+        if (subscribeCycleForCatalog > 0) {
+            // 目录订阅有效期不小于 30 秒
+            subscribeCycleForCatalog = Math.max(subscribeCycleForCatalog, 30);
+        }
 
+        // 有效时间默认为60秒以上
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), sipTransactionInfo, subscribeCycleForCatalog, "presence",
+                callIdHeader);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
+        return request;
     }
 
     @Override

@@ -93,6 +93,18 @@ export function subscribeMobilePosition(params) {
     }
   })
 }
+export function subscribeForAlarm(params) {
+  const { id, cycle, interval } = params
+  return request({
+    method: 'get',
+    url: `/api/device/query/subscribe/alarm`,
+    params: {
+      id: id,
+      cycle: cycle,
+      interval: interval
+    }
+  })
+}
 
 export function queryBasicParam(deviceId) {
   return request({

@@ -14,7 +14,7 @@ import {
   queryHasStreamChannels,
   resetGuard,
   setGuard,
-  subscribeCatalog,
+  subscribeCatalog, subscribeForAlarm,
   subscribeMobilePosition,
   sync,
   update,
@@ -96,6 +96,16 @@ const actions = {
   subscribeMobilePosition({ commit }, params) {
     return new Promise((resolve, reject) => {
       subscribeMobilePosition(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  subscribeForAlarm({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      subscribeForAlarm(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

@@ -80,4 +80,6 @@ public interface IRedisRpcService {
     WVPResult<Object> deviceInfo(String serverId, Device device);
 
     WVPResult<List<Preset>> queryPreset(String serverId, Device device, String channelId);
+
+    void subscribeAlarm(int id, int cycle);
 }

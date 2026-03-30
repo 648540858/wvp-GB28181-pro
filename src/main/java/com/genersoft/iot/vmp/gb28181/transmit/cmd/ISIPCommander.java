@@ -276,15 +276,8 @@ public interface ISIPCommander {
 
 	/**
 	 * 订阅、取消订阅报警信息
-	 * @param device		视频设备
-	 * @param expires		订阅过期时间（0 = 取消订阅）
-	 * @param startPriority	报警起始级别（可选）
-	 * @param endPriority	报警终止级别（可选）
-	 * @param startTime		报警发生起始时间（可选）
-	 * @param endTime		报警发生终止时间（可选）
-	 * @return				true = 命令发送成功
 	 */
-	void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException;
+	SIPRequest alarmSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 订阅、取消订阅目录信息

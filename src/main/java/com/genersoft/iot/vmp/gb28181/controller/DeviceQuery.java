@@ -430,4 +430,13 @@ public class DeviceQuery {
 	public void subscribeMobilePosition(int id, int cycle, int interval) {
 		deviceService.subscribeMobilePosition(id, cycle, interval);
 	}
+
+	@GetMapping("/subscribe/alarm")
+	@Operation(summary = "开启/关闭报警订阅")
+	@Parameter(name = "id", description = "通道的Id", required = true)
+	@Parameter(name = "cycle", description = "订阅周期", required = true)
+	@Parameter(name = "interval", description = "报送间隔", required = true)
+	public void subscribeAlarm(int id, int cycle, int interval) {
+		deviceService.subscribeMobilePosition(id, cycle, interval);
+	}
 }

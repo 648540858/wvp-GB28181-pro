@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -55,6 +56,10 @@ public interface IDeviceService {
      * @return 布尔
      */
     boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback);
+
+    boolean addAlarmSubscribe(@NotNull Device device, SipTransactionInfo transactionInfo);
+
+    boolean removeAlarmSubscribe(Device device, CommonCallback<Boolean> callback);
 
     /**
      * 移除移动位置订阅
@@ -193,6 +198,8 @@ public interface IDeviceService {
     void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback);
 
     void deviceStatus(Device device, ErrorCallback<String> callback);
+
+    void subscribeAlarm(int id, int cycle);
 
     void updateDeviceHeartInfo(Device device);
 

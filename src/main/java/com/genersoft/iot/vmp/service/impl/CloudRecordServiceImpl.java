@@ -116,7 +116,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         return new ArrayList<>(resultSet);
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
         CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(event);

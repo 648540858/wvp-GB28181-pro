@@ -610,5 +610,11 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE wvp_device_channel SET status = 'OFF' WHERE data_type = 1 and data_device_id=#{deviceId}"})
     void offlineByDeviceId(@Param("deviceId") int deviceId);
 
+    @Update(value = {"<script>" +
+            "UPDATE wvp_device_channel SET status = 'OFF' WHERE data_type = 1 and data_device_id in " +
+            " <foreach item='item' index='index' collection='deviceList' open='(' separator=',' close=')'> #{item.id} </foreach>" +
+            " </script>"})
+    void offlineByDeviceIds(List<Device> deviceList);
+
 
 }

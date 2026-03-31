@@ -59,7 +59,7 @@ public class ABLMediaServerStatusManger {
 
     private final String type = "abl";
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaServerChangeEvent event) {
         if (event.getMediaServerItemList() == null
@@ -77,7 +77,7 @@ public class ABLMediaServerStatusManger {
         execute();
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(HookAblServerStartEvent event) {
         if (event.getMediaServerItem() == null
@@ -93,7 +93,7 @@ public class ABLMediaServerStatusManger {
         online(serverItem, null);
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(HookAblServerKeepaliveEvent event) {
         if (event.getMediaServerItem() == null) {
@@ -107,7 +107,7 @@ public class ABLMediaServerStatusManger {
         online(serverItem, null);
     }
 
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaServerDeleteEvent event) {
         if (event.getMediaServer() == null) {

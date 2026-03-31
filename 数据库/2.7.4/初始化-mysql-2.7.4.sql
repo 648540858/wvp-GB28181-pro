@@ -12,8 +12,6 @@ create table IF NOT EXISTS wvp_device
     transport                           character varying(50) COMMENT '信令传输协议（TCP/UDP）',
     stream_mode                         character varying(50) COMMENT '拉流方式（主动/被动）',
     on_line                             bool    default false COMMENT '在线状态',
-    register_time                       character varying(50) COMMENT '注册时间',
-    keepalive_time                      character varying(50) COMMENT '最近心跳时间',
     ip                                  character varying(50) COMMENT '设备IP地址',
     create_time                         character varying(50) COMMENT '创建时间',
     update_time                         character varying(50) COMMENT '更新时间',
@@ -207,8 +205,7 @@ create table IF NOT EXISTS wvp_media_server
     record_path         character varying(255) COMMENT '录像目录',
     record_day          integer               default 7 COMMENT '录像保留天数',
     transcode_suffix    character varying(255) COMMENT '转码指令后缀',
-    server_id           character varying(50) COMMENT '对应信令服务器ID',
-    constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
+    server_id           character varying(50) COMMENT '对应信令服务器ID'
 );
 
 -- 上级国标平台注册信息

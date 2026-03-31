@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.media.event.mediaServer;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Getter
 public class MediaServerChangeEvent extends ApplicationEvent {
 
     public MediaServerChangeEvent(Object source) {
@@ -14,10 +16,6 @@ public class MediaServerChangeEvent extends ApplicationEvent {
     }
 
     private List<MediaServer> mediaServerItemList;
-
-    public List<MediaServer> getMediaServerItemList() {
-        return mediaServerItemList;
-    }
 
     public void setMediaServerItemList(List<MediaServer> mediaServerItemList) {
         this.mediaServerItemList = mediaServerItemList;

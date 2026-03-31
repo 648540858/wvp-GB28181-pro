@@ -9,13 +9,13 @@ import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -33,6 +33,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
     private final String cmdType = "MobilePosition";
@@ -45,9 +46,8 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
     private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
 
-    @Qualifier("taskExecutor")
     @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private TaskExecutor taskExecutor;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -61,7 +61,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
         // 回复200 OK
         try {
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 移动位置通知回复: {}", e.getMessage());
         }

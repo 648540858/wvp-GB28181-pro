@@ -64,7 +64,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaArrivalEvent event) {
@@ -119,7 +119,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaDepartureEvent event) {
@@ -156,7 +156,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     /**
      * 流媒体节点上线
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOnlineEvent event) {
@@ -166,7 +166,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     /**
      * 流媒体节点离线
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOfflineEvent event) {

@@ -54,7 +54,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
 
@@ -63,7 +63,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
 

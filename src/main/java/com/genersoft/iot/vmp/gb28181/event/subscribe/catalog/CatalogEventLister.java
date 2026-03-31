@@ -159,6 +159,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 List<CommonGBChannel> channelList = new ArrayList<>();
                                 CommonGBChannel deviceChannel = channelMap.get(gbId);
                                 channelList.add(deviceChannel);
+
                                 try {
                                     sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, channelList, subscribeInfo, null);
                                 } catch (InvalidArgumentException | ParseException | NoSuchFieldException |

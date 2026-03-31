@@ -123,7 +123,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                             }
                         }
                     }else {
-                        log.info("[Catalog事件: {}] 未找到上级平台： {}", event.getMessageType(), serverGbId);
+                        log.info("[Catalog事件: {}] 没有需要通知的上级平台： {}", event.getMessageType(), serverGbId);
                     }
                 }
                 break;

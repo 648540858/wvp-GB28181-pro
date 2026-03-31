@@ -11,8 +11,6 @@ create table IF NOT EXISTS wvp_device
     transport                           character varying(50),
     stream_mode                         character varying(50),
     on_line                             bool    default false,
-    register_time                       character varying(50),
-    keepalive_time                      character varying(50),
     ip                                  character varying(50),
     create_time                         character varying(50),
     update_time                         character varying(50),
@@ -49,8 +47,6 @@ COMMENT ON COLUMN wvp_device.firmware IS '固件版本号';
 COMMENT ON COLUMN wvp_device.transport IS '信令传输协议（TCP/UDP）';
 COMMENT ON COLUMN wvp_device.stream_mode IS '拉流方式（主动/被动）';
 COMMENT ON COLUMN wvp_device.on_line IS '在线状态';
-COMMENT ON COLUMN wvp_device.register_time IS '注册时间';
-COMMENT ON COLUMN wvp_device.keepalive_time IS '最近心跳时间';
 COMMENT ON COLUMN wvp_device.ip IS '设备IP地址';
 COMMENT ON COLUMN wvp_device.create_time IS '创建时间';
 COMMENT ON COLUMN wvp_device.update_time IS '更新时间';
@@ -355,7 +351,6 @@ create table IF NOT EXISTS wvp_media_server
     record_day          integer               default 7,
     transcode_suffix    character varying(255),
     server_id           character varying(50),
-    constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
 );
 COMMENT ON TABLE wvp_media_server IS '媒体服务器（如 ZLM）节点信息';
 COMMENT ON COLUMN wvp_media_server.id IS '媒体服务器ID';

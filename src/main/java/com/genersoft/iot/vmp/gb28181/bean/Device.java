@@ -89,15 +89,15 @@ public class Device {
 	/**
 	 * 注册时间
 	 */
-	@Schema(description = "注册时间")
-	private String registerTime;
+	@Schema(description = "注册时间戳")
+	private Long registerTimeStamp;
 
 
 	/**
 	 * 心跳时间
 	 */
 	@Schema(description = "心跳时间")
-	private String keepaliveTime;
+	private Long keepaliveTimeStamp;
 
 
 	/**
@@ -216,4 +216,18 @@ public class Device {
     public boolean checkWgs84() {
         return geoCoordSys.equalsIgnoreCase("WGS84");
     }
+
+	public Integer getHeartBeatCount() {
+		if (heartBeatCount == null) {
+			return 3;
+		}
+		return heartBeatCount;
+	}
+
+	public Integer getHeartBeatInterval() {
+		if (heartBeatCount == null) {
+			return 60;
+		}
+		return heartBeatInterval;
+	}
 }

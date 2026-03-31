@@ -66,7 +66,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-			responseAck((SIPRequest) evt.getRequest(), Response.OK, null, null);
+			responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
 				log.error("处理NOTIFY消息时未获取到消息体,{}", evt.getRequest());

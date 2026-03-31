@@ -62,7 +62,7 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        if (device.getRegisterTime() == null) {
+        if (device.getTransport() == null) {
             response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("设备尚未注册过");
             return response;

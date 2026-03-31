@@ -20,8 +20,11 @@ import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +48,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private RedisTemplate<String, Long> longRedisTemplate;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -182,6 +188,17 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             device = (Device)object;
         }
         return device;
+    }
+
+    @Override
+    public List<Device> getDeviceList(Set<String> deviceIds) {
+        String key = VideoManagerConstants.DEVICE_PREFIX;
+        List<Device> deviceList  = new ArrayList<>();
+        List<Object> objectList = redisTemplate.opsForHash().multiGet(key, Arrays.asList(deviceIds.toArray()));
+        for (Object object : objectList) {
+            deviceList.add((Device)object);
+        }
+        return deviceList;
     }
 
     @Override
@@ -530,5 +547,85 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             return null;
         }
         return (String) range.iterator().next();
+    }
+
+    @Override
+    public void updateDeviceKeepaliveTimeStamp(List<Device> deviceList) {
+        if (deviceList == null || deviceList.isEmpty()) {
+            return;
+        }
+        // 使用 SessionCallback 保证批量操作在同一个连接中执行
+        SessionCallback<Boolean> sessionCallback = new SessionCallback<>() {
+            @Override
+            // 注意：这里直接写死 String, String 覆盖接口的 K, V
+            public Boolean execute(@NonNull RedisOperations operations) {
+                // 1. 批量添加心跳数据到列表尾部
+                for (Device device : deviceList) {
+                    Duration duration = Duration.ofHours(1);
+                    String key = VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId();
+                    operations.opsForList().rightPush(key, device.getKeepaliveTimeStamp());
+                    // 2. 截取列表，只保留最新 100 条
+                    operations.opsForList().trim(key, -100, -1);
+
+                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
+                    operations.expire(key, duration);
+                }
+                return true;
+            }
+        };
+
+        longRedisTemplate.execute(sessionCallback);
+    }
+
+    @Override
+    public List<Long> getDeviceKeepaliveTimeStamp(String deviceId, Integer count) {
+        if (deviceId == null ) {
+            return List.of();
+        }
+        if (count == null) {
+            count = 20;
+        }
+        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + deviceId, -count - 1, -1);
+    }
+
+
+
+    @Override
+    public void updateDeviceRegisterTimeStamp(List<Device> deviceList) {
+        if (deviceList == null || deviceList.isEmpty()) {
+            return;
+        }
+        // 使用 SessionCallback 保证批量操作在同一个连接中执行
+        SessionCallback<Boolean> sessionCallback = new SessionCallback<>() {
+            @Override
+            // 注意：这里直接写死 String, String 覆盖接口的 K, V
+            public Boolean execute(@NonNull RedisOperations operations) {
+                // 1. 批量添加心跳数据到列表尾部
+                for (Device device : deviceList) {
+                    Duration duration = Duration.ofHours(3);
+                    String key = VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId();
+                    operations.opsForList().rightPush(key, device.getRegisterTimeStamp());
+                    // 2. 截取列表，只保留最新 100 条
+                    operations.opsForList().trim(key, -100, -1);
+
+                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
+                    operations.expire(key, duration);
+
+                }
+                return true;
+            }
+        };
+        longRedisTemplate.execute(sessionCallback);
+    }
+
+    @Override
+    public List<Long> getDeviceRegisterTimeStamp(String deviceId, Integer count) {
+        if (deviceId == null ) {
+            return List.of();
+        }
+        if (count == null) {
+            count = 20;
+        }
+        return longRedisTemplate.opsForList().range(VideoManagerConstants.DEVICE_REGISTER_PREFIX + deviceId, -count - 1, -1);
     }
 }

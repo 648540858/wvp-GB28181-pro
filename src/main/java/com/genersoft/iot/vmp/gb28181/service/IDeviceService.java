@@ -21,13 +21,12 @@ public interface IDeviceService {
      * 设备上线
      * @param device 设备信息
      */
-    void online(Device device, SipTransactionInfo sipTransactionInfo);
+    void online(Device device);
 
     /**
      * 设备下线
-     * @param deviceId 设备编号
      */
-    void offline(String deviceId, String reason, boolean check);
+    void offline(Device device);
 
     /**
      * 添加目录订阅
@@ -95,13 +94,6 @@ public interface IDeviceService {
     List<Device> getAllOnlineDevice(String serverId);
 
     List<Device> getAllByStatus(Boolean status);
-
-    /**
-     * 判断是否注册已经失效
-     * @param device 设备信息
-     * @return 布尔
-     */
-    boolean expire(Device device);
 
     /**
      * 检查设备状态
@@ -209,4 +201,7 @@ public interface IDeviceService {
 
     void queryPreset(Device device, String channelId, ErrorCallback<List<Preset>> callback);
 
+    List<TimeStatistics> getKeepaliveTimeStatistics(String deviceId, Integer count);
+
+    List<TimeStatistics> getRegisterTimeStatistics(String deviceId, Integer count);
 }

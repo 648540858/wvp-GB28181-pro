@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -61,6 +62,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 	}
 
 	@Scheduled(fixedDelay = 200) //每200毫秒执行一次
+	@Async
 	public void executeTaskQueue() {
 		if (taskQueue.isEmpty()) {
 			return;
@@ -157,7 +159,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					continue;
 				}
 
-				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelDeviceId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 

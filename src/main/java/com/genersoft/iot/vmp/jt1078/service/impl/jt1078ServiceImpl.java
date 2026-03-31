@@ -119,7 +119,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     /**
      * 流到来的处理
      */
-    @Async("taskExecutor")
+    @Async
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
 
@@ -128,7 +128,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     /**
      * 流离开的处理
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
 
@@ -137,7 +137,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     /**
      * 设备更新的通知
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(DeviceUpdateEvent event) {
         JTDevice device = event.getDevice();
@@ -163,7 +163,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     /**
      * 位置更新的通知
      */
-    @Async("taskExecutor")
+    @Async
     @EventListener
     public void onApplicationEvent(JTPositionEvent event) {
         if (event.getPhoneNumber() == null || event.getPositionInfo() == null

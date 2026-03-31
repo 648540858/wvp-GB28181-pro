@@ -135,20 +135,36 @@ export default {
     create(url) {
       this.playerLoading = true
       const options = {}
-      h265webPlayer[this._uid] = new window.new265webjs(url, Object.assign(
-        {
-          player: 'glplayer', // 播放器容器id
-          width: this.playerWidth,
-          height: this.playerHeight,
-          token: token,
-          extInfo: {
-            coreProbePart: 0.4,
-            probeSize: 8192,
-            ignoreAudio: this.hasAudio === null ? 0 : (this.hasAudio ? 0 : 1)
-          }
-        },
-        options
-      ))
+      h265webPlayer[this._uid] = H265webjsPlayer()
+      h265webPlayer[this._uid].build({
+        player_id: 'glplayer',
+        base_url: './output/',
+        wasm_js_uri: 'h265web_wasm.js',
+        wasm_wasm_uri: 'h265web_wasm.wasm',
+        ext_src_js_uri: 'extjs.js',
+        ext_wasm_js_uri: 'extwasm.js',
+        width: this.playerWidth,
+        height: this.playerHeight,
+        auto_play: true,
+        ignore_audio: false
+      })
+      h265webPlayer[this._uid].load_media('./resource/demo.mp4');
+
+
+      // h265webPlayer[this._uid] = new window.H265webjsPlayer(url, Object.assign(
+      //   {
+      //     player: 'glplayer', // 播放器容器id
+      //     width: this.playerWidth,
+      //     height: this.playerHeight,
+      //     token: token,
+      //     extInfo: {
+      //       coreProbePart: 0.4,
+      //       probeSize: 8192,
+      //       ignoreAudio: this.hasAudio === null ? 0 : (this.hasAudio ? 0 : 1)
+      //     }
+      //   },
+      //   options
+      // ))
       const h265web = h265webPlayer[this._uid]
       h265web.onOpenFullScreen = () => {
         this.fullscreen = true

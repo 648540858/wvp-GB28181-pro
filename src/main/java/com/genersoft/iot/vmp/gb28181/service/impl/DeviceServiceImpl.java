@@ -1080,11 +1080,11 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
         if (cycle  > 0) {
-            //  目录订阅相关的信息
+            //  报警订阅相关的信息
             if (device.getSubscribeCycleForAlarm() > 0) {
                 // 订阅周期不同，则先取消
                 removeAlarmSubscribe(device, result->{
-                    device.setSubscribeCycleForCatalog(cycle);
+                    device.setSubscribeCycleForAlarm(cycle);
                     updateDevice(device);
                     // 开启订阅
                     addAlarmSubscribe(device, null);

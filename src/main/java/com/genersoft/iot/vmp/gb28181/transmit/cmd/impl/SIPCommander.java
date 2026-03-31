@@ -41,7 +41,6 @@ import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -1231,17 +1230,17 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
         cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        cmdXml.append("<StartAlarmPriority>1</StartAlarmPriority>\r\n");
-        cmdXml.append("<EndAlarmPriority>4/EndAlarmPriority>\r\n");
-        cmdXml.append("<AlarmMethod>0</AlarmMethod>\r\n");
-
-        LocalDateTime nowDateTime = LocalDateTime.now();
-        String startTime = DateUtil.formatterISO8601.format(nowDateTime);
-        // 退后一个月作为结束时间
-        String endTime = DateUtil.formatterISO8601.format(nowDateTime.plusMonths(1));
-
-        cmdXml.append("<StartTime>" + startTime + "</StartTime>\r\n");
-        cmdXml.append("<EndTime>" + endTime + "</EndTime>\r\n");
+//        cmdXml.append("<StartAlarmPriority>1</StartAlarmPriority>\r\n");
+//        cmdXml.append("<EndAlarmPriority>4/EndAlarmPriority>\r\n");
+//        cmdXml.append("<AlarmMethod>0</AlarmMethod>\r\n");
+//
+//        LocalDateTime nowDateTime = LocalDateTime.now();
+//        String startTime = DateUtil.formatterISO8601.format(nowDateTime);
+//        // 退后一个月作为结束时间
+//        String endTime = DateUtil.formatterISO8601.format(nowDateTime.plusMonths(1));
+//
+//        cmdXml.append("<StartTime>" + startTime + "</StartTime>\r\n");
+//        cmdXml.append("<EndTime>" + endTime + "</EndTime>\r\n");
 
         cmdXml.append("</Query>\r\n");
 
@@ -1253,14 +1252,14 @@ public class SIPCommander implements ISIPCommander {
             callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
         }
 
-        int subscribeCycleForCatalog = device.getSubscribeCycleForCatalog();
-        if (subscribeCycleForCatalog > 0) {
+        int subscribeCycleForAlarm = device.getSubscribeCycleForAlarm();
+        if (subscribeCycleForAlarm > 0) {
             // 目录订阅有效期不小于 30 秒
-            subscribeCycleForCatalog = Math.max(subscribeCycleForCatalog, 30);
+            subscribeCycleForAlarm = Math.max(subscribeCycleForAlarm, 30);
         }
 
         // 有效时间默认为60秒以上
-        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), sipTransactionInfo, subscribeCycleForCatalog, "presence",
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), sipTransactionInfo, subscribeCycleForAlarm, "presence",
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
         return request;

@@ -12,15 +12,15 @@ public class SubscribeTaskForAlarm extends SubscribeTask {
     public static final String name = "alarm";
 
     public static SubscribeTask getInstance(Device device, SubscribeCallback callback, SipTransactionInfo transactionInfo) {
-        if (device.getSubscribeCycleForCatalog() <= 0) {
+        if (device.getSubscribeCycleForAlarm() <= 0) {
             return null;
         }
-        SubscribeTaskForAlarm subscribeTaskForCatalog = new SubscribeTaskForAlarm();
-        subscribeTaskForCatalog.setDelayTime((device.getSubscribeCycleForCatalog() * 1000L - 500L) + System.currentTimeMillis());
-        subscribeTaskForCatalog.setDeviceId(device.getDeviceId());
-        subscribeTaskForCatalog.setCallback(callback);
-        subscribeTaskForCatalog.setTransactionInfo(transactionInfo);
-        return subscribeTaskForCatalog;
+        SubscribeTaskForAlarm subscribeTaskForAlarm = new SubscribeTaskForAlarm();
+        subscribeTaskForAlarm.setDelayTime((device.getSubscribeCycleForAlarm() * 1000L - 500L) + System.currentTimeMillis());
+        subscribeTaskForAlarm.setDeviceId(device.getDeviceId());
+        subscribeTaskForAlarm.setCallback(callback);
+        subscribeTaskForAlarm.setTransactionInfo(transactionInfo);
+        return subscribeTaskForAlarm;
     }
 
     @Override

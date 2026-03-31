@@ -85,11 +85,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志
-            boolean registerFlag = true;
-            if (request.getExpires().getExpires() == 0) {
-                // 注销成功
-                registerFlag = false;
-            }
+            boolean registerFlag = request.getExpires().getExpires() != 0;
+            // 注销成功
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
@@ -103,7 +100,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                     return;
                 }
-
             }
             // 调整逻辑，如果为设置公共密码，那么就必须要预设用户信息，否则无法注册。
             Device device = deviceService.getDeviceByDeviceId(deviceId);

@@ -539,7 +539,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
         if (device.isOnLine() && device.getSubscribeCycleForAlarm() > 0) {
-            addMobilePositionSubscribe(device, transactionInfo);
+            addAlarmSubscribe(device, transactionInfo);
         }
     }
 

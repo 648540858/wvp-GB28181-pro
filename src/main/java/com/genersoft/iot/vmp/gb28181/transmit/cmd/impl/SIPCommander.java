@@ -1240,8 +1240,8 @@ public class SIPCommander implements ISIPCommander {
         // 退后一个月作为结束时间
         String endTime = DateUtil.formatterISO8601.format(nowDateTime.plusMonths(1));
 
-        cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
-        cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
+        cmdXml.append("<StartTime>" + startTime + "</StartTime>\r\n");
+        cmdXml.append("<EndTime>" + endTime + "</EndTime>\r\n");
 
         cmdXml.append("</Query>\r\n");
 

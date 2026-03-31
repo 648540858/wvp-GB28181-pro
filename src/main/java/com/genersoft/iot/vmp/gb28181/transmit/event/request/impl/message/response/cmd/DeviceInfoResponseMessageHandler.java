@@ -81,7 +81,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         try {
             // 回复200 OK
-            responseAck(request, Response.OK);
+            responseAckAsync(request, Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] DeviceInfo应答消息 200: {}", e.getMessage());
         }

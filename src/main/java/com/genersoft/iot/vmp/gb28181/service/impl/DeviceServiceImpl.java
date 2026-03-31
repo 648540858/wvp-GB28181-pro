@@ -582,9 +582,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean removeCatalogSubscribe(@NotNull Device device, CommonCallback<Boolean> callback) {
+        log.info("[移除目录订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForCatalog.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
-            log.info("[移除目录订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除目录订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -646,10 +646,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback) {
-
+        log.info("[移除移动位置订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForMobilPosition.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
-            log.info("[移除移动位置订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除移动位置订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -682,6 +681,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }else {
             log.info("[报警订阅续期] 设备 {}", device.getDeviceId());
         }
+
         try {
             sipCommander.alarmSubscribe(device, transactionInfo, eventResult -> {
                 ResponseEvent event = (ResponseEvent) eventResult.event;
@@ -711,10 +711,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean removeAlarmSubscribe(Device device, CommonCallback<Boolean> callback) {
-
+        log.info("[移除报警订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForAlarm.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
-            log.info("[移除报警订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除报警订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -995,22 +994,27 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             redisRpcService.subscribeCatalog(id, cycle);
             return;
         }
-        //  目录订阅相关的信息
-        if (device.getSubscribeCycleForCatalog() > 0) {
-            // 订阅周期不同，则先取消
-            removeCatalogSubscribe(device, result->{
-                device.setSubscribeCycleForCatalog(cycle);
-                updateDevice(device);
-                if (cycle > 0) {
+        if (cycle > 0) {
+            //  目录订阅相关的信息
+            if (device.getSubscribeCycleForCatalog() > 0) {
+                // 订阅周期不同，则先取消
+                removeCatalogSubscribe(device, result->{
+                    device.setSubscribeCycleForCatalog(cycle);
+                    updateDevice(device);
                     // 开启订阅
                     addCatalogSubscribe(device, null);
-                }
-            });
+                });
+            }else {
+                // 开启订阅
+                device.setSubscribeCycleForCatalog(cycle);
+                updateDevice(device);
+                addCatalogSubscribe(device, null);
+            }
         }else {
-            // 开启订阅
-            device.setSubscribeCycleForCatalog(cycle);
+            // 取消订阅
+            removeCatalogSubscribe(device, null);
+            device.setSubscribeCycleForCatalog(0);
             updateDevice(device);
-            addCatalogSubscribe(device, null);
         }
     }
 
@@ -1036,25 +1040,30 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             redisRpcService.subscribeMobilePosition(id, cycle, interval);
             return;
         }
-        //  目录订阅相关的信息
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
-            // 订阅周期已经开启，则先取消
-            removeMobilePositionSubscribe(device, result->{
-                // 开启订阅
+        if (cycle > 0) {
+            //  目录订阅相关的信息
+            if (device.getSubscribeCycleForMobilePosition() > 0) {
+                // 订阅周期已经开启，则先取消
+                removeMobilePositionSubscribe(device, result->{
+                    // 开启订阅
+                    device.setSubscribeCycleForMobilePosition(cycle);
+                    device.setMobilePositionSubmissionInterval(interval);
+                    updateDevice(device);
+                    addMobilePositionSubscribe(device, null);
+                });
+            }else {
+                // 订阅未开启
                 device.setSubscribeCycleForMobilePosition(cycle);
                 device.setMobilePositionSubmissionInterval(interval);
                 updateDevice(device);
-                if (cycle > 0) {
-                    addMobilePositionSubscribe(device, null);
-                }
-            });
+                // 开启订阅
+                addMobilePositionSubscribe(device, null);
+            }
         }else {
-            // 订阅未开启
-            device.setSubscribeCycleForMobilePosition(cycle);
-            device.setMobilePositionSubmissionInterval(interval);
+            // 取消订阅
+            removeMobilePositionSubscribe(device, null);
+            device.setSubscribeCycleForMobilePosition(0);
             updateDevice(device);
-            // 开启订阅
-            addMobilePositionSubscribe(device, null);
         }
     }
 
@@ -1063,29 +1072,34 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
         Assert.isTrue(device.isOnLine(), "设备已离线");
-        if (device.getSubscribeCycleForCatalog() == cycle) {
+        if (device.getSubscribeCycleForAlarm() == cycle) {
             return;
         }
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcService.subscribeAlarm(id, cycle);
             return;
         }
-        //  目录订阅相关的信息
-        if (device.getSubscribeCycleForAlarm() > 0) {
-            // 订阅周期不同，则先取消
-            removeAlarmSubscribe(device, result->{
-                device.setSubscribeCycleForCatalog(cycle);
-                updateDevice(device);
-                if (cycle > 0) {
+        if (cycle  > 0) {
+            //  目录订阅相关的信息
+            if (device.getSubscribeCycleForAlarm() > 0) {
+                // 订阅周期不同，则先取消
+                removeAlarmSubscribe(device, result->{
+                    device.setSubscribeCycleForCatalog(cycle);
+                    updateDevice(device);
                     // 开启订阅
                     addAlarmSubscribe(device, null);
-                }
-            });
+                });
+            }else {
+                // 开启订阅
+                device.setSubscribeCycleForAlarm(cycle);
+                updateDevice(device);
+                addAlarmSubscribe(device, null);
+            }
         }else {
-            // 开启订阅
-            device.setSubscribeCycleForAlarm(cycle);
+            // 取消订阅
+            removeAlarmSubscribe(device, null);
+            device.setSubscribeCycleForAlarm(0);
             updateDevice(device);
-            addAlarmSubscribe(device, null);
         }
     }
 

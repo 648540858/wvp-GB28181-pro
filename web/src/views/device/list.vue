@@ -459,8 +459,7 @@ export default {
     subscribeForAlarm: function(data, value) {
       this.$store.dispatch('device/subscribeForAlarm', {
         id: data,
-        cycle: value ? 60 : 0,
-        interval: value ? 5 : 0
+        cycle: value ? 60 : 0
       }).then((data) => {
         this.$message.success({
           showClose: true,

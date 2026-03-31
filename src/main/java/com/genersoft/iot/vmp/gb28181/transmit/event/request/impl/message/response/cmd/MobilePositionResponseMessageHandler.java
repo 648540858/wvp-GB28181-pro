@@ -63,7 +63,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             if (rootElement == null) {
                 log.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
                 try {
-                    responseAck(request, Response.BAD_REQUEST);
+                    responseAckAsync(request, Response.BAD_REQUEST);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     log.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
                 }
@@ -124,7 +124,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
 
             //回复 200 OK
             try {
-                responseAck(request, Response.OK);
+                responseAckAsync(request, Response.OK);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 log.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
             }

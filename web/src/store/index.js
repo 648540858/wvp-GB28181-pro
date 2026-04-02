@@ -23,6 +23,7 @@ import gbRecord from './modules/gbRecord'
 import log from './modules/log'
 import frontEnd from './modules/frontEnd'
 import jtDevice from './modules/jtDevice'
+import alarm from './modules/alarm'
 
 Vue.use(Vuex)
 
@@ -49,7 +50,8 @@ const store = new Vuex.Store({
     gbRecord,
     log,
     frontEnd,
-    jtDevice
+    jtDevice,
+    alarm
   },
   getters
 })

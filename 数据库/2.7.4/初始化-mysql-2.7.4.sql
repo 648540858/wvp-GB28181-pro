@@ -524,3 +524,17 @@ create table IF NOT EXISTS wvp_jt_channel (
                                create_time character varying(50) not null COMMENT '创建时间',
                                constraint uk_jt_channel_id_device_id unique (terminal_db_id, channel_id)
 );
+
+-- 报警信息表，表结构参考alarm类
+drop table IF EXISTS wvp_alarm;
+create table IF NOT EXISTS wvp_alarm (
+                          id serial primary key COMMENT '主键ID',
+                          channelId integer COMMENT '关联通道的数据库id',
+                          description character varying(255) COMMENT '报警描述',
+                          snapPath character varying(255) COMMENT '报警快照路径',
+                          recordPath character varying(255) COMMENT '报警录像路径',
+                          longitude double precision COMMENT '报警附带的经度',
+                          latitude double precision COMMENT '报警附带的纬度',
+                          alarmType integer COMMENT '报警类别',
+                          alarmTime bigint COMMENT '报警时间'
+);

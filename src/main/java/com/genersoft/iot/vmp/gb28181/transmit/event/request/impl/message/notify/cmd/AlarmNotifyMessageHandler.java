@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -60,9 +59,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IDeviceAlarmService deviceAlarmService;
-
-    @Autowired
     private IDeviceChannelService deviceChannelService;
 
     private final ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
@@ -111,6 +107,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
             try {
                 Device device = sipMsgInfo.getDevice();
+                System.out.println(device.getHostAddress() + ": " +  evt.getRequest());
                 Element deviceIdElement = sipMsgInfo.getRootElement().element("DeviceID");
                 String channelId = deviceIdElement.getText();
 
@@ -196,7 +193,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 log.debug("存储报警信息、报警分类");
                 // 存储报警信息、报警分类
                 if (sipConfig.isAlarm()) {
-                    deviceAlarmService.add(deviceAlarm);
+//                    deviceAlarmService.add(deviceAlarm);
                 }
 
                 if (redisCatchStorage.deviceIsOnline(sipMsgInfo.getDevice().getDeviceId())) {

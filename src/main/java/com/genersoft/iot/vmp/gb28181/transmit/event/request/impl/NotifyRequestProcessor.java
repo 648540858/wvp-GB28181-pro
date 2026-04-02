@@ -147,7 +147,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				deviceAlarm.setLatitude(0.00);
 			}
 			log.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
-			if ("4".equals(deviceAlarm.getAlarmMethod())) {
+			if ("4".equals(deviceAlarm.getAlarmMethod())) { // GPS报警
 				DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
 				if (deviceChannel == null) {
 					log.warn("[解析报警通知] 未找到通道：{}/{}", device.getDeviceId(), channelId);

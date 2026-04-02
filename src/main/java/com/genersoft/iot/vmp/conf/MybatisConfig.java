@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.genersoft.iot.vmp.service.bean.AlarmType;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.type.EnumOrdinalTypeHandler;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -54,6 +56,7 @@ public class MybatisConfig {
             config.setLogImpl(StdOutImpl.class);
         }
         config.setMapUnderscoreToCamelCase(true);
+        config.getTypeHandlerRegistry().register(AlarmType.class, EnumOrdinalTypeHandler.class);
         sqlSessionFactory.setConfiguration(config);
         sqlSessionFactory.setDatabaseIdProvider(databaseIdProvider);
         return sqlSessionFactory.getObject();

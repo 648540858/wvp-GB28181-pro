@@ -47,3 +47,25 @@ drop index uk_media_server_unique_ip_http_port on wvp_media_server;
 
 ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
 ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;
+
+drop table IF EXISTS wvp_alarm;
+create table IF NOT EXISTS wvp_alarm (
+    id serial primary key,
+    channelId integer,
+    description character varying(255),
+    snapPath character varying(255),
+    recordPath character varying(255),
+    longitude double precision,
+    latitude double precision,
+    alarmType integer,
+    alarmTime bigint
+)
+COMMENT ON COLUMN wvp_alarm.id IS '主键ID';
+COMMENT ON COLUMN wvp_alarm.channelId IS '关联通道的数据库id';
+COMMENT ON COLUMN wvp_alarm.description IS '报警描述';
+COMMENT ON COLUMN wvp_alarm.snapPath IS '报警快照路径';
+COMMENT ON COLUMN wvp_alarm.recordPath IS '报警录像路径';
+COMMENT ON COLUMN wvp_alarm.longitude IS '报警附带的经度';
+COMMENT ON COLUMN wvp_alarm.latitude IS '报警附带的纬度';
+COMMENT ON COLUMN wvp_alarm.alarmType IS '报警类别';
+COMMENT ON COLUMN wvp_alarm.alarmTime IS '报警时间';

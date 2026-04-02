@@ -164,6 +164,19 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/alarm',
+    component: Layout,
+    redirect: '/alarm',
+    children: [
+      {
+        path: '',
+        name: 'AlarmManage',
+        component: () => import('@/views/alarm/index'),
+        meta: { title: '报警管理', icon: 'el-icon-bell' }
+      }
+    ]
+  },
+  {
     path: '/recordPlan',
     component: Layout,
     redirect: '/recordPlan',

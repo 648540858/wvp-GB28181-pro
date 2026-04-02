@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.service.bean.AlarmType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -12,9 +13,6 @@ import java.util.Set;
 @Schema(description = "报警信息")
 @Data
 public class DeviceAlarm {
-
-    @Schema(description = "数据库id")
-    private String id;
 
     @Schema(description = "设备的国标编号")
     private String deviceId;
@@ -220,44 +218,76 @@ public class DeviceAlarm {
 		if (alarmMethodSet.contains("6")) {
 			switch (alarmType) {
 				case "1":
-					result = "人工视频报警";
+					result = "存储设备磁盘故障报警";
 					break;
 				case "2":
-					result = "运动目标检测报警";
-					break;
-				case "3":
-					result = "遗留物检测报警";
-					break;
-				case "4":
-					result = "物体移除检测报警";
-					break;
-				case "5":
-					result = "绊线检测报警";
-					break;
-				case "6":
-					result = "入侵检测报警";
-					break;
-				case "7":
-					result = "逆行检测报警";
-					break;
-				case "8":
-					result = "徘徊检测报警";
-					break;
-				case "9":
-					result = "流量统计报警";
-					break;
-				case "10":
-					result = "密度检测报警";
-					break;
-				case "11":
-					result = "视频异常检测报警";
-					break;
-				case "12":
-					result = "快速移动报警";
+					result = "存储设备风扇故障报警";
 					break;
 			}
 		}
 		return result;
+	}
+
+	public AlarmType getAlarmTypeEnum() {
+		if (alarmType == null) {
+			return null;
+		}
+		char[] charArray = alarmMethod.toCharArray();
+		Set<String> alarmMethodSet = new HashSet<>();
+		for (char c : charArray) {
+			alarmMethodSet.add(Character.toString(c));
+		}
+		if (alarmMethodSet.contains("2")) {
+			switch (alarmType) {
+				case "1":
+					return AlarmType.VideoLoss;
+				case "2":
+					return AlarmType.DeviceTamper;
+				case "3":
+					return AlarmType.StorageFull;
+				case "4":
+					return AlarmType.DeviceHighTemperature;
+				case "5":
+					return AlarmType.DeviceLowTemperature;
+			}
+		}
+		if (alarmMethodSet.contains("5")) {
+			switch (alarmType) {
+				case "1":
+					return AlarmType.ManualVideo;
+				case "2":
+					return AlarmType.MotionDetection;
+				case "3":
+					return AlarmType.LeftObjectDetection;
+				case "4":
+					return AlarmType.ObjectRemovalDetection;
+				case "5":
+					return AlarmType.TripwireDetection;
+				case "6":
+					return AlarmType.IntrusionDetection;
+				case "7":
+					return AlarmType.ReverseDetection;
+				case "8":
+					return AlarmType.LoiteringDetection;
+				case "9":
+					return AlarmType.FlowStatistics;
+				case "10":
+					return AlarmType.DensityDetection;
+				case "11":
+					return AlarmType.VideoAbnormal;
+				case "12":
+					return AlarmType.RapidMovement;
+			}
+		}
+		if (alarmMethodSet.contains("6")) {
+			switch (alarmType) {
+				case "1":
+					return AlarmType.StorageFault;
+				case "2":
+					return AlarmType.StorageFanFault;
+			}
+		}
+		return null;
 	}
 
 	@Schema(description = "报警类型描述")

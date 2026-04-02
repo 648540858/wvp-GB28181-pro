@@ -190,12 +190,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     continue;
                 }
 
-                log.debug("存储报警信息、报警分类");
-                // 存储报警信息、报警分类
-                if (sipConfig.isAlarm()) {
-//                    deviceAlarmService.add(deviceAlarm);
-                }
-
                 if (redisCatchStorage.deviceIsOnline(sipMsgInfo.getDevice().getDeviceId())) {
                     publisher.deviceAlarmEventPublish(deviceAlarm);
                 }

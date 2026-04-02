@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
+import com.genersoft.iot.vmp.gb28181.event.alarm.DeviceAlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.device.DeviceOfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -41,7 +41,7 @@ public class EventPublisher {
 	 * @param deviceAlarm
 	 */
 	public void deviceAlarmEventPublish(DeviceAlarm deviceAlarm) {
-		AlarmEvent alarmEvent = new AlarmEvent(this);
+		DeviceAlarmEvent alarmEvent = new DeviceAlarmEvent(this);
 		alarmEvent.setAlarmInfo(deviceAlarm);
 		applicationEventPublisher.publishEvent(alarmEvent);
 	}

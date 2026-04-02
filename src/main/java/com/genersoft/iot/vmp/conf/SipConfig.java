@@ -32,7 +32,5 @@ public class SipConfig {
 
 	Integer registerTimeInterval = 120;
 
-	private boolean alarm = false;
-
 	private long timeout = 1000;
 }

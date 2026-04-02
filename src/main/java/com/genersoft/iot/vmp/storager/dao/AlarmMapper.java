@@ -13,16 +13,23 @@ import java.util.List;
 public interface AlarmMapper {
 
     @Select("<script>" +
-            "SELECT * FROM wvp_alarm WHERE 1=1" +
+            "SELECT " +
+            " wa.*," +
+            " coalesce(wdc.gb_device_id, wdc.device_id) as channelDeviceId, " +
+            " coalesce(wdc.gb_name, wdc.name) as channelName " +
+            " FROM wvp_alarm wa " +
+            " LEFT join wvp_device_channel wdc " +
+            " on wdc.id = wa.channel_id " +
+            " WHERE 1=1" +
             "<if test='alarmType != null and alarmType.size() > 0'>" +
-            " AND alarmType IN " +
+            " AND wa.alarm_type IN " +
             "<foreach collection='alarmType' item='item' open='(' separator=',' close=')'>" +
             "#{item}" +
             "</foreach>" +
             "</if>" +
-            "<if test='beginTimeLong != null'> AND alarmTime &gt;= #{beginTimeLong}</if>" +
-            "<if test='endTimeLong != null'> AND alarmTime &lt;= #{endTimeLong}</if>" +
-            " ORDER BY alarmTime DESC" +
+            "<if test='beginTimeLong != null'> AND wa.alarm_time &gt;= #{beginTimeLong}</if>" +
+            "<if test='endTimeLong != null'> AND wa.alarm_time &lt;= #{endTimeLong}</if>" +
+            " ORDER BY wa.alarm_time DESC" +
             "</script>")
     List<Alarm> getAlarms(@Param("alarmType") List<AlarmType> alarmType,
                           @Param("beginTimeLong") Long beginTimeLong,

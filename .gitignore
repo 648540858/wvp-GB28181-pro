@@ -31,3 +31,5 @@ certificates
 /.vs
 /docker/volumes
 /docker/wvp/config/jwk.json
+/打包/
+/snap/

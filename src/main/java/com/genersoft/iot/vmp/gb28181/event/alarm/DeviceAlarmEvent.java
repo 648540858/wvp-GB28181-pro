@@ -11,12 +11,12 @@ import java.io.Serial;
  * @data: 2021-01-20
  */
 
-public class AlarmEvent extends ApplicationEvent {
+public class DeviceAlarmEvent extends ApplicationEvent {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public AlarmEvent(Object source) {
+    public DeviceAlarmEvent(Object source) {
         super(source);
     }
 

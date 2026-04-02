@@ -78,7 +78,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="description" label="报警描述" show-overflow-tooltip />
-        <el-table-column prop="channelId" label="通道ID" width="90" />
+        <el-table-column prop="channelName" label="通道名称" width="150" />
+        <el-table-column prop="channelDeviceId" label="通道编号" width="180" />
         <el-table-column prop="longitude" label="经度" width="110" />
         <el-table-column prop="latitude" label="纬度" width="110" />
         <el-table-column label="报警时间" width="170">

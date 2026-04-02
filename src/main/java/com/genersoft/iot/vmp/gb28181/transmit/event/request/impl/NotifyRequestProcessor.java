@@ -94,9 +94,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	 * 处理alarm设备报警Notify
 	 */
 	private void processNotifyAlarm(RequestEvent evt) {
-		if (!sipConfig.isAlarm()) {
-			return;
-		}
 		log.info("[收到Notify-Alarm]：{}", evt.getRequest());
 		try {
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);

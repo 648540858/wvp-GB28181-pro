@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.gb28181.event.alarm.DeviceAlarmEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -51,6 +53,11 @@ public class SseSessionManager {
             return;
         }
         sendForAll("keepalive", "alive");
+    }
+    @Async
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(DeviceAlarmEvent event) {
+        sendForAll("message", event.getAlarmInfo());
     }
 
 

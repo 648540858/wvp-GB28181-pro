@@ -18,6 +18,12 @@ public class Alarm {
     @Schema(description = "关联通道的数据库id")
     private int channelId;
 
+    @Schema(description = "关联通道国标编号")
+    private String channelDeviceId;
+
+    @Schema(description = "关联通道国标名称")
+    private String channelName;
+
     @Schema(description = "报警描述")
     private String description;
 

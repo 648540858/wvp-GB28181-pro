@@ -145,14 +145,14 @@ DELIMITER ;
 drop table IF EXISTS wvp_alarm;
 create table IF NOT EXISTS wvp_alarm (
     id serial primary key COMMENT '主键ID',
-    channelId integer COMMENT '关联通道的数据库id',
+    channel_id integer COMMENT '关联通道的数据库id',
     description character varying(255) COMMENT '报警描述',
-    snapPath character varying(255) COMMENT '报警快照路径',
-    recordPath character varying(255) COMMENT '报警录像路径',
+    snap_path character varying(255) COMMENT '报警快照路径',
+    record_path character varying(255) COMMENT '报警录像路径',
     longitude double precision COMMENT '报警附带的经度',
     latitude double precision COMMENT '报警附带的纬度',
-    alarmType integer COMMENT '报警类别',
-    alarmTime bigint COMMENT '报警时间'
+    alarm_type integer COMMENT '报警类别',
+    alarm_time bigint COMMENT '报警时间'
 );
 
 

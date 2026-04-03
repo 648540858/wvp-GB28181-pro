@@ -72,13 +72,13 @@ public class AlarmServiceImpl implements IAlarmService {
             }
             alarm.setChannelId(deviceChannel.getId());
             // 分配一个快照路径，后续在去补充快照文件
-            alarm.setSnapPath("snap/alarm_" + UUID.randomUUID() + ".jpg");
+            alarm.setSnapPath("snap/alarm_" + notify.getChannelId() + "_" + System.currentTimeMillis() + ".jpg");
             alarmQueue.offer(alarm);
         }
     }
 
     @Scheduled(fixedDelay = 500)
-    public void executeTaskQueue() {
+    public void executeAlarmQueue() {
         if (alarmQueue.isEmpty()) {
             return;
         }
@@ -94,9 +94,12 @@ public class AlarmServiceImpl implements IAlarmService {
             return;
         }
         // 批量保存到数据库
-        alarmMapper.insertAlarms(handlerCatchDataList);
-        // 异步处理快照的生成和保存，避免影响报警信息的保存效率
-
+        int batchSize = 1000;
+        for (int i = 0; i < handlerCatchDataList.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, handlerCatchDataList.size());
+            List<Alarm> batchList = handlerCatchDataList.subList(i, end);
+            alarmMapper.insertAlarms(batchList);
+        }
 
     }
 

@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.service.bean.Alarm;
 import com.genersoft.iot.vmp.service.bean.AlarmType;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -43,6 +40,12 @@ public interface AlarmMapper {
             "</script>")
     void deleteAlarms(@Param("ids") List<Long> ids);
 
-
+    @Insert("<script>" +
+            "INSERT INTO wvp_alarm (channel_id, description, snap_path, record_path, longitude, latitude, alarm_type, alarm_time)" +
+            " VALUES " +
+            "<foreach collection='handlerCatchDataList' item='item' open='(' separator=',' close=')'>" +
+            "#{item.channelId}, #{item.description}, #{item.snapPath}, #{item.recordPath}, #{item.longitude}, #{item.latitude}, #{item.alarmType}, #{item.alarmTime}" +
+            "</foreach>" +
+            "</script>")
     void insertAlarms(List<Alarm> handlerCatchDataList);
 }

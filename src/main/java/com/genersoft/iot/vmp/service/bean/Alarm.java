@@ -47,13 +47,13 @@ public class Alarm {
     @Schema(description = "报警时间")
     private Long alarmTime;
 
-    public static Alarm buildFromDeviceAlarmNotify(DeviceAlarmNotify deviceAlarmNotify) {
+    public static Alarm buildFromDeviceAlarmNotify(DeviceAlarmNotify notify) {
         Alarm alarm = new Alarm();
-        alarm.setDescription(deviceAlarmNotify.getAlarmDescription());
-        alarm.setAlarmType(deviceAlarmNotify.getAlarmTypeEnum());
-        alarm.setAlarmTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(deviceAlarmNotify.getAlarmTime()));
-        alarm.setLongitude(deviceAlarmNotify.getLongitude());
-        alarm.setLatitude(deviceAlarmNotify.getLatitude());
+        alarm.setDescription(notify.getAlarmDescription());
+        alarm.setAlarmType(notify.getAlarmTypeEnum());
+        alarm.setAlarmTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(notify.getAlarmTime()));
+        alarm.setLongitude(notify.getLongitude());
+        alarm.setLatitude(notify.getLatitude());
         return alarm;
     }
 

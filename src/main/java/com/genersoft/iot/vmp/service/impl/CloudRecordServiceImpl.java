@@ -223,18 +223,12 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
         int limitCount = 50;
         int resultCount = 0;
-        if (all.size() > limitCount) {
-            for (int i = 0; i < all.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > all.size()) {
-                    toIndex = all.size();
-                }
-                resultCount += cloudRecordServiceMapper.updateCollectList(result, all.subList(i, toIndex));
-
-            }
-        }else {
-            resultCount = cloudRecordServiceMapper.updateCollectList(result, all);
+        for (int i = 0; i < all.size(); i += limitCount) {
+            int end = Math.min(i + limitCount, all.size());
+            List<CloudRecordItem> batchList = all.subList(i, end);
+            resultCount += cloudRecordServiceMapper.updateCollectList(result, batchList);
         }
+
         return resultCount;
     }
 

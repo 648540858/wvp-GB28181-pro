@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.service.bean.Alarm;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -173,29 +174,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         int limitCount = 500;
         if (!addChannelList.isEmpty()) {
-            if (addChannelList.size() > limitCount) {
-                for (int i = 0; i < addChannelList.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > addChannelList.size()) {
-                        toIndex = addChannelList.size();
-                    }
-                    result += channelMapper.batchAdd(addChannelList.subList(i, toIndex));
-                }
-            }else {
-                result += channelMapper.batchAdd(addChannelList);
+            for (int i = 0; i < addChannelList.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, addChannelList.size());
+                List<DeviceChannel> batchList = addChannelList.subList(i, end);
+                result += channelMapper.batchAdd(batchList);
             }
         }
         if (!updateChannelList.isEmpty()) {
-            if (updateChannelList.size() > limitCount) {
-                for (int i = 0; i < updateChannelList.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > updateChannelList.size()) {
-                        toIndex = updateChannelList.size();
-                    }
-                    result += channelMapper.batchUpdate(updateChannelList.subList(i, toIndex));
-                }
-            }else {
-                result += channelMapper.batchUpdate(updateChannelList);
+            for (int i = 0; i < updateChannelList.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, updateChannelList.size());
+                List<DeviceChannel> batchList = updateChannelList.subList(i, end);
+                result += channelMapper.batchUpdate(batchList);
             }
         }
         return result;
@@ -461,29 +450,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         int limitCount = 500;
         if (!addChannels.isEmpty()) {
-            if (addChannels.size() > limitCount) {
-                for (int i = 0; i < addChannels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > addChannels.size()) {
-                        toIndex = addChannels.size();
-                    }
-                    channelMapper.batchAdd(addChannels.subList(i, toIndex));
-                }
-            }else {
-                channelMapper.batchAdd(addChannels);
+            for (int i = 0; i < addChannels.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, addChannels.size());
+                List<DeviceChannel> batchList = addChannels.subList(i, end);
+                channelMapper.batchAdd(batchList);
             }
         }
         if (!updateChannels.isEmpty()) {
-            if (updateChannels.size() > limitCount) {
-                for (int i = 0; i < updateChannels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > updateChannels.size()) {
-                        toIndex = updateChannels.size();
-                    }
-                    channelMapper.batchUpdate(updateChannels.subList(i, toIndex));
-                }
-            }else {
-                channelMapper.batchUpdate(updateChannels);
+            for (int i = 0; i < updateChannels.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, updateChannels.size());
+                List<DeviceChannel> batchList = updateChannels.subList(i, end);
+                channelMapper.batchUpdate(batchList);
             }
             // 不对收到的通道做比较，已确定是否真的发生变化，所以不发送更新通知
 

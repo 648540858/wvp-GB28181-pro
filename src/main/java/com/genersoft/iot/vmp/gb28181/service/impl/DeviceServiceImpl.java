@@ -239,17 +239,12 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
         int limitCount = 300;
-        if (offlineDevices.size() > limitCount) {
-            for (int i = 0; i < offlineDevices.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > offlineDevices.size()) {
-                    toIndex = offlineDevices.size();
-                }
-                deviceMapper.offlineByList(offlineDevices.subList(i, toIndex));
-            }
-        }else {
-            deviceMapper.offlineByList(offlineDevices);
+        for (int i = 0; i < offlineDevices.size(); i += limitCount) {
+            int endIndex = Math.min(i + limitCount, offlineDevices.size());
+            List<Device> subList = offlineDevices.subList(i, endIndex);
+            deviceMapper.offlineByList(subList);
         }
+
         for (Device device : offlineDevices) {
             device.setOnLine(false);
             redisCatchStorage.updateDevice(device);
@@ -851,16 +846,10 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             }
             int limitCount = 300;
             if (!deviceList.isEmpty()) {
-                if (deviceList.size() > limitCount) {
-                    for (int i = 0; i < deviceList.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > deviceList.size()) {
-                            toIndex = deviceList.size();
-                        }
-                        deviceMapper.batchUpdate(deviceList.subList(i, toIndex));
-                    }
-                }else {
-                    deviceMapper.batchUpdate(deviceList);
+                for (int i = 0; i < deviceList.size(); i += limitCount) {
+                    int endIndex = Math.min(i + limitCount, deviceList.size());
+                    List<Device> subList = deviceList.subList(i, endIndex);
+                    deviceMapper.batchUpdate(subList);
                 }
                 for (Device device : deviceList) {
                     redisCatchStorage.updateDevice(device);

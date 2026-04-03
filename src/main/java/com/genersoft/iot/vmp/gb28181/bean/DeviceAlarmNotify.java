@@ -129,7 +129,7 @@ public class DeviceAlarmNotify {
 					return AlarmType.DeviceLowTemperature;
 			}
 		}
-		if (alarmMethod == DeviceAlarmMethod.GPS.getVal()) {
+		if (alarmMethod == DeviceAlarmMethod.Video.getVal()) {
 			// 5为视频报警
 			// 报警方式为5时,
 			// 取值如下:

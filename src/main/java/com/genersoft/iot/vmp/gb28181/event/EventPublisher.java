@@ -38,11 +38,10 @@ public class EventPublisher {
 
 	/**
 	 * 设备报警事件
-	 * @param deviceAlarm
 	 */
-	public void deviceAlarmEventPublish(DeviceAlarm deviceAlarm) {
+	public void deviceAlarmEventPublish(List<DeviceAlarmNotify> deviceAlarmList) {
 		DeviceAlarmEvent alarmEvent = new DeviceAlarmEvent(this);
-		alarmEvent.setAlarmInfo(deviceAlarm);
+		alarmEvent.setDeviceAlarmList(deviceAlarmList);
 		applicationEventPublisher.publishEvent(alarmEvent);
 	}
 

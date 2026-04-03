@@ -183,7 +183,7 @@ public class UserSetting {
     /**
      * jwk文件路径，若不指定则使用resources目录下的jwk.json
      */
-    private String jwkFile = "classpath:jwk.json";
+    private String jwkFile = null;
 
     /**
      * wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
@@ -228,6 +228,12 @@ public class UserSetting {
      * 对于识别为设备的国标设备的，是否默认开启位置订阅
      */
     private boolean subscribeMobilePosition = false;
+
+    /**
+     * 处理报警消息时，会缓存通道数据，如果超出则丢弃低热度消息，被丢弃的通道下次使用就需要重新查询数据库，默认10000，
+     * 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力
+     */
+    private long alarmCatchSize = 10000;
 
 
 

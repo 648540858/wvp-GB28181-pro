@@ -42,4 +42,7 @@ public interface AlarmMapper {
             "</foreach>" +
             "</script>")
     void deleteAlarms(@Param("ids") List<Long> ids);
+
+
+    void insertAlarms(List<Alarm> handlerCatchDataList);
 }

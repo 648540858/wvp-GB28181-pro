@@ -33,3 +33,4 @@ certificates
 /docker/wvp/config/jwk.json
 /打包/
 /snap/
+/config/

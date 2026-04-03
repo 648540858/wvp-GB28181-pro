@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.service.bean;
 
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarmNotify;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,16 +36,26 @@ public class Alarm {
     private String recordPath;
 
     @Schema(description = "报警附带的经度")
-    private String longitude;
+    private Double longitude;
 
     @Schema(description = "报警附带的纬度")
-    private String latitude;
+    private Double latitude;
 
     @Schema(description = "报警类别")
     private AlarmType alarmType;
 
     @Schema(description = "报警时间")
     private Long alarmTime;
+
+    public static Alarm buildFromDeviceAlarmNotify(DeviceAlarmNotify deviceAlarmNotify) {
+        Alarm alarm = new Alarm();
+        alarm.setDescription(deviceAlarmNotify.getAlarmDescription());
+        alarm.setAlarmType(deviceAlarmNotify.getAlarmTypeEnum());
+        alarm.setAlarmTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(deviceAlarmNotify.getAlarmTime()));
+        alarm.setLongitude(deviceAlarmNotify.getLongitude());
+        alarm.setLatitude(deviceAlarmNotify.getLatitude());
+        return alarm;
+    }
 
 
 

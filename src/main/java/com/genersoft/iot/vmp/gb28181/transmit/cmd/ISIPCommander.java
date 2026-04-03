@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarmNotify;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
@@ -304,7 +304,7 @@ public interface ISIPCommander {
 	 * @param deviceAlarm 报警信息信息
 	 * @return
 	 */
-	void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
+	void sendAlarmMessage(Device device, DeviceAlarmNotify deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
 
 
 }

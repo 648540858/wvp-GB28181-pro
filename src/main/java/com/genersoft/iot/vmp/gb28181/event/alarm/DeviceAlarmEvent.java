@@ -1,16 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.event.alarm;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarmNotify;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.Serial;
+import java.util.List;
 
 /**
  * @description: 报警事件
  * @author: lawrencehj
  * @data: 2021-01-20
  */
-
+@Getter
+@Setter
 public class DeviceAlarmEvent extends ApplicationEvent {
 
     @Serial
@@ -20,13 +24,6 @@ public class DeviceAlarmEvent extends ApplicationEvent {
         super(source);
     }
 
-    private DeviceAlarm deviceAlarm;
+    private List<DeviceAlarmNotify> deviceAlarmList;
 
-    public DeviceAlarm getAlarmInfo() {
-        return deviceAlarm;
-    }
-
-    public void setAlarmInfo(DeviceAlarm deviceAlarm) {
-        this.deviceAlarm = deviceAlarm;
-    }
 }

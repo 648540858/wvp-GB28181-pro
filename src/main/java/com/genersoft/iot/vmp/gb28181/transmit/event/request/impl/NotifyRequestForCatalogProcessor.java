@@ -56,10 +56,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private IGbChannelService channelService;
 
-//	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
-//	public void showSize(){
-//		log.warn("[notify-目录订阅] 待处理消息数量： {}", taskQueue.size() );
-//	}
 
 	public void process(RequestEvent evt) {
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {

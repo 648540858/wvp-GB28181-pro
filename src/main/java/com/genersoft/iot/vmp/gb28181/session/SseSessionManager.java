@@ -21,9 +21,9 @@ public class SseSessionManager {
     @Autowired
     private DynamicTask dynamicTask;
 
-    public SseEmitter conect(String browserId){
+    public SseEmitter conect(String browserId) {
         SseEmitter sseEmitter = new SseEmitter(0L);
-        sseEmitter.onError((err)-> {
+        sseEmitter.onError((err) -> {
             log.error("[SSE推送] 连接错误, 浏览器 ID: {}, {}", browserId, err.getMessage());
             sseSessionMap.remove(browserId);
             sseEmitter.completeWithError(err);
@@ -48,16 +48,19 @@ public class SseSessionManager {
     }
 
     @Scheduled(fixedRate = 1000)   //每1秒执行一次
-    public void execute(){
-        if (sseSessionMap.isEmpty()){
+    public void execute() {
+        if (sseSessionMap.isEmpty()) {
             return;
         }
         sendForAll("keepalive", "alive");
     }
+
     @Async
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(DeviceAlarmEvent event) {
-        sendForAll("message", event.getAlarmInfo());
+        event.getDeviceAlarmList().forEach(
+                notify -> sendForAll("message", notify)
+        );
     }
 
 
@@ -66,7 +69,8 @@ public class SseSessionManager {
             SseEmitter sseEmitter = sseSessionMap.get(browserId);
             if (sseEmitter == null) {
                 continue;
-            };
+            }
+            ;
             try {
                 sseEmitter.send(SseEmitter.event().name(event).data(data));
             } catch (Exception e) {

@@ -1408,7 +1408,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException {
+    public void sendAlarmMessage(Device device, DeviceAlarmNotify deviceAlarm) throws InvalidArgumentException, SipException, ParseException {
         if (device == null) {
             return;
         }

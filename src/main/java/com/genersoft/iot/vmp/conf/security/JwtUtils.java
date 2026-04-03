@@ -104,8 +104,9 @@ public class JwtUtils implements InitializingBean {
         }
         String jwkFile = userSetting.getJwkFile();
         if (jwkFile == null || jwkFile.trim().isEmpty()) {
-            log.error("[API AUTH] JWK文件路径未配置！");
-            return createDefaultRsaKey();
+            log.error("[API AUTH] JWK文件路径未配置！使用默认配置路径：./config/jwk.json");
+            jwkFile = "config" + File.separator + "jwk.json"; // 默认外部路径
+            return createAndPersistDefaultRsaKey(jwkFile);
         }
 
         // 尝试读取JWK文件（自动处理classpath/本地文件，用try-with-resources自动关流，无泄露）
@@ -131,7 +132,7 @@ public class JwtUtils implements InitializingBean {
             log.error("[API AUTH] JWK文件中无有效RSA私钥（仅公钥无法签名JWT）");
 
         } catch (IOException e) {
-            log.error("[API AUTH] 读取JWK文件失败（路径：{}）", jwkFile, e);
+            log.error("[API AUTH] 读取JWK文件失败（路径：{}）", jwkFile);
         } catch (Exception e) {
             log.error("[API AUTH] 解析JWK文件失败（JSON格式错误或密钥无效）", e);
         }
@@ -154,7 +155,7 @@ public class JwtUtils implements InitializingBean {
                 return resource.getInputStream();
             }
             // throw new IOException("classpath下JWK文件不存在：" + filePath);
-        } 
+        }
         {
             File file = determinePersistPath(jwkFile).toFile();// 外部配置与classpath失败场景下
             if (file.exists() && file.canRead()) {

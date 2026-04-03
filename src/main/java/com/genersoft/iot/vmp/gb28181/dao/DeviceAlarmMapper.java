@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarmNotify;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -19,7 +19,7 @@ public interface DeviceAlarmMapper {
 
     @Insert("INSERT INTO wvp_device_alarm (device_id, channel_id, alarm_priority, alarm_method, alarm_time, alarm_description, longitude, latitude, alarm_type , create_time ) " +
             "VALUES (#{deviceId}, #{channelId}, #{alarmPriority}, #{alarmMethod}, #{alarmTime}, #{alarmDescription}, #{longitude}, #{latitude}, #{alarmType}, #{createTime})")
-    int add(DeviceAlarm alarm);
+    int add(DeviceAlarmNotify alarm);
 
 
     @Select( value = {" <script>" +
@@ -34,8 +34,8 @@ public interface DeviceAlarmMapper {
             " <if test=\"endTime != null\" >  AND alarm_time &lt;= #{endTime} </if>" +
             " ORDER BY alarm_time ASC " +
             " </script>"})
-    List<DeviceAlarm> query(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("alarmPriority") String alarmPriority, @Param("alarmMethod") String alarmMethod,
-                            @Param("alarmType") String alarmType, @Param("startTime") String startTime, @Param("endTime") String endTime);
+    List<DeviceAlarmNotify> query(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("alarmPriority") String alarmPriority, @Param("alarmMethod") String alarmMethod,
+                                  @Param("alarmType") String alarmType, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
 
     @Delete(" <script>" +

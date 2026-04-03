@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
@@ -71,7 +72,7 @@ public class AlarmServiceImpl implements IAlarmService {
             }
             alarm.setChannelId(deviceChannel.getId());
             // 分配一个快照路径，后续在去补充快照文件
-            alarm.setSnapPath("/snap/alarm_" + alarm.getId() + ".jpg");
+            alarm.setSnapPath("snap/alarm_" + UUID.randomUUID() + ".jpg");
             alarmQueue.offer(alarm);
         }
     }

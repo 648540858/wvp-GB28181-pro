@@ -43,11 +43,11 @@ public interface AlarmMapper {
     @Insert("<script>" +
             "INSERT INTO wvp_alarm (channel_id, description, snap_path, record_path, longitude, latitude, alarm_type, alarm_time)" +
             " VALUES " +
-            "<foreach collection='handlerCatchDataList' item='item' open='(' separator=',' close=')'>" +
-            "#{item.channelId}, #{item.description}, #{item.snapPath}, #{item.recordPath}, #{item.longitude}, #{item.latitude}, #{item.alarmType}, #{item.alarmTime}" +
+            "<foreach collection='handlerCatchDataList' item='item' separator=','>" +
+            "(#{item.channelId}, #{item.description}, #{item.snapPath}, #{item.recordPath}, #{item.longitude}, #{item.latitude}, #{item.alarmType}, #{item.alarmTime})" +
             "</foreach>" +
             "</script>")
-    void insertAlarms(List<Alarm> handlerCatchDataList);
+    void insertAlarms(@Param("handlerCatchDataList") List<Alarm> handlerCatchDataList);
 
     @Select("SELECT snap_path FROM wvp_alarm WHERE id = #{id}")
     String getSnapPathById(@Param("id") Long id);

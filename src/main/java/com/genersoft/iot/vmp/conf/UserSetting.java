@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.genersoft.iot.vmp.service.bean.AlarmType;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.annotation.Order;
@@ -239,6 +240,11 @@ public class UserSetting {
      * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
      */
     private boolean snapByPullStream = false;
+
+    /**
+     * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制
+     */
+    private List<AlarmType> allowedAlarmType = new ArrayList<>();
 
 
 }

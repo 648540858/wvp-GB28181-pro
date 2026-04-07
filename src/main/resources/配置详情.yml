@@ -270,6 +270,9 @@ user-settings:
     alarm-catch-size: 10000
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     snap-by-pull-stream: true
+    # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
+    allowed-alarm-type:
+      - IntrusionDetection
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

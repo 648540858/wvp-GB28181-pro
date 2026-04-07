@@ -104,7 +104,7 @@ public class JwtUtils implements InitializingBean {
         }
         String jwkFile = userSetting.getJwkFile();
         if (jwkFile == null || jwkFile.trim().isEmpty()) {
-            log.error("[API AUTH] JWK文件路径未配置！使用默认配置路径：./config/jwk.json");
+            log.warn("[API AUTH] JWK文件路径未配置！使用默认配置路径：./config/jwk.json");
             jwkFile = "config" + File.separator + "jwk.json"; // 默认外部路径
             return createAndPersistDefaultRsaKey(jwkFile);
         }

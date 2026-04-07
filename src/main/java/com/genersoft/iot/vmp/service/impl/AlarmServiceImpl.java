@@ -77,6 +77,10 @@ public class AlarmServiceImpl implements IAlarmService {
         log.info("收到设备报警事件，数量：{}", event.getDeviceAlarmList().size());
         for (DeviceAlarmNotify notify : event.getDeviceAlarmList()) {
             Alarm alarm = Alarm.buildFromDeviceAlarmNotify(notify);
+            if (!userSetting.getAllowedAlarmType().isEmpty() && !userSetting.getAllowedAlarmType().contains(alarm.getAlarmType())) {
+                log.debug("报警类型不在允许的范围内，alarmType：{}，alarmId：{}", alarm.getAlarmType(), alarm.getId());
+                continue;
+            }
             String key = notify.getDeviceId() + notify.getChannelId();
             DeviceChannel deviceChannel = channelCache.get(key, k -> deviceChannelService.getOneForSource(notify.getDeviceId(), notify.getChannelId()));
             if (deviceChannel == null) {

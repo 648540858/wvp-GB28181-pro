@@ -23,3 +23,18 @@ export function deleteAlarms(ids) {
     data: ids
   })
 }
+
+export function clearAlarms(params) {
+  const { alarmType, beginTime, endTime } = params || {}
+  const query = new URLSearchParams()
+  if (alarmType && alarmType.length > 0) {
+    alarmType.forEach(t => query.append('alarmType', t))
+  }
+  if (beginTime) query.append('beginTime', beginTime)
+  if (endTime) query.append('endTime', endTime)
+  const qs = query.toString()
+  return request({
+    method: 'delete',
+    url: `/api/alarm/clear${qs ? '?' + qs : ''}`
+  })
+}

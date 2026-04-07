@@ -55,6 +55,17 @@
             删除选中
           </el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button
+            size="mini"
+            type="danger"
+            plain
+            icon="el-icon-delete-solid"
+            @click="clearByCondition"
+          >
+            清空
+          </el-button>
+        </el-form-item>
         <el-form-item style="float: right;">
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="getAlarmList()" />
         </el-form-item>
@@ -356,6 +367,40 @@ export default {
           .catch(error => {
             this.$message({ showClose: true, message: error, type: 'error' })
           })
+      }).catch(() => {})
+    },
+    clearByCondition() {
+      const hasFilter = this.beginTime || this.endTime || this.selectedAlarmTypes.length > 0
+      const filterDesc = hasFilter
+        ? [
+          this.beginTime ? `开始时间：${this.beginTime}` : null,
+          this.endTime ? `结束时间：${this.endTime}` : null,
+          this.selectedAlarmTypes.length > 0 ? `报警类型：${this.selectedAlarmTypes.map(v => {
+            const opt = this.alarmTypeOptions.find(o => o.value === v)
+            return opt ? opt.label : v
+          }).join('、')}` : null
+        ].filter(Boolean).join('；')
+        : '全部'
+      this.$confirm(
+        `将删除符合当前筛选条件的所有报警记录（${filterDesc}），此操作不可恢复，确定继续？`,
+        '清空报警',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(() => {
+        this.$store.dispatch('alarm/clearAlarms', {
+          alarmType: this.selectedAlarmTypes.length > 0 ? this.selectedAlarmTypes : undefined,
+          beginTime: this.beginTime || undefined,
+          endTime: this.endTime || undefined
+        }).then(count => {
+          this.$message({ showClose: true, message: `已清空 ${count != null ? count : ''} 条报警记录`, type: 'success' })
+          this.currentPage = 1
+          this.getAlarmList()
+        }).catch(error => {
+          this.$message({ showClose: true, message: error, type: 'error' })
+        })
       }).catch(() => {})
     },
     getAlarmTypeLabel(value) {

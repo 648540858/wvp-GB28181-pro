@@ -55,6 +55,18 @@ public class AlarmController {
         alarmService.deleteAlarmInfo(ids);
     }
 
+    @ResponseBody
+    @DeleteMapping("/clear")
+    @Operation(summary = "按筛选条件清空报警信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "alarmType", description = "报警类型列表，为空则不限类型")
+    @Parameter(name = "beginTime", description = "开始时间，格式：yyyy-MM-dd HH:mm:ss")
+    @Parameter(name = "endTime", description = "结束时间，格式：yyyy-MM-dd HH:mm:ss")
+    public int clear(@RequestParam(required = false) List<AlarmType> alarmType,
+                     @RequestParam(required = false) String beginTime,
+                     @RequestParam(required = false) String endTime) {
+        return alarmService.clearAlarmsByCondition(alarmType, beginTime, endTime);
+    }
+
     @GetMapping("/snap/{id}")
     @Operation(summary = "获取报警快照图片")
     @Parameter(name = "id", description = "报警ID", required = true)

@@ -51,4 +51,19 @@ public interface AlarmMapper {
 
     @Select("SELECT snap_path FROM wvp_alarm WHERE id = #{id}")
     String getSnapPathById(@Param("id") Long id);
+
+    @Delete("<script>" +
+            "DELETE FROM wvp_alarm WHERE 1=1" +
+            "<if test='alarmType != null and alarmType.size() > 0'>" +
+            " AND alarm_type IN " +
+            "<foreach collection='alarmType' item='item' open='(' separator=',' close=')'>" +
+            "#{item}" +
+            "</foreach>" +
+            "</if>" +
+            "<if test='beginTimeLong != null'> AND alarm_time &gt;= #{beginTimeLong}</if>" +
+            "<if test='endTimeLong != null'> AND alarm_time &lt;= #{endTimeLong}</if>" +
+            "</script>")
+    int deleteAlarmsByCondition(@Param("alarmType") List<AlarmType> alarmType,
+                                @Param("beginTimeLong") Long beginTimeLong,
+                                @Param("endTimeLong") Long endTimeLong);
 }

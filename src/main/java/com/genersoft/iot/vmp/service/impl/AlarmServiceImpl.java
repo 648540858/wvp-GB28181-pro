@@ -27,6 +27,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -163,6 +164,30 @@ public class AlarmServiceImpl implements IAlarmService {
         if (ids != null && !ids.isEmpty()) {
             alarmMapper.deleteAlarms(ids);
         }
+    }
+
+    @Override
+    @Transactional
+    public int clearAlarmsByCondition(List<AlarmType> alarmType, String beginTime, String endTime) {
+        Long beginTimeLong = null;
+        Long endTimeLong = null;
+        if (beginTime != null) {
+            beginTimeLong = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(beginTime);
+        }
+        if (endTime != null) {
+            endTimeLong = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
+        }
+        // 清理前缓存数据，数据库删除后，相关的报警快照文件也需要清理掉
+        alarmMapper.getAlarms(alarmType, beginTimeLong, endTimeLong).forEach(alarm -> {
+            String snapPath = alarm.getSnapPath();
+            if (snapPath != null) {
+                File file = new File(snapPath);
+                if (file.exists()) {
+                    file.delete();
+                }
+            }
+        });
+        return alarmMapper.deleteAlarmsByCondition(alarmType, beginTimeLong, endTimeLong);
     }
 
     @Override

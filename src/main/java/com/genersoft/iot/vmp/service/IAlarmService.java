@@ -17,6 +17,9 @@ public interface IAlarmService {
     // 删除报警信息
     void deleteAlarmInfo(List<Long> ids);
 
+    // 按筛选条件清空报警信息
+    int clearAlarmsByCondition(List<AlarmType> alarmType, String beginTime, String endTime);
+
     // 根据ID获取报警快照
     String getAlarmSnapById(Long id);
 

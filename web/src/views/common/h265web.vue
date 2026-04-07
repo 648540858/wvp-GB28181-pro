@@ -144,41 +144,30 @@ export default {
         width: '100%',
         height: 480,
         color: '#101318',
-        auto_play: true,
+        auto_play: false,
         readframe_multi_times: -1,
         ignore_audio: false
       }
 
 
       h265webPlayer[this._uid] = H265webjsPlayer()
-      h265webPlayer[this._uid].build(options)
-
-
-
-      // h265webPlayer[this._uid] = new window.H265webjsPlayer(url, Object.assign(
-      //   {
-      //     player: 'glplayer', // 播放器容器id
-      //     width: this.playerWidth,
-      //     height: this.playerHeight,
-      //     token: token,
-      //     extInfo: {
-      //       coreProbePart: 0.4,
-      //       probeSize: 8192,
-      //       ignoreAudio: this.hasAudio === null ? 0 : (this.hasAudio ? 0 : 1)
-      //     }
-      //   },
-      //   options
-      // ))
       const h265web = h265webPlayer[this._uid]
-      h265web.load_media(url)
+
       h265web.on_ready_show_done_callback = () => {
+        console.log('ready_show_done_callback')
         h265web.play()
+        console.log('ready_show_done_callback---22')
         this.playing = true
         this.playerLoading = false
       }
       h265web.video_probe_callback = (mediaInfo) => {
         console.log('video_probe_callback: ', mediaInfo)
       }
+
+      h265web.build(options)
+      h265web.load_media(url)
+
+
 
 
       h265web.onOpenFullScreen = () => {
@@ -204,7 +193,7 @@ export default {
         console.log(this.mediaInfo)
         canvas.width = this.mediaInfo.meta.size.width
         canvas.height = this.mediaInfo.meta.size.height
-        h265webPlayer[this._uid].snapshot(canvas) // snapshot to canvas
+        h265webPlayer[this._uid].screenshot(canvas) // snapshot to canvas
 
         // 下载截图
         const link = document.createElement('a')

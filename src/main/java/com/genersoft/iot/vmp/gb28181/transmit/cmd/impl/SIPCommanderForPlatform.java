@@ -645,7 +645,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         String mediaServerId = sendRtpItem.getMediaServerId();
         MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrcToRelease());
             receiveRtpServerService.closeRTPServer(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem, channel);
@@ -747,13 +747,14 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForPlatform(platform.getServerGBId(), channel.getGbId(),
                     callIdHeader.getCallId(), ssrcInfo.getApp(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.BROADCAST);
+            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         });

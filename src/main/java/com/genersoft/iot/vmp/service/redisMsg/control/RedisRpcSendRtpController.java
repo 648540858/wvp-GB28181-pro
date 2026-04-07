@@ -56,6 +56,7 @@ public class RedisRpcSendRtpController extends RpcController {
         if (mediaServerItem == null) {
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            return response;
         }
         // 自平台内容
         int localPort = sendRtpServerService.getNextPort(mediaServerItem);
@@ -63,6 +64,7 @@ public class RedisRpcSendRtpController extends RpcController {
             log.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            return response;
         }
         // 写入redis， 超时时回复
         sendRtpItem.setStatus(1);
@@ -72,6 +74,7 @@ public class RedisRpcSendRtpController extends RpcController {
             // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
             String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
             sendRtpItem.setSsrc(ssrc);
+            sendRtpItem.setAllocatedSsrc(ssrc);
         }
         sendRtpServerService.update(sendRtpItem);
         RedisRpcResponse response = request.getResponse();
@@ -99,6 +102,7 @@ public class RedisRpcSendRtpController extends RpcController {
         MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
         if (mediaServer == null) {
             log.info("[redis-rpc] startSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
+            clearSendRtpItem(sendRtpItem);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到MediaServer");
             response.setBody(wvpResult);
             return response;
@@ -106,6 +110,7 @@ public class RedisRpcSendRtpController extends RpcController {
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
         if (mediaInfo == null) {
             log.info("[redis-rpc] startSendRtp->流不在线： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream() );
+            clearSendRtpItem(sendRtpItem);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "流不在线");
             response.setBody(wvpResult);
             return response;
@@ -114,6 +119,7 @@ public class RedisRpcSendRtpController extends RpcController {
             mediaServerService.startSendRtp(mediaServer, sendRtpItem);
         }catch (ControllerException exception) {
             log.info("[redis-rpc] 发流失败： {}/{}, 目标地址： {}：{}， {}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), exception.getMsg());
+            clearSendRtpItem(sendRtpItem);
             WVPResult wvpResult = WVPResult.fail(exception.getCode(), exception.getMsg());
             response.setBody(wvpResult);
             return response;
@@ -143,6 +149,7 @@ public class RedisRpcSendRtpController extends RpcController {
         MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
         if (mediaServer == null) {
             log.info("[redis-rpc] stopSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
+            clearSendRtpItem(sendRtpItem);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到MediaServer");
             response.setBody(wvpResult);
             return response;
@@ -155,9 +162,20 @@ public class RedisRpcSendRtpController extends RpcController {
             response.setBody(WVPResult.fail(exception.getCode(), exception.getMsg()));
             return response;
         }
+        clearSendRtpItem(sendRtpItem);
         log.info("[redis-rpc] 停止推流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         response.setBody(WVPResult.success());
         return response;
+    }
+
+    private void clearSendRtpItem(SendRtpInfo sendRtpItem) {
+        if (sendRtpItem == null) {
+            return;
+        }
+        sendRtpServerService.delete(sendRtpItem);
+        if (sendRtpItem.getMediaServerId() != null) {
+            mediaServerService.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrcToRelease());
+        }
     }
 
 }

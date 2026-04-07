@@ -285,7 +285,7 @@ public class SIPCommander implements ISIPCommander {
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
@@ -294,6 +294,7 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     callId,ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
+            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         }, timeout);
@@ -391,6 +392,7 @@ public class SIPCommander implements ISIPCommander {
                     channel.getId(), sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),
                             device.getTransport()).getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(),
                     mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
+            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         }, timeout);
@@ -484,6 +486,7 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     response.getCallIdHeader().getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrc,
                     mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
+            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         }, timeout);
@@ -544,13 +547,14 @@ public class SIPCommander implements ISIPCommander {
                 SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sendRtpItem.getSsrc(), callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             sessionManager.removeByStream(sendRtpItem.getApp(), sendRtpItem.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), MediaApp.GB28181_TALK,sendRtpItem.getApp(), stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
+            ssrcTransaction.setAllocatedSsrc(sendRtpItem.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         }, timeout);

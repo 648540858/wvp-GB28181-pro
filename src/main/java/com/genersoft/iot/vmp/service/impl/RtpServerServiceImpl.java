@@ -102,6 +102,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaApp.GB28181, streamId);
+        if (presetSSRC == null) {
+            ssrcInfo.setAllocatedSsrc(ssrc);
+        }
         RTPServerParam rtpServerParam = new RTPServerParam(mediaServer, MediaApp.GB28181, streamId, ssrcCheck ? Long.parseLong(ssrc): 0L, null, onlyAuto, disableAuto, false, tcpMode);
         int rtpServerPort = openRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
@@ -113,6 +116,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                 // 释放ssrc
                 if (presetSSRC == null) {
                     ssrcFactory.releaseSsrc(mediaServer.getId(), ssrc);
+                    ssrcInfo.setAllocatedSsrc(null);
                 }
                 OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
                 openRTPServerResult.setSsrcInfo(ssrcInfo);

@@ -92,6 +92,7 @@ public class WebSecurityConfig {
 
         defaultExcludes.add("/js/**");
         defaultExcludes.add("/api/device/query/snap/**");
+        defaultExcludes.add("/api/alarm/snap/**");
         defaultExcludes.add("/record_proxy/*/**");
         defaultExcludes.add("/api/emit");
         defaultExcludes.add("/favicon.ico");

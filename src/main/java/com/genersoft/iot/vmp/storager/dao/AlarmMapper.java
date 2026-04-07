@@ -48,4 +48,7 @@ public interface AlarmMapper {
             "</foreach>" +
             "</script>")
     void insertAlarms(List<Alarm> handlerCatchDataList);
+
+    @Select("SELECT snap_path FROM wvp_alarm WHERE id = #{id}")
+    String getSnapPathById(@Param("id") Long id);
 }

@@ -3,10 +3,13 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarmNotify;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.alarm.DeviceAlarmEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.service.IAlarmService;
 import com.genersoft.iot.vmp.service.bean.Alarm;
 import com.genersoft.iot.vmp.service.bean.AlarmType;
@@ -18,16 +21,20 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AlarmServiceImpl implements IAlarmService {
@@ -39,6 +46,10 @@ public class AlarmServiceImpl implements IAlarmService {
     private final SipConfig sipConfig;
 
     private final IDeviceChannelService deviceChannelService;
+
+    private final IGbChannelPlayService gbChannelPlayService;
+
+    private final IGbChannelService gbChannelService;
 
     // 使用Caffeine缓存设备通道信息，避免频繁查询数据库，提升性能
     private Cache<String, DeviceChannel> channelCache = null;
@@ -63,6 +74,7 @@ public class AlarmServiceImpl implements IAlarmService {
         if (event.getDeviceAlarmList().isEmpty()) {
             return;
         }
+        log.info("收到设备报警事件，数量：{}", event.getDeviceAlarmList().size());
         for (DeviceAlarmNotify notify : event.getDeviceAlarmList()) {
             Alarm alarm = Alarm.buildFromDeviceAlarmNotify(notify);
             String key = notify.getDeviceId() + notify.getChannelId();
@@ -100,7 +112,31 @@ public class AlarmServiceImpl implements IAlarmService {
             List<Alarm> batchList = handlerCatchDataList.subList(i, end);
             alarmMapper.insertAlarms(batchList);
         }
+        // 按照通道ID分组，去补充快照文件
+        handlerCatchDataList.forEach(this::getSnapByAlarm);
+    }
 
+    @Async
+    public void getSnapByAlarm(Alarm alarm) {
+        CommonGBChannel channel = gbChannelService.getOne(alarm.getChannelId());
+        if (channel == null) {
+            log.warn("未找到报警关联的通道信息，alarmId：{}，channelId：{}", alarm.getId(), alarm.getChannelId());
+            return;
+        }
+        gbChannelPlayService.getSnap(channel, (code, msg, data) -> {
+            if (data == null) {
+                return;
+            }
+            File file = new File(alarm.getSnapPath());
+            if(file.exists()) {
+                file.delete();
+            }
+            try {
+                FileUtils.writeByteArrayToFile(file, data);
+            } catch (Exception e) {
+                log.warn("保存报警快照失败，alarmId：{}，channelId：{}", alarm.getId(), alarm.getChannelId(), e);
+            }
+        });
     }
 
     @Override
@@ -132,7 +168,7 @@ public class AlarmServiceImpl implements IAlarmService {
 
     @Override
     public String getAlarmSnapById(Long id) {
-        return "";
+        return alarmMapper.getSnapPathById(id);
     }
 
     @Override

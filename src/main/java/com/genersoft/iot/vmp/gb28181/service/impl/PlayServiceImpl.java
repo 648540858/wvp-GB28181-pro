@@ -1631,6 +1631,57 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
+    public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> errorCallback) {
+        // 2016协议不支持直接获取国标通道的抓图， 只能通过点播的方式获取
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
+        if (device == null) {
+            log.warn("[快照] 未找到通道{}的设备信息", channel);
+            errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到设备信息", null);
+            return;
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            log.warn("[快照] 未找到通道{}的设备信息", channel);
+            errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到原始通道", null);
+            return;
+        }
+
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+        if (inviteInfo != null) {
+            if (inviteInfo.getStreamInfo() != null) {
+                // 已存在线直接截图
+                MediaServer mediaServer = inviteInfo.getStreamInfo().getMediaServer();
+                String path = "snap";
+                // 请求截图
+                log.info("[请求截图]: 返回byte数组" );
+                byte[] snapByteArray = mediaServerService.getSnap(mediaServer, MediaApp.GB28181,  inviteInfo.getStreamInfo().getStream(), 15, 1, path, null);
+                if (snapByteArray != null) {
+                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapByteArray);
+                }else {
+                    errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+                }
+                return;
+            }
+        }
+
+        play(device, deviceChannel, (code, msg, data)->{
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                InviteInfo inviteInfoForPlay = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+                if (inviteInfoForPlay != null && inviteInfoForPlay.getStreamInfo() != null) {
+                    byte[] snapByteArray = mediaServerService.getSnap(data.getMediaServer(), MediaApp.GB28181,  data.getStream(), 15, 1, null, null);
+                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapByteArray);
+                }else {
+                    errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+                }
+            }else {
+                errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+            }
+        });
+    }
+
+
+
+    @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcPlayService.stop(device.getServerId(), type,  channel.getId(), stream);

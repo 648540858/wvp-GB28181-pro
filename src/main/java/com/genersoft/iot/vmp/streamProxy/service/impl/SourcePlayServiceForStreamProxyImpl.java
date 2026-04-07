@@ -39,4 +39,9 @@ public class SourcePlayServiceForStreamProxyImpl implements ISourcePlayService {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }
     }
+
+    @Override
+    public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> callback) {
+
+    }
 }

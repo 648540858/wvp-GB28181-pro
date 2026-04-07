@@ -167,11 +167,11 @@ public class ZLMRESTfulUtils {
         return result;
     }
 
-    public void sendGetForImg(MediaServer mediaServer, String api, Map<String, Object> params, String targetPath, String fileName) {
+    public byte[] sendGetForImg(MediaServer mediaServer, String api, Map<String, Object> params, String targetPath, String fileName) {
         String url = String.format("http://%s:%s/index/api/%s", mediaServer.getIp(), mediaServer.getHttpPort(), api);
         HttpUrl parseUrl = HttpUrl.parse(url);
         if (parseUrl == null) {
-            return;
+            return null;
         }
         HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
 
@@ -188,6 +188,7 @@ public class ZLMRESTfulUtils {
         if (log.isDebugEnabled()){
             log.debug(request.toString());
         }
+        byte[] result = null;
         try {
             OkHttpClient client = getClient();
             Response response = client.newCall(request).execute();
@@ -198,27 +199,24 @@ public class ZLMRESTfulUtils {
                         if (!snapFolder.mkdirs()) {
                             log.warn("{}路径创建失败", snapFolder.getAbsolutePath());
                         }
-
                     }
                     File snapFile = new File(targetPath + File.separator + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
-
-                    outStream.write(Objects.requireNonNull(response.body()).bytes());
+                    result = Objects.requireNonNull(response.body()).bytes();
+                    outStream.write(result);
                     outStream.flush();
                     outStream.close();
-                } else {
-                    log.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
             } else {
-                log.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
+                log.error("[ {} ]请求失败: {} {}", url, response.code(), response.message());
             }
-            Objects.requireNonNull(response.body()).close();
         } catch (ConnectException e) {
-            log.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            log.error("连接ZLM失败: {}, {}", e.getCause().getMessage(), e.getMessage());
             log.info("请检查media配置并确认ZLM已启动...");
         } catch (IOException e) {
-            log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+            log.error("[ {} ]请求失败: {}", url, e.getMessage());
         }
+        return result;
     }
 
     public ZLMResult<?> isMediaOnline(MediaServer mediaServer, String app, String stream, String schema){
@@ -657,13 +655,13 @@ public class ZLMRESTfulUtils {
         sendPost(mediaServer, "kick_sessions",param, null);
     }
 
-    public void getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public byte[] getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>(3);
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
         param.put("async", 1);
-        sendGetForImg(mediaServer, "getSnap", param, targetPath, fileName);
+        return sendGetForImg(mediaServer, "getSnap", param, targetPath, fileName);
     }
 
     public ZLMResult<?> pauseRtpCheck(MediaServer mediaServer, String streamId) {

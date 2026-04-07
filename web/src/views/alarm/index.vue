@@ -77,6 +77,23 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="快照" width="100">
+          <template v-slot:default="scope">
+            <el-image
+              v-if="scope.row.snapPath"
+              :src="getSnapUrl(scope.row.id)"
+              :preview-src-list="[getSnapUrl(scope.row.id)]"
+              fit="cover"
+              style="width: 64px; height: 48px; cursor: pointer;"
+              lazy
+            >
+              <div slot="error" style="width: 64px; height: 48px; line-height: 48px; text-align: center; color: #c0c4cc; font-size: 12px;">
+                <i class="el-icon-picture-outline" />
+              </div>
+            </el-image>
+            <span v-else style="color: #c0c4cc; font-size: 12px;">无</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="description" label="报警描述" show-overflow-tooltip />
         <el-table-column prop="channelName" label="通道名称" width="150" />
         <el-table-column prop="channelDeviceId" label="通道编号" width="180" />
@@ -87,8 +104,14 @@
             {{ formatTime(scope.row.alarmTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right">
           <template v-slot:default="scope">
+            <el-button
+              size="medium"
+              icon="el-icon-video-play"
+              type="text"
+              @click="openPlayback(scope.row)"
+            >回放</el-button>
             <el-button
               size="medium"
               icon="el-icon-delete"
@@ -110,10 +133,42 @@
         @current-change="currentChange"
       />
     </div>
+
+    <!-- 录像回放对话框 -->
+    <el-dialog
+      :title="playbackTitle"
+      :visible.sync="playbackDialogVisible"
+      width="800px"
+      :before-close="closePlayback"
+      destroy-on-close
+    >
+      <div v-if="playbackLoading" style="text-align: center; padding: 40px 0;">
+        <i class="el-icon-loading" style="font-size: 32px;" />
+        <div style="margin-top: 10px; color: #606266;">正在加载回放...</div>
+      </div>
+      <div v-else-if="playbackError" style="text-align: center; padding: 40px 0; color: #f56c6c;">
+        <i class="el-icon-warning-outline" style="font-size: 32px;" />
+        <div style="margin-top: 10px;">{{ playbackError }}</div>
+      </div>
+      <div v-else-if="playbackStreamInfo">
+        <h265web
+          ref="playbackPlayer"
+          :video-url="playbackVideoUrl"
+          :height="'400px'"
+          :show-button="false"
+          :has-audio="true"
+        />
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="closePlayback">关闭</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import h265web from '../common/h265web.vue'
+
 const ALARM_TYPE_OPTIONS = [
   { value: 'VideoLoss', label: '视频丢失报警' },
   { value: 'DeviceTamper', label: '设备防拆报警' },
@@ -146,8 +201,17 @@ const ALARM_TYPE_OPTIONS = [
   { value: 'Other', label: '其他报警' }
 ]
 
+function formatDatetime(ts) {
+  if (!ts) return null
+  const date = new Date(ts)
+  const pad = n => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+         `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 export default {
   name: 'AlarmManage',
+  components: { h265web },
   data() {
     return {
       alarmList: [],
@@ -158,7 +222,15 @@ export default {
       currentPage: 1,
       count: 15,
       total: 0,
-      selectedRows: []
+      selectedRows: [],
+      // 回放相关
+      playbackDialogVisible: false,
+      playbackLoading: false,
+      playbackError: null,
+      playbackStreamInfo: null,
+      playbackVideoUrl: null,
+      playbackTitle: '录像回放',
+      currentPlaybackChannelId: null
     }
   },
   created() {
@@ -197,6 +269,61 @@ export default {
       }).catch(error => {
         console.log(error)
       })
+    },
+    getSnapUrl(id) {
+      const baseUrl = window.baseUrl ? window.baseUrl : ''
+      return ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + `/api/alarm/snap/${id}`
+    },
+    openPlayback(row) {
+      if (!row.channelId) {
+        this.$message({ showClose: true, message: '该报警无关联通道，无法回放', type: 'warning' })
+        return
+      }
+      this.playbackTitle = `录像回放 - ${row.channelName || row.channelDeviceId} (${this.formatTime(row.alarmTime)})`
+      this.playbackDialogVisible = true
+      this.playbackLoading = true
+      this.playbackError = null
+      this.playbackStreamInfo = null
+      this.playbackVideoUrl = null
+      this.currentPlaybackChannelId = row.channelId
+
+      // 开始时间：报警时间前30秒，结束时间：报警时间后30秒（共1分钟）
+      const alarmTs = row.alarmTime
+      const startTime = formatDatetime(alarmTs - 30 * 1000)
+      const endTime = formatDatetime(alarmTs + 30 * 1000)
+
+      this.$store.dispatch('commonChanel/playback', {
+        channelId: row.channelId,
+        startTime: startTime,
+        endTime: endTime
+      }).then(data => {
+        this.playbackStreamInfo = data
+        if (location.protocol === 'https:') {
+          this.playbackVideoUrl = data['wss_flv']
+        } else {
+          this.playbackVideoUrl = data['ws_flv']
+        }
+        this.playbackLoading = false
+      }).catch(err => {
+        this.playbackLoading = false
+        this.playbackError = (err && err.msg) ? err.msg : '回放请求失败，请检查通道是否有该时段录像'
+        console.log(err)
+      })
+    },
+    closePlayback() {
+      if (this.playbackStreamInfo && this.currentPlaybackChannelId) {
+        this.$store.dispatch('commonChanel/stopPlayback', {
+          channelId: this.currentPlaybackChannelId,
+          stream: this.playbackStreamInfo.stream
+        }).catch(err => {
+          console.log(err)
+        })
+      }
+      this.playbackDialogVisible = false
+      this.playbackStreamInfo = null
+      this.playbackVideoUrl = null
+      this.playbackError = null
+      this.currentPlaybackChannelId = null
     },
     deleteSingle(row) {
       this.$confirm('确定删除该报警记录?', '提示', {
@@ -244,10 +371,7 @@ export default {
     },
     formatTime(timestamp) {
       if (!timestamp) return '-'
-      const date = new Date(timestamp)
-      const pad = n => String(n).padStart(2, '0')
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
-             `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+      return formatDatetime(timestamp)
     }
   }
 }

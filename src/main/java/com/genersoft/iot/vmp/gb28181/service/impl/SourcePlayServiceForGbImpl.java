@@ -48,4 +48,19 @@ public class SourcePlayServiceForGbImpl implements ISourcePlayService {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }
     }
+
+    @Override
+    public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> callback) {
+        try {
+            deviceChannelPlayService.getSnap(channel, callback);
+        } catch (PlayException e) {
+            callback.run(e.getCode(), e.getMsg(), null);
+        } catch (ControllerException e) {
+            log.error("[获取抓图失败] {}({}), {}", channel.getGbName(), channel.getGbDeviceId(), e.getMsg());
+            callback.run(Response.BUSY_HERE, "busy here", null);
+        } catch (Exception e) {
+            log.error("[获取抓图失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+            callback.run(Response.BUSY_HERE, "busy here", null);
+        }
+    }
 }

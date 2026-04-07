@@ -38,4 +38,7 @@ public interface IGbChannelPlayService {
     void playbackSpeed(CommonGBChannel channel, String stream, Double speed);
 
     void queryRecord(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<List<CommonRecordInfo>> callback);
+
+
+    void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> callback);
 }

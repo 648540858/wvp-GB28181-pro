@@ -14,4 +14,6 @@ public interface ISourcePlayService {
 
     void stopPlay(CommonGBChannel channel);
 
+    void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> callback);
+
 }

@@ -235,6 +235,10 @@ public class UserSetting {
      */
     private long alarmCatchSize = 10000;
 
+    /**
+     * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
+     */
+    private boolean snapByPullStream = false;
 
 
 }

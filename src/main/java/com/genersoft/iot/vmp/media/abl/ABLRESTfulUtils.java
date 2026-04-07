@@ -203,11 +203,11 @@ public class ABLRESTfulUtils {
         return result;
     }
 
-    public void sendGetForImg(MediaServer mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
+    public byte[] sendGetForImg(MediaServer mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
         String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         HttpUrl parseUrl = HttpUrl.parse(url);
         if (parseUrl == null) {
-            return;
+            return null;
         }
         HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
 
@@ -239,9 +239,8 @@ public class ABLRESTfulUtils {
                     outStream.write(Objects.requireNonNull(response.body()).bytes());
                     outStream.flush();
                     outStream.close();
-                } else {
-                    logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
+                return Objects.requireNonNull(response.body()).bytes();
             } else {
                 logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }
@@ -252,6 +251,7 @@ public class ABLRESTfulUtils {
         } catch (IOException e) {
             logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
+        return null;
     }
 
     public void sendGetForImgForUrl(String url,  String targetPath, String fileName) {
@@ -414,7 +414,7 @@ public class ABLRESTfulUtils {
         }
     }
 
-    public void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, String path, String fileName) {
+    public byte[] getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, String path, String fileName) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);
         param.put("stream", stream);
@@ -425,8 +425,7 @@ public class ABLRESTfulUtils {
 //            String url = jsonObject.getString("url");
 //            sendGetForImgForUrl(url, path, fileName);
 //        }
-        sendGetForImg(mediaServer, "getSnap", param, path, fileName);
-
+        return sendGetForImg(mediaServer, "getSnap", param, path, fileName);
     }
 
     public ABLResult addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean disableAudio, boolean enableMp4, String rtpType, Integer timeout) {

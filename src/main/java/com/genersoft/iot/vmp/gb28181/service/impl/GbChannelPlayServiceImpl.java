@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceDownloadService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePlayService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePlaybackService;
-import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +32,6 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Autowired
     private Map<String, ISourcePlayService> sourcePlayServiceMap;
-
-    @Autowired
-    private Ijt1078PlayService jt1078PlayService;
 
     @Autowired
     private Map<String, ISourcePlaybackService> sourcePlaybackServiceMap;
@@ -237,5 +233,18 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         playbackService.queryRecord(channel, startTime, endTime, callback);
+    }
+
+    @Override
+    public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> callback) {
+        log.info("[通用通道] 获取快照， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePlayService sourceChannelPlayService = sourcePlayServiceMap.get(ChannelDataType.PLAY_SERVICE + dataType);
+        if (sourceChannelPlayService == null) {
+            // 通道数据异常
+            log.error("[通用通道] 获取快照 类型编号： {} 不支持实时流预览相关服务", ChannelDataType.getDateTypeDesc(channel.getDataType()));
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        sourceChannelPlayService.getSnap(channel, callback);
     }
 }

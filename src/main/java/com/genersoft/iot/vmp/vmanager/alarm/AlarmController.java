@@ -9,10 +9,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 
 @Tag(name = "报警管理接口")
@@ -46,5 +53,29 @@ public class AlarmController {
     @Parameter(name = "ids", description = "报警ID列表", required = true)
     public void delete(@RequestBody List<Long> ids) {
         alarmService.deleteAlarmInfo(ids);
+    }
+
+    @GetMapping("/snap/{id}")
+    @Operation(summary = "获取报警快照图片")
+    @Parameter(name = "id", description = "报警ID", required = true)
+    public void snap(HttpServletResponse resp, @PathVariable Long id) {
+        String snapPath = alarmService.getAlarmSnapById(id);
+        if (snapPath == null || snapPath.isEmpty()) {
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
+        }
+        try {
+            File file = new File(snapPath);
+            if (!file.exists()) {
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                return;
+            }
+            try (InputStream in = Files.newInputStream(file.toPath())) {
+                resp.setContentType(MediaType.IMAGE_JPEG_VALUE);
+                IOUtils.copy(in, resp.getOutputStream());
+            }
+        } catch (IOException e) {
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
     }
 }

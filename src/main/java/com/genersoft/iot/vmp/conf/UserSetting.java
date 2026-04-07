@@ -239,12 +239,16 @@ public class UserSetting {
     /**
      * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
      */
-    private boolean snapByPullStream = false;
+    private boolean alarmSnapByStream = false;
 
     /**
      * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制
      */
     private List<AlarmType> allowedAlarmType = new ArrayList<>();
 
+    /**
+     * 报警记录保留天数，超过此天数的报警记录将在每天凌晨自动清理，默认30天，设置为0则不自动清理
+     */
+    private int alarmKeepDays = 7;
 
 }

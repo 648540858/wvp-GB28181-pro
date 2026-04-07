@@ -27,10 +27,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -91,6 +92,18 @@ public class AlarmServiceImpl implements IAlarmService {
             alarm.setSnapPath("snap/alarm_" + notify.getChannelId() + "_" + System.currentTimeMillis() + ".jpg");
             alarmQueue.offer(alarm);
         }
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void cleanExpiredAlarms() {
+        int keepDays = userSetting.getAlarmKeepDays();
+        if (keepDays <= 0) {
+            return;
+        }
+        String endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                .format(new Date(System.currentTimeMillis() - (long) keepDays * 24 * 3600 * 1000));
+        int count = clearAlarmsByCondition(null, null, endTime);
+        log.info("自动清理过期报警记录完成，保留天数：{}，清理数量：{}", keepDays, count);
     }
 
     @Scheduled(fixedDelay = 500)
@@ -171,7 +184,6 @@ public class AlarmServiceImpl implements IAlarmService {
     }
 
     @Override
-    @Transactional
     public int clearAlarmsByCondition(List<AlarmType> alarmType, String beginTime, String endTime) {
         Long beginTimeLong = null;
         Long endTimeLong = null;

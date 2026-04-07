@@ -269,7 +269,7 @@ user-settings:
     # 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力,
     alarm-catch-size: 10000
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
-    snap-by-pull-stream: true
+    alarm-snap-by-stream: true
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     allowed-alarm-type:
       - IntrusionDetection

@@ -134,21 +134,25 @@ export default {
     },
     create(url) {
       this.playerLoading = true
-      const options = {}
-      h265webPlayer[this._uid] = H265webjsPlayer()
-      h265webPlayer[this._uid].build({
+      const options = {
         player_id: 'glplayer',
-        base_url: './output/',
+        base_url: './static/js/h265web2/',
         wasm_js_uri: 'h265web_wasm.js',
         wasm_wasm_uri: 'h265web_wasm.wasm',
         ext_src_js_uri: 'extjs.js',
         ext_wasm_js_uri: 'extwasm.js',
-        width: this.playerWidth,
-        height: this.playerHeight,
+        width: '100%',
+        height: 480,
+        color: '#101318',
         auto_play: true,
+        readframe_multi_times: -1,
         ignore_audio: false
-      })
-      h265webPlayer[this._uid].load_media('./resource/demo.mp4');
+      }
+
+
+      h265webPlayer[this._uid] = H265webjsPlayer()
+      h265webPlayer[this._uid].build(options)
+
 
 
       // h265webPlayer[this._uid] = new window.H265webjsPlayer(url, Object.assign(
@@ -166,17 +170,22 @@ export default {
       //   options
       // ))
       const h265web = h265webPlayer[this._uid]
+      h265web.load_media(url)
+      h265web.on_ready_show_done_callback = () => {
+        h265web.play()
+        this.playing = true
+        this.playerLoading = false
+      }
+      h265web.video_probe_callback = (mediaInfo) => {
+        console.log('video_probe_callback: ', mediaInfo)
+      }
+
+
       h265web.onOpenFullScreen = () => {
         this.fullscreen = true
       }
       h265web.onCloseFullScreen = () => {
         this.fullscreen = false
-      }
-      h265web.onReadyShowDone = () => {
-        // 准备好显示了，尝试自动播放
-        const result = h265web.play()
-        this.playing = result
-        this.playerLoading = false
       }
       h265web.onLoadFinish = () => {
         this.loaded = true
@@ -187,7 +196,7 @@ export default {
       h265web.onPlayTime = (videoPTS) => {
         this.$emit('playTimeChange', videoPTS * 1000)
       }
-      h265web.do()
+      // h265web.do()
     },
     screenshot: function() {
       if (h265webPlayer[this._uid]) {
@@ -229,14 +238,14 @@ export default {
     unPause: function() {
       if (h265webPlayer[this._uid]) {
         h265webPlayer[this._uid].play()
-        this.playing = h265webPlayer[this._uid].isPlaying()
+        this.playing = true
       }
       this.err = ''
     },
     pause: function() {
       if (h265webPlayer[this._uid]) {
         h265webPlayer[this._uid].pause()
-        this.playing = h265webPlayer[this._uid].isPlaying()
+        this.playing = false
       }
       this.err = ''
     },

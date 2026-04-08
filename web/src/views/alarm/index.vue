@@ -298,10 +298,10 @@ export default {
       this.playbackVideoUrl = null
       this.currentPlaybackChannelId = row.channelId
 
-      // 开始时间：报警时间前30秒，结束时间：报警时间后30秒（共1分钟）
+      // 开始时间：报警时间前10秒，结束时间：报警时间后10秒（共20秒）
       const alarmTs = row.alarmTime
-      const startTime = formatDatetime(alarmTs - 30 * 1000)
-      const endTime = formatDatetime(alarmTs + 30 * 1000)
+      const startTime = formatDatetime(alarmTs - 10 * 1000)
+      const endTime = formatDatetime(alarmTs + 10 * 1000)
 
       this.$store.dispatch('commonChanel/playback', {
         channelId: row.channelId,

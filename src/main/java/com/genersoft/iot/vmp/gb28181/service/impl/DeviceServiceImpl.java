@@ -233,7 +233,13 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             log.info("[更新多个离线设备信息] 参数为空");
             return;
         }
-        deviceMapper.offlineByList(offlineDevices);
+        int limitCount = 400;
+        for (int i = 0; i < offlineDevices.size(); i += limitCount) {
+            int end = Math.min(i + limitCount, offlineDevices.size());
+            List<Device> batchList = offlineDevices.subList(i, end);
+            deviceMapper.offlineByList(batchList);
+        }
+
         for (Device device : offlineDevices) {
             device.setOnLine(false);
             redisCatchStorage.updateDevice(device);

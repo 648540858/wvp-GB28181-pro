@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.media.event.hook;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * zlm hook事件的参数
  * @author lin
  */
-@Data
+@Getter
+@Setter
 public class Hook {
 
     private HookType hookType;

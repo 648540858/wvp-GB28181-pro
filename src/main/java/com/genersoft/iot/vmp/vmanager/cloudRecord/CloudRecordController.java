@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -361,11 +362,12 @@ public class CloudRecordController {
     @ResponseBody
     @GetMapping("/download/zip")
     public void downloadZipFileFromUrl(HttpServletResponse response, Integer[] ids) {
-        log.info("[下载指定录像文件的压缩包] 查询 ids->{}", ids);
+        String idsStr = StringUtils.arrayToCommaDelimitedString(ids);
+        log.info("[下载指定录像文件的压缩包] 查询 ids->{}", idsStr);
         List<Integer> arrayList = new ArrayList<>(List.of(ids));
         List<CloudRecordUrl> cloudRecordItemList = cloudRecordService.getUrlListByIds(arrayList);
         if (ObjectUtils.isEmpty(cloudRecordItemList)) {
-            log.warn("[下载指定录像文件的压缩包] 未找到录像文件，ids->{}", ids);
+            log.warn("[下载指定录像文件的压缩包] 未找到录像文件，ids->{}", idsStr);
             return;
         }
 

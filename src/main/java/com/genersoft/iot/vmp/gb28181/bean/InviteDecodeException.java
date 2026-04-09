@@ -1,8 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class InviteDecodeException extends RuntimeException{
     private int code;
     private String msg;

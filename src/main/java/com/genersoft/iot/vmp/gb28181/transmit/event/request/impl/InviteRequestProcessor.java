@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -40,6 +39,7 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Vector;
@@ -481,6 +481,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         try {
             Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
             SessionDescription sdp = gb28181Sdp.getBaseSdb();
+
+            if (ObjectUtils.isEmpty(gb28181Sdp.getSsrc()) ) {
+                String ssrc =  Integer.toUnsignedString(new SecureRandom().nextInt());
+                log.warn("来自设备的Invite请求，未携带SSRC，生成随机ssrc: {}，requesterId： {}/{}", ssrc, inviteInfo.getRequesterId(), inviteInfo.getSourceChannelId());
+                gb28181Sdp.setSsrc(ssrc);
+            }
+
             //  获取支持的格式
             Vector mediaDescriptions = sdp.getMediaDescriptions(true);
 
@@ -622,7 +629,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     content.append("a=setup:passive\r\n");
                 }
             }
-            content.append("y=" + ssrc + "\r\n");
+            if (ssrc != null) {
+                content.append("y=" + ssrc + "\r\n");
+            }
             content.append("f=v/////a/1/8/1\r\n");
 
             Platform parentPlatform = new Platform();

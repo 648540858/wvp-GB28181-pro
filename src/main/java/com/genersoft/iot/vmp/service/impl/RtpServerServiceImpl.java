@@ -101,11 +101,11 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             log.warn("[openRTPServer] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
         }
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.GB28181, streamId);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
         if (presetSSRC == null) {
             ssrcInfo.setAllocatedSsrc(ssrc);
         }
-        RTPServerParam rtpServerParam = new RTPServerParam(mediaServer, MediaStreamUtil.GB28181, streamId, ssrcCheck ? Long.parseLong(ssrc): 0L, null, onlyAuto, disableAuto, false, tcpMode);
+        RTPServerParam rtpServerParam = new RTPServerParam(mediaServer, MediaStreamUtil.RTP_APP, streamId, ssrcCheck ? Long.parseLong(ssrc): 0L, null, onlyAuto, disableAuto, false, tcpMode);
         int rtpServerPort = openRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
@@ -124,7 +124,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             }
         }));
         ssrcInfo.setPort(rtpServerPort);
-        return new SSRCInfo(rtpServerPort, ssrc, MediaStreamUtil.GB28181, streamId);
+        return new SSRCInfo(rtpServerPort, ssrc, MediaStreamUtil.RTP_APP, streamId);
     }
 
     @Override

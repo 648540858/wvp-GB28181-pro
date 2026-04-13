@@ -50,7 +50,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.GB28181.equals(event.getApp())) {
+        if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 removeInviteInfo(inviteInfo);

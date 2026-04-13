@@ -12,8 +12,6 @@ import java.util.List;
 
 public interface Ijt1078PlayService {
 
-    JTMediaStreamType checkStreamFromJt(String stream);
-
     void play(String phoneNumber, Integer channelId, int type, CommonCallback<WVPResult<StreamInfo>> callback);
 
     void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,

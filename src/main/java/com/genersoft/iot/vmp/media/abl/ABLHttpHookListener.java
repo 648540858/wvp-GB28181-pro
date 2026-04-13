@@ -189,14 +189,14 @@ public class ABLHttpHookListener {
 
         logger.info("[ABL HOOK] 码流不到达通知：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
         try {
-            if (MediaStreamUtil.GB28181.equals(param.getApp())) {
+            if (MediaStreamUtil.RTP_APP.equals(param.getApp())) {
                 return HookResult.SUCCESS();
             }
             MediaRtpServerTimeoutEvent event = new MediaRtpServerTimeoutEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServer(mediaServerItem);
-                event.setApp(MediaStreamUtil.GB28181);
+                event.setApp(MediaStreamUtil.RTP_APP);
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {

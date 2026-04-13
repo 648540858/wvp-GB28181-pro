@@ -205,7 +205,7 @@ public class SendRtpInfo {
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(isTcp);
         sendRtpItem.setRtcp(rtcp);
-        sendRtpItem.setApp(MediaStreamUtil.GB28181);
+        sendRtpItem.setApp(MediaStreamUtil.RTP_APP);
         sendRtpItem.setLocalPort(localPort);
         sendRtpItem.setServerId(serverId);
         sendRtpItem.setMediaServerId(mediaServer.getId());

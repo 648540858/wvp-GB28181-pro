@@ -53,8 +53,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
-    public static final String talkApp = "jt_talk";
-
     @Autowired
     private ISendRtpServerService sendRtpServerService;
 
@@ -88,7 +86,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
-        if (event.getApp().equals(talkApp) && event.getStream().endsWith("_talk")) {
+        if (MediaStreamUtil.JT_TALK.equals(event.getApp()) && event.getStream().endsWith("_talk")) {
             // 收到对JT讲的流
             if (event.getStream().indexOf("_") <= 0) {
                 log.info("[JT-对讲流到来] 流格式有误，stream应该为jt_[phoneNumber]_[channelId]_talk");
@@ -129,7 +127,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         if (!userSetting.getAutoApplyPlay()) {
             return;
         }
-        JTMediaStreamType jtMediaStreamType = checkStreamFromJt(event.getStream());
+        JTMediaStreamType jtMediaStreamType = checkStreamFromJt(event.getApp(), event.getStream());
         if (jtMediaStreamType == null){
             return;
         }
@@ -163,17 +161,15 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     /**
      * 校验流是否是属于部标的
      */
-    @Override
-    public JTMediaStreamType checkStreamFromJt(String stream) {
-        if (!stream.startsWith("jt_")) {
+    private JTMediaStreamType checkStreamFromJt(String app, String stream) {
+        if (!MediaStreamUtil.isJT1078(app, stream)) {
             return null;
         }
-        String[] streamParamArray = stream.split("_");
-        if (streamParamArray.length == 3) {
+        if (MediaStreamUtil.isJT1078Play(app, stream)) {
             return JTMediaStreamType.PLAY;
-        }else if (streamParamArray.length == 5) {
+        }else if (MediaStreamUtil.isJT1078Playback(app, stream)) {
             return JTMediaStreamType.PLAYBACK;
-        }else if (streamParamArray.length == 4) {
+        }else if (MediaStreamUtil.isJT1078Talk(app, stream)) {
             return JTMediaStreamType.TALK;
         }else {
             return null;
@@ -199,7 +195,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     private void play(JTDevice device, JTChannel channel, int type, CommonCallback<WVPResult<StreamInfo>> callback) {
         String phoneNumber = device.getPhoneNumber();
         int channelId = channel.getChannelId();
-        String stream = phoneNumber + "_" + channelId;
+        String stream = MediaStreamUtil.getJTPlayStreamId(phoneNumber, channelId);
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         List<CommonCallback<WVPResult<StreamInfo>>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
@@ -209,7 +205,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             MediaServer mediaServer = streamInfo.getMediaServer();
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaStreamUtil.JT1078, streamInfo.getStream());
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaStreamUtil.RTP_APP, streamInfo.getStream());
                 if (mediaInfo != null) {
                     log.info("[JT-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                     for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
@@ -237,7 +233,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaStreamUtil.JT1078);
+        rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
@@ -263,8 +259,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 String path = "snap";
                 String fileName = phoneNumber + "_" + channelId + ".jpg";
                 // 请求截图
-                log.info("[请求截图]: " + fileName);
-                mediaServerService.getSnap(mediaServer, MediaStreamUtil.JT1078, stream, 15, 1, path, fileName);
+                log.info("[请求截图]: {}", fileName);
+                mediaServerService.getSnap(mediaServer, MediaStreamUtil.RTP_APP, stream, 15, 1, path, fileName);
             }else {
                 if (callback != null) {
                     callback.run(WVPResult.fail(code, msg));
@@ -294,7 +290,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     }
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, Integer channelId) {
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaStreamUtil.JT1078, hookData.getStream(), hookData.getMediaInfo(), null);
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaStreamUtil.RTP_APP, hookData.getStream(), hookData.getMediaInfo(), null);
         streamInfo.setDeviceId(phoneNumber);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -437,8 +433,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             redisTemplate.delete(playbackKey);
         }
 
-        String app = MediaStreamUtil.JT1078;
-        String stream = String.format("%s_%s_%s_%s", phoneNumber, channelId,
+        String app = MediaStreamUtil.RTP_APP;
+        String stream =  MediaStreamUtil.getJTPlaybackStreamId(phoneNumber, channelId,
                 DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime), DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
         MediaServer mediaServer;
         if (org.springframework.util.ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
@@ -456,7 +452,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaStreamUtil.JT1078);
+        rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
@@ -594,7 +590,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         JTDevice device = jt1078Service.getDevice(phoneNumber);
         Assert.notNull(device, "部标设备不存在");
 
-        String stream = "jt_" + phoneNumber + "_" + channelId + "_talk";
+        String stream = MediaStreamUtil.getJTTalkStreamId(phoneNumber, channelId);
 
         MediaServer mediaServer;
         if (org.springframework.util.ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
@@ -604,9 +600,9 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
 
         // 检查待发送的流是否存在，
-        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, talkApp, stream);
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaStreamUtil.JT_TALK, stream);
         Assert.isNull(mediaInfo, "对讲已经存在");
-        return mediaServerService.getStreamInfoByAppAndStream(mediaServer, talkApp, stream, null, null, null, false);
+        return mediaServerService.getStreamInfoByAppAndStream(mediaServer, MediaStreamUtil.JT_TALK, stream, null, null, null, false);
 
     }
     private void sendTalk(JTDevice device, Integer channelId, MediaServer mediaServer, String app, String stream) {
@@ -617,17 +613,17 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
 
         String phoneNumber = device.getPhoneNumber();
-
+        String receiveStream = MediaStreamUtil.getJTTalkReceiveStreamId(phoneNumber, channelId);
         // 开启收流端口, zlm发送1078的rtp流需要将ssrc字段设置为 imei_channel格式
         String ssrc = device.getPhoneNumber() + "_" + channelId;
-        SendRtpInfo sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServer, null, null, ssrc, phoneNumber, talkApp, stream, channelId, true, false);
+        SendRtpInfo sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServer, null, null, ssrc, phoneNumber, MediaStreamUtil.JT_TALK, stream, channelId, true, false);
         sendRtpInfo.setTcpActive(true);
         sendRtpInfo.setUsePs(false);
         sendRtpInfo.setOnlyAudio(true);
-        sendRtpInfo.setReceiveStream(stream + "_talk");
+        sendRtpInfo.setReceiveStream(receiveStream);
 
         // 设置hook监听
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaStreamUtil.JT1078, sendRtpInfo.getReceiveStream(), mediaServer.getId());
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaStreamUtil.RTP_APP, sendRtpInfo.getReceiveStream(), mediaServer.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             log.info("[JT-对讲] 对讲连接建立， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             subscribe.removeSubscribe(hook);

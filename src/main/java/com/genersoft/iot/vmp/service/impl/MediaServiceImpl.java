@@ -83,7 +83,7 @@ public class MediaServiceImpl implements IMediaService {
         if (app == null || stream == null) {
             return false;
         }
-        if (MediaStreamUtil.GB28181.equals(app)) {
+        if (MediaStreamUtil.RTP_APP.equals(app)) {
             return true;
         }
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
@@ -96,14 +96,8 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
-        if (!MediaStreamUtil.GB28181.equals(app) && !MediaStreamUtil.JT1078.equals(app) ) {
-            if (MediaStreamUtil.GB28181_TALK.equals(app) && stream.endsWith("_talk")) {
-                ResultForOnPublish result = new ResultForOnPublish();
-                result.setEnable_mp4(false);
-                result.setEnable_audio(true);
-                return result;
-            }
-            if ("jt_talk".equals(app) && stream.endsWith("_talk")) {
+        if (!MediaStreamUtil.RTP_APP.equals(app)) {
+            if (MediaStreamUtil.GB28181_TALK.equals(app) || MediaStreamUtil.JT_TALK.equals(app)) {
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_mp4(false);
                 result.setEnable_audio(true);
@@ -156,9 +150,8 @@ public class MediaServiceImpl implements IMediaService {
         ResultForOnPublish result = new ResultForOnPublish();
         result.setEnable_audio(true);
 
-        // 国标流
-        if (MediaStreamUtil.GB28181.equals(app)) {
-
+        // RTP SERVER 收流
+        if (MediaStreamUtil.isGB28181(app, stream)) {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
 
             if (inviteInfo != null) {
@@ -224,7 +217,7 @@ public class MediaServiceImpl implements IMediaService {
         }else {
             result.setEnable_mp4(userSetting.getRecordPushLive());
         }
-        if (app.equalsIgnoreCase(MediaStreamUtil.GB28181)) {
+        if (app.equalsIgnoreCase(MediaStreamUtil.RTP_APP)) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + stream;
             OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo) redisTemplate.opsForValue().get(receiveKey);
 
@@ -244,7 +237,7 @@ public class MediaServiceImpl implements IMediaService {
             return false;
         }
         // 国标类型的流
-        if (MediaStreamUtil.GB28181.equals(app)) {
+        if (MediaStreamUtil.RTP_APP.equals(app)) {
             result = userSetting.getStreamOnDemand();
             // 国标流， 点播/录像回放/录像下载
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
@@ -261,7 +254,7 @@ public class MediaServiceImpl implements IMediaService {
                 }
                 return result;
             }
-        }else if (MediaStreamUtil.JT1078.equals(app)) {
+        }else if (MediaStreamUtil.RTP_APP.equals(app)) {
             // 判断是否是1078播放类型
             JTMediaStreamType jtMediaStreamType = ijt1078Service.checkStreamFromJt(stream);
             if (jtMediaStreamType != null) {

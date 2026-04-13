@@ -263,7 +263,7 @@ public class ZLMHttpHookListener {
         log.info("[ZLM HOOK] rtp发送关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
 
         // 查找对应的上级推流，发送停止
-        if (!MediaStreamUtil.GB28181.equals(param.getApp())) {
+        if (!MediaStreamUtil.RTP_APP.equals(param.getApp())) {
             return HookResult.SUCCESS();
         }
         try {
@@ -294,7 +294,7 @@ public class ZLMHttpHookListener {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServer(mediaServerItem);
-                event.setApp(MediaStreamUtil.GB28181);
+                event.setApp(MediaStreamUtil.RTP_APP);
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {

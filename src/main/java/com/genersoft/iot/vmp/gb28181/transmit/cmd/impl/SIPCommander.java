@@ -509,7 +509,7 @@ public class SIPCommander implements ISIPCommander {
         }
 
         log.info("[语音喊话] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), sendRtpItem.getPort());
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaStreamUtil.GB28181, stream, mediaServerItem.getId());
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaStreamUtil.RTP_APP, stream, mediaServerItem.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             if (event != null) {
                 event.response(hookData);
@@ -519,7 +519,7 @@ public class SIPCommander implements ISIPCommander {
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
         callIdHeader.setCallId(callId);
-        Hook publishHook = Hook.getInstance(HookType.on_publish, MediaStreamUtil.GB28181, stream, mediaServerItem.getId());
+        Hook publishHook = Hook.getInstance(HookType.on_publish, MediaStreamUtil.RTP_APP, stream, mediaServerItem.getId());
         subscribe.addSubscribe(publishHook, (hookData) -> {
             if (eventForPush != null) {
                 eventForPush.response(hookData);
@@ -1396,7 +1396,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackControlCmd(Device device, DeviceChannel channel, String stream, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.GB28181, stream);
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream);
         if (ssrcTransaction == null) {
             log.info("[回放控制]未找到视频流信息，设备：{}, 流ID: {}", device.getDeviceId(), stream);
             return;

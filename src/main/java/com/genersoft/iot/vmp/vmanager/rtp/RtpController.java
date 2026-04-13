@@ -101,7 +101,7 @@ public class RtpController {
 
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaStreamUtil.GB28181);
+        rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setSsrc(ssrcInt);
         rtpServerParam.setTcpMode(tcpMode);
@@ -173,8 +173,8 @@ public class RtpController {
     public void closeRtpServer(String stream) {
         log.info("[第三方服务对接->关闭收流] stream->{}", stream);
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
-        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.GB28181, stream);
-        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.GB28181, stream+ "_a");
+        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.RTP_APP, stream);
+        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.RTP_APP, stream+ "_a");
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
         if (scan.size() > 0) {

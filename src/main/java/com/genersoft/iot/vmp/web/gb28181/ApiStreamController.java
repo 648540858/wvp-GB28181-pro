@@ -247,7 +247,7 @@ public class ApiStreamController {
         }
 
         try {
-            cmder.streamByeCmd(device, code, MediaStreamUtil.GB28181, inviteInfo.getStream(), null, null);
+            cmder.streamByeCmd(device, code, MediaStreamUtil.RTP_APP, inviteInfo.getStream(), null, null);
         } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
             JSONObject result = new JSONObject();
             result.put("error","发送BYE失败：" + e.getMessage());

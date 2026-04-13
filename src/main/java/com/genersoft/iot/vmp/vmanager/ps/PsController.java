@@ -101,7 +101,7 @@ public class PsController {
 
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaStreamUtil.GB28181);
+        rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setSsrc(ssrcInt);
         rtpServerParam.setTcpMode(tcpMode);
@@ -162,7 +162,7 @@ public class PsController {
     public void closeRtpServer(String stream) {
         log.info("[第三方PS服务对接->关闭收流] stream->{}", stream);
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
-        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.GB28181, stream);
+        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.RTP_APP, stream);
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
         if (!scan.isEmpty()) {

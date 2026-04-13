@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.*;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -55,7 +54,6 @@ import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 

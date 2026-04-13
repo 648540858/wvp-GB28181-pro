@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.*;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
@@ -50,7 +50,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        if ("rtsp".equals(event.getSchema()) && MediaApp.GB28181.equals(event.getApp())) {
+        if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.GB28181.equals(event.getApp())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 removeInviteInfo(inviteInfo);

@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -248,7 +248,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
         streamInfoResult.setMediaInfo(mediaInfo);
 
-        if (!MediaApp.GB28181_BROADCAST.equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())) {
+        if (!MediaStreamUtil.GB28181_BROADCAST.equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())) {
             String newStream = stream + "_" + mediaServer.getTranscodeSuffix();
             mediaServer.setTranscodeSuffix(null);
             StreamInfo transcodeStreamInfo = getStreamInfoByAppAndStream(mediaServer, app, newStream, null, addr, callId, isPlay);

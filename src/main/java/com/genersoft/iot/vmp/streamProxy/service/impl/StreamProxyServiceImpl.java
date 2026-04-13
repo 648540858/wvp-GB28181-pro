@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.streamProxy.service.impl;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
@@ -104,7 +104,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
-        if (MediaApp.isKeywords(event.getApp())) {
+        if (MediaStreamUtil.isKeywords(event.getApp())) {
             return;
         }
         // 拉流代理

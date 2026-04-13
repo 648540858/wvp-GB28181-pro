@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.*;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -133,7 +133,7 @@ public class PlayServiceImpl implements IPlayService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
-        if (MediaApp.GB28181_BROADCAST.equals(event.getApp()) || MediaApp.GB28181_TALK.equals(event.getApp())) {
+        if (MediaStreamUtil.GB28181_BROADCAST.equals(event.getApp()) || MediaStreamUtil.GB28181_TALK.equals(event.getApp())) {
             if (event.getStream().indexOf("_") > 0) {
                 String[] streamArray = event.getStream().split("_");
                 if (streamArray.length == 2) {
@@ -149,7 +149,7 @@ public class PlayServiceImpl implements IPlayService {
                         log.info("[语音对讲/喊话] 未找到通道：{}", channelId);
                         return;
                     }
-                    if (MediaApp.GB28181_BROADCAST.equals(event.getApp())) {
+                    if (MediaStreamUtil.GB28181_BROADCAST.equals(event.getApp())) {
                         if (audioBroadcastManager.exit(channel.getId())) {
                             stopAudioBroadcast(device, channel);
                         }
@@ -160,7 +160,7 @@ public class PlayServiceImpl implements IPlayService {
                         } catch (InvalidArgumentException | ParseException | SipException e) {
                             log.error("[命令发送失败] 语音对讲: {}", e.getMessage());
                         }
-                    }else if (MediaApp.GB28181_TALK.equals(event.getApp())) {
+                    }else if (MediaStreamUtil.GB28181_TALK.equals(event.getApp())) {
                         // 开启语音对讲通道
                         talkCmd(device, channel, event.getMediaServer(), event.getStream(), (msg) -> log.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId));
                     }
@@ -205,7 +205,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
 
-        if (MediaApp.GB28181_BROADCAST.equals(event.getApp()) || MediaApp.GB28181_TALK.equals(event.getApp())) {
+        if (MediaStreamUtil.GB28181_BROADCAST.equals(event.getApp()) || MediaStreamUtil.GB28181_TALK.equals(event.getApp())) {
             if (event.getStream().indexOf("_") > 0) {
                 String[] streamArray = event.getStream().split("_");
                 if (streamArray.length == 2) {
@@ -221,14 +221,14 @@ public class PlayServiceImpl implements IPlayService {
                         log.info("[语音对讲/喊话] 未找到通道：{}", channelId);
                         return;
                     }
-                    if (MediaApp.GB28181_BROADCAST.equals(event.getApp())) {
+                    if (MediaStreamUtil.GB28181_BROADCAST.equals(event.getApp())) {
                         stopAudioBroadcast(device, channel);
-                    }else if (MediaApp.GB28181_TALK.equals(event.getApp())) {
+                    }else if (MediaStreamUtil.GB28181_TALK.equals(event.getApp())) {
                         stopTalk(device, channel, false);
                     }
                 }
             }
-        }else if (MediaApp.GB28181.equals(event.getApp())) {
+        }else if (MediaStreamUtil.GB28181.equals(event.getApp())) {
             // 释放ssrc
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok
@@ -246,7 +246,7 @@ public class PlayServiceImpl implements IPlayService {
     @Async
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
-        if (!MediaApp.GB28181.equals(event.getApp())) {
+        if (!MediaStreamUtil.GB28181.equals(event.getApp())) {
             return;
         }
         String[] s = event.getStream().split("_");
@@ -354,7 +354,7 @@ public class PlayServiceImpl implements IPlayService {
                     return inviteInfoInCatch.getSsrcInfo();
                 }
                 MediaServer mediaInfo = streamInfo.getMediaServer();
-                Boolean ready = mediaServerService.isStreamReady(mediaInfo, MediaApp.GB28181, streamId);
+                Boolean ready = mediaServerService.isStreamReady(mediaInfo, MediaStreamUtil.GB28181, streamId);
                 if (ready != null && ready) {
                     if(callback != null) {
                         callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
@@ -410,14 +410,14 @@ public class PlayServiceImpl implements IPlayService {
                 }
                 inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null, code, msg, null);
                 inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-                SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaApp.GB28181, streamId);
+                SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.GB28181, streamId);
                 if (ssrcTransaction != null) {
                     try {
-                        cmder.streamByeCmd(device, channel.getDeviceId(),MediaApp.GB28181, streamId, null, null);
+                        cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.GB28181, streamId, null, null);
                     } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
                         log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
                     } finally {
-                        sessionManager.removeByStream(MediaApp.GB28181, streamId);
+                        sessionManager.removeByStream(MediaStreamUtil.GB28181, streamId);
                     }
                 }
             }
@@ -493,7 +493,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         SendRtpInfo sendRtpInfo;
         try {
-            sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServerItem, null, null, playSsrc, device.getDeviceId(), MediaApp.GB28181_TALK, stream,
+            sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServerItem, null, null, playSsrc, device.getDeviceId(), MediaStreamUtil.GB28181_TALK, stream,
                     channel.getId(), true, false);
             if (sendRtpInfo == null) {
                 ssrcFactory.releaseSsrc(mediaServerItem.getId(), playSsrc);
@@ -680,7 +680,7 @@ public class PlayServiceImpl implements IPlayService {
         String fileName = deviceId + "_" + channelId + ".jpg";
         // 请求截图
         log.info("[请求截图]: " + fileName);
-        mediaServerService.getSnap(mediaServerItemInuse, MediaApp.GB28181, stream, 15, 1, path, fileName);
+        mediaServerService.getSnap(mediaServerItemInuse, MediaStreamUtil.GB28181, stream, 15, 1, path, fileName);
     }
 
     public StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel) {
@@ -791,14 +791,14 @@ public class PlayServiceImpl implements IPlayService {
                 }
                 inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), null, code, msg, null);
                 inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAYBACK, channel.getId());
-                SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaApp.GB28181, stream);
+                SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.GB28181, stream);
                 if (ssrcTransaction != null) {
                     try {
-                        cmder.streamByeCmd(device, channel.getDeviceId(),MediaApp.GB28181,  stream, null, null);
+                        cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.GB28181,  stream, null, null);
                     } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
                         log.error("[录像回放] 发送BYE失败 {}", e.getMessage());
                     } finally {
-                        sessionManager.removeByStream(MediaApp.GB28181, stream);
+                        sessionManager.removeByStream(MediaStreamUtil.GB28181, stream);
                     }
                 }
             }
@@ -939,19 +939,19 @@ public class PlayServiceImpl implements IPlayService {
                 if (ssrcInResponse != null) {
                     // 单端口
                     // 重新订阅流上线
-                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaApp.GB28181, inviteInfo.getStream());
+                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.GB28181, inviteInfo.getStream());
                     if (ssrcTransaction == null) {
                         return;
                     }
                     releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
-                    sessionManager.removeByStream(MediaApp.GB28181, inviteInfo.getStream());
+                    sessionManager.removeByStream(MediaStreamUtil.GB28181, inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
                     ssrcTransaction.setDeviceId(device.getDeviceId());
                     ssrcTransaction.setChannelId(ssrcTransaction.getChannelId());
                     ssrcTransaction.setCallId(ssrcTransaction.getCallId());
                     ssrcTransaction.setSsrc(ssrcInResponse);
                     ssrcTransaction.setAllocatedSsrc(null);
-                    ssrcTransaction.setApp(MediaApp.GB28181);
+                    ssrcTransaction.setApp(MediaStreamUtil.GB28181);
                     ssrcTransaction.setStream(inviteInfo.getStream());
                     ssrcTransaction.setMediaServerId(mediaServerItem.getId());
                     ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo((SIPResponse) responseEvent.getResponse()));
@@ -1096,7 +1096,7 @@ public class PlayServiceImpl implements IPlayService {
                                 inviteStreamService.updateInviteInfo(inviteInfoForNew, 60*15L);
                             }
                         };
-                        Hook hook = Hook.getInstance(HookType.on_record_mp4, MediaApp.GB28181, ssrcInfo.getStream(), mediaServer.getId());
+                        Hook hook = Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.GB28181, ssrcInfo.getStream(), mediaServer.getId());
                         // 设置过期时间，下载失败时自动处理订阅数据
                         hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
                         subscribe.addSubscribe(hook, hookEventForRecord);
@@ -1116,7 +1116,7 @@ public class PlayServiceImpl implements IPlayService {
 
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfo == null) {
-            String app = MediaApp.GB28181;
+            String app = MediaStreamUtil.GB28181;
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
             if (streamAuthorityInfo != null) {
                 List<CloudRecordItem> allList = cloudRecordService.getAllList(null, app, stream, null, null, null, streamAuthorityInfo.getCallId(), null);
@@ -1158,7 +1158,7 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[获取下载进度] 查询录像信息时发现节点不存在");
             return null;
         }
-        String app = MediaApp.GB28181;
+        String app = MediaStreamUtil.GB28181;
         Long duration  = mediaServerService.updateDownloadProcess(mediaServerItem, app, stream);
         if (duration == null || duration == 0) {
             inviteInfo.getStreamInfo().setProgress(0);
@@ -1201,7 +1201,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel) {
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaApp.GB28181, mediaInfo.getStream(), mediaInfo, null);
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaStreamUtil.GB28181, mediaInfo.getStream(), mediaInfo, null);
         streamInfo.setDeviceId(device.getDeviceId());
         streamInfo.setChannelId(channel.getId());
         return streamInfo;
@@ -1270,7 +1270,7 @@ public class PlayServiceImpl implements IPlayService {
         if (broadcastMode == null) {
             broadcastMode = true;
         }
-        String app = broadcastMode ? MediaApp.GB28181_BROADCAST : MediaApp.GB28181_TALK;
+        String app = broadcastMode ? MediaStreamUtil.GB28181_BROADCAST : MediaStreamUtil.GB28181_TALK;
         String stream = device.getDeviceId() + "_" + deviceChannel.getDeviceId();
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
         audioBroadcastResult.setApp(app);
@@ -1572,7 +1572,7 @@ public class PlayServiceImpl implements IPlayService {
         SendRtpInfo sendRtpInfo = sendRtpServerService.queryByChannelId(channel.getId(), device.getDeviceId());
         if (sendRtpInfo != null) {
             MediaServer mediaServer = mediaServerService.getOne(sendRtpInfo.getMediaServerId());
-            Boolean streamReady = mediaServerService.isStreamReady(mediaServer, MediaApp.GB28181_TALK, sendRtpInfo.getReceiveStream());
+            Boolean streamReady = mediaServerService.isStreamReady(mediaServer, MediaStreamUtil.GB28181_TALK, sendRtpInfo.getReceiveStream());
             if (streamReady) {
                 log.warn("[语音对讲] 进行中： {}", channel.getDeviceId());
                 event.call("语音对讲进行中");
@@ -1647,7 +1647,7 @@ public class PlayServiceImpl implements IPlayService {
                 String path = "snap";
                 // 请求截图
                 log.info("[请求截图]: " + fileName);
-                mediaServerService.getSnap(mediaServer, MediaApp.GB28181,  inviteInfo.getStreamInfo().getStream(), 15, 1, path, fileName);
+                mediaServerService.getSnap(mediaServer, MediaStreamUtil.GB28181,  inviteInfo.getStreamInfo().getStream(), 15, 1, path, fileName);
                 File snapFile = new File(path + File.separator + fileName);
                 if (snapFile.exists()) {
                     errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapFile.getAbsoluteFile());
@@ -1697,7 +1697,7 @@ public class PlayServiceImpl implements IPlayService {
                 String path = "snap";
                 // 请求截图
                 log.info("[请求截图]: 返回byte数组" );
-                byte[] snapByteArray = mediaServerService.getSnap(mediaServer, MediaApp.GB28181,  inviteInfo.getStreamInfo().getStream(), 15, 1, path, null);
+                byte[] snapByteArray = mediaServerService.getSnap(mediaServer, MediaStreamUtil.GB28181,  inviteInfo.getStreamInfo().getStream(), 15, 1, path, null);
                 if (snapByteArray != null) {
                     errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapByteArray);
                 }else {
@@ -1711,7 +1711,7 @@ public class PlayServiceImpl implements IPlayService {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 InviteInfo inviteInfoForPlay = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
                 if (inviteInfoForPlay != null && inviteInfoForPlay.getStreamInfo() != null) {
-                    byte[] snapByteArray = mediaServerService.getSnap(data.getMediaServer(), MediaApp.GB28181,  data.getStream(), 15, 1, null, null);
+                    byte[] snapByteArray = mediaServerService.getSnap(data.getMediaServer(), MediaStreamUtil.GB28181,  data.getStream(), 15, 1, null, null);
                     errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapByteArray);
                 }else {
                     errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
@@ -1740,7 +1740,7 @@ public class PlayServiceImpl implements IPlayService {
             if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
                 try {
                     log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
-                    cmder.streamByeCmd(device, channel.getDeviceId(), MediaApp.GB28181, inviteInfo.getStream(), null, null);
+                    cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.GB28181, inviteInfo.getStream(), null, null);
                 } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                     log.error("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
                     throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
@@ -1751,7 +1751,7 @@ public class PlayServiceImpl implements IPlayService {
                 deviceChannelService.stopPlay(channel.getId());
             }
             if (inviteInfo.getStreamInfo() != null) {
-                receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), MediaApp.GB28181, stream);
+                receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), MediaStreamUtil.GB28181, stream);
             }
         }
     }
@@ -1773,7 +1773,7 @@ public class PlayServiceImpl implements IPlayService {
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
             try {
                 log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
-                cmder.streamByeCmd(device, channel.getDeviceId(), MediaApp.GB28181, inviteInfo.getStream(), null, null);
+                cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.GB28181, inviteInfo.getStream(), null, null);
             } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                 log.warn("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
             }
@@ -1783,7 +1783,7 @@ public class PlayServiceImpl implements IPlayService {
             deviceChannelService.stopPlay(channel.getId());
         }
         if (inviteInfo.getStreamInfo() != null) {
-            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), MediaApp.GB28181, inviteInfo.getStream());
+            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), MediaStreamUtil.GB28181, inviteInfo.getStream());
         }
     }
 

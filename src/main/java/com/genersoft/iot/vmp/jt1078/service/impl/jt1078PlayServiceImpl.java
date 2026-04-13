@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.jt1078.service.impl;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -30,7 +30,6 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.RTPServerParam;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -210,7 +209,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             MediaServer mediaServer = streamInfo.getMediaServer();
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaApp.JT1078, streamInfo.getStream());
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, MediaStreamUtil.JT1078, streamInfo.getStream());
                 if (mediaInfo != null) {
                     log.info("[JT-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                     for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
@@ -238,7 +237,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaApp.JT1078);
+        rtpServerParam.setApp(MediaStreamUtil.JT1078);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
@@ -265,7 +264,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 String fileName = phoneNumber + "_" + channelId + ".jpg";
                 // 请求截图
                 log.info("[请求截图]: " + fileName);
-                mediaServerService.getSnap(mediaServer, MediaApp.JT1078, stream, 15, 1, path, fileName);
+                mediaServerService.getSnap(mediaServer, MediaStreamUtil.JT1078, stream, 15, 1, path, fileName);
             }else {
                 if (callback != null) {
                     callback.run(WVPResult.fail(code, msg));
@@ -295,7 +294,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     }
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, Integer channelId) {
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaApp.JT1078, hookData.getStream(), hookData.getMediaInfo(), null);
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, MediaStreamUtil.JT1078, hookData.getStream(), hookData.getMediaInfo(), null);
         streamInfo.setDeviceId(phoneNumber);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -438,7 +437,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             redisTemplate.delete(playbackKey);
         }
 
-        String app = MediaApp.JT1078;
+        String app = MediaStreamUtil.JT1078;
         String stream = String.format("%s_%s_%s_%s", phoneNumber, channelId,
                 DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime), DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
         MediaServer mediaServer;
@@ -457,7 +456,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaApp.JT1078);
+        rtpServerParam.setApp(MediaStreamUtil.JT1078);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
@@ -628,7 +627,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         sendRtpInfo.setReceiveStream(stream + "_talk");
 
         // 设置hook监听
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaApp.JT1078, sendRtpInfo.getReceiveStream(), mediaServer.getId());
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, MediaStreamUtil.JT1078, sendRtpInfo.getReceiveStream(), mediaServer.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             log.info("[JT-对讲] 对讲连接建立， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             subscribe.removeSubscribe(hook);

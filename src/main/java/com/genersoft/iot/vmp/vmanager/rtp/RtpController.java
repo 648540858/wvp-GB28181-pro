@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.rtp;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.common.enums.MediaApp;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -16,7 +16,6 @@ import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.RTPServerParam;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
@@ -102,7 +101,7 @@ public class RtpController {
 
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
-        rtpServerParam.setApp(MediaApp.GB28181);
+        rtpServerParam.setApp(MediaStreamUtil.GB28181);
         rtpServerParam.setStreamId(stream);
         rtpServerParam.setSsrc(ssrcInt);
         rtpServerParam.setTcpMode(tcpMode);
@@ -174,8 +173,8 @@ public class RtpController {
     public void closeRtpServer(String stream) {
         log.info("[第三方服务对接->关闭收流] stream->{}", stream);
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
-        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaApp.GB28181, stream);
-        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaApp.GB28181, stream+ "_a");
+        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.GB28181, stream);
+        receiveRtpServerService.closeRTPServer(mediaServerItem, MediaStreamUtil.GB28181, stream+ "_a");
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
         if (scan.size() > 0) {

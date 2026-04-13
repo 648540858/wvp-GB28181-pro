@@ -1,4 +1,4 @@
-FROM ringcentral/jdk:11 AS builder
+FROM ringcentral/jdk:21.0.9 AS builder
 
 EXPOSE 18978/tcp
 EXPOSE 8116/tcp
@@ -41,8 +41,8 @@ EXPOSE 8080/tcp
 
 #ENV JAVA_HOME /usr/local/java/
 #ENV JRE_HOME ${JAVA_HOME}/jre
-#ENV CLASSPATH .:${JAVA_HOME}/lib:${JRE_HOME}/lib 
-#ENV PATH ${JAVA_HOME}/bin:$PATH 
+#ENV CLASSPATH .:${JAVA_HOME}/lib:${JRE_HOME}/lib
+#ENV PATH ${JAVA_HOME}/bin:$PATH
 
 RUN java -version && javac -version
 
@@ -50,17 +50,17 @@ RUN java -version && javac -version
 RUN apt-get update && \
     apt-get install -y maven && \
     rm -rf /var/lib/apt/lists/*
-    
+
 
 COPY . /build
 WORKDIR /build
 RUN ls && mvn clean package -Dmaven.test.skip=true
 WORKDIR /build/target
-#È·±£ÎÄ¼þÃûÒ»ÖÂ
+#È·ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
 RUN mv wvp-pro-*.jar wvp.jar
 
 
-FROM ringcentral/jdk:11
+FROM ringcentral/jdk:21.0.9
 RUN mkdir -p /opt/wvp
 WORKDIR /opt/wvp
 COPY --from=builder /build/target /opt/wvp

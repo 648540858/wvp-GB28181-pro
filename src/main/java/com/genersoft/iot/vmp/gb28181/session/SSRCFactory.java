@@ -39,8 +39,7 @@ public class SSRCFactory {
 
 
     public void initMediaServerSSRC(String mediaServerId, Set<String> usedSet) {
-        String sipDomain = sipConfig.getDomain();
-        String ssrcPrefix = sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
+        String ssrcPrefix = getSsrcPrefix();
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         List<String> ssrcList = new ArrayList<>();
         for (int i = 1; i < MAX_STREAM_COUNT; i++) {
@@ -83,7 +82,12 @@ public class SSRCFactory {
         if (ssrc == null) {
             return;
         }
+        if (!isFactorySsrc(ssrc)) {
+            log.warn("[释放 SSRC] 忽略非SSRC池分配的值: {}", ssrc);
+            return;
+        }
         String sn = ssrc.substring(1);
+        log.debug("[释放 SSRC] SSRC:{} -> SN: {}", ssrc, sn);
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         redisTemplate.opsForSet().add(redisKey, sn);
     }
@@ -120,6 +124,20 @@ public class SSRCFactory {
     public boolean hasMediaServerSSRC(String mediaServerId) {
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         return Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
+    }
+
+    private String getSsrcPrefix() {
+        String sipDomain = sipConfig.getDomain();
+        return sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
+    }
+
+    private boolean isFactorySsrc(String ssrc) {
+        if (ssrc.length() < 2) {
+            return false;
+        }
+        String sn = ssrc.substring(1);
+        String ssrcPrefix = getSsrcPrefix();
+        return sn.length() == ssrcPrefix.length() + 4 && sn.startsWith(ssrcPrefix);
     }
 
 }

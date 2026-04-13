@@ -179,6 +179,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         ? ssrcFactory.getPlaySsrc(streamInfo.getMediaServer().getId())
                                         : ssrcFactory.getPlayBackSsrc(streamInfo.getMediaServer().getId());
                                 inviteInfo.setSsrc(ssrc);
+                                inviteInfo.setAllocatedSsrc(ssrc);
+                                inviteInfo.setAllocatedSsrcMediaServerId(streamInfo.getMediaServer().getId());
                             }
                         }
                         // 构建sendRTP内容
@@ -186,6 +188,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),
                                 streamInfo.getApp(), streamInfo.getStream(),
                                 channel.getGbId(), inviteInfo.isTcp(), platform.isRtcp());
+                        sendRtpItem.setAllocatedSsrc(inviteInfo.getAllocatedSsrc());
                         if (inviteInfo.isTcp() && inviteInfo.isTcpActive()) {
                             sendRtpItem.setTcpActive(true);
                         }
@@ -203,7 +206,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 超时未收到Ack应该回复bye,当前等待时间为10秒
                         dynamicTask.startDelay(inviteInfo.getCallId(), () -> {
                             log.info("[Ack ] 等待超时, {}/{}", inviteInfo.getCallId(), channel.getGbDeviceId());
-                            mediaServerService.releaseSsrc(streamInfo.getMediaServer().getId(), sendRtpItem.getSsrc());
+                            mediaServerService.releaseSsrc(streamInfo.getMediaServer().getId(), sendRtpItem.getSsrcToRelease());
                             // 回复bye
                             sendBye(platform, inviteInfo.getCallId());
                         }, 60 * 1000);
@@ -244,6 +247,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 log.error("[命令发送失败] invite BAD_REQUEST: {}", sendException.getMessage());
             }
         }catch (PlayException e) {
+            releaseAllocatedSsrc(inviteInfo);
             try {
                 responseAck(request, e.getCode(), e.getMsg());
             } catch (SipException | InvalidArgumentException | ParseException sendException) {
@@ -251,12 +255,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
         }catch (Exception e) {
             log.error("[Invite处理异常] ", e);
+            releaseAllocatedSsrc(inviteInfo);
             try {
                 responseAck(request, Response.SERVER_INTERNAL_ERROR, "");
             } catch (SipException | InvalidArgumentException | ParseException sendException) {
                 log.error("[命令发送失败] invite 点播失败: {}", sendException.getMessage());
             }
         }
+    }
+
+    private void releaseAllocatedSsrc(InviteMessageInfo inviteInfo) {
+        if (inviteInfo == null || inviteInfo.getAllocatedSsrc() == null || inviteInfo.getAllocatedSsrcMediaServerId() == null) {
+            return;
+        }
+        mediaServerService.releaseSsrc(inviteInfo.getAllocatedSsrcMediaServerId(), inviteInfo.getAllocatedSsrc());
+        inviteInfo.setAllocatedSsrc(null);
+        inviteInfo.setAllocatedSsrcMediaServerId(null);
     }
 
     private InviteMessageInfo decode(RequestEvent evt) throws SdpException {

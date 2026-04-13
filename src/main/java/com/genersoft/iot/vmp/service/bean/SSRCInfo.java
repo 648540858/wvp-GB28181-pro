@@ -7,6 +7,7 @@ public class SSRCInfo {
 
     private int port;
     private String ssrc;
+    private String allocatedSsrc;
     private String app;
     private String Stream;
 
@@ -15,6 +16,10 @@ public class SSRCInfo {
         this.ssrc = ssrc;
         this.app = app;
         this.Stream = stream;
+    }
+
+    public String getSsrcToRelease() {
+        return allocatedSsrc;
     }
 
 }

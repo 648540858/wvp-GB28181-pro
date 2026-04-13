@@ -110,6 +110,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
                 String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(hookData.getMediaServer().getId()) : ssrcFactory.getPlayBackSsrc(hookData.getMediaServer().getId());
                 sendRtpItem.setSsrc(ssrc);
+                sendRtpItem.setAllocatedSsrc(ssrc);
             }
             sendRtpItem.setMediaServerId(hookData.getMediaServer().getId());
             sendRtpItem.setLocalIp(hookData.getMediaServer().getSdpIp());

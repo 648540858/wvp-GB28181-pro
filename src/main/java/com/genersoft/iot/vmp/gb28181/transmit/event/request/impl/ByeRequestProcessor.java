@@ -132,7 +132,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						if (mediaServer != null) {
 							mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
 							if (userSetting.getUseCustomSsrcForParentInvite()) {
-								mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrc());
+								mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrcToRelease());
 							}
 						}
 					}
@@ -144,7 +144,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				sendRtpServerService.delete(sendRtpItem);
 				mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
 				if (userSetting.getUseCustomSsrcForParentInvite()) {
-					mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());
+					mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrcToRelease());
 				}
 			}
 			if (sendRtpItem.getServerId().equals(userSetting.getServerId())) {
@@ -254,7 +254,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			// 释放ssrc
 			MediaServer mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
 			if (mediaServerItem != null) {
-				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
+				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrcToRelease());
 			}
 			sessionManager.removeByCallId(ssrcTransaction.getCallId());
 		}

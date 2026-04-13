@@ -132,7 +132,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 }
                 sendRtpServerService.delete(sendRtpItem);
                 if (mediaServerItem != null) {
-                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrcToRelease());
                     boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
                     if (stopResult) {
                         Platform platform = queryPlatformByServerGBId(sendRtpItem.getTargetId());
@@ -339,7 +339,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp()) && sendRtpItem.isSendToPlatform()) {
                     Platform platform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getTargetId());
                     CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
-                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrcToRelease());
                     try {
                         commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -526,7 +526,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryForPlatform(platformId);
         if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpInfo sendRtpItem : sendRtpItems) {
-                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrcToRelease());
                 sendRtpServerService.delete(sendRtpItem);
                 MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
@@ -647,7 +647,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                                 log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
                             } finally {
                                 timeoutCallback.run(1, "收流超时");
-                                mediaServerService.releaseSsrc(mediaServerItem.getId(), data.getSsrcInfo().getSsrc());
+                                mediaServerService.releaseSsrc(mediaServerItem.getId(), data.getSsrcInfo().getSsrcToRelease());
                                 receiveRtpServerService.closeRTPServer(mediaServerItem, data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
                                 sessionManager.removeByStream(data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
                             }
@@ -728,8 +728,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     // ssrc检验
                     // 更新ssrc
                     log.info("[Invite 200OK] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
-                    // 释放ssrc
-                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse);
                     if (!result) {
                         try {
@@ -739,7 +738,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                             log.error("[命令发送失败] 停止播放， 发送BYE: {}", e.getMessage());
                         } finally {
                             // 释放ssrc
-                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
                             receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
                             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
@@ -751,6 +750,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                         }
                     }else {
                         ssrcInfo.setSsrc(ssrcInResponse);
+                        updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                         inviteInfo.setSsrcInfo(ssrcInfo);
                         inviteInfo.setStream(ssrcInfo.getStream());
                         if (tcpMode == 2) {
@@ -764,7 +764,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                         inviteStreamService.updateInviteInfo(inviteInfo);
                     }
                 }else {
+                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     ssrcInfo.setSsrc(ssrcInResponse);
+                    updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                     inviteInfo.setSsrcInfo(ssrcInfo);
                     inviteInfo.setStream(ssrcInfo.getStream());
                     if (tcpMode == 2) {
@@ -782,6 +784,10 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     // 单端口
                     // 重新订阅流上线
                     SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(ssrcInfo.getApp(), inviteInfo.getStream());
+                    if (ssrcTransaction == null) {
+                        return;
+                    }
+                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     sessionManager.removeByStream(ssrcInfo.getApp(), inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
 
@@ -790,6 +796,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     ssrcTransaction.setApp(ssrcInfo.getApp());
                     ssrcTransaction.setStream(inviteInfo.getStream());
                     ssrcTransaction.setSsrc(ssrcInResponse);
+                    ssrcTransaction.setAllocatedSsrc(null);
                     ssrcTransaction.setMediaServerId(mediaServerItem.getId());
                     ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo((SIPResponse) responseEvent.getResponse()));
                     ssrcTransaction.setType(inviteSessionType);
@@ -798,6 +805,24 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 }
             }
         }
+    }
+
+    private void releaseAllocatedSsrc(MediaServer mediaServerItem, SSRCInfo ssrcInfo) {
+        if (ssrcInfo == null || ssrcInfo.getAllocatedSsrc() == null) {
+            return;
+        }
+        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getAllocatedSsrc());
+        ssrcInfo.setAllocatedSsrc(null);
+    }
+
+    private void updateSsrcTransaction(String app, String stream, String ssrc, String allocatedSsrc) {
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
+        if (ssrcTransaction == null) {
+            return;
+        }
+        ssrcTransaction.setSsrc(ssrc);
+        ssrcTransaction.setAllocatedSsrc(allocatedSsrc);
+        sessionManager.put(ssrcTransaction);
     }
 
 
@@ -836,7 +861,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             log.error("[TCP主动连接对方] serverGbId: {}, channelId: {}, 解析200OK的SDP信息失败", platform.getServerGBId(), channel.getGbDeviceId(), e);
             receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
             // 释放ssrc
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
@@ -861,7 +886,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, channel.getGbId(), stream);
             if (inviteInfo != null) {
                 // 释放ssrc
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrcToRelease());
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
             sessionManager.removeByStream(app, stream);

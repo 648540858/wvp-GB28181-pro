@@ -107,7 +107,7 @@ public class RtpController {
         rtpServerParam.setTcpMode(tcpMode);
 
 
-        int rtpServerPortForVideo =  receiveRtpServerService.openRTPServer(rtpServerParam, ((code, msg, data) -> {
+        int rtpServerPortForVideo =  receiveRtpServerService.openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (callBack == null) {
                 return;
             }
@@ -129,7 +129,7 @@ public class RtpController {
 
         rtpServerParam.setStreamId(stream + "_a");
 
-        int rtpServerPortForAudio =  receiveRtpServerService.openRTPServer(rtpServerParam, ((code, msg, data) -> {
+        int rtpServerPortForAudio =  receiveRtpServerService.openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 log.info("[开启收流和获取发流信息] 音频流收流成功，callId->{}，stream->{}", callId, stream);
             }else {

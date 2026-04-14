@@ -17,7 +17,7 @@ public class MediaStreamUtil {
     }
 
     public static boolean isGB28181(String app, String streamId) {
-        return RTP_APP.equals(app) || !streamId.startsWith(RTP_STREAM_REST_PREFIX);
+        return RTP_APP.equals(app) && !streamId.startsWith(RTP_STREAM_REST_PREFIX);
     }
 
     public static boolean isTalk(String app, String streamId) {

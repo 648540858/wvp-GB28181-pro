@@ -375,10 +375,8 @@ public class PlayServiceImpl implements IPlayService {
         }
 
         String streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
-        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
-        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServer(mediaServer, streamId, ssrc, tcpMode, false,
-                device.isSsrcCheck(), false, !channel.isHasAudio(),  (code, msg, result) -> {
+        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForPlay(mediaServer, device, channel, ssrc, (code, msg, result) -> {
 
             if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
                 // hook 响应
@@ -770,10 +768,8 @@ public class PlayServiceImpl implements IPlayService {
                 .replace(" ", "");
 
         String stream = device.getDeviceId() + "_" + channel.getDeviceId() + "_" + startTimeStr + "_" + endTimeTimeStr;
-        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
-        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServer(mediaServer, stream, null, tcpMode, true,
-                device.isSsrcCheck(), false, !channel.isHasAudio(), (code, msg, result) -> {
+        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForPlayback(mediaServer, device, channel, startTimeStr, endTimeTimeStr, (code, msg, result) -> {
             if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
                 // hook响应
                 StreamInfo streamInfo = onPublishHandlerForPlayback(result.getHookData().getMediaServer(), result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
@@ -1009,10 +1005,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
-        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-
-        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServer(mediaServer, null, null, tcpMode, false,
-                device.isSsrcCheck(), false, !channel.isHasAudio(), (code, msg, result) -> {
+        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForDownload(mediaServer, device, channel, (code, msg, result) -> {
             if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
                 // hook响应
                 StreamInfo streamInfo = onPublishHandlerForDownload(mediaServer, result.getHookData().getMediaInfo(), device, channel, startTime, endTime);

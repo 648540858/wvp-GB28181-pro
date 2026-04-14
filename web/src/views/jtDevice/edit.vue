@@ -65,16 +65,22 @@ export default {
           .then(data => {
             this.listChangeCallback()
           })
-          .catch(function(error) {
-            console.log(error)
+          .catch((error) => {
+            this.$message.error({
+              showClose: true,
+              message: error
+            })
           })
       } else {
         this.$store.dispatch('jtDevice/add', this.form)
           .then(data => {
             this.listChangeCallback()
           })
-          .catch(function(error) {
-            console.log(error)
+          .catch((error) => {
+            this.$message.error({
+              showClose: true,
+              message: error
+            })
           })
       }
     },

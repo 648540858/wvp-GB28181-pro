@@ -607,24 +607,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             }
         }
 
-        String streamId = null;
-        if (mediaServerItem.isRtpEnable()) {
-            streamId = String.format("%s_%s", platform.getServerGBId(), channel.getGbDeviceId());
-        }
-        // 默认不进行SSRC校验， TODO 后续可改为配置
-        boolean ssrcCheck = false;
-        int tcpMode;
-        if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-PASSIVE")) {
-            tcpMode = 1;
-        }else if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-ACTIVE")) {
-            tcpMode = 2;
-        } else {
-            tcpMode = 0;
-        }
-
-
-        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServer(mediaServerItem, streamId, null, tcpMode,
-                false, ssrcCheck, true, false, ((code, msg, data) -> {
+        SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForBroadcast(mediaServerItem, platform, channel, ((code, msg, data) -> {
                     if (code == InviteErrorCode.SUCCESS.getCode() && data != null && data.getHookData() != null) {
                         log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
                         HookData hookData = data.getHookData();
@@ -662,7 +645,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             return;
         }
         log.info("[国标级联] 语音喊话，发起Invite消息 deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
-                platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), ssrcInfo.getSsrc(), ssrcCheck);
+                platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), ssrcInfo.getSsrc(), false);
 
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(platform.getServerGBId(), channel.getGbId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
@@ -670,7 +653,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 InviteSessionStatus.ready, userSetting.getRecordSip());
         inviteStreamService.updateInviteInfo(inviteInfo);
         commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, event -> {
-            inviteOKHandler(event, ssrcInfo, tcpMode, ssrcCheck, mediaServerItem, platform, channel,
+            inviteOKHandler(event, ssrcInfo, false, mediaServerItem, platform, channel,
                     null, inviteInfo, InviteSessionType.BROADCAST);
         }, eventResult -> {
             // 收到错误回复
@@ -692,7 +675,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         }
     }
 
-    private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, int tcpMode, boolean ssrcCheck, MediaServer mediaServerItem,
+    private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, boolean ssrcCheck, MediaServer mediaServerItem,
                                  Platform platform, CommonGBChannel channel, ErrorCallback<Object> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
@@ -704,16 +687,11 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             ssrcInResponse = ssrcInfo.getSsrc();
         }
         if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
-            // ssrc 一致
-            if (mediaServerItem.isRtpEnable()) {
-                // 多端口
-                if (tcpMode == 2) {
-                    tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
+            if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-ACTIVE")) {
+                if (mediaServerItem.isRtpEnable()) {
+                    tcpActiveHandler(platform, channel, contentString, mediaServerItem, ssrcCheck,
                             ssrcInfo, callback);
-                }
-            }else {
-                // 单端口
-                if (tcpMode == 2) {
+                }else {
                     log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
                 }
             }
@@ -751,9 +729,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                         updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                         inviteInfo.setSsrcInfo(ssrcInfo);
                         inviteInfo.setStream(ssrcInfo.getStream());
-                        if (tcpMode == 2) {
+                        if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-ACTIVE")) {
                             if (mediaServerItem.isRtpEnable()) {
-                                tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
+                                tcpActiveHandler(platform, channel, contentString, mediaServerItem, ssrcCheck,
                                         ssrcInfo, callback);
                             }else {
                                 log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
@@ -767,9 +745,9 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                     updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                     inviteInfo.setSsrcInfo(ssrcInfo);
                     inviteInfo.setStream(ssrcInfo.getStream());
-                    if (tcpMode == 2) {
+                    if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-ACTIVE")) {
                         if (mediaServerItem.isRtpEnable()) {
-                            tcpActiveHandler(platform, channel, contentString, mediaServerItem, tcpMode, ssrcCheck,
+                            tcpActiveHandler(platform, channel, contentString, mediaServerItem, ssrcCheck,
                                     ssrcInfo, callback);
                         }else {
                             log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
@@ -825,12 +803,8 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
 
     private void tcpActiveHandler(Platform platform, CommonGBChannel channel, String contentString,
-                                  MediaServer mediaServerItem, int tcpMode, boolean ssrcCheck,
+                                  MediaServer mediaServerItem, boolean ssrcCheck,
                                   SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
-        if (tcpMode != 2) {
-            return;
-        }
-
         String substring;
         if (contentString.indexOf("y=") > 0) {
             substring = contentString.substring(0, contentString.indexOf("y="));

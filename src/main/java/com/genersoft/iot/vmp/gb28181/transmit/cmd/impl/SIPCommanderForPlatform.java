@@ -695,7 +695,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void broadcastInviteCmd(Platform platform, CommonGBChannel channel,String sourceId, MediaServer mediaServerItem,
+    public void broadcastInviteCmd(Platform platform, CommonGBChannel channel,String sourceId, MediaServer mediaServer,
                                    SSRCInfo ssrcInfo, SipSubscribe.Event okEvent,
                                    SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException {
         String stream = ssrcInfo.getStream();
@@ -704,8 +704,8 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
             return;
         }
 
-        log.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
-        String sdpIp = mediaServerItem.getSdpIp();
+        log.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServer.getId(), mediaServer.getIp(), ssrcInfo.getPort());
+        String sdpIp = mediaServer.getSdpIp();
 
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
@@ -744,13 +744,13 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
+            mediaServerService.releaseSsrc(mediaServer.getId(), ssrcInfo.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForPlatform(platform.getServerGBId(), channel.getGbId(),
-                    callIdHeader.getCallId(), ssrcInfo.getApp(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.BROADCAST);
+                    callIdHeader.getCallId(), ssrcInfo.getApp(),  stream, ssrcInfo.getSsrc(), mediaServer.getId(), response, InviteSessionType.BROADCAST);
             ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);

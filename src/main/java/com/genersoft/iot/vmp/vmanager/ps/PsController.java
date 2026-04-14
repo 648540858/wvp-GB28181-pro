@@ -106,7 +106,7 @@ public class PsController {
         rtpServerParam.setSsrc(ssrcInt);
         rtpServerParam.setTcpMode(tcpMode);
 
-        int rtpServerPort = receiveRtpServerService.openRTPServer(rtpServerParam, ((code, msg, data) -> {
+        int rtpServerPort = receiveRtpServerService.openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (callBack == null) {
                 return;
             }

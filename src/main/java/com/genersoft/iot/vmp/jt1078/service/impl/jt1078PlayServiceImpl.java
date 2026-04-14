@@ -240,7 +240,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         rtpServerParam.setOnlyAuto(false);
         rtpServerParam.setDisableAudio(!channel.isHasAudio());
 
-        int port = receiveRtpServerService.openRTPServer(rtpServerParam, (code, msg, hookData) -> {
+        int port = receiveRtpServerService.openCommonRTPServer(rtpServerParam, (code, msg, hookData) -> {
 
             if (code == InviteErrorCode.SUCCESS.getCode() && hookData != null ) {
                 // hook响应
@@ -459,7 +459,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         rtpServerParam.setOnlyAuto(false);
         rtpServerParam.setDisableAudio(!channel.isHasAudio());
 
-        int port = receiveRtpServerService.openRTPServer(rtpServerParam, (code, msg, hookData) -> {
+        int port = receiveRtpServerService.openCommonRTPServer(rtpServerParam, (code, msg, hookData) -> {
 
             if (code == InviteErrorCode.SUCCESS.getCode() && hookData != null ) {
                 // hook 响应

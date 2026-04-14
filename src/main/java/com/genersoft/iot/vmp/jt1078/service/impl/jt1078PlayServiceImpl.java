@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
+import com.genersoft.iot.vmp.jt1078.config.JT1078Config;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
@@ -36,6 +37,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -79,6 +81,9 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private JT1078Config jt1078Config;
 
     /**
      * 流到来的处理
@@ -195,7 +200,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     private void play(JTDevice device, JTChannel channel, int type, CommonCallback<WVPResult<StreamInfo>> callback) {
         String phoneNumber = device.getPhoneNumber();
         int channelId = channel.getChannelId();
-        String stream = MediaStreamUtil.getJTPlayStreamId(phoneNumber, channelId);
+        String finalStream = MediaStreamUtil.getJTPlayStreamId(phoneNumber, channelId);
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         List<CommonCallback<WVPResult<StreamInfo>>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
@@ -230,11 +235,23 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             }
             return;
         }
+
+        String streamId;
+        String streamReplace = null;
+        if (mediaServer.isRtpEnable()) {
+            log.info("[JT-点播] 媒体服务器支持rtp，开启rtp点播， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+            streamId = finalStream;
+        }else {
+            String phone = StringUtils.leftPad(device.getPhoneNumber(), 12, '0');
+            streamId = String.format("%s_%s", phone, channelId);
+            streamReplace = finalStream;
+        }
+
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
         rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
-        rtpServerParam.setStreamId(stream);
+        rtpServerParam.setStreamId(finalStream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
         rtpServerParam.setOnlyAuto(false);
@@ -260,7 +277,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 String fileName = phoneNumber + "_" + channelId + ".jpg";
                 // 请求截图
                 log.info("[请求截图]: {}", fileName);
-                mediaServerService.getSnap(mediaServer, MediaStreamUtil.RTP_APP, stream, 15, 1, path, fileName);
+                mediaServerService.getSnap(mediaServer, MediaStreamUtil.RTP_APP, finalStream, 15, 1, path, fileName);
             }else {
                 if (callback != null) {
                     callback.run(WVPResult.fail(code, msg));
@@ -277,6 +294,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             stopPlay(phoneNumber, channelId);
             return;
         }
+        // 补充鉴权参数
+        receiveRtpServerService.addAuthenticateInfo(streamId, streamReplace, !channel.isHasAudio(), jt1078Config.getRecord(), null);
 
         log.info("[JT-点播] phoneNumber： {}， channelId： {}，IP: {}, 端口： {}", phoneNumber, channelId, mediaServer.getSdpIp(), port);
         J9101 j9101 = new J9101();
@@ -434,7 +453,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
 
         String app = MediaStreamUtil.RTP_APP;
-        String stream =  MediaStreamUtil.getJTPlaybackStreamId(phoneNumber, channelId,
+        String finalStream =  MediaStreamUtil.getJTPlaybackStreamId(phoneNumber, channelId,
                 DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime), DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
         MediaServer mediaServer;
         if (org.springframework.util.ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
@@ -448,12 +467,22 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             }
             return;
         }
+        String streamId;
+        String streamReplace = null;
+        if (mediaServer.isRtpEnable()) {
+            log.info("[JT-点播] 媒体服务器支持rtp，开启rtp点播， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+            streamId = finalStream;
+        }else {
+            String phone = StringUtils.leftPad(device.getPhoneNumber(), 12, '0');
+            streamId = String.format("%s_%s", phone, channelId);
+            streamReplace = finalStream;
+        }
 
         // 开启收流端口
         RTPServerParam rtpServerParam = new RTPServerParam();
         rtpServerParam.setMediaServer(mediaServer);
         rtpServerParam.setApp(MediaStreamUtil.RTP_APP);
-        rtpServerParam.setStreamId(stream);
+        rtpServerParam.setStreamId(finalStream);
         rtpServerParam.setPort(0);
         rtpServerParam.setTcpMode(1); // 1 表示tcp被动
         rtpServerParam.setOnlyAuto(false);
@@ -479,10 +508,14 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                     errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                             InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null));
                 }
-                receiveRtpServerService.closeRTPServer(mediaServer, app, stream);
+                receiveRtpServerService.closeRTPServer(mediaServer, app, finalStream);
             }
         });
         log.info("[JT-回放] logInfo： {}， 端口： {}", logInfo, port);
+
+        // 补充鉴权参数
+        receiveRtpServerService.addAuthenticateInfo(streamId, streamReplace, !channel.isHasAudio(), jt1078Config.getRecord(), null);
+
         J9201 j9201 = new J9201();
         j9201.setChannel(channelId);
         j9201.setIp(mediaServer.getSdpIp());

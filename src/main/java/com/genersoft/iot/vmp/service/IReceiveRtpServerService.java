@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookData;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.RTPServerParam;
@@ -14,13 +15,15 @@ public interface IReceiveRtpServerService {
                              ErrorCallback<OpenRTPServerResult> callback);
 
     SSRCInfo openGbRTPServerForPlay(MediaServer mediaServer, Device device, DeviceChannel channel,
-                                    String presetSSRC, ErrorCallback<OpenRTPServerResult> callback);
+                                    String presetSSRC, boolean record, ErrorCallback<OpenRTPServerResult> callback);
 
     SSRCInfo openGbRTPServerForPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
                                         String startTime, String endTime, ErrorCallback<OpenRTPServerResult> callback);
 
     SSRCInfo openGbRTPServerForDownload(MediaServer mediaServer, Device device, DeviceChannel channel,
-                                        ErrorCallback<OpenRTPServerResult> callback);
+                                        String startTime, String endTime, ErrorCallback<OpenRTPServerResult> callback);
+
+    String getPlaybackStream(Device device, DeviceChannel channel, String startTime, String endTime);
 
     SSRCInfo openGbRTPServerForBroadcast(MediaServer mediaServer, Platform platform, CommonGBChannel channel,
                                          ErrorCallback<OpenRTPServerResult> callback);
@@ -30,4 +33,10 @@ public interface IReceiveRtpServerService {
     void closeRTPServer(MediaServer mediaServer, String app, String stream);
 
     void closeRTPServerByMediaServerId(String mediaServerId, String app, String stream);
+
+    void addAuthenticateInfoForGb28181Talk(MediaServer mediaServer, String streamId);
+
+    void addAuthenticateInfo(String streamId, String streamReplace, Boolean enableAudio, Boolean enableMp4, Integer mp4MaxSecond);
+
+    ResultForOnPublish getAuthenticateInfo(String streamId);
 }

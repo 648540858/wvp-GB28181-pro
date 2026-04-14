@@ -516,7 +516,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void loadMP4File(MediaServer mediaServer, String app, String stream, String filePath, String fileName, ErrorCallback<StreamInfo> callback) {
-        String buildApp = "mp4_record";
+        String buildApp = MediaStreamUtil.LOAD_MP4_APP;
         String buildStream = app + "_" + stream + "_" + fileName + "_" + RandomStringUtils.randomAlphabetic(6).toLowerCase();
 
         Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServer.getServerId());
@@ -539,7 +539,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void loadMP4FileForDate(MediaServer mediaServer, String app, String stream, String date, String dateDir, ErrorCallback<StreamInfo> callback) {
-        String buildApp = "mp4_record";
+        String buildApp = MediaStreamUtil.LOAD_MP4_APP;
         String buildStream = app + "_" + stream + "_" + date;
         MediaInfo mediaInfo = getMediaInfo(mediaServer, buildApp, buildStream);
         if (mediaInfo != null) {

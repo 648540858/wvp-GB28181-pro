@@ -211,6 +211,16 @@ public class ZLMMediaServerStatusManager {
         String key = "zlm-keepalive-" + mediaServer.getId();
         dynamicTask.startDelay(key, ()->{
             log.warn("[ZLM-心跳超时] ID：{}", mediaServer.getId());
+            // 主动探测一次，避免因短暂网络抖动误判离线
+            ZLMResult<List<JSONObject>> probeResult = zlmresTfulUtils.getMediaServerConfig(mediaServer);
+            if (probeResult != null && probeResult.getData() != null && !probeResult.getData().isEmpty()) {
+                log.info("[ZLM-心跳超时] 主动探测成功，服务仍在线，重置心跳计时器 ID：{}", mediaServer.getId());
+                ZLMServerConfig zlmServerConfig = JSON.parseObject(JSON.toJSONString(probeResult.getData().get(0)), ZLMServerConfig.class);
+                initPort(mediaServer, zlmServerConfig);
+                online(mediaServer, zlmServerConfig);
+                return;
+            }
+            log.warn("[ZLM-心跳超时] 主动探测失败，确认离线 ID：{}", mediaServer.getId());
             mediaServer.setStatus(false);
             offlineZlmPrimaryMap.put(mediaServer.getId(), mediaServer);
             offlineZlmTimeMap.put(mediaServer.getId(), System.currentTimeMillis());

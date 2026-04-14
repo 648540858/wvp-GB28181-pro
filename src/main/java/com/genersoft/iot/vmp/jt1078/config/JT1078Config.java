@@ -15,4 +15,6 @@ public class JT1078Config {
     private Integer port;
 
     private String password;
+
+    private Boolean record = false;
 }

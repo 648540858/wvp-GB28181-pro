@@ -609,6 +609,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void queryRecordInfo(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
+        log.info("录像查询 API调用，deviceId：{}，channelId：{}，startTime：{}，endTime：{}", device.getDeviceId(), channel.getDeviceId(), startTime, endTime);
         if (!userSetting.getServerId().equals(device.getServerId())){
             redisRpcPlayService.queryRecordInfo(device.getServerId(), channel.getId(), startTime, endTime, callback);
             return;

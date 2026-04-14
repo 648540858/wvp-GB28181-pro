@@ -650,7 +650,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(platform.getServerGBId(), channel.getGbId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), InviteSessionType.BROADCAST,
-                InviteSessionStatus.ready, userSetting.getRecordSip());
+                InviteSessionStatus.ready);
         inviteStreamService.updateInviteInfo(inviteInfo);
         commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, event -> {
             inviteOKHandler(event, ssrcInfo, false, mediaServerItem, platform, channel,

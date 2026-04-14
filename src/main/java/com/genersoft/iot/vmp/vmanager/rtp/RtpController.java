@@ -126,7 +126,8 @@ public class RtpController {
                 log.info("[开启收流和获取发流信息] 视频流收流失败，callId->{}，stream->{}", callId, stream);
             }
         }));
-
+        // 补充鉴权参数
+        receiveRtpServerService.addAuthenticateInfo(stream, null, false, false, null);
         rtpServerParam.setStreamId(stream + "_a");
 
         int rtpServerPortForAudio =  receiveRtpServerService.openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
@@ -136,6 +137,10 @@ public class RtpController {
                 log.info("[开启收流和获取发流信息] 音频流收流失败，callId->{}，stream->{}", callId, stream);
             }
         }));
+
+        // 补充鉴权参数
+        receiveRtpServerService.addAuthenticateInfo(rtpServerParam.getStreamId(), null, true, false, null);
+
         if (rtpServerPortForVideo == 0 || rtpServerPortForAudio == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取端口失败");
         }

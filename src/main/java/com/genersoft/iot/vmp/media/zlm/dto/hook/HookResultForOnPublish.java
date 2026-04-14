@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 public class HookResultForOnPublish extends HookResult{
 
-    private boolean enable_audio;
-    private boolean enable_mp4;
-    private int mp4_max_second;
+    private Boolean enable_audio;
+    private Boolean enable_mp4;
+    private Integer mp4_max_second;
     private String mp4_save_path;
     private String stream_replace;
     private Integer modify_stamp;
@@ -24,8 +24,8 @@ public class HookResultForOnPublish extends HookResult{
 
     public static HookResultForOnPublish getInstance(ResultForOnPublish resultForOnPublish){
         HookResultForOnPublish successResult = new HookResultForOnPublish(0, "success");
-        successResult.setEnable_audio(resultForOnPublish.isEnable_audio());
-        successResult.setEnable_mp4(resultForOnPublish.isEnable_mp4());
+        successResult.setEnable_audio(resultForOnPublish.getEnable_audio());
+        successResult.setEnable_mp4(resultForOnPublish.getEnable_mp4());
         successResult.setModify_stamp(resultForOnPublish.getModify_stamp());
         successResult.setStream_replace(resultForOnPublish.getStream_replace());
         successResult.setMp4_max_second(resultForOnPublish.getMp4_max_second());

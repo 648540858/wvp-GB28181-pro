@@ -73,9 +73,7 @@ public class DeviceControl {
 	@Parameter(name = "guardCmd", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
 	@GetMapping("/guard")
 	public DeferredResult<WVPResult<String>> guardApi(String deviceId, String guardCmd) {
-		if (log.isDebugEnabled()) {
-			log.debug("布防/撤防API调用");
-		}
+		log.info("[布防/撤防] API调用, deviceId: {}, guardCmd: {}", deviceId, guardCmd);
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
 		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
@@ -109,9 +107,7 @@ public class DeviceControl {
 	public DeferredResult<WVPResult<String>> resetAlarm(String deviceId, String channelId,
 																@RequestParam(required = false) String alarmMethod,
 																@RequestParam(required = false) String alarmType) {
-		if (log.isDebugEnabled()) {
-			log.debug("报警复位API调用");
-		}
+		log.info("[报警复位] deviceId: {}, channelId: {}, alarmMethod: {}, alarmType: {}", deviceId, channelId, alarmMethod, alarmType);
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
 		DeferredResult<WVPResult<String>> result = new DeferredResult<>();

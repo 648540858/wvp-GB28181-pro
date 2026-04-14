@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookData;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
@@ -14,12 +15,12 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.RTPServerParam;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -132,7 +133,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     @Override
     public SSRCInfo openGbRTPServerForPlay(MediaServer mediaServer, Device device, DeviceChannel channel,
-                                           String presetSSRC, ErrorCallback<OpenRTPServerResult> callback) {
+                                           String presetSSRC, boolean record, ErrorCallback<OpenRTPServerResult> callback) {
         if (callback == null) {
             log.warn("[开启国标点播RTP收流] 失败，回调为NULL");
             return null;
@@ -142,9 +143,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             return null;
         }
 
-        String streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
-        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-
         // 获取 mediaServer 可用的 ssrc
         final String ssrc;
         if (presetSSRC != null) {
@@ -152,6 +150,18 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }else {
             ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
         }
+
+        String streamId;
+        String streamReplace = null;
+        if (mediaServer.isRtpEnable()) {
+            streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
+        }else {
+            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+            streamReplace = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
+        }
+
+        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
+
         if (device.isSsrcCheck() && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
             log.warn("[开启国标点播RTP收流] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
@@ -159,17 +169,18 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
         if (presetSSRC == null) {
             ssrcInfo.setAllocatedSsrc(ssrc);
         }
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+        addAuthenticateInfo(streamId, streamReplace, !channel.isHasAudio(),  record, null);
         return ssrcInfo;
     }
 
     @Override
     public SSRCInfo openGbRTPServerForPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
-                                               String startTimeStr, String endTimeTimeStr, ErrorCallback<OpenRTPServerResult> callback) {
+                                               String startTime, String endTime, ErrorCallback<OpenRTPServerResult> callback) {
         if (callback == null) {
             log.warn("[开启国标回放RTP收流] 失败，回调为NULL");
             return null;
@@ -179,11 +190,19 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             return null;
         }
 
-        String streamId = device.getDeviceId() + "_" + channel.getDeviceId() + "_" + startTimeStr + "_" + endTimeTimeStr;
-        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-
         // 获取 mediaServer 可用的 ssrc
-        final String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
+        String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
+
+        String streamId;
+        String streamReplace = null;
+        if (mediaServer.isRtpEnable()) {
+            streamId = getPlaybackStream(device, channel, startTime, endTime);
+        }else {
+            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+            streamReplace = getPlaybackStream(device, channel, startTime, endTime);
+        }
+
+        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
         if (device.isSsrcCheck() && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
@@ -192,15 +211,28 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
         ssrcInfo.setAllocatedSsrc(ssrc);
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+        addAuthenticateInfo(streamId, streamReplace,  !channel.isHasAudio(), false,null);
         return ssrcInfo;
     }
 
     @Override
+    public String getPlaybackStream(Device device, DeviceChannel channel, String startTime, String endTime) {
+        String startTimeStr = startTime.replace("-", "")
+                .replace(":", "")
+                .replace(" ", "");
+        String endTimeTimeStr = endTime.replace("-", "")
+                .replace(":", "")
+                .replace(" ", "");
+
+        return device.getDeviceId() + "_" + channel.getDeviceId() + "_" + startTimeStr + "_" + endTimeTimeStr;
+    }
+
+    @Override
     public SSRCInfo openGbRTPServerForDownload(MediaServer mediaServer, Device device, DeviceChannel channel,
-                                               ErrorCallback<OpenRTPServerResult> callback) {
+                                               String startTime, String endTime, ErrorCallback<OpenRTPServerResult> callback) {
         if (callback == null) {
             log.warn("[开启国标录像下载RTP收流] 失败，回调为NULL");
             return null;
@@ -213,8 +245,8 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
         // 获取 mediaServer 可用的 ssrc
-        String ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
-        String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();;
+        String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
+        String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
         if (device.isSsrcCheck() && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
             log.warn("[开启国标录像下载RTP收流] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
@@ -225,6 +257,10 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
         ssrcInfo.setAllocatedSsrc(ssrc);
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+
+        long difference = DateUtil.getDifference(startTime, endTime) / 1000;
+
+        addAuthenticateInfo(streamId, null, !channel.isHasAudio(), true,  (int) difference);
         return ssrcInfo;
     }
 
@@ -256,7 +292,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         // 获取 mediaServer 可用的 ssrc
         String ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
-
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
         ssrcInfo.setAllocatedSsrc(ssrc);
@@ -354,29 +389,38 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         closeRTPServer(mediaServer, app, stream);
     }
 
-    private void addAuthenticateInfoForGb28181(MediaServer mediaServer, String streamId, Boolean enableMp4, Boolean enableAudio, String mapSavePath, Integer modifyStamp) {
+    @Override
+    public void addAuthenticateInfoForGb28181Talk(MediaServer mediaServer, String streamId) {
         String streamReplace = null;
 
         if (!mediaServer.isRtpEnable() ) {
             streamReplace = streamId;
         }
 
-        addAuthenticateInfo(streamId, streamReplace, enableAudio, enableMp4, mapSavePath, modifyStamp);
+        addAuthenticateInfo(streamId, streamReplace, true, false, null);
     }
 
-    private void addAuthenticateInfo(String streamId, String streamReplace, Boolean enableAudio, Boolean enableMp4, String mapSavePath, Integer modifyStamp) {
-        HookResultForOnPublish hookResultForOnPublish = new HookResultForOnPublish();
-        hookResultForOnPublish.setCode(0);
-        hookResultForOnPublish.setMsg("success");
+    @Override
+    public void addAuthenticateInfo(String streamId, String streamReplace, Boolean enableAudio, Boolean enableMp4, Integer mp4MaxSecond) {
+        ResultForOnPublish hookResultForOnPublish = new ResultForOnPublish();
         hookResultForOnPublish.setStream_replace(streamReplace);
         hookResultForOnPublish.setEnable_audio(enableAudio);
         hookResultForOnPublish.setEnable_mp4(enableMp4);
-        hookResultForOnPublish.setMp4_save_path(mapSavePath);
-        hookResultForOnPublish.setModify_stamp(modifyStamp);
+        hookResultForOnPublish.setMp4_max_second(mp4MaxSecond);
 
         String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId);
         // 存储认证信息，过期时间为60秒， 过期则无法通过认证
         redisTemplate.opsForValue().set(key, hookResultForOnPublish);
         redisTemplate.expire(key, 60, TimeUnit.SECONDS);
+     }
+
+     @Override
+     public ResultForOnPublish getAuthenticateInfo(String streamId) {
+         String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId);
+         Object obj = redisTemplate.opsForValue().get(key);
+         if (obj instanceof ResultForOnPublish) {
+             return (ResultForOnPublish) obj;
+         }
+         return null;
      }
 }

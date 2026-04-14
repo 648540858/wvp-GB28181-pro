@@ -67,9 +67,7 @@ public class GBRecordController {
 	@GetMapping("/query/{deviceId}/{channelId}")
 	public DeferredResult<WVPResult<RecordInfo>> recordinfo(@PathVariable String deviceId, @PathVariable String channelId, String startTime, String endTime){
 
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， endTime：%s",deviceId, startTime, endTime));
-		}
+
 		DeferredResult<WVPResult<RecordInfo>> result = new DeferredResult<>(Long.valueOf(userSetting.getRecordInfoTimeout()), TimeUnit.MILLISECONDS);
 		if (!DateUtil.verification(startTime, DateUtil.formatter)){
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "startTime格式为" + DateUtil.PATTERN);
@@ -113,9 +111,7 @@ public class GBRecordController {
 	public DeferredResult<WVPResult<StreamContent>> download(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
 															 String startTime, String endTime, String downloadSpeed) {
 
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
-		}
+		log.info("[开始历史媒体下载] deviceId: {}, channelId: {}, startTime: {}, endTime: {}, downloadSpeed: {}", deviceId, channelId, startTime, endTime, downloadSpeed);
 
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;

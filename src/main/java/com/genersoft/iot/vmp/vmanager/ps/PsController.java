@@ -133,6 +133,10 @@ public class PsController {
         if (rtpServerPort == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取端口失败");
         }
+
+        // 补充鉴权参数
+        receiveRtpServerService.addAuthenticateInfo(stream, null, false, false, null);
+
         OtherPsSendInfo otherPsSendInfo = new OtherPsSendInfo();
         otherPsSendInfo.setReceiveIp(mediaServer.getSdpIp());
         otherPsSendInfo.setReceivePort(rtpServerPort);

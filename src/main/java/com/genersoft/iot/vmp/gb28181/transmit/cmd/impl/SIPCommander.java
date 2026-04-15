@@ -215,12 +215,8 @@ public class SIPCommander implements ISIPCommander {
         if (device == null) {
             return;
         }
-        String sdpIp;
-        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
-            sdpIp = device.getSdpIp();
-        }else {
-            sdpIp = mediaServerItem.getSdpIp();
-        }
+        String sdpIp = !ObjectUtils.isEmpty(device.getSdpIp()) ? device.getSdpIp() : mediaServerItem.getSdpIp();
+
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
         content.append("o=" + device.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");

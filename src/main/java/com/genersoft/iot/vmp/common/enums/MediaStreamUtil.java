@@ -31,7 +31,7 @@ public class MediaStreamUtil {
     }
 
     public static boolean isJT1078(String app, String streamId) {
-        return RTP_APP.equals(app) || streamId.startsWith(JT1078_STREAM_PREFIX);
+        return RTP_APP.equals(app) && streamId.startsWith(JT1078_STREAM_PREFIX);
     }
 
     public static String getJTPlayStreamId(String phoneNumber, int channelId) {
@@ -39,11 +39,11 @@ public class MediaStreamUtil {
     }
 
     public static boolean isJT1078Play(String app, String stream) {
-        return RTP_APP.equals(app) || stream.startsWith(JT1078_STREAM_PLAY_PREFIX);
+        return RTP_APP.equals(app) && stream.startsWith(JT1078_STREAM_PLAY_PREFIX + "_");
     }
 
     public static boolean isJT1078Playback(String app, String stream) {
-        return RTP_APP.equals(app) || stream.startsWith(JT1078_STREAM_PLAYBACK_PREFIX);
+        return RTP_APP.equals(app) && stream.startsWith(JT1078_STREAM_PLAYBACK_PREFIX + "_");
     }
 
     public static boolean isJT1078Talk(String app, String stream) {
@@ -60,5 +60,17 @@ public class MediaStreamUtil {
 
     public static String getJTTalkReceiveStreamId(String phoneNumber, Integer channelId) {
         return getJTTalkStreamId(phoneNumber, channelId) + "_receive";
+    }
+
+    public static String[] getJT1078StreamInfo(String app, String stream) {
+        if (!isJT1078(app, stream)) {
+            return null;
+        }
+        String[] streamInfoArray = stream.split("_");
+        if (streamInfoArray.length > 5) {
+            return new String[]{streamInfoArray[3], streamInfoArray[4], streamInfoArray[5], streamInfoArray[6]};
+        }else {
+            return new String[]{streamInfoArray[3], streamInfoArray[4]};
+        }
     }
 }

@@ -15,6 +15,7 @@ public class ChannelDataType {
     public final static String PLAYBACK_SERVICE = "sourceChannelPlaybackService";
     public final static String DOWNLOAD_SERVICE = "sourceChannelDownloadService";
     public final static String PTZ_SERVICE = "sourceChannelPTZService";
+    public final static String OTHER_SERVICE = "sourceChannelOtherService";
 
 
     public static String getDateTypeDesc(Integer dataType) {

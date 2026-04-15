@@ -377,7 +377,10 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         if (dynamicTask.contains(timeOutTaskKey)) {
             dynamicTask.stop(timeOutTaskKey);
         }
-        mediaServerService.closeRTPServer(mediaServer, app, stream);
+        if (mediaServer.isRtpEnable()) {
+            mediaServerService.closeRTPServer(mediaServer, app, stream);
+        }
+        mediaServerService.closeStreams(mediaServer, app, stream);
     }
 
     @Override

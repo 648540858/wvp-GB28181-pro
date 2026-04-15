@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service(ChannelDataType.OTHER_SERVICE + ChannelDataType.JT_1078)
 @RequiredArgsConstructor
-public class SourceOtherServiceGorJTImpl implements ISourceOtherService {
+public class SourceOtherServiceForJTImpl implements ISourceOtherService {
 
     private final UserSetting userSetting;
 

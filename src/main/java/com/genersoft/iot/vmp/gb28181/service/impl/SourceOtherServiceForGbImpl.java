@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service(ChannelDataType.OTHER_SERVICE + ChannelDataType.GB28181)
 @RequiredArgsConstructor
-public class SourceOtherServiceGorGbImpl implements ISourceOtherService {
+public class SourceOtherServiceForGbImpl implements ISourceOtherService {
 
 
     private final IInviteStreamService inviteStreamService;

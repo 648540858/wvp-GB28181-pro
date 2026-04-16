@@ -116,10 +116,18 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(event);
 	}
 
+	public void mobilePositionListEventPublish(List<MobilePosition> mobilePositionList) {
+		MobilePositionEvent event = new MobilePositionEvent(this);
+		event.setMobilePositionList(mobilePositionList);
+		applicationEventPublisher.publishEvent(event);
+	}
+
 
     public void deviceOfflineEventPublish(Set<String> deviceIds) {
 		DeviceOfflineEvent event = new DeviceOfflineEvent(this);
 		event.setDeviceIds(deviceIds);
 		applicationEventPublisher.publishEvent(event);
     }
+
+
 }

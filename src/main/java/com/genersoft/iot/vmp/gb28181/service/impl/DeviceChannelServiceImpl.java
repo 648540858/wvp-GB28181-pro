@@ -34,6 +34,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
      * 监听录像查询结束事件
      */
     @Async
-    @org.springframework.context.event.EventListener
+    @EventListener
     public void onApplicationEvent(RecordInfoEndEvent event) {
         SynchronousQueue<RecordInfo> queue = topicSubscribers.get("record" + event.getRecordInfo().getSn());
         if (queue != null) {
@@ -107,8 +108,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
     }
 
-    @Autowired
-    private ISIPCommander cmder;
 
 
     @Override
@@ -293,7 +292,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.getName(), deviceChannel.getDeviceId());
         String cmdString = getText(rootElement, type.getVal());
         try {
-            cmder.fronEndCmd(device, deviceChannel.getDeviceId(), cmdString, errorResult->{
+            commander.fronEndCmd(device, deviceChannel.getDeviceId(), cmdString, errorResult->{
                         callback.run(errorResult.statusCode, errorResult.msg, null);
                     }, errorResult->{
                         callback.run(errorResult.statusCode, errorResult.msg, null);

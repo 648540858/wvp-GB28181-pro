@@ -380,6 +380,18 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
+        Set<String> channelDeviceIds = new HashSet<>();
+        for (DeviceChannel deviceChannel : deviceChannelList) {
+            if (deviceChannel != null && !ObjectUtils.isEmpty(deviceChannel.getDeviceId())) {
+                channelDeviceIds.add(deviceChannel.getDeviceId());
+            }
+        }
+        if (!channelDeviceIds.isEmpty()) {
+            int deleteCount = channelMapper.cleanOrphanChannelsByDeviceIds(new ArrayList<>(channelDeviceIds));
+            if (deleteCount > 0) {
+                log.info("[目录同步] 清理孤儿通道 {} 条, deviceDbId: {}, channelIds: {}", deleteCount, deviceDbId, channelDeviceIds);
+            }
+        }
         List<DeviceChannel> allChannels = channelMapper.queryAllChannelsForRefresh(deviceDbId);
         Map<String,DeviceChannel> allChannelMap = new HashMap<>();
         if (!allChannels.isEmpty()) {
@@ -598,7 +610,15 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public void addChannel(DeviceChannel channel) {
         channel.setDataType(ChannelDataType.GB28181);
-        channel.setDataDeviceId(channel.getDataDeviceId());
+        if (channel.getDataDeviceId() == null || channel.getDataDeviceId() <= 0) {
+            log.warn("[收到通道通知] 忽略未绑定设备的通道新增, channelId: {}", channel.getDeviceId());
+            return;
+        }
+        Device device = deviceMapper.query(channel.getDataDeviceId());
+        if (device == null) {
+            log.warn("[收到通道通知] 忽略所属设备不存在的通道新增, channelId: {}, dataDeviceId: {}", channel.getDeviceId(), channel.getDataDeviceId());
+            return;
+        }
         channelMapper.add(channel);
     }
 

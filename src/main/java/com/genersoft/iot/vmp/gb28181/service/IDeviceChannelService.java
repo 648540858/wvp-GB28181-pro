@@ -9,7 +9,9 @@ import com.github.pagehelper.PageInfo;
 import jakarta.validation.constraints.NotNull;
 import org.dom4j.Element;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 国标通道业务类
@@ -96,4 +98,7 @@ public interface IDeviceChannelService {
 
     void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> object);
 
+    Map<String, DeviceChannel> getAllForMobilePosition(List<DeviceMobilePosition> mobilePositionList);
+
+    void asyncBatchChannelPosition(Collection<DeviceChannel> channels);
 }

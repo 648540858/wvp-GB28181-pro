@@ -3,18 +3,14 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
-import com.genersoft.iot.vmp.service.IMobilePositionService;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -36,17 +32,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @RequiredArgsConstructor
 public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private final String cmdType = "MobilePosition";
-
     private final NotifyMessageHandler notifyMessageHandler;
 
-    private final IMobilePositionService mobilePositionService;
-
-    private final IDeviceChannelService deviceChannelService;
-
     private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
-
-    private final TaskExecutor taskExecutor;
 
     private final EventPublisher eventPublisher;
 
@@ -55,6 +43,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        String cmdType = "MobilePosition";
         notifyMessageHandler.addHandler(cmdType, this);
     }
 
@@ -80,7 +69,6 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         if (taskQueue.isEmpty()) {
             return;
         }
-
         List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
         int size = taskQueue.size();
         for (int i = 0; i < size; i++) {
@@ -92,7 +80,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         if (handlerCatchDataList.isEmpty()) {
             return;
         }
-        List<MobilePosition> mobilePositionList = new ArrayList<>();
+        List<DeviceMobilePosition> mobilePositionList = new ArrayList<>();
         for (HandlerCatchData take : handlerCatchDataList) {
             if (take == null) {
                 continue;
@@ -102,16 +90,16 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                 Element rootElementAfterCharset = getRootElement(take.getEvt(), device.getCharset());
                 if (rootElementAfterCharset == null) {
                     log.warn("[移动位置通知] {}处理失败，未识别到信息体", device.getDeviceId());
-                    List<MobilePosition> mobilePositions = MobilePosition.decode(device.getName(), device.getDeviceId(), rootElementAfterCharset);
-                    for (MobilePosition mobilePosition : mobilePositions) {
-                        try {
-                            mobilePosition.setReportSource("Mobile Position");
-                            log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelDeviceId(),
-                                    mobilePosition.getLongitude(), mobilePosition.getLatitude(), mobilePosition.getTime());
-                            mobilePositionList.add(mobilePosition);
-                        }catch (Exception e) {
-                            log.error("未处理的异常 ", e);
-                        }
+                    continue;
+                }
+                List<DeviceMobilePosition> mobilePositions = DeviceMobilePosition.decode(device, rootElementAfterCharset);
+                for (DeviceMobilePosition mobilePosition : mobilePositions) {
+                    try {
+                        log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", device.getDeviceId(), mobilePosition.getChannelDeviceId(),
+                                mobilePosition.getLongitude(), mobilePosition.getLatitude(), mobilePosition.getTimestamp());
+                        mobilePositionList.add(mobilePosition);
+                    }catch (Exception e) {
+                        log.error("未处理的异常 ", e);
                     }
                 }
             }catch (Exception e) {
@@ -122,7 +110,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         // 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
         if (!mobilePositionList.isEmpty()) {
             try {
-                eventPublisher.mobilePositionListEventPublish(mobilePositionList);
+                eventPublisher.mobilePositionsEventPublish(mobilePositionList);
             }catch (Exception e) {
                 log.error("[MobilePositionEvent] 发送失败：  ", e);
             }

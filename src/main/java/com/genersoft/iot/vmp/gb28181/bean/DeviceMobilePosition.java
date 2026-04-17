@@ -3,7 +3,8 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
 import org.springframework.util.ObjectUtils;
@@ -14,66 +15,30 @@ import java.util.List;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
- * @description: 移动位置bean
- * @author: lawrencehj
- * @date: 2021年1月23日
+ * 国标设备移动位置
  */
 
 @Slf4j
-@Data
-public class MobilePosition {
+@Getter
+@Setter
+public class DeviceMobilePosition extends MobilePosition{
 
     /**
      * 通道数据库自增Id
      */
-    private Integer channelId;
-
-    /**
-     * 通道国标编号
-     */
     private String channelDeviceId;
 
-    /**
-     * 通知时间
-     */
-    private long timestamp;
 
-    /**
-     * 经度
-     */
-    private double longitude;
+    private Device device;
 
-    /**
-     * 纬度
-     */
-    private double latitude;
 
-    /**
-     * 海拔高度
-     */
-    private double altitude;
+    public static List<DeviceMobilePosition> decode(Device device, Element rootElementAfterCharset) {
 
-    /**
-     * 速度
-     */
-    private double speed;
+        List<DeviceMobilePosition> mobilePositions = new ArrayList<>();
 
-    /**
-     * 方向
-     */
-    private double direction;
-
-    /**
-     * 创建时间
-     */
-    private String createTime;
-
-    public static List<MobilePosition> decode(Element rootElementAfterCharset) {
-
-        List<MobilePosition> mobilePositions = new ArrayList<>();
-
-        MobilePosition mobilePosition = new MobilePosition();
+        DeviceMobilePosition mobilePosition = new DeviceMobilePosition();
         mobilePosition.setCreateTime(DateUtil.getNow());
+        mobilePosition.setDevice(device);
 
         String channelId = getText(rootElementAfterCharset, "DeviceID");
 
@@ -115,15 +80,9 @@ public class MobilePosition {
 
     @Override
     public String toString() {
-        return "MobilePosition{" +
-                ", channelId=" + channelId +
-                ", channelDeviceId='" + channelDeviceId + '\'' +
-                ", longitude=" + longitude +
-                ", latitude=" + latitude +
-                ", altitude=" + altitude +
-                ", speed=" + speed +
-                ", direction=" + direction +
-                ", createTime='" + createTime + '\'' +
-                '}';
+        return "DeviceMobilePosition{" +
+                "channelDeviceId='" + channelDeviceId + '\'' +
+                ", deviceId='" + device.getDeviceId() + '\'' +
+                "} " + super.toString();
     }
 }

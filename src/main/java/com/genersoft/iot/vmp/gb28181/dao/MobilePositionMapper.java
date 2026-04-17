@@ -10,14 +10,14 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 @Mapper
-public interface DeviceMobilePositionMapper {
+public interface MobilePositionMapper {
 
-    @Insert("INSERT INTO wvp_device_mobile_position (device_id,channel_id, device_name,time,longitude,latitude,altitude,speed,direction,report_source,create_time)"+
+    @Insert("INSERT INTO wvp_mobile_position (device_id,channel_id, device_name,time,longitude,latitude,altitude,speed,direction,report_source,create_time)"+
             "VALUES (#{deviceId}, #{channelId}, #{deviceName}, #{time}, #{longitude}, #{latitude}, #{altitude}, #{speed}, #{direction}, #{reportSource}, #{createTime})")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +
-    "SELECT * FROM wvp_device_mobile_position" +
+    "SELECT * FROM wvp_mobile_position" +
     " WHERE device_id = #{deviceId}" +
     "<if test=\"channelId != null\"> and channel_id = #{channelId}</if>" +
     "<if test=\"startTime != null\"> AND time&gt;=#{startTime}</if>" +
@@ -26,16 +26,16 @@ public interface DeviceMobilePositionMapper {
     " </script>"})
     List<MobilePosition> queryPositionByDeviceIdAndTime(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
-    @Select("SELECT * FROM wvp_device_mobile_position WHERE device_id = #{deviceId}" +
+    @Select("SELECT * FROM wvp_mobile_position WHERE device_id = #{deviceId}" +
             " ORDER BY time DESC LIMIT 1")
     MobilePosition queryLatestPositionByDevice(String deviceId);
 
-    @Delete("DELETE FROM wvp_device_mobile_position WHERE device_id = #{deviceId}")
+    @Delete("DELETE FROM wvp_mobile_position WHERE device_id = #{deviceId}")
     int clearMobilePositionsByDeviceId(String deviceId);
 
     @Insert("<script> " +
             "<foreach collection='mobilePositions' index='index' item='item' separator=';'> " +
-            "insert into wvp_device_mobile_position " +
+            "insert into wvp_mobile_position " +
             "(device_id,channel_id, device_name,time,longitude,latitude,altitude,speed,direction,report_source," +
             "create_time)"+
             "values " +
@@ -46,4 +46,6 @@ public interface DeviceMobilePositionMapper {
             "</script>")
     void batchadd(List<MobilePosition> mobilePositions);
 
+
+    void insertMobilePositions(List<MobilePosition> batchList);
 }

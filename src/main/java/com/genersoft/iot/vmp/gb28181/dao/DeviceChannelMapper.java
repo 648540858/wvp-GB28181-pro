@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceMobilePosition;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.provider.DeviceChannelProvider;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
@@ -9,6 +10,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用于存储设备通道信息
@@ -617,4 +619,63 @@ public interface DeviceChannelMapper {
     void offlineByDeviceIds(List<Device> deviceList);
 
 
+    @Select(value = {" <script>" +
+            " SELECT " +
+            " CONCAT(data_device_id, '_', device_id) as deviceIdKey" +
+            " id,\n" +
+            " data_device_id,\n" +
+            " create_time,\n" +
+            " update_time,\n" +
+            " sub_count,\n" +
+            " stream_id,\n" +
+            " has_audio,\n" +
+            " gps_time,\n" +
+            " stream_identification,\n" +
+            " channel_type,\n" +
+            " device_id,\n" +
+            " name,\n" +
+            " manufacturer,\n" +
+            " model,\n" +
+            " owner,\n" +
+            " civil_code,\n" +
+            " block,\n" +
+            " address,\n" +
+            " parental,\n" +
+            " parent_id,\n" +
+            " safety_way,\n" +
+            " register_way,\n" +
+            " cert_num,\n" +
+            " certifiable,\n" +
+            " err_code,\n" +
+            " end_time,\n" +
+            " secrecy,\n" +
+            " ip_address,\n" +
+            " port,\n" +
+            " password,\n" +
+            " status,\n" +
+            " longitude,\n" +
+            " latitude,\n" +
+            " gb_longitude,\n" +
+            " gb_latitude,\n" +
+            " ptz_type,\n" +
+            " position_type,\n" +
+            " room_type,\n" +
+            " use_type,\n" +
+            " supply_light_type,\n" +
+            " direction_type,\n" +
+            " resolution,\n" +
+            " business_group_id,\n" +
+            " download_speed,\n" +
+            " svc_space_support_mod,\n" +
+            " svc_time_support_mode\n" +
+            " from wvp_device_channel " +
+            " where data_type = 1 " +
+            " and data_device_id = #{deviceId} " +
+            " and device_id in " +
+            "<foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
+            " #{item} " +
+            "</foreach>" +
+            "</script>"})
+    @MapKey("deviceIdKey")
+    Map<String, DeviceChannel> getAllForMobilePosition(@Param("deviceId") int deviceId, List<DeviceMobilePosition> mobilePositionList);
 }

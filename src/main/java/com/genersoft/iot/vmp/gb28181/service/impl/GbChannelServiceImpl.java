@@ -211,12 +211,10 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
                 if (newChannel.getGbLongitude() != null && !Objects.equals(oldChannel.getGbLongitude(), newChannel.getGbLongitude())
                         && newChannel.getGbLatitude() != null && !Objects.equals(oldChannel.getGbLatitude(), newChannel.getGbLatitude())) {
                     MobilePosition mobilePosition = new MobilePosition();
-                    mobilePosition.setDeviceId(newChannel.getGbDeviceId());
                     mobilePosition.setChannelId(newChannel.getGbId());
                     mobilePosition.setChannelDeviceId(newChannel.getGbDeviceId());
-                    mobilePosition.setDeviceName(newChannel.getGbName());
                     mobilePosition.setCreateTime(DateUtil.getNow());
-                    mobilePosition.setTime(DateUtil.getNow());
+                    mobilePosition.setTimestamp(System.currentTimeMillis());
                     mobilePosition.setLongitude(newChannel.getGbLongitude());
                     mobilePosition.setLatitude(newChannel.getGbLatitude());
                     eventPublisher.mobilePositionEventPublish(mobilePosition);

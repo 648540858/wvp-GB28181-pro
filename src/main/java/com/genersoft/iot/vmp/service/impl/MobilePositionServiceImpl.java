@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
+import com.genersoft.iot.vmp.gb28181.dao.MobilePositionMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
@@ -35,7 +35,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
     private DeviceChannelMapper channelMapper;
 
     @Autowired
-    private DeviceMobilePositionMapper mobilePositionMapper;
+    private MobilePositionMapper mobilePositionMapper;
 
     @Autowired
     private UserSetting userSetting;

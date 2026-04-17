@@ -23,6 +23,7 @@ import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -263,5 +264,25 @@ public class SipUtils {
             }
         }
         return localDateTime.format(DateUtil.formatter);
+    }
+
+    public static Long parseTimeForTimestamp(String timeStr) {
+        if (ObjectUtils.isEmpty(timeStr)){
+            return null;
+        }
+        LocalDateTime localDateTime;
+        try {
+            localDateTime = LocalDateTime.parse(timeStr);
+        }catch (DateTimeParseException e) {
+            try {
+                localDateTime = LocalDateTime.parse(timeStr, DateUtil.formatterISO8601);
+            }catch (DateTimeParseException e2) {
+                log.error("[格式化时间] 无法格式化时间： {}", timeStr);
+                return null;
+            }
+        }
+        // 返回毫秒值
+        return localDateTime.atZone(ZoneId.of(DateUtil.zoneStr)).toInstant().toEpochMilli();
+
     }
 }

@@ -122,7 +122,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                         mobilePosition.setTime(deviceAlarmNotify.getAlarmTime());
                         mobilePosition.setLongitude(deviceAlarmNotify.getLongitude());
                         mobilePosition.setLatitude(deviceAlarmNotify.getLatitude());
-                        mobilePosition.setReportSource("GPS Alarm");
 
                         // 更新device channel 的经纬度
                         deviceChannel.setLongitude(mobilePosition.getLongitude());

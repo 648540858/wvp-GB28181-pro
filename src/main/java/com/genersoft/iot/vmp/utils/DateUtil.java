@@ -70,7 +70,7 @@ public class DateUtil {
     public static final DateTimeFormatter formatter1078 = DateTimeFormatter.ofPattern(PATTERN1078, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter1078date = DateTimeFormatter.ofPattern(PATTERN1078Date, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
-	public static String yyyy_MM_dd_HH_mm_ssToISO8601(@NotNull String formatTime) {
+    public static String yyyy_MM_dd_HH_mm_ssToISO8601(@NotNull String formatTime) {
         return formatterISO8601.format(formatter.parse(formatTime));
     }
 

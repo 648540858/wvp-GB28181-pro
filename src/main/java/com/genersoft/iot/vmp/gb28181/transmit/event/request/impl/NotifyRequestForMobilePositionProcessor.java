@@ -95,8 +95,6 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					continue;
 				}
 				MobilePosition mobilePosition = new MobilePosition();
-				mobilePosition.setDeviceId(device.getDeviceId());
-				mobilePosition.setDeviceName(device.getName());
 				mobilePosition.setCreateTime(DateUtil.getNow());
 
 				DeviceChannel deviceChannel = null;
@@ -116,10 +114,16 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							break;
 						case "Time":
 							String timeVal = element.getStringValue();
-							if (ObjectUtils.isEmpty(timeVal)) {
-								mobilePosition.setTime(DateUtil.getNow());
-							} else {
-								mobilePosition.setTime(SipUtils.parseTime(timeVal));
+							if (ObjectUtils.isEmpty(timeVal)){
+								mobilePosition.setTimestamp(System.currentTimeMillis());
+							}else {
+								Long timestamp = SipUtils.parseTimeForTimestamp(time);
+								if(timestamp == null) {
+									log.warn("解析移动位置时间失败：{}， 使用当前时间", time);
+									mobilePosition.setTimestamp(System.currentTimeMillis());
+								}else {
+									mobilePosition.setTimestamp(timestamp);
+								}
 							}
 							break;
 						case "Longitude":
@@ -161,7 +165,6 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 
 				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelDeviceId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
-				mobilePosition.setReportSource("Mobile Position");
 
 				mobilePositionService.add(mobilePosition);
 				// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息

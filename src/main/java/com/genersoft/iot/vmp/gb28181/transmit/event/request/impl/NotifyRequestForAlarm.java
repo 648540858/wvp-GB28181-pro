@@ -109,16 +109,14 @@ public class NotifyRequestForAlarm extends SIPRequestProcessorParent {
 						mobilePosition.setChannelId(deviceChannel.getId());
 						mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
 						mobilePosition.setCreateTime(DateUtil.getNow());
-						mobilePosition.setDeviceId(deviceAlarmNotify.getDeviceId());
-						mobilePosition.setTime(deviceAlarmNotify.getAlarmTime());
+						mobilePosition.setTimestamp(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(deviceAlarmNotify.getAlarmTime()));
 						mobilePosition.setLongitude(deviceAlarmNotify.getLongitude());
 						mobilePosition.setLatitude(deviceAlarmNotify.getLatitude());
-						mobilePosition.setReportSource("GPS Alarm");
 
 						// 更新device channel 的经纬度
 						deviceChannel.setLongitude(mobilePosition.getLongitude());
 						deviceChannel.setLatitude(mobilePosition.getLatitude());
-						deviceChannel.setGpsTime(mobilePosition.getTime());
+						deviceChannel.setGpsTime(deviceAlarmNotify.getAlarmTime());
 
 						deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 					}

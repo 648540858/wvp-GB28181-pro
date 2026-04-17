@@ -79,7 +79,6 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
                 if (!ObjectUtils.isEmpty(device.getName())) {
                     mobilePosition.setDeviceName(device.getName());
                 }
-                mobilePosition.setDeviceId(device.getDeviceId());
                 mobilePosition.setChannelId(deviceChannel.getId());
                 mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
                 //兼容ISO 8601格式时间
@@ -106,7 +105,6 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
                 } else {
                     mobilePosition.setAltitude(0.0);
                 }
-                mobilePosition.setReportSource("Mobile Position");
 
                 // 更新device channel 的经纬度
                 deviceChannel.setLongitude(mobilePosition.getLongitude());

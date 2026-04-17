@@ -156,6 +156,51 @@ create table IF NOT EXISTS wvp_alarm (
 );
 
 
+/*
+* 20260417 将wvp_device_mobile_position从专属国标的位置记录表，改为通用通道共用的位置记录表
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20260417`()
+BEGIN
+ IF NOT EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position' and column_name = 'timestamp')
+    THEN
+    ALTER TABLE wvp_device_mobile_position ADD timestamp BIGINT COMMENT '上报时间';
+END IF;
+IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position' and column_name = 'time')
+    THEN
+    UPDATE wvp_device_mobile_position SET timestamp = UNIX_TIMESTAMP(time) * 1000;
+    ALTER TABLE wvp_device_mobile_position DROP time;
+END IF;
+IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position' and column_name = 'device_id')
+    THEN
+    ALTER TABLE wvp_device_mobile_position DROP device_id;
+END IF;
+IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position' and column_name = 'device_name')
+    THEN
+    ALTER TABLE wvp_device_mobile_position DROP device_name;
+END IF;
+IF EXISTS (SELECT column_name FROM information_schema.columns
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position' and column_name = 'report_source')
+    THEN
+ALTER TABLE wvp_device_mobile_position DROP report_source;
+END IF;
+-- 修改表名
+IF EXISTS (SELECT table_name FROM information_schema.tables
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_mobile_position')
+    THEN
+ALTER TABLE wvp_device_mobile_position RENAME TO wvp_mobile_position;
+END IF;
+
+END; //
+call wvp_20260417();
+DROP PROCEDURE wvp_20260417;
+DELIMITER ;
+
+
 
 
 

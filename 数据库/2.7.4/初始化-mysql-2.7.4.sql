@@ -57,20 +57,17 @@ create table IF NOT EXISTS wvp_device_alarm
 );
 
 -- 存储移动位置订阅上报的数据
-drop table IF EXISTS wvp_device_mobile_position;
-create table IF NOT EXISTS wvp_device_mobile_position
+drop table IF EXISTS wvp_mobile_position;
+create table IF NOT EXISTS wvp_mobile_position
 (
     id              serial primary key COMMENT '主键ID',
-    device_id       character varying(50) not null COMMENT '设备ID',
     channel_id      character varying(50) not null COMMENT '通道ID',
-    device_name     character varying(255) COMMENT '设备名称',
-    time            character varying(50) COMMENT '上报时间',
+    timestamp       BIGINT COMMENT '上报时间',
     longitude       double precision COMMENT '经度',
     latitude        double precision COMMENT '纬度',
     altitude        double precision COMMENT '海拔',
     speed           double precision COMMENT '速度',
     direction       double precision COMMENT '方向角',
-    report_source   character varying(50) COMMENT '上报来源',
     create_time     character varying(50) COMMENT '入库时间'
 );
 

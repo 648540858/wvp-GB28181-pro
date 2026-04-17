@@ -69,3 +69,18 @@ COMMENT ON COLUMN wvp_alarm.longitude IS '报警附带的经度';
 COMMENT ON COLUMN wvp_alarm.latitude IS '报警附带的纬度';
 COMMENT ON COLUMN wvp_alarm.alarm_type IS '报警类别';
 COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
+
+
+/*
+* 20260417 将 wvp_device_mobile_position从专属国标的位置记录表，改为通用通道共用的位置记录表
+*/
+ALTER TABLE wvp_device_mobile_position ADD COLUMN IF NOT EXISTS timestamp int8;
+UPDATE wvp_device_mobile_position SET timestamp = EXTRACT(EPOCH FROM time::timestamp) * 1000;
+ALTER TABLE wvp_device_mobile_position DROP COLUMN IF EXISTS time;
+ALTER TABLE wvp_device_mobile_position DROP COLUMN IF EXISTS device_id;
+ALTER TABLE wvp_device_mobile_position DROP COLUMN IF EXISTS device_name;
+ALTER TABLE wvp_device_mobile_position DROP COLUMN IF EXISTS report_source;
+
+-- 修改表名
+ALTER TABLE wvp_device_mobile_position RENAME TO wvp_mobile_position;
+COMMENT ON COLUMN wvp_mobile_position.timestamp IS '上报时间';

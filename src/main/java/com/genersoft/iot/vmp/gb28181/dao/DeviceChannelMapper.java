@@ -621,7 +621,7 @@ public interface DeviceChannelMapper {
 
     @Select(value = {" <script>" +
             " SELECT " +
-            " CONCAT(data_device_id, '_', device_id) as deviceIdKey" +
+            " CONCAT(data_device_id, '_', device_id) as dbKey, \n" +
             " id,\n" +
             " data_device_id,\n" +
             " create_time,\n" +
@@ -672,10 +672,10 @@ public interface DeviceChannelMapper {
             " where data_type = 1 " +
             " and data_device_id = #{deviceId} " +
             " and device_id in " +
-            "<foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
-            " #{item} " +
+            "<foreach item='item' index='index' collection='mobilePositionList' open='(' separator=',' close=')'>" +
+            " #{item.channelDeviceId} " +
             "</foreach>" +
             "</script>"})
-    @MapKey("deviceIdKey")
+    @MapKey("dbKey")
     Map<String, DeviceChannel> getAllForMobilePosition(@Param("deviceId") int deviceId, List<DeviceMobilePosition> mobilePositionList);
 }

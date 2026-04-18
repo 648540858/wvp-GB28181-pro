@@ -49,7 +49,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     private Long recordInfoTtl = 1800L;
 

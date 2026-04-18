@@ -25,7 +25,7 @@ public class TestController {
     private HookSubscribe subscribe;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @GetMapping("/hook/list")
     public List<Hook> all(){

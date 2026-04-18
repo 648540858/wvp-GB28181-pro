@@ -10,11 +10,12 @@ import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -31,38 +33,29 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
-    @Autowired
-    private PlatformChannelMapper platformChannelMapper;
+    private final PlatformChannelMapper platformChannelMapper;
 
-    @Autowired
-    private EventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
-    @Autowired
-    private GroupMapper groupMapper;
+    private final GroupMapper groupMapper;
 
+    private final RegionMapper regionMapper;
 
-    @Autowired
-    private RegionMapper regionMapper;
+    private final CommonGBChannelMapper commonGBChannelMapper;
 
-    @Autowired
-    private CommonGBChannelMapper commonGBChannelMapper;
+    private final PlatformMapper platformMapper;
 
-    @Autowired
-    private PlatformMapper platformMapper;
+    private final ISIPCommanderForPlatform sipCommanderForPlatform;
 
-    @Autowired
-    private ISIPCommanderForPlatform sipCommanderFroPlatform;
+    private final SubscribeHolder subscribeHolder;
 
-    @Autowired
-    private SubscribeHolder subscribeHolder;
+    private final UserSetting userSetting;
 
-    @Autowired
-    private UserSetting userSetting;
+    private final IRedisRpcService redisRpcService;
 
-    @Autowired
-    private IRedisRpcService redisRpcService;
 
     // 监听通道信息变化
     @EventListener
@@ -116,7 +109,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                             deviceChannel.setGbDeviceId(serverGbId);
                             deviceChannelList.add(deviceChannel);
                             try {
-                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getMessageType().name(), platform, deviceChannelList, subscribeInfo, null);
+                                sipCommanderForPlatform.sendNotifyForCatalogOther(event.getMessageType().name(), platform, deviceChannelList, subscribeInfo, null);
                             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                                      IllegalAccessException e) {
                                 log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
@@ -146,7 +139,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                             CommonGBChannel deviceChannel = channelMap.get(gbId);
                             channelList.add(deviceChannel);
                             try {
-                                sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getMessageType().name(), platform, channelList, subscribeInfo, null);
+                                sipCommanderForPlatform.sendNotifyForCatalogAddOrUpdate(event.getMessageType().name(), platform, channelList, subscribeInfo, null);
                             } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
                                      SipException | IllegalAccessException e) {
                                 log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
@@ -185,7 +178,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                 if (!channels.isEmpty()) {
                     log.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), deviceIds);
                     try {
-                        sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, channels, subscribe, null);
+                        sipCommanderForPlatform.sendNotifyForCatalogOther(event.getType(), platform, channels, subscribe, null);
                     } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                              IllegalAccessException e) {
                         log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
@@ -205,7 +198,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                 if (!deviceChannelList.isEmpty()) {
                     log.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), deviceIds);
                     try {
-                        sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribe, null);
+                        sipCommanderForPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribe, null);
                     } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                              IllegalAccessException e) {
                         log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
@@ -646,7 +639,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         SubscribeInfo subscribeInfo = SubscribeInfo.buildSimulated(platform.getServerGBId(), platform.getServerIp());
 
         try {
-            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(CatalogEvent.ADD, platform, channelList, subscribeInfo, null);
+            sipCommanderForPlatform.sendNotifyForCatalogAddOrUpdate(CatalogEvent.ADD, platform, channelList, subscribeInfo, null);
         } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
                  SipException | IllegalAccessException e) {
             log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
@@ -851,5 +844,53 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             ids.add(commonGBChannel.getGbId());
         }
         return platformChannelMapper.queryPlatFormListByChannelList(ids);
+    }
+
+    @Override
+    public void notifyMobilePosition(List<MobilePosition> mobilePositionList) {
+
+        List<Platform> allPlatforms = platformMapper.queryServerIdsWithEnableAndServer(userSetting.getServerId());
+        // 获取所用订阅
+        Map<Integer, Platform> platformMap = subscribeHolder.getAllMobilePositionSubscribePlatform(allPlatforms);
+        if (platformMap.isEmpty()) {
+            return;
+        }
+
+        // 对mobilePositionList内部的channelId分类
+        Map<Integer, List<MobilePosition>> channelIdMap = mobilePositionList.stream().collect(Collectors.groupingBy(MobilePosition::getChannelId));
+
+        List<ShareGBChannel> shareGBChannels = platformChannelMapper.queryShareChannelInPlatformsAndChannelIds(platformMap.values(), channelIdMap.keySet());
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (ShareGBChannel shareGBChannel : shareGBChannels) {
+                List<MobilePosition> mobilePositions = channelIdMap.get(shareGBChannel.getGbId());
+                if (mobilePositions == null || mobilePositions.isEmpty()) {
+                    continue;
+                }
+                executor.submit(() -> {
+                    Platform platform = platformMap.get(shareGBChannel.getPlatformId());
+                    if (platform == null) {
+                        log.info("[查询平台] 平台ID：{} 未查询到", shareGBChannel.getPlatformId());
+                        return;
+                    }
+                    SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
+                    if (subscribe == null) {
+                        log.info("[查询订阅] 平台：{} 未查询到移动位置订阅", platform.getServerGBId());
+                        return;
+                    }
+                    for (MobilePosition mobilePosition : mobilePositions) {
+                        try {
+                            GPSMsgInfo gpsMsgInfo = GPSMsgInfo.getInstance(mobilePosition);
+                            // 获取通道编号
+                            CommonGBChannel commonGBChannel = queryChannelByPlatformIdAndChannelId(platform.getId(), mobilePosition.getChannelId());
+                            sipCommanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, commonGBChannel,
+                                    subscribe);
+                        } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
+                                 IllegalAccessException e) {
+                            log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
+                        }
+                    }
+                });
+            }
+        }
     }
 }

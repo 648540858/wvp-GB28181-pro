@@ -26,7 +26,7 @@ public class SubscribeTaskRunner{
     private final DelayQueue<SubscribeTask> delayQueue = new DelayQueue<>();
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private UserSetting userSetting;

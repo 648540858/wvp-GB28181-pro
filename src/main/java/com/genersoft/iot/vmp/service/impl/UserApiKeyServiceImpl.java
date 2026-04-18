@@ -20,7 +20,7 @@ public class UserApiKeyServiceImpl implements IUserApiKeyService {
     UserApiKeyMapper userApiKeyMapper;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public int addApiKey(UserApiKey userApiKey) {

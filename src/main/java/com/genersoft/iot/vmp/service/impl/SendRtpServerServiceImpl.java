@@ -27,7 +27,7 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
     private UserSetting userSetting;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
 
     @Override

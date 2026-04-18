@@ -23,7 +23,7 @@ import java.util.List;
 public class SyServiceImpl implements IMapService {
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public List<MapConfig> getConfig() {

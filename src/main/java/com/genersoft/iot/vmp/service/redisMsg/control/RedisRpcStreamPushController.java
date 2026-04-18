@@ -46,7 +46,7 @@ public class RedisRpcStreamPushController extends RpcController {
     private HookSubscribe hookSubscribe;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IStreamPushPlayService streamPushPlayService;
@@ -102,7 +102,7 @@ public class RedisRpcStreamPushController extends RpcController {
             sendRtpItem.setLocalIp(hookData.getMediaServer().getSdpIp());
             sendRtpItem.setServerId(userSetting.getServerId());
 
-            redisTemplate.opsForValue().set(sendRtpItem.getChannelId(), sendRtpItem);
+            redisTemplate.opsForValue().set(sendRtpItem.getChannelId() + "", sendRtpItem);
             RedisRpcResponse response = request.getResponse();
             response.setBody(sendRtpItem.getChannelId());
             response.setStatusCode(ErrorCode.SUCCESS.getCode());

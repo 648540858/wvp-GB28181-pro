@@ -65,7 +65,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     private JT1078Template jt1078Template;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private HookSubscribe subscribe;

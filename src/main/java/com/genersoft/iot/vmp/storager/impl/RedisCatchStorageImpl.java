@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -19,6 +18,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,29 +31,21 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.*;
 
-@SuppressWarnings("rawtypes")
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
-
     @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
+    private final DeviceMapper deviceMapper;
 
-    @Autowired
-    private DeviceMapper deviceMapper;
+    private final UserSetting userSetting;
 
-    @Autowired
-    private UserSetting userSetting;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, Long> longRedisTemplate;
 
-    @Autowired
-    private RedisTemplate<String, Long> longRedisTemplate;
-
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public List<SendRtpInfo> queryAllSendRTPServer() {
@@ -126,7 +118,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetting.getServerId() + "_" + type.toUpperCase() + "_*_*_" + mediaServerId;
         List<Object> streams = RedisUtil.scan(redisTemplate, key);
         for (Object stream : streams) {
-            redisTemplate.delete(stream);
+            redisTemplate.delete((String) stream);
         }
     }
 
@@ -268,7 +260,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
         MediaInfo result = null;
         List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        if (keys.size() > 0) {
+        if (!keys.isEmpty()) {
             String key = (String) keys.get(0);
             String mediaInfoJson = (String)redisTemplate.opsForValue().get(key);
             result = JSON.parseObject(mediaInfoJson, MediaInfo.class);
@@ -283,7 +275,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
         MediaInfo result = null;
         List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        if (keys.size() > 0) {
+        if (!keys.isEmpty()) {
             String key = (String) keys.get(0);
             String mediaInfoJson = (String)redisTemplate.opsForValue().get(key);
             result = JSON.parseObject(mediaInfoJson, MediaInfo.class);
@@ -423,7 +415,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         msg.append(" ").append(online? "ON":"OFF");
         log.info("[redis通知] 推送设备/通道状态-> {} ", msg);
-        // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
+        // 使用 RedisTemplate<String, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
 
@@ -439,7 +431,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         msg.append(" ").append(add? "ADD":"DELETE");
         log.info("[redis通知] 推送通道-> {}", msg);
-        // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
+        // 使用 RedisTemplate<String, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
 

@@ -33,7 +33,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private UserSetting userSetting;

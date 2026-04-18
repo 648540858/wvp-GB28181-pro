@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class ChannelController {
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IGbChannelService channelService;

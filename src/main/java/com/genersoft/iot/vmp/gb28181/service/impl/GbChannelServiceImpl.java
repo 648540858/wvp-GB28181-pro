@@ -73,7 +73,7 @@ public class GbChannelServiceImpl implements IGbChannelService, CommandLineRunne
     private DynamicTask dynamicTask;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private VectorTileCatch vectorTileCatch;

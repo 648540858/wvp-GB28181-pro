@@ -43,7 +43,7 @@ public class GroupServiceImpl implements IGroupService {
     private EventPublisher eventPublisher;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public void add(Group group) {

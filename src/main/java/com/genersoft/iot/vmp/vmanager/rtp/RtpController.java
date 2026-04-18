@@ -62,7 +62,7 @@ public class RtpController {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
 
     @GetMapping(value = "/receive/open")
@@ -185,7 +185,7 @@ public class RtpController {
         if (scan.size() > 0) {
             for (Object key : scan) {
                 // 将信息写入redis中，以备后用
-                redisTemplate.delete(key);
+                redisTemplate.delete((String)key);
             }
         }
     }

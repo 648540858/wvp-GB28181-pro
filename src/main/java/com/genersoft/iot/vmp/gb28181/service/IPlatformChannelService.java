@@ -50,4 +50,6 @@ public interface IPlatformChannelService {
     void checkRegionRemove(List<CommonGBChannel> channelList, List<Region> regionList);
 
     List<Platform> queryByPlatformBySharChannelId(String gbId);
+
+    void notifyMobilePosition(List<MobilePosition> handlerCatchDataList);
 }

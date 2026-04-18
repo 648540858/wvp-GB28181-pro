@@ -80,7 +80,7 @@ public class ABLHttpHookListener {
     private SSRCFactory ssrcFactory;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;

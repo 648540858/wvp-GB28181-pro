@@ -21,7 +21,7 @@ public class UserManager implements org.apache.ftpserver.ftplet.UserManager {
     private static final String PREFIX = "VMP_FTP_USER_";
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
 
     @Override

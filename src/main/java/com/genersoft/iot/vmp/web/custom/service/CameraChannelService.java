@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.Coordtransform;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.custom.bean.*;
 import com.genersoft.iot.vmp.web.custom.conf.SyTokenManager;
@@ -51,7 +52,7 @@ public class CameraChannelService implements CommandLineRunner {
     private GroupMapper groupMapper;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplateForString;
@@ -334,7 +335,7 @@ public class CameraChannelService implements CommandLineRunner {
 
         // 发送redis消息
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("gpsDate", mobilePosition.getTime());
+        jsonObject.put("gpsDate", DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(mobilePosition.getTimestamp()));
         jsonObject.put("unicodeNo", member.getUnicodeNo());
         jsonObject.put("memberNo", member.getNo());
         jsonObject.put("unitNo", member.getUnitNo());

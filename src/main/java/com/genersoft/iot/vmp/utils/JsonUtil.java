@@ -24,7 +24,7 @@ public final class JsonUtil {
      * @param <T>
      * @return result type
      */
-    public static <T> T redisJsonToObject(RedisTemplate<Object, Object> redisTemplate, String key, Class<T> clazz) {
+    public static <T> T redisJsonToObject(RedisTemplate<String, Object> redisTemplate, String key, Class<T> clazz) {
         Object jsonObject = redisTemplate.opsForValue().get(key);
         if (Objects.isNull(jsonObject)) {
             return null;
@@ -32,7 +32,7 @@ public final class JsonUtil {
         return clazz.cast(jsonObject);
     }
 
-    public static <T> T redisHashJsonToObject(RedisTemplate<Object, Object> redisTemplate, String key, String objKey, Class<T> clazz) {
+    public static <T> T redisHashJsonToObject(RedisTemplate<String, Object> redisTemplate, String key, String objKey, Class<T> clazz) {
 //        if (key == null || objKey == null) {
 //            return null;
 //        }

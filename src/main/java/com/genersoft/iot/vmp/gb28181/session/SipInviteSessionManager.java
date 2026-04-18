@@ -20,7 +20,7 @@ public class SipInviteSessionManager {
 	private UserSetting userSetting;
 
 	@Autowired
-	private RedisTemplate<Object, Object> redisTemplate;
+	private RedisTemplate<String, Object> redisTemplate;
 
 	/**
 	 * 添加一个点播/回放的事务信息

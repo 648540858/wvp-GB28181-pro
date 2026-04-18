@@ -73,7 +73,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private Map<String, IMediaNodeServerService> nodeServerServiceMap;

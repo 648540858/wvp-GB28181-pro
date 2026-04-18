@@ -38,7 +38,7 @@ public class RedisRpcConfig implements MessageListener {
     private UserSetting userSetting;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 

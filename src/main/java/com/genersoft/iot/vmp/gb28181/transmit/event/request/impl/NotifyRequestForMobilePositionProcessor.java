@@ -2,25 +2,18 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceMobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.HandlerCatchData;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
@@ -33,27 +26,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessorParent {
 
 	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
-	@Autowired
-	private UserSetting userSetting;
+	private final UserSetting userSetting;
 
-	@Autowired
-	private EventPublisher eventPublisher;
+	private final EventPublisher eventPublisher;
 
-	@Autowired
-	private IRedisCatchStorage redisCatchStorage;
-
-	@Autowired
-	private IDeviceChannelService deviceChannelService;
-
-	@Autowired
-	private IMobilePositionService mobilePositionService;
+	private final IRedisCatchStorage redisCatchStorage;
 
 	public void process(RequestEvent evt) {
-
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
 			log.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
 			return;
@@ -61,127 +45,56 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedDelay = 200) //每200毫秒执行一次
+	@Scheduled(fixedDelay = 200)
 	@Async
 	public void executeTaskQueue() {
 		if (taskQueue.isEmpty()) {
 			return;
 		}
 		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
-		while (!taskQueue.isEmpty()) {
-			handlerCatchDataList.add(taskQueue.poll());
+		int size = taskQueue.size();
+		for (int i = 0; i < size; i++) {
+			HandlerCatchData poll = taskQueue.poll();
+			if (poll != null) {
+				handlerCatchDataList.add(poll);
+			}
 		}
 		if (handlerCatchDataList.isEmpty()) {
 			return;
 		}
+		List<DeviceMobilePosition> mobilePositionList = new ArrayList<>();
 		for (HandlerCatchData take : handlerCatchDataList) {
-			if (take == null) {
-				continue;
-			}
 			RequestEvent evt = take.getEvt();
 			try {
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
 				String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
-				long startTime = System.currentTimeMillis();
-				// 回复 200 OK
-				Element rootElement = getRootElement(evt);
-				if (rootElement == null) {
-					log.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
-					continue;
-				}
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null) {
-					log.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
+					log.error("[notify-移动位置] 未获取到device, {}", deviceId);
 					continue;
 				}
-				MobilePosition mobilePosition = new MobilePosition();
-				mobilePosition.setCreateTime(DateUtil.getNow());
-
-				DeviceChannel deviceChannel = null;
-				List<Element> elements = rootElement.elements();
-				readDocument: for (Element element : elements) {
-					switch (element.getName()){
-						case "DeviceID":
-							String channelId = element.getStringValue();
-							deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
-							if (deviceChannel != null) {
-								mobilePosition.setChannelId(deviceChannel.getId());
-								mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
-							}else {
-								log.error("[notify-移动位置] 未找到通道 {}/{}", device.getDeviceId(), channelId);
-								break readDocument;
-							}
-							break;
-						case "Time":
-							String timeVal = element.getStringValue();
-							if (ObjectUtils.isEmpty(timeVal)){
-								mobilePosition.setTimestamp(System.currentTimeMillis());
-							}else {
-								Long timestamp = SipUtils.parseTimeForTimestamp(time);
-								if(timestamp == null) {
-									log.warn("解析移动位置时间失败：{}， 使用当前时间", time);
-									mobilePosition.setTimestamp(System.currentTimeMillis());
-								}else {
-									mobilePosition.setTimestamp(timestamp);
-								}
-							}
-							break;
-						case "Longitude":
-							mobilePosition.setLongitude(Double.parseDouble(element.getStringValue()));
-							break;
-						case "Latitude":
-							mobilePosition.setLatitude(Double.parseDouble(element.getStringValue()));
-							break;
-						case "Speed":
-							String speedVal = element.getStringValue();
-							if (NumericUtil.isDouble(speedVal)) {
-								mobilePosition.setSpeed(Double.parseDouble(speedVal));
-							} else {
-								mobilePosition.setSpeed(0.0);
-							}
-							break;
-						case "Direction":
-							String directionVal = element.getStringValue();
-							if (NumericUtil.isDouble(directionVal)) {
-								mobilePosition.setDirection(Double.parseDouble(directionVal));
-							} else {
-								mobilePosition.setDirection(0.0);
-							}
-							break;
-						case "Altitude":
-							String altitudeVal = element.getStringValue();
-							if (NumericUtil.isDouble(altitudeVal)) {
-								mobilePosition.setAltitude(Double.parseDouble(altitudeVal));
-							} else {
-								mobilePosition.setAltitude(0.0);
-							}
-							break;
-
-					}
-				}
-				if (deviceChannel == null) {
+				Element rootElement = getRootElement(evt, device.getCharset());
+				if (rootElement == null) {
+					log.warn("[notify-移动位置] {}处理失败，未识别到信息体", deviceId);
 					continue;
 				}
-
-				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelDeviceId(),
-					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
-
-				mobilePositionService.add(mobilePosition);
-				// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
-				try {
-					eventPublisher.mobilePositionEventPublish(mobilePosition);
-				}catch (Exception e) {
-					log.error("[MobilePositionEvent] 发送失败：  ", e);
+				List<DeviceMobilePosition> mobilePositions = DeviceMobilePosition.decode(device, rootElement);
+				for (DeviceMobilePosition mobilePosition : mobilePositions) {
+					log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", device.getDeviceId(), mobilePosition.getChannelDeviceId(),
+							mobilePosition.getLongitude(), mobilePosition.getLatitude(), mobilePosition.getTimestamp());
+					mobilePositionList.add(mobilePosition);
 				}
-			} catch (DocumentException e) {
-				log.error("[收到移动位置订阅通知] 文档解析异常： \r\n{}", evt.getRequest(), e);
-			} catch ( Exception e) {
-				log.error("[收到移动位置订阅通知] 异常： ", e);
+			} catch (Exception e) {
+				log.warn("[notify-移动位置] 发现未处理的异常, \r\n{}", evt.getRequest());
+				log.error("[notify-移动位置] 异常内容： ", e);
+			}
+		}
+		if (!mobilePositionList.isEmpty()) {
+			try {
+				eventPublisher.mobilePositionsEventPublish(mobilePositionList);
+			} catch (Exception e) {
+				log.error("[MobilePositionEvent] 发送失败：  ", e);
 			}
 		}
 	}
-//	@Scheduled(fixedRate = 10000)
-//	public void execute(){
-//		logger.debug("[待处理Notify-移动位置订阅消息数量]: {}", taskQueue.size());
-//	}
 }

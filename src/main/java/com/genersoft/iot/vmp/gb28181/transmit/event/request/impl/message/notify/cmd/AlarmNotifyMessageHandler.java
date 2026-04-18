@@ -114,21 +114,16 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     if (deviceChannel == null) {
                         log.warn("[解析报警消息] 未找到通道：{}/{}", device.getDeviceId(), deviceAlarmNotify.getChannelId());
                     } else {
-                        MobilePosition mobilePosition = new MobilePosition();
+                        DeviceMobilePosition mobilePosition = new DeviceMobilePosition();
                         mobilePosition.setCreateTime(DateUtil.getNow());
-                        mobilePosition.setDeviceId(device.getDeviceId());
                         mobilePosition.setChannelId(deviceChannel.getId());
                         mobilePosition.setChannelDeviceId(deviceChannel.getDeviceId());
-                        mobilePosition.setTime(deviceAlarmNotify.getAlarmTime());
+                        mobilePosition.setTimestamp(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(deviceAlarmNotify.getAlarmTime()));
                         mobilePosition.setLongitude(deviceAlarmNotify.getLongitude());
                         mobilePosition.setLatitude(deviceAlarmNotify.getLatitude());
-
-                        // 更新device channel 的经纬度
-                        deviceChannel.setLongitude(mobilePosition.getLongitude());
-                        deviceChannel.setLatitude(mobilePosition.getLatitude());
-                        deviceChannel.setGpsTime(mobilePosition.getTime());
-
-                        deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
+                        mobilePosition.setDevice(device);
+                        // 发送移动位置事件，后续会保存到数据库，并且发送给上级平台
+                        publisher.mobilePositionsEventPublish(List.of(mobilePosition));
                     }
                 }
 

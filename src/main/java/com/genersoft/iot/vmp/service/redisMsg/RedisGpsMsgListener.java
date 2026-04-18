@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,16 +30,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class RedisGpsMsgListener implements MessageListener {
 
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private final IRedisCatchStorage redisCatchStorage;
 
-    @Autowired
-    private IStreamPushService streamPushService;
-
-    @Autowired
-    private IGbChannelService channelService;
+    private final IGbChannelService channelService;
 
     private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 

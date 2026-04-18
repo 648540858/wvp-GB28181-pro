@@ -47,7 +47,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     private SSRCFactory ssrcFactory;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IMediaServerService mediaServerService;

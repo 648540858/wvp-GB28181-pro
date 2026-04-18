@@ -29,7 +29,7 @@ public class RedisRpcDevicePlayController extends RpcController {
     private UserSetting userSetting;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IDeviceService deviceService;

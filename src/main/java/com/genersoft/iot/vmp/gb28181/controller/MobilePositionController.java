@@ -48,23 +48,14 @@ public class MobilePositionController {
 	private IDeviceService deviceService;
 
 
-    /**
-     * 查询历史轨迹
-     * @param deviceId 设备ID
-     * @param start 开始时间
-     * @param end 结束时间
-     * @return
-     */
     @Operation(summary = "查询历史轨迹", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
-    @Parameter(name = "channelId", description = "通道国标编号")
+    @Parameter(name = "channelId", description = "通道的数据库ID")
     @Parameter(name = "start", description = "开始时间")
     @Parameter(name = "end", description = "结束时间")
     @GetMapping("/history/{deviceId}")
-    public List<MobilePosition> positions(@PathVariable String deviceId,
-                                                                     @RequestParam(required = false) String channelId,
-                                                                     @RequestParam(required = false) String start,
-                                                                     @RequestParam(required = false) String end) {
+    public List<MobilePosition> positions( Integer channelId,
+                                           @RequestParam(required = false) String start,
+                                           @RequestParam(required = false) String end) {
 
         if (StringUtil.isEmpty(start)) {
             start = null;
@@ -72,19 +63,14 @@ public class MobilePositionController {
         if (StringUtil.isEmpty(end)) {
             end = null;
         }
-        return mobilePositionService.queryMobilePositions(deviceId, channelId, start, end);
+        return mobilePositionService.queryMobilePositions(channelId, start, end);
     }
 
-    /**
-     *  查询设备最新位置
-     * @param deviceId 设备ID
-     * @return
-     */
-    @Operation(summary = "查询设备最新位置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
-    @GetMapping("/latest/{deviceId}")
-    public MobilePosition latestPosition(@PathVariable String deviceId) {
-        return mobilePositionService.queryLatestPosition(deviceId);
+    @Operation(summary = "查询通道最新位置", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道的数据库ID", required = true)
+    @GetMapping("/latest")
+    public MobilePosition latestPosition(Integer channelId) {
+        return mobilePositionService.queryLatestPosition(channelId);
     }
 
     /**

@@ -27,7 +27,7 @@ public class RedisRpcStreamProxyController extends RpcController {
     private UserSetting userSetting;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IStreamProxyPlayService streamProxyPlayService;

@@ -54,7 +54,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
             log.error("[message-notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE", userSetting.getMaxNotifyCountQueue());
             return;
         }
-        taskQueue.offer(new HandlerCatchData(evt, null, null));
+        taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
         // 回复200 OK
         try {
             responseAckAsync((SIPRequest) evt.getRequest(), Response.OK);

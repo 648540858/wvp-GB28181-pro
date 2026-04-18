@@ -8,14 +8,10 @@ import java.util.List;
 
 public interface IMobilePositionService {
 
-    void add(List<MobilePosition> mobilePositionList);
-
-    void add(MobilePosition mobilePosition);
-
-    List<MobilePosition> queryMobilePositions(String deviceId, String channelId, String startTime, String endTime);
+    List<MobilePosition> queryMobilePositions(Integer channelId, String startTime, String endTime);
 
     List<Platform> queryEnablePlatformListWithAsMessageChannel();
 
-    MobilePosition queryLatestPosition(String deviceId);
+    MobilePosition queryLatestPosition(Integer channelId);
 
 }

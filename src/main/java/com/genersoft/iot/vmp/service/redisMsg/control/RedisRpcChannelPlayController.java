@@ -35,7 +35,7 @@ public class RedisRpcChannelPlayController extends RpcController {
     private UserSetting userSetting;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private IGbChannelService channelService;

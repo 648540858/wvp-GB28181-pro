@@ -191,6 +191,8 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
 	private int channelType;
 
+	private String dbKey;
+
 	private Integer dataType = ChannelDataType.GB28181;
 
 	public void setPtzType(int ptzType) {

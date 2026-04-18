@@ -53,7 +53,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     private HookSubscribe subscribe;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 流到来的处理

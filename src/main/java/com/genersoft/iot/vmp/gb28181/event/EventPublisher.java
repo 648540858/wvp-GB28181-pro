@@ -115,7 +115,7 @@ public class EventPublisher {
 
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {
 		MobilePositionEvent event = new MobilePositionEvent(this);
-		event.setMobilePosition(mobilePosition);
+		event.setMobilePositionList(List.of(mobilePosition));
 		applicationEventPublisher.publishEvent(event);
 	}
 

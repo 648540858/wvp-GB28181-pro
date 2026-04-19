@@ -15,9 +15,5 @@ public class MobilePositionEvent extends ApplicationEvent {
 
     @Getter
     @Setter
-    private MobilePosition mobilePosition;
-
-    @Getter
-    @Setter
     private List<? extends MobilePosition> mobilePositionList;
 }

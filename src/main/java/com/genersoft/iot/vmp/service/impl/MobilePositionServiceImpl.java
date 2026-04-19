@@ -71,6 +71,10 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         if (event.getMobilePositionList() == null || event.getMobilePositionList().isEmpty()) {
             return;
         }
+        if (event.getMobilePositionList().get(0).getChannelId() != null) {
+            mobilePositionQueue.addAll(event.getMobilePositionList());
+            return;
+        }
         for (ISourceOtherService sourceOtherService : sourceOtherServiceMap.values()) {
             try {
                 // 此时已经完成了通道ID的添加，以及坐标系的转换，后续只需要将数据保存到数据库即可

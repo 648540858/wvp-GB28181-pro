@@ -30,9 +30,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -322,32 +324,41 @@ public class CameraChannelService implements CommandLineRunner {
     }
 
     // 监听GPS消息，如果是移动设备则发送redis消息
+    @Async
     @EventListener
     public void onApplicationEvent(MobilePositionEvent event) {
-        MobilePosition mobilePosition = event.getMobilePosition();
+        List<? extends MobilePosition> mobilePositionList = event.getMobilePositionList();
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (MobilePosition mobilePosition : mobilePositionList) {
+                executor.submit(() -> {
+                    // 从redis补充信息
+                    SYMember member = getMember(mobilePosition.getChannelDeviceId());
+                    if (member == null) {
+                        log.info("[SY-redis发送通知-移动设备位置信息] 缓存未获取 {}", mobilePosition.toString());
+                        return;
+                    }
 
-        // 从redis补充信息
-        SYMember member = getMember(mobilePosition.getChannelDeviceId());
-        if (member == null) {
-            log.info("[SY-redis发送通知-移动设备位置信息] 缓存未获取 {}", mobilePosition.toString());
-            return;
+                    // 发送redis消息
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("gpsDate", DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(mobilePosition.getTimestamp()));
+                    jsonObject.put("unicodeNo", member.getUnicodeNo());
+                    jsonObject.put("memberNo", member.getNo());
+                    jsonObject.put("unitNo", member.getUnitNo());
+                    jsonObject.put("longitude", mobilePosition.getLongitude());
+                    jsonObject.put("latitude", mobilePosition.getLatitude());
+                    jsonObject.put("altitude", mobilePosition.getAltitude());
+                    jsonObject.put("direction", mobilePosition.getDirection());
+                    jsonObject.put("speed", mobilePosition.getSpeed());
+                    jsonObject.put("blockId", member.getBlockId());
+                    jsonObject.put("gbDeviceId", mobilePosition.getChannelDeviceId());
+                    log.info("[SY-redis发送通知-移动设备位置信息] 发送 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
+                    redisTemplateForString.convertAndSend(REDIS_GPS_MESSAGE, jsonObject.toString());
+                });
+            }
         }
 
-        // 发送redis消息
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("gpsDate", DateUtil.timestampMsTo_yyyy_MM_dd_HH_mm_ss(mobilePosition.getTimestamp()));
-        jsonObject.put("unicodeNo", member.getUnicodeNo());
-        jsonObject.put("memberNo", member.getNo());
-        jsonObject.put("unitNo", member.getUnitNo());
-        jsonObject.put("longitude", mobilePosition.getLongitude());
-        jsonObject.put("latitude", mobilePosition.getLatitude());
-        jsonObject.put("altitude", mobilePosition.getAltitude());
-        jsonObject.put("direction", mobilePosition.getDirection());
-        jsonObject.put("speed", mobilePosition.getSpeed());
-        jsonObject.put("blockId", member.getBlockId());
-        jsonObject.put("gbDeviceId", mobilePosition.getChannelDeviceId());
-        log.info("[SY-redis发送通知-移动设备位置信息] 发送 {}: {}", REDIS_GPS_MESSAGE, jsonObject.toString());
-        redisTemplateForString.convertAndSend(REDIS_GPS_MESSAGE, jsonObject.toString());
+
+
     }
 
     public SYMember getMember(String deviceId) {

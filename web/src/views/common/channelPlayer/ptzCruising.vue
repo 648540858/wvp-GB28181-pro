@@ -30,7 +30,7 @@
           <el-option
             v-for="item in allPresetList"
             :key="item.presetId"
-            :label="item.presetName"
+            :label="item.presetName ? item.presetName : item.presetId"
             :value="item"
           />
         </el-select>

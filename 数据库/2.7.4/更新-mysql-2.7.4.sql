@@ -1,4 +1,3 @@
-drop table IF EXISTS wvp_jt_terminal;
 create table IF NOT EXISTS wvp_jt_terminal (
                                  id serial primary key,
                                  phone_number character varying(50),
@@ -23,7 +22,6 @@ create table IF NOT EXISTS wvp_jt_terminal (
                                  constraint uk_jt_device_id_device_id unique (id, phone_number)
 );
 
-drop table IF EXISTS wvp_jt_channel;
 create table IF NOT EXISTS wvp_jt_channel (
                                id serial primary key,
                                terminal_db_id integer,
@@ -141,8 +139,6 @@ call wvp_202601025();
 DROP PROCEDURE wvp_202601025;
 DELIMITER ;
 
-
-drop table IF EXISTS wvp_alarm;
 create table IF NOT EXISTS wvp_alarm (
     id serial primary key COMMENT '主键ID',
     channel_id integer COMMENT '关联通道的数据库id',

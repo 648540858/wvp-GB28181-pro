@@ -1,4 +1,3 @@
-drop table IF EXISTS wvp_jt_terminal;
 create table IF NOT EXISTS wvp_jt_terminal (
                                  id serial primary key,
                                  phone_number character varying(50),
@@ -22,7 +21,6 @@ create table IF NOT EXISTS wvp_jt_terminal (
                                  sdp_ip character varying(50),
                                  constraint uk_jt_device_id_device_id unique (id, phone_number)
 );
-drop table IF EXISTS wvp_jt_channel;
 create table IF NOT EXISTS wvp_jt_channel (
                                 id serial primary key,
                                 terminal_db_id integer,
@@ -48,7 +46,6 @@ drop index uk_media_server_unique_ip_http_port on wvp_media_server;
 ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
 ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;
 
-drop table IF EXISTS wvp_alarm;
 create table IF NOT EXISTS wvp_alarm (
     id serial primary key,
     channel_id integer,

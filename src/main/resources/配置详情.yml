@@ -5,10 +5,14 @@
 
 
 spring:
+  spring:
+    threads:
+      virtual:
+        enabled: true
     cache:
-        type: redis
+      type: redis
     thymeleaf:
-        cache: false
+      cache: false
     # 设置接口超时时间
     mvc:
         async:
@@ -181,9 +185,6 @@ media:
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     record-assist-port: 0
 
-# [可选] 日志配置, 如果不需要在jar外修改日志内容那么可以不配置此项
-logging:
-    config: classpath:logback-spring.xml
 
 # [根据业务需求配置]
 user-settings:
@@ -281,3 +282,12 @@ springdoc:
         enabled: false
     swagger-ui:
         enabled: false
+
+logging:
+  level:
+    # 日志级别 debug/info/warn/error
+    root: info
+  logback:
+    rollingpolicy:
+      # 日志文件最大历史保留天数，默认30天
+      max-history: 30

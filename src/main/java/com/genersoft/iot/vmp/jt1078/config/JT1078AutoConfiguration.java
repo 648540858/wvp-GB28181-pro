@@ -26,8 +26,11 @@ public class JT1078AutoConfiguration {
     @Autowired
     private Ijt1078Service service;
 
+    @Autowired
+    private JT1078Config jt1078Config;
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     public TcpServer jt1078Server(@Value("${jt1078.port}") Integer port) {
-        return new TcpServer(port, applicationEventPublisher, service);
+        return new TcpServer(port, applicationEventPublisher, service, jt1078Config);
     }
 }

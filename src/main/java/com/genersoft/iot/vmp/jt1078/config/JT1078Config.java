@@ -17,4 +17,9 @@ public class JT1078Config {
     private String password;
 
     private Boolean record = false;
+
+    /**
+     * IdleStateHandler reader idle timeout, unit: minutes
+     */
+    private Integer readerIdleTime = 15;
 }

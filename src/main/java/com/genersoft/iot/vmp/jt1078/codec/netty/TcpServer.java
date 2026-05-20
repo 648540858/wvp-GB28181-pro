@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.jt1078.codec.netty;
 import com.genersoft.iot.vmp.jt1078.codec.decode.Jt808Decoder;
 import com.genersoft.iot.vmp.jt1078.codec.encode.Jt808Encoder;
 import com.genersoft.iot.vmp.jt1078.codec.encode.Jt808EncoderCmd;
+import com.genersoft.iot.vmp.jt1078.config.JT1078Config;
 import com.genersoft.iot.vmp.jt1078.proc.factory.CodecFactory;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import io.netty.bootstrap.ServerBootstrap;
@@ -38,13 +39,15 @@ public class TcpServer {
     private EventLoopGroup workerGroup = null;
     private ApplicationEventPublisher applicationEventPublisher = null;
     private Ijt1078Service service = null;
+    private final JT1078Config jt1078Config;
 
     private final ByteBuf DECODER_JT808 = Unpooled.wrappedBuffer(new byte[]{0x7e});
 
-    public TcpServer(Integer port, ApplicationEventPublisher applicationEventPublisher, Ijt1078Service service) {
+    public TcpServer(Integer port, ApplicationEventPublisher applicationEventPublisher, Ijt1078Service service, JT1078Config jt1078Config) {
         this.port = port;
         this.applicationEventPublisher = applicationEventPublisher;
         this.service = service;
+        this.jt1078Config = jt1078Config;
     }
 
     private void startTcpServer() {
@@ -63,7 +66,7 @@ public class TcpServer {
                         @Override
                         public void initChannel(NioSocketChannel channel) {
                             channel.pipeline()
-                                    .addLast(new IdleStateHandler(10, 0, 0, TimeUnit.MINUTES))
+                                    .addLast(new IdleStateHandler(jt1078Config.getReaderIdleTime(), 0, 0, TimeUnit.MINUTES))
                                     .addLast(new DelimiterBasedFrameDecoder(1024 * 2, DECODER_JT808))
                                     .addLast(new Jt808Decoder(applicationEventPublisher, service))
                                     .addLast(new Jt808Encoder())

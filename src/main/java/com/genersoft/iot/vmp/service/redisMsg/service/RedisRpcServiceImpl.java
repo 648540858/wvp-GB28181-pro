@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelListForRpcParam;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
@@ -44,7 +44,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     private HookSubscribe hookSubscribe;
 
     @Autowired
-    private SSRCFactory ssrcFactory;
+    private SendSsrcFactory sendSsrcFactory;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -107,10 +107,8 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
             if (sendRtpItem.getSsrc() == null) {
-                // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(hookData.getMediaServer().getId()) : ssrcFactory.getPlayBackSsrc(hookData.getMediaServer().getId());
-                sendRtpItem.setSsrc(ssrc);
-                sendRtpItem.setAllocatedSsrc(ssrc);
+                sendRtpItem.setSsrc(sendSsrcFactory.getSendSsrc(
+                        "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? "0" : "1"));
             }
             sendRtpItem.setMediaServerId(hookData.getMediaServer().getId());
             sendRtpItem.setLocalIp(hookData.getMediaServer().getSdpIp());

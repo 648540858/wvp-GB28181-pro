@@ -10,8 +10,6 @@ public class InviteMessageInfo {
     private String sourceChannelId;
     private String sessionName;
     private String ssrc;
-    private String allocatedSsrc;
-    private String allocatedSsrcMediaServerId;
     private boolean tcp;
     private boolean tcpActive;
     private String callId;

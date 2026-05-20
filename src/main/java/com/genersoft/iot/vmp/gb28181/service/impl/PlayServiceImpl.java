@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -108,6 +109,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SSRCFactory ssrcFactory;
+
+    @Autowired
+    private SendSsrcFactory sendSsrcFactory;
 
     @Autowired
     private IPlatformService platformService;
@@ -335,9 +339,6 @@ public class PlayServiceImpl implements IPlayService {
         InviteInfo inviteInfoInCatch = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
         if (inviteInfoInCatch != null ) {
             if (inviteInfoInCatch.getStreamInfo() == null) {
-                // 释放生成的ssrc，使用上一次申请的
-
-                ssrcFactory.releaseSsrc(mediaServer.getId(), ssrc);
                 // 点播发起了但是尚未成功, 仅注册回调等待结果即可
                 inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
                 log.info("[点播开始] 已经请求中，等待结果， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId());
@@ -480,25 +481,23 @@ public class PlayServiceImpl implements IPlayService {
     private void talk(MediaServer mediaServerItem, Device device, DeviceChannel channel, String stream,
                       SipSubscribe.Event errorEvent, Runnable timeoutCallback, AudioBroadcastEvent audioEvent) {
 
-        String playSsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
+        String ySsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
 
-        if (playSsrc == null) {
+        if (ySsrc == null) {
             audioEvent.call("ssrc已经用尽");
             return;
         }
+        String sendSsrc = sendSsrcFactory.getSendSsrc("0");
         SendRtpInfo sendRtpInfo;
         try {
-            sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServerItem, null, null, playSsrc, device.getDeviceId(), MediaStreamUtil.GB28181_TALK, stream,
+            sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServerItem, null, null, sendSsrc, device.getDeviceId(), MediaStreamUtil.GB28181_TALK, stream,
                     channel.getId(), true, false);
             if (sendRtpInfo == null) {
-                ssrcFactory.releaseSsrc(mediaServerItem.getId(), playSsrc);
                 audioEvent.call("获取发流端口失败");
                 return;
             }
-            sendRtpInfo.setAllocatedSsrc(playSsrc);
             sendRtpInfo.setPlayType(InviteStreamType.TALK);
         }catch (PlayException e) {
-            ssrcFactory.releaseSsrc(mediaServerItem.getId(), playSsrc);
             log.info("[语音对讲]开始 获取发流端口失败 deviceId: {}, channelId: {},", device.getDeviceId(), channel.getDeviceId());
             return;
         }
@@ -525,7 +524,6 @@ public class PlayServiceImpl implements IPlayService {
                 log.error("[语音对讲]超时， 发送BYE失败 {}", e.getMessage());
             } finally {
                 timeoutCallback.run();
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrcToRelease());
                 sessionManager.removeByStream(sendRtpInfo.getApp(), sendRtpInfo.getStream());
             }
         }, userSetting.getPlayTimeout());
@@ -534,7 +532,6 @@ public class PlayServiceImpl implements IPlayService {
             Integer localPort = mediaServerService.startSendRtpPassive(mediaServerItem, sendRtpInfo, userSetting.getPlayTimeout() * 1000);
             if (localPort == null || localPort <= 0) {
                 timeoutCallback.run();
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrcToRelease());
                 sessionManager.removeByStream(sendRtpInfo.getApp(), sendRtpInfo.getStream());
                 return;
             }
@@ -543,7 +540,6 @@ public class PlayServiceImpl implements IPlayService {
             receiveRtpServerService.addAuthenticateInfoForGb28181Talk(mediaServerItem, sendRtpInfo.getStream());
 
         }catch (ControllerException e) {
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrcToRelease());
             log.info("[语音对讲]失败 deviceId: {}, channelId: {}", device.getDeviceId(), channel.getDeviceId());
             audioEvent.call("失败, " + e.getMessage());
             // 查看是否已经建立了通道，存在则发送bye
@@ -553,7 +549,7 @@ public class PlayServiceImpl implements IPlayService {
 
         // 查看设备是否已经在推流
         try {
-            cmder.talkStreamCmd(mediaServerItem, sendRtpInfo, device, channel, callId, (hookData) -> {
+            cmder.talkStreamCmd(mediaServerItem, sendRtpInfo, ySsrc, device, channel, callId, (hookData) -> {
                 log.info("[语音对讲] 流已生成， 开始推流： " + hookData);
                 dynamicTask.stop(timeOutTaskKey);
                 // TODO 暂不做处理
@@ -588,8 +584,6 @@ public class PlayServiceImpl implements IPlayService {
             }, (event) -> {
                 dynamicTask.stop(timeOutTaskKey);
                 receiveRtpServerService.closeRTPServer(mediaServerItem, sendRtpInfo.getApp(), sendRtpInfo.getStream());
-                // 释放ssrc
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrcToRelease());
                 sessionManager.removeByStream(sendRtpInfo.getApp(), sendRtpInfo.getStream());
                 errorEvent.response(event);
             }, userSetting.getPlayTimeout().longValue());
@@ -598,9 +592,6 @@ public class PlayServiceImpl implements IPlayService {
             log.error("[命令发送失败] 对讲消息: {}", e.getMessage());
             dynamicTask.stop(timeOutTaskKey);
             receiveRtpServerService.closeRTPServer(mediaServerItem, sendRtpInfo.getApp(), sendRtpInfo.getStream());
-            // 释放ssrc
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrcToRelease());
-
             sessionManager.removeByStream(sendRtpInfo.getApp(), sendRtpInfo.getStream());
             SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
             eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
@@ -875,7 +866,6 @@ public class PlayServiceImpl implements IPlayService {
                     // ssrc检验
                     // 更新ssrc
                     log.info("[Invite 200OK] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
-                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse);
                     if (!result) {
                         try {
@@ -884,8 +874,6 @@ public class PlayServiceImpl implements IPlayService {
                         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                             log.error("[命令发送失败] 停止播放， 发送BYE: {}", e.getMessage());
                         }
-
-                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
 
                         sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
@@ -897,7 +885,6 @@ public class PlayServiceImpl implements IPlayService {
 
                     }else {
                         ssrcInfo.setSsrc(ssrcInResponse);
-                        updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                         inviteInfo.setSsrcInfo(ssrcInfo);
                         inviteInfo.setStream(ssrcInfo.getStream());
                         if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
@@ -910,9 +897,7 @@ public class PlayServiceImpl implements IPlayService {
                         inviteStreamService.updateInviteInfo(inviteInfo);
                     }
                 } else {
-                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     ssrcInfo.setSsrc(ssrcInResponse);
-                    updateSsrcTransaction(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInResponse, null);
                     inviteInfo.setSsrcInfo(ssrcInfo);
                     inviteInfo.setStream(ssrcInfo.getStream());
                     if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
@@ -932,14 +917,12 @@ public class PlayServiceImpl implements IPlayService {
                     if (ssrcTransaction == null) {
                         return;
                     }
-                    releaseAllocatedSsrc(mediaServerItem, ssrcInfo);
                     sessionManager.removeByStream(MediaStreamUtil.RTP_APP, inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
                     ssrcTransaction.setDeviceId(device.getDeviceId());
                     ssrcTransaction.setChannelId(ssrcTransaction.getChannelId());
                     ssrcTransaction.setCallId(ssrcTransaction.getCallId());
                     ssrcTransaction.setSsrc(ssrcInResponse);
-                    ssrcTransaction.setAllocatedSsrc(null);
                     ssrcTransaction.setApp(MediaStreamUtil.RTP_APP);
                     ssrcTransaction.setStream(inviteInfo.getStream());
                     ssrcTransaction.setMediaServerId(mediaServerItem.getId());
@@ -950,24 +933,6 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }
-    }
-
-    private void releaseAllocatedSsrc(MediaServer mediaServerItem, SSRCInfo ssrcInfo) {
-        if (ssrcInfo == null || ssrcInfo.getAllocatedSsrc() == null) {
-            return;
-        }
-        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getAllocatedSsrc());
-        ssrcInfo.setAllocatedSsrc(null);
-    }
-
-    private void updateSsrcTransaction(String app, String stream, String ssrc, String allocatedSsrc) {
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
-        if (ssrcTransaction == null) {
-            return;
-        }
-        ssrcTransaction.setSsrc(ssrc);
-        ssrcTransaction.setAllocatedSsrc(allocatedSsrc);
-        sessionManager.put(ssrcTransaction);
     }
 
     @Override
@@ -1602,8 +1567,6 @@ public class PlayServiceImpl implements IPlayService {
         if (streamIsReady == null || streamIsReady) {
             mediaServerService.stopSendRtp(mediaServer, sendRtpInfo.getApp(), sendRtpInfo.getStream(), sendRtpInfo.getSsrc());
         }
-
-        ssrcFactory.releaseSsrc(mediaServerId, sendRtpInfo.getSsrcToRelease());
 
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(sendRtpInfo.getApp(), sendRtpInfo.getStream());
         if (ssrcTransaction != null) {

@@ -281,7 +281,6 @@ public class SIPCommander implements ISIPCommander {
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
@@ -290,7 +289,6 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     callId,ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
-            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         }, timeout);
@@ -388,7 +386,6 @@ public class SIPCommander implements ISIPCommander {
                     channel.getId(), sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),
                             device.getTransport()).getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(),
                     mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
-            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         }, timeout);
@@ -482,14 +479,13 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     response.getCallIdHeader().getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrc,
                     mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
-            ssrcTransaction.setAllocatedSsrc(ssrcInfo.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         }, timeout);
     }
 
     @Override
-    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpInfo sendRtpItem, Device device, DeviceChannel channel,
+    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpInfo sendRtpItem, String ySsrc, Device device, DeviceChannel channel,
                               String callId, HookSubscribe.Event event, HookSubscribe.Event eventForPush, SipSubscribe.Event okEvent,
                               SipSubscribe.Event errorEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException {
 
@@ -535,22 +531,20 @@ public class SIPCommander implements ISIPCommander {
         content.append("a=sendrecv\r\n");
         content.append("a=rtpmap:8 PCMA/8000\r\n");
 
-        content.append("y=" + sendRtpItem.getSsrc() + "\r\n");//ssrc
+        content.append("y=" + ySsrc + "\r\n");//ssrc
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
         content.append("f=v/////a/1/8/1" + "\r\n");
 
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(),
-                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sendRtpItem.getSsrc(), callIdHeader);
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ySsrc, callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             sessionManager.removeByStream(sendRtpItem.getApp(), sendRtpItem.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrcToRelease());
             errorEvent.response(e);
         }), e -> {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), MediaStreamUtil.GB28181_TALK,sendRtpItem.getApp(), stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
-            ssrcTransaction.setAllocatedSsrc(sendRtpItem.getAllocatedSsrc());
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         }, timeout);

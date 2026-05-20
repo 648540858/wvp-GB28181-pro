@@ -106,9 +106,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
-        if (presetSSRC == null) {
-            ssrcInfo.setAllocatedSsrc(ssrc);
-        }
         RTPServerParam rtpServerParam = new RTPServerParam(mediaServer, MediaStreamUtil.RTP_APP, streamId, ssrcCheck ? Long.parseLong(ssrc): 0L, null, onlyAuto, disableAuto, false, tcpMode);
         int rtpServerPort = openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
@@ -117,11 +114,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                 openRTPServerResult.setSsrcInfo(ssrcInfo);
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), openRTPServerResult);
             } else {
-                // 释放ssrc
-                if (presetSSRC == null) {
-                    ssrcFactory.releaseSsrc(mediaServer.getId(), ssrc);
-                    ssrcInfo.setAllocatedSsrc(null);
-                }
                 OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
                 openRTPServerResult.setSsrcInfo(ssrcInfo);
                 callback.run(code, msg, openRTPServerResult);
@@ -170,9 +162,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
-        if (presetSSRC == null) {
-            ssrcInfo.setAllocatedSsrc(ssrc);
-        }
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
         addAuthenticateInfo(streamId, streamReplace, channel.isHasAudio(),  record, null);
         return ssrcInfo;
@@ -212,7 +201,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
-        ssrcInfo.setAllocatedSsrc(ssrc);
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
         addAuthenticateInfo(streamId, streamReplace,  channel.isHasAudio(), false,null);
         return ssrcInfo;
@@ -255,7 +243,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
-        ssrcInfo.setAllocatedSsrc(ssrc);
         openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
 
         long difference = DateUtil.getDifference(startTime, endTime) / 1000;
@@ -294,7 +281,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         String ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
-        ssrcInfo.setAllocatedSsrc(ssrc);
         openRtpServer(mediaServer, ssrcInfo, 0L, false, true, tcpMode, callback);
         return ssrcInfo;
     }
@@ -310,11 +296,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                 openRTPServerResult.setSsrcInfo(ssrcInfo);
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), openRTPServerResult);
             } else {
-                // 释放ssrc
-                if (ssrcInfo.getAllocatedSsrc() != null) {
-                    ssrcFactory.releaseSsrc(mediaServer.getId(), ssrcInfo.getAllocatedSsrc());
-                    ssrcInfo.setAllocatedSsrc(null);
-                }
                 OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
                 openRTPServerResult.setSsrcInfo(ssrcInfo);
                 callback.run(code, msg, openRTPServerResult);

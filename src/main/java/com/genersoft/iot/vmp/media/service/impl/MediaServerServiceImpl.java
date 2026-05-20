@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.TalkRtpInfo;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
@@ -56,9 +55,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class MediaServerServiceImpl implements IMediaServerService {
-
-    @Autowired
-    private SSRCFactory ssrcFactory;
 
     @Autowired
     private UserSetting userSetting;
@@ -150,10 +146,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (ObjectUtils.isEmpty(mediaServer.getId())) {
                 continue;
             }
-            // 更新
-            if (!ssrcFactory.hasMediaServerSSRC(mediaServer.getId())) {
-                ssrcFactory.initMediaServerSSRC(mediaServer.getId(), null);
-            }
             // 查询redis是否存在此mediaServer
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
             Boolean hasKey = redisTemplate.hasKey(key);
@@ -229,21 +221,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         return mediaNodeServerService.updateRtpServerSSRC(mediaServer, app, streamId, ssrc);
     }
 
-    @Override
-    public void releaseSsrc(String mediaServerId, String ssrc) {
-        MediaServer mediaServer = getOne(mediaServerId);
-        if (mediaServer == null || ssrc == null) {
-            return;
-        }
-        ssrcFactory.releaseSsrc(mediaServerId, ssrc);
-    }
-
     /**
      * 媒体服务节点 重启后重置他的推流信息， TODO 给正在使用的设备发送停止命令
      */
     @Override
     public void clearRTPServer(MediaServer mediaServer) {
-        ssrcFactory.reset(mediaServer.getId());
     }
 
     @Override
@@ -252,12 +234,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             mediaServerMapper.update(mediaServer);
         }else {
             mediaServerMapper.add(mediaServer);
-        }
-
-        MediaServer mediaServerInRedis = getOne(mediaServer.getId());
-
-        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServer.getId())) {
-            ssrcFactory.initMediaServerSSRC(mediaServer.getId(),null);
         }
 
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();

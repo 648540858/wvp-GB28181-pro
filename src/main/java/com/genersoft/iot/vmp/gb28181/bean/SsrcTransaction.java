@@ -48,11 +48,6 @@ public class SsrcTransaction {
     private String ssrc;
 
     /**
-     * 从SSRC池中分配的SSRC
-     */
-    private String allocatedSsrc;
-
-    /**
      * 事务信息
      */
     private SipTransactionInfo sipTransactionInfo;
@@ -94,7 +89,5 @@ public class SsrcTransaction {
     public SsrcTransaction() {
     }
 
-    public String getSsrcToRelease() {
-        return allocatedSsrc;
-    }
+
 }

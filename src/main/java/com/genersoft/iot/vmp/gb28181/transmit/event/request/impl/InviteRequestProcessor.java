@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -39,7 +39,6 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
-import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Vector;
@@ -103,7 +102,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private UserSetting userSetting;
 
     @Autowired
-    private SSRCFactory ssrcFactory;
+    private SendSsrcFactory sendSsrcFactory;
 
 
     @Override
@@ -175,22 +174,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
                         if (userSetting.getUseCustomSsrcForParentInvite()) {
                             // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                            MediaServer mediaServer = mediaServerService.getOne(streamInfo.getMediaServer().getId());
-                            if (mediaServer != null) {
-                                String ssrc = "Play".equalsIgnoreCase(finalInviteInfo.getSessionName())
-                                        ? ssrcFactory.getPlaySsrc(streamInfo.getMediaServer().getId())
-                                        : ssrcFactory.getPlayBackSsrc(streamInfo.getMediaServer().getId());
-                                finalInviteInfo.setSsrc(ssrc);
-                                finalInviteInfo.setAllocatedSsrc(ssrc);
-                                finalInviteInfo.setAllocatedSsrcMediaServerId(streamInfo.getMediaServer().getId());
-                            }
+                            finalInviteInfo.setSsrc(sendSsrcFactory.getSendSsrc(
+                                    "Play".equalsIgnoreCase(finalInviteInfo.getSessionName()) ? "0" : "1"));
                         }
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
                                 finalInviteInfo.getIp(), finalInviteInfo.getPort(), finalInviteInfo.getSsrc(), platform.getServerGBId(),
                                 streamInfo.getApp(), streamInfo.getStream(),
                                 channel.getGbId(), finalInviteInfo.isTcp(), platform.isRtcp());
-                        sendRtpItem.setAllocatedSsrc(finalInviteInfo.getAllocatedSsrc());
                         if (finalInviteInfo.isTcp() && finalInviteInfo.isTcpActive()) {
                             sendRtpItem.setTcpActive(true);
                         }
@@ -208,7 +199,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 超时未收到Ack应该回复bye,当前等待时间为10秒
                         dynamicTask.startDelay(finalInviteInfo.getCallId(), () -> {
                             log.info("[Ack ] 等待超时, {}/{}", finalInviteInfo.getCallId(), channel.getGbDeviceId());
-                            mediaServerService.releaseSsrc(streamInfo.getMediaServer().getId(), sendRtpItem.getSsrcToRelease());
                             // 回复bye
                             sendBye(platform, finalInviteInfo.getCallId());
                         }, 60 * 1000);
@@ -249,7 +239,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 log.error("[命令发送失败] invite BAD_REQUEST: {}", sendException.getMessage());
             }
         } catch (PlayException e) {
-            releaseAllocatedSsrc(inviteInfo);
             try {
                 responseAck(request, e.getCode(), e.getMsg());
             } catch (SipException | InvalidArgumentException | ParseException sendException) {
@@ -257,22 +246,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
         } catch (Exception e) {
             log.error("[Invite处理异常] ", e);
-            releaseAllocatedSsrc(inviteInfo);
             try {
                 responseAck(request, Response.SERVER_INTERNAL_ERROR, "");
             } catch (SipException | InvalidArgumentException | ParseException sendException) {
                 log.error("[命令发送失败] invite 点播失败: {}", sendException.getMessage());
             }
         }
-    }
-
-    private void releaseAllocatedSsrc(InviteMessageInfo inviteInfo) {
-        if (inviteInfo == null || inviteInfo.getAllocatedSsrc() == null || inviteInfo.getAllocatedSsrcMediaServerId() == null) {
-            return;
-        }
-        mediaServerService.releaseSsrc(inviteInfo.getAllocatedSsrcMediaServerId(), inviteInfo.getAllocatedSsrc());
-        inviteInfo.setAllocatedSsrc(null);
-        inviteInfo.setAllocatedSsrcMediaServerId(null);
     }
 
     private InviteMessageInfo decode(RequestEvent evt) throws SdpException {
@@ -499,7 +478,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             SessionDescription sdp = gb28181Sdp.getBaseSdb();
 
             if (ObjectUtils.isEmpty(gb28181Sdp.getSsrc()) ) {
-                String ssrc =  Integer.toUnsignedString(new SecureRandom().nextInt());
+                String ssrc =  sendSsrcFactory.getSendSsrc("0");
                 log.warn("来自设备的Invite请求，未携带SSRC，生成随机ssrc: {}，requesterId： {}/{}", ssrc, inviteInfo.getRequesterId(), inviteInfo.getSourceChannelId());
                 gb28181Sdp.setSsrc(ssrc);
             }

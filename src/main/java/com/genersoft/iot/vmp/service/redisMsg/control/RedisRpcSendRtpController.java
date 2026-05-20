@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class RedisRpcSendRtpController extends RpcController {
 
     @Autowired
-    private SSRCFactory ssrcFactory;
+    private SendSsrcFactory sendSsrcFactory;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -71,10 +71,8 @@ public class RedisRpcSendRtpController extends RpcController {
         sendRtpItem.setServerId(userSetting.getServerId());
         sendRtpItem.setLocalIp(mediaServerItem.getSdpIp());
         if (sendRtpItem.getSsrc() == null) {
-            // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-            String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
-            sendRtpItem.setSsrc(ssrc);
-            sendRtpItem.setAllocatedSsrc(ssrc);
+            sendRtpItem.setSsrc(sendSsrcFactory.getSendSsrc(
+                    "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? "0" : "1"));
         }
         sendRtpServerService.update(sendRtpItem);
         RedisRpcResponse response = request.getResponse();
@@ -173,9 +171,7 @@ public class RedisRpcSendRtpController extends RpcController {
             return;
         }
         sendRtpServerService.delete(sendRtpItem);
-        if (sendRtpItem.getMediaServerId() != null) {
-            mediaServerService.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrcToRelease());
-        }
+
     }
 
 }

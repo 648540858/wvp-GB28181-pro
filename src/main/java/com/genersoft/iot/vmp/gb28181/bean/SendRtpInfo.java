@@ -25,11 +25,6 @@ public class SendRtpInfo {
     private String ssrc;
 
     /**
-     * 从SSRC池中分配的SSRC
-     */
-    private String allocatedSsrc;
-
-    /**
      * 目标平台或设备的编号
      */
     private String targetId;
@@ -253,7 +248,5 @@ public class SendRtpInfo {
         }
     }
 
-    public String getSsrcToRelease() {
-        return allocatedSsrc;
-    }
+
 }

@@ -1,143 +1,108 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMResult;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
-/**
- * ssrc使用
- */
 @Slf4j
 @Component
 public class SSRCFactory {
 
-    /**
-     * 播流最大并发个数
-     */
-    private static final Integer MAX_STREAM_COUNT = 10000;
-
-    /**
-     * 播流最大并发个数
-     */
-    private static final String SSRC_INFO_KEY = "VMP_SSRC_INFO_";
+    private final ConcurrentHashMap<String, BitSet> usedMap = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "ssrc-rebuild");
+        t.setDaemon(true);
+        return t;
+    });
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private SipConfig sipConfig;
 
-    @Autowired
-    private UserSetting userSetting;
+    private String domainPart;
 
+    @PostConstruct
+    public void init() {
+        String sipDomain = sipConfig.getDomain();
+        domainPart = sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
+        scheduler.scheduleAtFixedRate(this::rebuild, 10, 30, TimeUnit.SECONDS);
+    }
 
-    public void initMediaServerSSRC(String mediaServerId, Set<String> usedSet) {
-        String ssrcPrefix = getSsrcPrefix();
-        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        List<String> ssrcList = new ArrayList<>();
-        for (int i = 1; i < MAX_STREAM_COUNT; i++) {
-            String ssrc = String.format("%s%04d", ssrcPrefix, i);
+    public String getPlaySsrc(String mediaServerId) {
+        String suffix = allocate(mediaServerId);
+        return suffix != null ? "0" + suffix : null;
+    }
 
-            if (null == usedSet || !usedSet.contains(ssrc)) {
-                ssrcList.add(ssrc);
+    public String getPlayBackSsrc(String mediaServerId) {
+        String suffix = allocate(mediaServerId);
+        return suffix != null ? "1" + suffix : null;
+    }
 
+    private String allocate(String mediaServerId) {
+        BitSet bits = usedMap.computeIfAbsent(mediaServerId, k -> new BitSet(10000));
+        int start = ThreadLocalRandom.current().nextInt(10000);
+        int index = start;
+        do {
+            if (!bits.get(index)) {
+                bits.set(index);
+                return domainPart + String.format("%04d", index);
+            }
+            index = (index + 1) % 10000;
+        } while (index != start);
+        log.warn("[SSRC] 媒体节点 {} 的SSRC已用尽", mediaServerId);
+        return null;
+    }
+
+    void rebuild() {
+        List<MediaServer> servers = mediaServerService.getAll();
+        for (MediaServer server : servers) {
+            BitSet bits = new BitSet(10000);
+            int count = 0;
+            try {
+                ZLMResult<?> result = zlmresTfulUtils.getMediaList(server, null, null, "rtsp", null);
+                if (result != null && result.getCode() == 0 && result.getData() != null) {
+                    List<JSONObject> list = (List<JSONObject>) result.getData();
+                    for (JSONObject obj : list) {
+                        if (obj.getIntValue("originType") != 3) continue;
+                        String originUrl = obj.getString("originUrl");
+                        if (originUrl == null) continue;
+                        int idx = originUrl.lastIndexOf("/rtp/");
+                        if (idx == -1) continue;
+                        try {
+                            int suffix = (int) (Long.parseLong(originUrl.substring(idx + 5), 16) % 10000);
+                            bits.set(suffix);
+                            count++;
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
+            }
+            usedMap.put(server.getId(), bits);
+            if (log.isDebugEnabled()) {
+                log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
             }
         }
-        if (redisTemplate.opsForSet().size(redisKey) != null) {
-            redisTemplate.delete(redisKey);
-        }
-        redisTemplate.opsForSet().add(redisKey, ssrcList.toArray(new String[0]));
     }
-
-
-    /**
-     * 获取视频预览的SSRC值,第一位固定为0
-     *
-     * @return ssrc
-     */
-    public String getPlaySsrc(String mediaServerId) {
-        return "0" + getSN(mediaServerId);
-    }
-
-    /**
-     * 获取录像回放的SSRC值,第一位固定为1
-     */
-    public String getPlayBackSsrc(String mediaServerId) {
-        return "1" + getSN(mediaServerId);
-    }
-
-    /**
-     * 释放ssrc，主要用完的ssrc一定要释放，否则会耗尽
-     *
-     * @param ssrc 需要重置的ssrc
-     */
-    public void releaseSsrc(String mediaServerId, String ssrc) {
-        if (ssrc == null) {
-            return;
-        }
-        if (!isFactorySsrc(ssrc)) {
-            log.warn("[释放 SSRC] 忽略非SSRC池分配的值: {}", ssrc);
-            return;
-        }
-        String sn = ssrc.substring(1);
-        log.debug("[释放 SSRC] SSRC:{} -> SN: {}", ssrc, sn);
-        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        redisTemplate.opsForSet().add(redisKey, sn);
-    }
-
-    /**
-     * 获取后四位数SN,随机数
-     */
-    private String getSN(String mediaServerId) {
-        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        Long size = redisTemplate.opsForSet().size(redisKey);
-        if (size == null || size == 0) {
-            log.info("[获取 SSRC 失败] redisKey： {}", redisKey);
-            throw new RuntimeException("ssrc已经用完");
-        } else {
-            // 在集合中移除并返回一个随机成员。
-            return redisTemplate.opsForSet().pop(redisKey);
-        }
-    }
-
-    /**
-     * 重置一个流媒体服务的所有ssrc
-     *
-     * @param mediaServerId 流媒体服务ID
-     */
-    public void reset(String mediaServerId) {
-        this.initMediaServerSSRC(mediaServerId, null);
-    }
-
-    /**
-     * 是否已经存在了某个MediaServer的SSRC信息
-     *
-     * @param mediaServerId 流媒体服务ID
-     */
-    public boolean hasMediaServerSSRC(String mediaServerId) {
-        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        return Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
-    }
-
-    private String getSsrcPrefix() {
-        String sipDomain = sipConfig.getDomain();
-        return sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
-    }
-
-    private boolean isFactorySsrc(String ssrc) {
-        if (ssrc.length() < 2) {
-            return false;
-        }
-        String sn = ssrc.substring(1);
-        String ssrcPrefix = getSsrcPrefix();
-        return sn.length() == ssrcPrefix.length() + 4 && sn.startsWith(ssrcPrefix);
-    }
-
 }

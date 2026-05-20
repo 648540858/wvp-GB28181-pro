@@ -100,8 +100,12 @@ public class SSRCFactory {
                 log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
             }
             usedMap.put(server.getId(), bits);
-            if (log.isDebugEnabled()) {
-                log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+            if (count > 8000) {
+                log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
+            }else {
+                if (log.isDebugEnabled()) {
+                    log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+                }
             }
         }
     }

@@ -119,11 +119,11 @@ public class ZLMHttpHookListener {
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
         if (resultForOnPublish != null) {
             HookResultForOnPublish successResult = HookResultForOnPublish.getInstance(resultForOnPublish);
-            log.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, successResult);
+            log.info("[ZLM HOOK]推流鉴权-允许-响应：{}->{}->>>>{}", param.getMediaServerId(), param, successResult);
             return successResult;
         }else {
             HookResultForOnPublish fail = HookResultForOnPublish.Fail();
-            log.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, fail);
+            log.info("[ZLM HOOK]推流鉴权-拒绝-参数：{}->{}", param.getMediaServerId(), param);
             return fail;
         }
     }

@@ -28,7 +28,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -140,7 +139,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             ssrc = ssrcFactory.getPlaySsrc(mediaServer);
         }
 
-        String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+        String streamId = String.format("%08x", Long.parseLong(ssrc)).toLowerCase();
         String streamReplace = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
 
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);

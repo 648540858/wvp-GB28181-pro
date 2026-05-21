@@ -481,7 +481,7 @@ public class PlayServiceImpl implements IPlayService {
     private void talk(MediaServer mediaServerItem, Device device, DeviceChannel channel, String stream,
                       SipSubscribe.Event errorEvent, Runnable timeoutCallback, AudioBroadcastEvent audioEvent) {
 
-        String ySsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
+        String ySsrc = ssrcFactory.getPlaySsrc(mediaServerItem);
 
         if (ySsrc == null) {
             audioEvent.call("ssrc已经用尽");

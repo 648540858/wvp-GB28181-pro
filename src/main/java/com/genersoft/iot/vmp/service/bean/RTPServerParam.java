@@ -18,11 +18,11 @@ public class RTPServerParam {
     private String app;
     private String streamId;
     /**
-     * 传递给zlm创建rtp server的streamId，不填则使用streamId
+     * 是否将ssrc传递给zlm做校验
      */
-    private String zlmStreamId;
+    private boolean ssrcCheck;
     /**
-     * 开启rtpServer时使用的ssrc，开启rtpServer时会根据这个ssrc进行校验，如果不填则不校验
+     * 开启rtpServer时使用的ssrc
      */
     private Long ssrc;
     private Integer port;

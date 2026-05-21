@@ -29,6 +29,7 @@
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
+              :show-button="true"
               fluent
               autoplay
               live

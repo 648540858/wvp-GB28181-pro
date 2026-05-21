@@ -63,12 +63,18 @@ public class SSRCFactory {
         return suffix != null ? "1" + suffix : null;
     }
 
-    public String getPlaySsrcRandom() {
-        return "0" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+    public String getPlaySsrc(MediaServer mediaServer) {
+        if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            return "0" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+        }
+        return getPlaySsrc(mediaServer.getId());
     }
 
-    public String getPlayBackSsrcRandom() {
-        return "1" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+    public String getPlayBackSsrc(MediaServer mediaServer) {
+        if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            return "1" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+        }
+        return getPlayBackSsrc(mediaServer.getId());
     }
 
     private String allocate(String mediaServerId) {

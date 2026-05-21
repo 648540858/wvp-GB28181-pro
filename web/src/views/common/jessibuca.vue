@@ -4,8 +4,7 @@
     style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;"
     @dblclick="fullscreenSwich"
   >
-    <div style="width:100%; padding-top: 56.25%; position: relative;" />
-    <div id="buttonsBox" class="buttons-box" v-if="showButton">
+    <div id="buttonsBox" class="buttons-box" v-if="showButton === undefined || showButton">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />

@@ -90,12 +90,10 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         final String ssrc;
         if (presetSSRC != null) {
             ssrc = presetSSRC;
-        }else {
-            if (playback) {
-                ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
-            }else {
-                ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
-            }
+        } else if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            ssrc = playback ? ssrcFactory.getPlayBackSsrcRandom() : ssrcFactory.getPlaySsrcRandom();
+        } else {
+            ssrc = playback ? ssrcFactory.getPlayBackSsrc(mediaServer.getId()) : ssrcFactory.getPlaySsrc(mediaServer.getId());
         }
         if (streamId == null) {
             streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
@@ -139,18 +137,14 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         final String ssrc;
         if (presetSSRC != null) {
             ssrc = presetSSRC;
-        }else {
+        } else if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            ssrc = ssrcFactory.getPlaySsrcRandom();
+        } else {
             ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
         }
 
-        String streamId;
-        String streamReplace = null;
-        if (mediaServer.isRtpEnable()) {
-            streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
-        }else {
-            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
-            streamReplace = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
-        }
+        String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+        String streamReplace = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
 
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
@@ -161,8 +155,8 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
-        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace);
+        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback, streamId);
         addAuthenticateInfo(streamId, streamReplace, channel.isHasAudio(),  record, null);
         return ssrcInfo;
     }
@@ -180,16 +174,15 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
 
         // 获取 mediaServer 可用的 ssrc
-        String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
-
-        String streamId;
-        String streamReplace = null;
-        if (mediaServer.isRtpEnable()) {
-            streamId = getPlaybackStream(device, channel, startTime, endTime);
-        }else {
-            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
-            streamReplace = getPlaybackStream(device, channel, startTime, endTime);
+        String ssrc;
+        if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            ssrc = ssrcFactory.getPlayBackSsrcRandom();
+        } else {
+            ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
         }
+
+        String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+        String streamReplace = getPlaybackStream(device, channel, startTime, endTime);
 
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
@@ -200,8 +193,8 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace != null ? streamReplace : streamId);
-        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace);
+        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback, streamId);
         addAuthenticateInfo(streamId, streamReplace,  channel.isHasAudio(), false,null);
         return ssrcInfo;
     }
@@ -233,8 +226,18 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
         // 获取 mediaServer 可用的 ssrc
-        String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
+        String ssrc;
+        if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            ssrc = ssrcFactory.getPlayBackSsrcRandom();
+        } else {
+            ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
+        }
+
         String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
+        String streamReplace = String.format("%s_%s_%s_%s", device.getDeviceId(), channel.getDeviceId(),
+                startTime.replace("-", "").replace(":", "").replace(" ", ""),
+                endTime.replace("-", "").replace(":", "").replace(" ", ""));
+
         if (device.isSsrcCheck() && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
             log.warn("[开启国标录像下载RTP收流] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
@@ -242,12 +245,12 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         Long checkSsrc = device.isSsrcCheck() ? Long.parseLong(ssrc) : 0L;
 
-        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
-        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback);
+        SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamReplace);
+        openRtpServer(mediaServer, ssrcInfo, checkSsrc, !channel.isHasAudio(), false, tcpMode, callback, streamId);
 
         long difference = DateUtil.getDifference(startTime, endTime) / 1000;
 
-        addAuthenticateInfo(streamId, null, channel.isHasAudio(), true,  (int) difference);
+        addAuthenticateInfo(streamId, streamReplace, channel.isHasAudio(), true,  (int) difference);
         return ssrcInfo;
     }
 
@@ -278,7 +281,12 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
 
         // 获取 mediaServer 可用的 ssrc
-        String ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
+        String ssrc;
+        if (mediaServer.isRtpEnable() && userSetting.getSsrcRandom()) {
+            ssrc = ssrcFactory.getPlaySsrcRandom();
+        } else {
+            ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
+        }
 
         SSRCInfo ssrcInfo = new SSRCInfo(0, ssrc, MediaStreamUtil.RTP_APP, streamId);
         openRtpServer(mediaServer, ssrcInfo, 0L, false, true, tcpMode, callback);
@@ -287,8 +295,14 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     private void openRtpServer(MediaServer mediaServer, SSRCInfo ssrcInfo, Long checkSsrc, boolean disableAuto, boolean onlyAuto, int tcpMode,
                                ErrorCallback<OpenRTPServerResult> callback) {
+        openRtpServer(mediaServer, ssrcInfo, checkSsrc, disableAuto, onlyAuto, tcpMode, callback, null);
+    }
+
+    private void openRtpServer(MediaServer mediaServer, SSRCInfo ssrcInfo, Long checkSsrc, boolean disableAuto, boolean onlyAuto, int tcpMode,
+                               ErrorCallback<OpenRTPServerResult> callback, String zlmStreamId) {
 
         RTPServerParam rtpServerParam = new RTPServerParam(mediaServer, MediaStreamUtil.RTP_APP, ssrcInfo.getStream(), checkSsrc, null, onlyAuto, disableAuto, false, tcpMode);
+        rtpServerParam.setZlmStreamId(zlmStreamId);
         int rtpServerPort = openCommonRTPServer(rtpServerParam, ((code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
@@ -336,7 +350,8 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         int rtpServerPort;
         if (rtpServerParam.getMediaServer().isRtpEnable()) {
-            rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), rtpServerParam.getStreamId(),
+            String effectiveStreamId = rtpServerParam.getZlmStreamId() != null ? rtpServerParam.getZlmStreamId() : rtpServerParam.getStreamId();
+            rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), effectiveStreamId,
                     Objects.requireNonNullElse(rtpServerParam.getSsrc(), 0L), rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
                     rtpServerParam.isDisableAudio(), rtpServerParam.isReUsePort(), rtpServerParam.getTcpMode());
         } else {

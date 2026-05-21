@@ -99,6 +99,8 @@ media:
 user-settings:
   # 点播/录像回放 等待超时时间,单位：毫秒
   play-timeout: 180000
+  # [可选] 多端口模式使用随机SSRC，SSRC允许重复（默认false）
+  ssrc-random: false
   # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
   auto-apply-play: true
   # 推流直播是否录制

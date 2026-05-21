@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class SSRCFactory {
 
     private final ConcurrentHashMap<String, BitSet> usedMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Object> lockMap = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "ssrc-rebuild");
         t.setDaemon(true);
@@ -38,6 +40,9 @@ public class SSRCFactory {
 
     @Autowired
     private SipConfig sipConfig;
+
+    @Autowired
+    private UserSetting userSetting;
 
     private String domainPart;
 
@@ -58,53 +63,68 @@ public class SSRCFactory {
         return suffix != null ? "1" + suffix : null;
     }
 
+    public String getPlaySsrcRandom() {
+        return "0" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+    }
+
+    public String getPlayBackSsrcRandom() {
+        return "1" + domainPart + String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+    }
+
     private String allocate(String mediaServerId) {
-        BitSet bits = usedMap.computeIfAbsent(mediaServerId, k -> new BitSet(10000));
-        int start = ThreadLocalRandom.current().nextInt(10000);
-        int index = start;
-        do {
-            if (!bits.get(index)) {
-                bits.set(index);
-                return domainPart + String.format("%04d", index);
-            }
-            index = (index + 1) % 10000;
-        } while (index != start);
-        log.warn("[SSRC] 媒体节点 {} 的SSRC已用尽", mediaServerId);
-        return null;
+        synchronized (lockMap.computeIfAbsent(mediaServerId, k -> new Object())) {
+            BitSet bits = usedMap.computeIfAbsent(mediaServerId, k -> new BitSet(10000));
+            int start = ThreadLocalRandom.current().nextInt(10000);
+            int index = start;
+            do {
+                if (!bits.get(index)) {
+                    bits.set(index);
+                    return domainPart + String.format("%04d", index);
+                }
+                index = (index + 1) % 10000;
+            } while (index != start);
+            log.warn("[SSRC] 媒体节点 {} 的SSRC已用尽", mediaServerId);
+            return null;
+        }
     }
 
     void rebuild() {
         List<MediaServer> servers = mediaServerService.getAll();
         for (MediaServer server : servers) {
-            BitSet bits = new BitSet(10000);
-            int count = 0;
-            try {
-                ZLMResult<?> result = zlmresTfulUtils.getMediaList(server, null, null, "rtsp", null);
-                if (result != null && result.getCode() == 0 && result.getData() != null) {
-                    List<JSONObject> list = (List<JSONObject>) result.getData();
-                    for (JSONObject obj : list) {
-                        if (obj.getIntValue("originType") != 3) continue;
-                        String originUrl = obj.getString("originUrl");
-                        if (originUrl == null) continue;
-                        int idx = originUrl.lastIndexOf("/rtp/");
-                        if (idx == -1) continue;
-                        try {
-                            int suffix = (int) (Long.parseLong(originUrl.substring(idx + 5), 16) % 10000);
-                            bits.set(suffix);
-                            count++;
-                        } catch (NumberFormatException ignored) {
+            if (server.isRtpEnable() && userSetting.getSsrcRandom()) {
+                continue;
+            }
+            synchronized (lockMap.computeIfAbsent(server.getId(), k -> new Object())) {
+                BitSet bits = new BitSet(10000);
+                int count = 0;
+                try {
+                    ZLMResult<?> result = zlmresTfulUtils.getMediaList(server, null, null, "rtsp", null);
+                    if (result != null && result.getCode() == 0 && result.getData() != null) {
+                        List<JSONObject> list = (List<JSONObject>) result.getData();
+                        for (JSONObject obj : list) {
+                            if (obj.getIntValue("originType") != 3) continue;
+                            String originUrl = obj.getString("originUrl");
+                            if (originUrl == null) continue;
+                            int idx = originUrl.lastIndexOf("/rtp/");
+                            if (idx == -1) continue;
+                            try {
+                                int suffix = (int) (Long.parseLong(originUrl.substring(idx + 5), 16) % 10000);
+                                bits.set(suffix);
+                                count++;
+                            } catch (NumberFormatException ignored) {
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
                 }
-            } catch (Exception e) {
-                log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
-            }
-            usedMap.put(server.getId(), bits);
-            if (count > 8000) {
-                log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
-            }else {
-                if (log.isDebugEnabled()) {
-                    log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+                usedMap.put(server.getId(), bits);
+                if (count > 8000) {
+                    log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+                    }
                 }
             }
         }

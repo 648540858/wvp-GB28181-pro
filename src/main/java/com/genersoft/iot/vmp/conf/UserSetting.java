@@ -129,6 +129,11 @@ public class UserSetting {
     private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
     /**
+     * 多端口模式使用随机SSRC，端口区分流，SSRC允许重复
+     */
+    private Boolean ssrcRandom = Boolean.FALSE;
+
+    /**
      * 开启接口文档页面。 默认开启，生产环境建议关闭，遇到swagger相关的漏洞时也可以关闭
      */
     private Boolean docEnable = Boolean.TRUE;

@@ -82,6 +82,7 @@ public class ZLMMediaServerStatusManager {
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
         }
+        execute();
     }
 
     @Async

@@ -162,7 +162,8 @@ create table IF NOT EXISTS wvp_device_channel
     enable_broadcast             integer default 0 COMMENT '是否支持广播',
     index (data_type),
     index (data_device_id),
-    constraint uk_wvp_unique_channel unique (gb_device_id)
+    constraint uk_wvp_unique_channel unique (gb_device_id),
+    constraint uk_device_channel_source unique (data_device_id, device_id)
 );
 
 -- 媒体服务器（如 ZLM）节点信息

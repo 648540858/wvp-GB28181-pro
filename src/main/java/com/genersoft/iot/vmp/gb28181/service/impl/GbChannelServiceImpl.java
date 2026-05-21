@@ -325,13 +325,13 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[新增多个通道] 通道数量为0，更新失败");
             return;
         }
-        // 批量保存
+        // 批量保存（使用UPSERT防重复）
         int limitCount = 1000;
         int result = 0;
         for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
             int end = Math.min(i + limitCount, commonGBChannels.size());
             List<CommonGBChannel> batchList = commonGBChannels.subList(i, end);
-            result += commonGBChannelMapper.batchAdd(batchList);
+            result += commonGBChannelMapper.batchUpsert(batchList);
         }
         try {
             // 发送catalog

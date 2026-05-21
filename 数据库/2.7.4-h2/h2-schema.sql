@@ -155,7 +155,8 @@ create table IF NOT EXISTS wvp_device_channel
     gps_speed                    double precision,
     gps_altitude                 double precision,
     gps_direction                double precision,
-    constraint uk_wvp_unique_channel unique (gb_device_id)
+    constraint uk_wvp_unique_channel unique (gb_device_id),
+    constraint uk_device_channel_source unique (data_device_id, device_id)
 );
 
 create table IF NOT EXISTS wvp_media_server

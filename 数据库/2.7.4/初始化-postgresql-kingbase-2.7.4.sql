@@ -215,7 +215,8 @@ create table IF NOT EXISTS wvp_device_channel
     gps_altitude                 double precision,
     gps_direction                double precision,
     enable_broadcast             integer default 0,
-    constraint uk_wvp_unique_channel unique (gb_device_id)
+    constraint uk_wvp_unique_channel unique (gb_device_id),
+    constraint uk_device_channel_source unique (data_device_id, device_id)
 );
 COMMENT ON TABLE wvp_device_channel IS '保存设备下的通道信息以及扩展属性';
 COMMENT ON COLUMN wvp_device_channel.id IS '主键ID';

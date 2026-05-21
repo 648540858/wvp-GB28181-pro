@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Component
@@ -37,6 +38,16 @@ public class CatalogDataManager{
     private RedisTemplate<String, Object> redisTemplate;
 
     private final Map<String, CatalogData> dataMap = new ConcurrentHashMap<>();
+
+    private final Map<String, ReentrantLock> deviceWriteLocks = new ConcurrentHashMap<>();
+
+    public ReentrantLock getDeviceWriteLock(String deviceId) {
+        return deviceWriteLocks.computeIfAbsent(deviceId, k -> new ReentrantLock());
+    }
+
+    public void removeDeviceWriteLock(String deviceId) {
+        deviceWriteLocks.remove(deviceId);
+    }
 
     private final String key = "VMP_CATALOG_DATA";
 
@@ -240,12 +251,17 @@ public class CatalogDataManager{
             }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                 if ( catalogData.getTime().isBefore(instantBefore5S)) {
                     String deviceId = catalogData.getDevice().getDeviceId();
-                    int sn = catalogData.getSn();
-                    List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
+                    ReentrantLock lock = getDeviceWriteLock(deviceId);
+                    if (!lock.tryLock()) {
+                        // saveData() 正在执行，跳过本次，等下一个5s周期
+                        continue;
+                    }
                     try {
+                        int sn = catalogData.getSn();
+                        List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
                         if (catalogData.getTotal() == deviceChannelList.size()) {
                             deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
-                        }else {
+                        } else {
                             deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
                         }
                         List<Region> regionList = getRegionList(deviceId, sn);
@@ -256,16 +272,23 @@ public class CatalogDataManager{
                         if (groupList != null && !groupList.isEmpty()) {
                             groupService.batchAdd(groupList);
                         }
-                    }catch (Exception e) {
+                        String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
+                        catalogData.setErrorMsg(errorMsg);
+                    } catch (Exception e) {
                         log.error("[国标通道同步] 入库失败： ", e);
+                    } finally {
+                        lock.unlock();
                     }
-                    String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
-                    catalogData.setErrorMsg(errorMsg);
                     catalogData.setStatus(CatalogData.CatalogDataStatus.end);
                 }
             }else {
                 if (catalogData.getTime().isBefore(instantBefore30S)) {
+                    String deviceId = catalogData.getDevice().getDeviceId();
                     dataMap.remove(dataKey);
+                    // 清理可能残留的设备锁
+                    if (deviceWriteLocks.containsKey(deviceId)) {
+                        deviceWriteLocks.remove(deviceId);
+                    }
                     Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
                     if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
                         for (String deleteKey : redisKeysForChannel) {

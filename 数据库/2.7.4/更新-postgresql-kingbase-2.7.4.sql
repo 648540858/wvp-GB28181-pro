@@ -69,6 +69,26 @@ COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
 
 
 /*
+* 20260521 添加wvp_device_channel唯一约束，防止通道重复写入
+*/
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes
+                   WHERE tablename = 'wvp_device_channel'
+                     AND indexname = 'uk_device_channel_source') THEN
+        -- 先清理可能的重复数据
+        DELETE FROM wvp_device_channel t1
+        USING wvp_device_channel t2
+        WHERE t1.id < t2.id
+          AND t1.data_device_id = t2.data_device_id
+          AND t1.device_id = t2.device_id;
+        ALTER TABLE wvp_device_channel ADD CONSTRAINT uk_device_channel_source UNIQUE (data_device_id, device_id);
+    END IF;
+END;
+$$;
+
+
+/*
 * 20260417 将 wvp_device_mobile_position从专属国标的位置记录表，改为通用通道共用的位置记录表
 */
 ALTER TABLE wvp_device_mobile_position ADD COLUMN IF NOT EXISTS timestamp int8;

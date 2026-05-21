@@ -196,7 +196,29 @@ call wvp_20260417();
 DROP PROCEDURE wvp_20260417;
 DELIMITER ;
 
-
+/*
+* 20260521 添加wvp_device_channel唯一约束，防止通道重复写入
+*/
+DELIMITER //
+CREATE PROCEDURE `wvp_20260521`()
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE())
+                     AND TABLE_NAME = 'wvp_device_channel'
+                     AND INDEX_NAME = 'uk_device_channel_source')
+    THEN
+        -- 先清理可能的重复数据
+        DELETE t1 FROM wvp_device_channel t1
+        INNER JOIN wvp_device_channel t2
+        WHERE t1.id < t2.id
+          AND t1.data_device_id = t2.data_device_id
+          AND t1.device_id = t2.device_id;
+ALTER TABLE wvp_device_channel ADD UNIQUE INDEX uk_device_channel_source (data_device_id, device_id);
+END IF;
+END; //
+call wvp_20260521();
+DROP PROCEDURE wvp_20260521;
+DELIMITER ;
 
 
 

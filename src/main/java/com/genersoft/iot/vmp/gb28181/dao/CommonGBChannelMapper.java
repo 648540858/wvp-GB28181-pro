@@ -3,6 +3,9 @@ package com.genersoft.iot.vmp.gb28181.dao;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.Extent;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
+import com.genersoft.iot.vmp.gb28181.dao.provider.MysqlCommonChannelUpsertProvider;
+import com.genersoft.iot.vmp.gb28181.dao.provider.PostgresStyleCommonChannelUpsertProvider;
+import com.genersoft.iot.vmp.gb28181.dao.provider.H2CommonChannelUpsertProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.custom.bean.CameraChannel;
@@ -172,6 +175,12 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryInListByStatus")
     List<CommonGBChannel> queryInListByStatus(List<CommonGBChannel> commonGBChannelList, @Param("status") String status);
 
+
+    @InsertProvider(type = MysqlCommonChannelUpsertProvider.class, method = "batchUpsert", databaseId = "mysql")
+    @InsertProvider(type = PostgresStyleCommonChannelUpsertProvider.class, method = "batchUpsert", databaseId = "postgresql")
+    @InsertProvider(type = PostgresStyleCommonChannelUpsertProvider.class, method = "batchUpsert", databaseId = "kingbase")
+    @InsertProvider(type = H2CommonChannelUpsertProvider.class, method = "batchUpsert", databaseId = "h2")
+    int batchUpsert(@Param("channels") List<CommonGBChannel> channels);
 
     @Insert(" <script>" +
             "INSERT INTO wvp_device_channel (" +

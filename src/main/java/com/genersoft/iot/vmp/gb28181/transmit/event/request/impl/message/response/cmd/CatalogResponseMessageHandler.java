@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 import java.lang.Thread;
 
 /**
@@ -163,16 +164,22 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             String deviceId = device.getDeviceId();
             if (catalogDataCatch.size(deviceId, sn) > 0
                     && catalogDataCatch.size(deviceId, sn) == catalogDataCatch.sumNum(deviceId, sn)) {
-                // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
+                    // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                 // 目前支持设备通道上线通知时和设备上线时向上级通知
                 int finalSn = sn;
                 Thread.startVirtualThread(() -> {
-                    boolean resetChannelsResult = saveData(device, finalSn);
-                    if (!resetChannelsResult) {
-                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(deviceId, finalSn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(device.getDeviceId(), finalSn).size() + "条";
-                        catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, errorMsg);
-                    } else {
-                        catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, null);
+                    ReentrantLock lock = catalogDataCatch.getDeviceWriteLock(device.getDeviceId());
+                    lock.lock();
+                    try {
+                        boolean resetChannelsResult = saveData(device, finalSn);
+                        if (!resetChannelsResult) {
+                            String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(deviceId, finalSn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(device.getDeviceId(), finalSn).size() + "条";
+                            catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, errorMsg);
+                        } else {
+                            catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, null);
+                        }
+                    } finally {
+                        lock.unlock();
                     }
                 });
             }

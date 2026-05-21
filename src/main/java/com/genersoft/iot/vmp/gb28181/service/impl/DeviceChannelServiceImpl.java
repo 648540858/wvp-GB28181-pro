@@ -114,75 +114,58 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (CollectionUtils.isEmpty(channels)) {
             return 0;
         }
-        List<DeviceChannel> addChannels = new ArrayList<>();
-        List<DeviceChannel> updateChannels = new ArrayList<>();
-        HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
+        // 入参去重
+        Set<String> dedupSet = new HashSet<>();
+        List<DeviceChannel> uniqueChannels = new ArrayList<>();
+        for (DeviceChannel ch : channels) {
+            if (dedupSet.add(ch.getDeviceId())) {
+                uniqueChannels.add(ch);
+            }
+        }
+        List<DeviceChannel> upsertChannels = new ArrayList<>();
         int result = 0;
         List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
         if (channelList.isEmpty()) {
-            for (DeviceChannel channel : channels) {
+            String now = DateUtil.getNow();
+            for (DeviceChannel channel : uniqueChannels) {
                 channel.setDataDeviceId(device.getId());
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                 if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                     channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                 }
-                String now = DateUtil.getNow();
                 channel.setUpdateTime(now);
                 channel.setCreateTime(now);
-                addChannels.add(channel);
+                upsertChannels.add(channel);
             }
-        }else {
+        } else {
+            HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
             for (DeviceChannel deviceChannel : channelList) {
                 channelsInStore.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
             }
-            for (DeviceChannel channel : channels) {
+            String now = DateUtil.getNow();
+            for (DeviceChannel channel : uniqueChannels) {
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                 if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                     channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                 }
-                String now = DateUtil.getNow();
                 channel.setUpdateTime(now);
                 DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDataDeviceId() + channel.getDeviceId());
-                if ( deviceChannelInDb != null) {
+                if (deviceChannelInDb != null) {
                     channel.setId(deviceChannelInDb.getId());
-                    channel.setUpdateTime(now);
-                    updateChannels.add(channel);
-                }else {
+                    channel.setCreateTime(deviceChannelInDb.getCreateTime());
+                } else {
                     channel.setCreateTime(now);
-                    channel.setUpdateTime(now);
-                    addChannels.add(channel);
                 }
+                upsertChannels.add(channel);
             }
         }
-        Set<String> channelSet = new HashSet<>();
-        // 滤重
-        List<DeviceChannel> addChannelList = new ArrayList<>();
-        List<DeviceChannel> updateChannelList = new ArrayList<>();
-        addChannels.forEach(channel -> {
-            if (channelSet.add(channel.getDeviceId())) {
-                addChannelList.add(channel);
-            }
-        });
-        channelSet.clear();
-        updateChannels.forEach(channel -> {
-            if (channelSet.add(channel.getDeviceId())) {
-                updateChannelList.add(channel);
-            }
-        });
 
         int limitCount = 500;
-        if (!addChannelList.isEmpty()) {
-            for (int i = 0; i < addChannelList.size(); i += limitCount) {
-                int end = Math.min(i + limitCount, addChannelList.size());
-                List<DeviceChannel> batchList = addChannelList.subList(i, end);
-                result += channelMapper.batchAdd(batchList);
-            }
-        }
-        if (!updateChannelList.isEmpty()) {
-            for (int i = 0; i < updateChannelList.size(); i += limitCount) {
-                int end = Math.min(i + limitCount, updateChannelList.size());
-                List<DeviceChannel> batchList = updateChannelList.subList(i, end);
-                result += channelMapper.batchUpdate(batchList);
+        if (!upsertChannels.isEmpty()) {
+            for (int i = 0; i < upsertChannels.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, upsertChannels.size());
+                List<DeviceChannel> batchList = upsertChannels.subList(i, end);
+                result += channelMapper.batchUpsert(batchList);
             }
         }
         return result;
@@ -385,21 +368,26 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 allChannelMap.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
             }
         }
-        // 数据去重
-        List<DeviceChannel> channels = new ArrayList<>();
+        // 入参去重
+        Set<String> dedupSet = new HashSet<>();
+        List<DeviceChannel> uniqueChannels = new ArrayList<>();
+        for (DeviceChannel ch : deviceChannelList) {
+            if (dedupSet.add(ch.getDeviceId())) {
+                uniqueChannels.add(ch);
+            }
+        }
 
-        List<DeviceChannel> updateChannels = new ArrayList<>();
-        List<DeviceChannel> addChannels = new ArrayList<>();
+        List<DeviceChannel> upsertChannels = new ArrayList<>();
         List<DeviceChannel> deleteChannels = new ArrayList<>();
-        StringBuilder stringBuilder = new StringBuilder();
         Map<String, Integer> subContMap = new HashMap<>();
 
-        for (DeviceChannel deviceChannel : deviceChannelList) {
+        for (DeviceChannel deviceChannel : uniqueChannels) {
             DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
                 deviceChannel.setId(channelInDb.getId());
+                deviceChannel.setCreateTime(channelInDb.getCreateTime());
                 if (channelInDb.getStatus() != null && !channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
                     List<Platform> platformList = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
                     if (!CollectionUtils.isEmpty(platformList)){
@@ -409,59 +397,44 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     }
                 }
                 deviceChannel.setUpdateTime(DateUtil.getNow());
-                updateChannels.add(deviceChannel);
-            }else {
+            } else {
                 deviceChannel.setCreateTime(DateUtil.getNow());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
-                addChannels.add(deviceChannel);
             }
             allChannelMap.remove(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
-            channels.add(deviceChannel);
+            upsertChannels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
                 if (subContMap.get(deviceChannel.getParentId()) == null) {
                     subContMap.put(deviceChannel.getParentId(), 1);
-                }else {
+                } else {
                     Integer count = subContMap.get(deviceChannel.getParentId());
                     subContMap.put(deviceChannel.getParentId(), count++);
                 }
             }
         }
         deleteChannels.addAll(allChannelMap.values());
-        if (!channels.isEmpty()) {
-            for (DeviceChannel channel : channels) {
-                if (subContMap.get(channel.getDeviceId()) != null){
-                    Integer count = subContMap.get(channel.getDeviceId());
-                    if (count > 0) {
-                        channel.setSubCount(count);
-                        channel.setParental(1);
-                    }
+
+        for (DeviceChannel channel : upsertChannels) {
+            if (subContMap.get(channel.getDeviceId()) != null){
+                Integer count = subContMap.get(channel.getDeviceId());
+                if (count > 0) {
+                    channel.setSubCount(count);
+                    channel.setParental(1);
                 }
             }
         }
 
-        if (stringBuilder.length() > 0) {
-            log.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
-        }
-        if(CollectionUtils.isEmpty(channels)){
+        if(CollectionUtils.isEmpty(upsertChannels)){
             log.info("通道重设，数据为空={}" , deviceChannelList);
             return false;
         }
         int limitCount = 500;
-        if (!addChannels.isEmpty()) {
-            for (int i = 0; i < addChannels.size(); i += limitCount) {
-                int end = Math.min(i + limitCount, addChannels.size());
-                List<DeviceChannel> batchList = addChannels.subList(i, end);
-                channelMapper.batchAdd(batchList);
+        if (!upsertChannels.isEmpty()) {
+            for (int i = 0; i < upsertChannels.size(); i += limitCount) {
+                int end = Math.min(i + limitCount, upsertChannels.size());
+                List<DeviceChannel> batchList = upsertChannels.subList(i, end);
+                channelMapper.batchUpsert(batchList);
             }
-        }
-        if (!updateChannels.isEmpty()) {
-            for (int i = 0; i < updateChannels.size(); i += limitCount) {
-                int end = Math.min(i + limitCount, updateChannels.size());
-                List<DeviceChannel> batchList = updateChannels.subList(i, end);
-                channelMapper.batchUpdate(batchList);
-            }
-            // 不对收到的通道做比较，已确定是否真的发生变化，所以不发送更新通知
-
         }
         if (!deleteChannels.isEmpty()) {
             try {

@@ -61,7 +61,25 @@ export default {
     }
     this.btnDom = document.getElementById('buttonsBox')
   },
-  mounted() {},
+  mounted() {
+    if (this.videoUrl) {
+      this.$nextTick(() => {
+        this.play(this.videoUrl)
+      })
+    }
+  },
+  watch: {
+    videoUrl: {
+      handler(newVal) {
+        if (newVal) {
+          this.$nextTick(() => {
+            this.play(newVal)
+          })
+        }
+      },
+      immediate: false
+    }
+  },
   destroyed() {
     if (jessibucaPlayer[this._uid]) {
       jessibucaPlayer[this._uid].videoPTS = 0
@@ -204,13 +222,11 @@ export default {
       if (!jessibucaPlayer[this._uid]) {
         this.create()
       }
-      jessibucaPlayer[this._uid].play(url)
-
       if (jessibucaPlayer[this._uid].hasLoaded()) {
-        // jessibucaPlayer[this._uid].play(url)
+        jessibucaPlayer[this._uid].play(url)
       } else {
         jessibucaPlayer[this._uid].on('load', () => {
-          // jessibucaPlayer[this._uid].play(url)
+          jessibucaPlayer[this._uid].play(url)
         })
       }
 

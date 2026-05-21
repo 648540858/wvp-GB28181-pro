@@ -37,6 +37,7 @@
                 :video-url="videoUrl[i-1]"
                 fluent
                 autoplay
+                :show-button="true"
                 @screenshot="shot"
                 @destroy="destroy"
               />

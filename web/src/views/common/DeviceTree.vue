@@ -22,6 +22,7 @@
           :show-position="showPosition"
           :has-channel="true"
           :contextmenu="contextmenu"
+          :tree-height="treeHeight"
           @clickEvent="treeNodeClickEvent"
           :default-expanded-keys="[]"
         />
@@ -33,6 +34,7 @@
           :show-position="showPosition"
           :has-channel="true"
           :contextmenu="contextmenu"
+          :tree-height="treeHeight"
           @clickEvent="treeNodeClickEvent"
           :default-expanded-keys="[]"
         />
@@ -73,6 +75,7 @@ export default {
   data() {
     return {
       showRegion: false,
+      treeHeight: null,
       defaultProps: {
         children: 'children',
         label: 'name',
@@ -111,6 +114,7 @@ export default {
 
       // Calculate available height for tree
       const availableHeight = containerHeight - headerHeight - 30 // 30px for padding
+      this.treeHeight = availableHeight
 
       // Set the tree content height
       const treeContent = this.$el.querySelector('.tree-content')

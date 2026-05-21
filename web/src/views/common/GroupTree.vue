@@ -1,6 +1,6 @@
 <template>
-  <div id="groupTree" style="border-right: 1px solid #EBEEF5; height: 100%">
-    <div style="padding: 0 20px 0 10px;">
+  <div id="groupTree" style="border-right: 1px solid #EBEEF5; height: 100%; display: flex; flex-direction: column;">
+    <div style="padding: 0 20px 0 10px; flex-shrink: 0;">
       <el-input size="small" v-model="searchStr" @input="searchChange" suffix-icon="el-icon-search" placeholder="请输入搜索内容" clearable>
         <!--        <el-select v-model="searchType" slot="prepend" placeholder="搜索类型" style="width: 80px">-->
         <!--          <el-option label="目录" :value="0"></el-option>-->
@@ -8,7 +8,7 @@
         <!--        </el-select>-->
       </el-input>
     </div>
-    <div v-if="!searchStr">
+    <div v-if="!searchStr" style="flex: 1; min-height: 0;">
       <el-alert
         v-if="showAlert && edit"
         title="操作提示"
@@ -24,7 +24,7 @@
         ref="veTree"
         class="flow-tree"
         node-key="treeId"
-        :height="treeHeight?treeHeight:'78vh'"
+        :height="'100%'"
         lazy
         :load="loadNode"
         :data="treeData"
@@ -70,7 +70,7 @@
         </template>
       </vue-easy-tree>
     </div>
-    <div v-if="searchStr" style="color: #606266; height: calc(100% - 32px); overflow: auto !important;">
+    <div v-if="searchStr" style="color: #606266; flex: 1; min-height: 0; overflow: auto;">
       <ul v-if="groupList.length > 0" style="list-style: none; margin: 0; padding: 10px">
         <li v-for="item in groupList" :key="item.id" class="channel-list-li" style="height: 26px; align-items: center;cursor: pointer;" @click="listClickHandler(item)" >
           <span
@@ -234,10 +234,10 @@ export default {
               isLeaf: true,
               leaf: true,
               type: 100,
-              nextData: data.splice(this.treeLimit, data.length)
+              nextData: data
             })
             resolve(subData)
-          }else {
+          } else {
             resolve(data)
           }
 
@@ -486,16 +486,11 @@ export default {
       }, id)
     },
     nodeClickHandler: function(data, node, tree) {
-      console.log(data)
-      console.log(data.nextData.length)
-      console.log(this.treeLimit)
       if (data && data.nextData && data.nextData.length > 0) {
-
         const parentNode = node.parent
         let nextData = data.nextData
         if (nextData.length > this.treeLimit) {
           let subData = nextData.splice(0, this.treeLimit)
-          console.log(subData)
           subData.push({
             treeId: '---',
             deviceId: '---',
@@ -503,7 +498,7 @@ export default {
             isLeaf: true,
             leaf: true,
             type: 100,
-            nextData: nextData.splice(this.treeLimit, nextData.length)
+            nextData: nextData
           })
           this.$refs.veTree.remove(data, parentNode)
           for (let item of subData) {
@@ -515,7 +510,7 @@ export default {
             this.$refs.veTree.append(item, parentNode)
           }
         }
-      }else {
+      } else {
         this.chooseId = data.deviceId
         this.$emit('clickEvent', data)
       }

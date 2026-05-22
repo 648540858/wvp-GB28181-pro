@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-envsubst '${Stream_IP}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '${Stream_IP} ${MediaHttp}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
 nginx
 

@@ -51,7 +51,7 @@ server {
     }
 
     location ^~ /index/api/ {
-        proxy_pass http://polaris-media:80/index/api/;
+        proxy_pass http://polaris-media:${MediaHttp}/index/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -65,7 +65,7 @@ server {
     }
 
     location /mediaserver/api/downloadFile {
-        proxy_pass http://polaris-media:80/index/api/downloadFile;
+        proxy_pass http://polaris-media:${MediaHttp}/index/api/downloadFile;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -76,7 +76,7 @@ server {
     }
 
     location ^~ /rtp/ {
-        proxy_pass http://polaris-media:80;
+        proxy_pass http://polaris-media:${MediaHttp};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -90,7 +90,7 @@ server {
     }
 
     location ^~ /mp4_record/ {
-        proxy_pass http://polaris-media:80;
+        proxy_pass http://polaris-media:${MediaHttp};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -473,10 +473,13 @@ export default {
       this.mediaServerId = streamInfo.mediaServerId
       this.playFromStreamInfo(false, streamInfo)
     },
-    getUrlByStreamInfo() {
-      let streamInfo = this.streamInfo
-      if (this.streamInfo.transcodeStream) {
-        streamInfo = this.streamInfo.transcodeStream
+    getUrlByStreamInfo(streamInfo) {
+      streamInfo = streamInfo || this.streamInfo
+      if (!streamInfo) {
+        return ''
+      }
+      if (streamInfo.transcodeStream) {
+        streamInfo = streamInfo.transcodeStream
       }
       let videoUrl
       if (location.protocol === 'https:') {

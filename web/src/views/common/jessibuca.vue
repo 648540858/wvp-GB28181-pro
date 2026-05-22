@@ -54,10 +54,12 @@ export default {
     }
   },
   created() {
-    const paramUrl = decodeURIComponent(this.$route.params.url)
-    console.log(paramUrl)
-    if (!this.videoUrl && paramUrl) {
-      this.videoUrl = paramUrl
+    if (this.$route.params.url) {
+      const paramUrl = decodeURIComponent(this.$route.params.url)
+      console.log(paramUrl)
+      if (!this.videoUrl) {
+        this.videoUrl = paramUrl
+      }
     }
     this.btnDom = document.getElementById('buttonsBox')
   },
@@ -217,6 +219,10 @@ export default {
       this.play(this.videoUrl)
     },
     play: function(url) {
+      if (!url) {
+        console.warn('Jessibuca -> invalid url, skip play')
+        return
+      }
       this.videoUrl = url
       console.log('Jessibuca -> url: ', url)
       if (!jessibucaPlayer[this._uid]) {

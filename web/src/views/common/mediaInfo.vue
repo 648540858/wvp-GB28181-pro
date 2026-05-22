@@ -44,6 +44,9 @@ export default {
   },
   methods: {
     getMediaInfo: function() {
+      if (!this.app || !this.stream || !this.mediaServerId) {
+        return
+      }
       this.$store.dispatch('server/getMediaInfo', {
         app: this.app,
         stream: this.stream,
@@ -52,6 +55,7 @@ export default {
         .then(data => {
           this.info = data
         })
+        .catch(() => {})
     },
     startTask: function() {
       this.task = setInterval(this.getMediaInfo, 1000)

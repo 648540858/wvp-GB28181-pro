@@ -59,8 +59,8 @@ services:
     networks:
       - media-net
     ports:
-     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
-     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
+     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由 polaris-wvp 容器内 nginx 统一代理播流地址
+     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由 polaris-wvp 容器内 nginx 统一代理播流地址
       - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
       - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/udp"   # [收流]RTMP  
      #- "41935:41935/tcp"   # [收流]RTMPS 无效
@@ -88,6 +88,7 @@ services:
     networks:
       - media-net
     ports:
+      - "${WebHttp:-8080}:8080"
       - "18978:18978"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
@@ -99,6 +100,7 @@ services:
       - ./wvp/config:/opt/wvp/config
       - ./wvp/wvp/:/opt/ylcx/wvp/
       - ./logs/wvp:/opt/wvp/logs/
+      - ./logs/nginx:/var/log/nginx
     environment:
       TZ: "Asia/Shanghai"
       # docker env
@@ -113,7 +115,6 @@ services:
       ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
 
       MediaHttp: ${WebHttp:-8080}
-      #MediaHttps: ${WebHttps:-8081}
       MediaRtmp: ${MediaRtmp:-10935}
       MediaRtsp: ${MediaRtsp:-5540}
       MediaRtp: ${MediaRtp:-10000}
@@ -134,24 +135,6 @@ services:
 
       RecordSip: ${RecordSip}
       RecordPushLive: ${RecordPushLive}
-
-  polaris-nginx:
-    # 显式指定构建上下文和Dockerfile路径
-    build:
-      context: ..  # 构建上下文的根路径
-      dockerfile: ./docker/nginx/Dockerfile  # 相对于上下文路径的Dockerfile位置
-    ports:
-      - "${WebHttp:-8080}:8080"
-    depends_on:
-      - polaris-wvp
-    volumes:
-      - ./nginx/templates/:/etc/nginx/templates
-      - ./logs/nginx:/var/log/nginx
-    environment:
-      # 流链接的IP
-      Stream_IP: ${Stream_IP}
-    networks:
-      - media-net
       
 networks:
   media-net:

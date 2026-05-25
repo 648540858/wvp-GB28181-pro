@@ -41,7 +41,7 @@ ALTER table wvp_device_channel ADD COLUMN IF NOT EXISTS map_level integer defaul
 ALTER table wvp_common_group ADD COLUMN IF NOT EXISTS alias varchar(255) default null;
 ALTER table wvp_stream_proxy DROP COLUMN IF EXISTS enable_remove_none_reader;
 
-drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+DROP INDEX IF EXISTS uk_media_server_unique_ip_http_port;
 
 ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
 ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;
@@ -56,7 +56,7 @@ create table IF NOT EXISTS wvp_alarm (
     latitude double precision,
     alarm_type integer,
     alarm_time bigint
-)
+);
 COMMENT ON COLUMN wvp_alarm.id IS '主键ID';
 COMMENT ON COLUMN wvp_alarm.channel_id IS '关联通道的数据库id';
 COMMENT ON COLUMN wvp_alarm.description IS '报警描述';

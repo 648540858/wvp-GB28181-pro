@@ -107,7 +107,7 @@ create table IF NOT EXISTS wvp_mobile_position
 (
     id              serial primary key,
     channel_id      character varying(50) not null,
-    timestamp       int8 varying(50),
+    timestamp       int8,
     longitude       double precision,
     latitude        double precision,
     altitude        double precision,
@@ -115,16 +115,16 @@ create table IF NOT EXISTS wvp_mobile_position
     direction       double precision,
     create_time     character varying(50)
 );
-COMMENT ON TABLE wvp_device_mobile_position IS '存储移动位置订阅上报的数据';
-COMMENT ON COLUMN wvp_device_mobile_position.id IS '主键ID';
-COMMENT ON COLUMN wvp_device_mobile_position.channel_id IS '通道ID';
-COMMENT ON COLUMN wvp_device_mobile_position.timestamp IS '上报时间';
-COMMENT ON COLUMN wvp_device_mobile_position.longitude IS '经度';
-COMMENT ON COLUMN wvp_device_mobile_position.latitude IS '纬度';
-COMMENT ON COLUMN wvp_device_mobile_position.altitude IS '海拔';
-COMMENT ON COLUMN wvp_device_mobile_position.speed IS '速度';
-COMMENT ON COLUMN wvp_device_mobile_position.direction IS '方向角';
-COMMENT ON COLUMN wvp_device_mobile_position.create_time IS '入库时间';
+COMMENT ON TABLE wvp_mobile_position IS '存储移动位置订阅上报的数据';
+COMMENT ON COLUMN wvp_mobile_position.id IS '主键ID';
+COMMENT ON COLUMN wvp_mobile_position.channel_id IS '通道ID';
+COMMENT ON COLUMN wvp_mobile_position.timestamp IS '上报时间';
+COMMENT ON COLUMN wvp_mobile_position.longitude IS '经度';
+COMMENT ON COLUMN wvp_mobile_position.latitude IS '纬度';
+COMMENT ON COLUMN wvp_mobile_position.altitude IS '海拔';
+COMMENT ON COLUMN wvp_mobile_position.speed IS '速度';
+COMMENT ON COLUMN wvp_mobile_position.direction IS '方向角';
+COMMENT ON COLUMN wvp_mobile_position.create_time IS '入库时间';
 
 
 drop table IF EXISTS wvp_device_channel;

@@ -33,8 +33,7 @@
               <div v-if="!videoUrl[i-1]" class="no-signal">{{ videoTip[i-1]?videoTip[i-1]:"无信号" }}</div>
               <player
                 v-else
-                :ref="'player'[i-1]"
-                :video-url="videoUrl[i-1]"
+                :ref="'player' + i"
                 fluent
                 autoplay
                 :show-button="true"
@@ -220,6 +219,15 @@ export default {
       setTimeout(() => {
         window.localStorage.setItem('videoUrl', JSON.stringify(_this.videoUrl))
       }, 100)
+      this.$nextTick(() => {
+        const refName = 'player' + (idx + 1)
+        if (this.$refs[refName]) {
+          const player = this.$refs[refName] instanceof Array ? this.$refs[refName][0] : this.$refs[refName]
+          if (player && player.play) {
+            player.play(url)
+          }
+        }
+      })
     },
     checkPlayByParam() {
       const query = this.$route.query

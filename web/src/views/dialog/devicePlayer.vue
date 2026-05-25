@@ -41,7 +41,6 @@
               v-if="activePlayer === 'webRTC'"
               ref="webRTC"
               :visible.sync="showVideoDialog"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               height="100px"
@@ -55,7 +54,6 @@
             <h265web
               v-if="activePlayer === 'h265web'"
               ref="h265web"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
@@ -397,9 +395,12 @@ export default {
   },
   computed: {
     getPlayerShared: function() {
+      const typeMap = { jessibuca: 0, webRTC: 1, h265web: 2 }
+      const type = typeMap[this.activePlayer] || 0
+      const baseUrl = window.location.origin + '/#/play/share?type=' + type + '&url=' + encodeURIComponent(this.videoUrl)
       return {
-        sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
-        sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
+        sharedUrl: baseUrl,
+        sharedIframe: '<iframe src="' + baseUrl + '"></iframe>',
         sharedRtmp: this.videoUrl
       }
     }

@@ -71,7 +71,6 @@
           <rtcPlayer
             v-if="activePlayer === 'webRTC'"
             ref="recordVideoPlayer"
-            :video-url="videoUrl"
             :has-audio="true"
             :show-controls="false"
             style="height: calc(100vh - 220px)"
@@ -82,7 +81,6 @@
           <h265web
             v-if="activePlayer === 'h265web'"
             ref="recordVideoPlayer"
-            :video-url="videoUrl"
             :height="'calc(100vh - 220px)'"
             :show-button="false"
             :has-audio="true"

@@ -64,32 +64,14 @@ export default {
     }
   },
   watch: {
-    videoUrl(newData, oldData) {
-      this.play(newData)
-    },
     playing(newData, oldData) {
       this.$emit('playStatusChange', newData)
     },
     immediate: true
   },
-  mounted() {
-    const paramUrl = decodeURIComponent(this.$route.params.url)
-    window.onresize = () => {
-      this.updatePlayerDomSize()
-    }
-    this.btnDom = document.getElementById('buttonsBox')
-    console.log('初始化时的地址为: ' + paramUrl)
-    if (paramUrl) {
-      this.play(this.videoUrl)
-    }
-  },
+  mounted() {},
   destroyed() {
-    if (h265webPlayer[this._uid]) {
-      h265webPlayer[this._uid].destroy()
-    }
-    this.playing = false
-    this.loaded = false
-    this.playerLoading = false
+    this.destroy()
   },
   methods: {
     updatePlayerDomSize() {
@@ -243,6 +225,9 @@ export default {
       h265webPlayer[this._uid] = null
       this.playing = false
       this.err = ''
+    },
+    stop: function() {
+      this.destroy()
     },
     fullscreenSwich: function() {
       const isFull = this.isFullscreen()

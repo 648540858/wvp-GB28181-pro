@@ -87,8 +87,8 @@
         <el-table-column prop="stream" label="流ID" min-width="200" />
         <el-table-column label="推流状态" min-width="100">
           <template v-slot:default="scope">
-            <el-tag v-if="scope.row.pushing && $myServerId !== scope.row.serverId" size="medium" style="border-color: #ecf1af">推流中</el-tag>
-            <el-tag v-if="scope.row.pushing && $myServerId === scope.row.serverId" size="medium">推流中</el-tag>
+            <el-tag v-if="scope.row.pushing && myServerId !== scope.row.serverId" size="medium" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag v-if="scope.row.pushing && myServerId === scope.row.serverId" size="medium">推流中</el-tag>
             <el-tag v-if="!scope.row.pushing" size="medium" type="info">已停止</el-tag>
           </template>
         </el-table-column>
@@ -188,6 +188,11 @@ export default {
   },
   destroyed() {
     clearTimeout(this.updateLooper)
+  },
+  computed: {
+    myServerId() {
+      return this.$store.getters.serverId
+    }
   },
   methods: {
     initData: function() {

@@ -95,5 +95,4 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 			}
 		}
 	}
-
 }

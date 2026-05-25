@@ -1,19 +1,28 @@
 <template>
   <div id="cloudRecordPlayer" style="height: 100%">
     <div class="cloud-record-playBox" :style="playBoxStyle">
-      <h265web v-if="playerType === 'H265web'" ref="recordVideoPlayer" :video-url="videoUrl" :height="'calc(100% - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
       <jessibucaPlayer
         v-if="playerType === 'Jessibuca'"
         ref="recordVideoPlayer"
         :height="'calc(100% - 250px)'"
         :show-button="false"
-        :video-url="videoUrl"
         @playTimeChange="showPlayTimeChange"
         @playStatusChange="playingChange"
         fluent
         autoplay
         live
       />
+      <rtcPlayer
+        v-if="playerType === 'WebRTC'"
+        ref="recordVideoPlayer"
+        :has-audio="true"
+        :show-controls="false"
+        style="height: calc(100% - 250px)"
+        autoplay
+        @playTimeChange="showPlayTimeChange"
+        @playStatusChange="playingChange"
+      />
+      <h265web v-if="playerType === 'H265web'" ref="recordVideoPlayer" :height="'calc(100% - 250px)'" :show-button="false" @playTimeChange="showPlayTimeChange" @playStatusChange="playingChange"/>
     </div>
     <div class="cloud-record-player-option-box">
       <div class="cloud-record-show-time">
@@ -70,10 +79,11 @@
           <div class="cloud-record-record-play-control-item record-play-control-player">
 
             <el-dropdown @command="changePlayerType" :popper-append-to-body='false' >
-              <a target="_blank" class="cloud-record-record-play-control-item record-play-control-speed" title="选择播放器">{{ playerType }}</a>
+              <a target="_blank" class="cloud-record-record-play-control-item record-play-control-speed" title="选择播放器">{{ playerLabel }}</a>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="H265web" >H265web</el-dropdown-item>
                 <el-dropdown-item command="Jessibuca" >Jessibuca</el-dropdown-item>
+                <el-dropdown-item command="WebRTC" >WebRTC</el-dropdown-item>
+                <el-dropdown-item command="H265web" >H265web</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -88,18 +98,18 @@
 <script>
 
 import h265web from '../common/h265web.vue'
+import jessibucaPlayer from '@/views/common/jessibuca.vue'
+import rtcPlayer from '../common/rtcPlayer.vue'
 import moment from 'moment'
 import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
-import jessibucaPlayer from '@/views/common/jessibuca.vue'
 
 momentDurationFormatSetup(moment)
 
 export default {
   name: 'CloudRecordPlayer',
   components: {
-    jessibucaPlayer,
-    h265web
+    jessibucaPlayer, rtcPlayer, h265web
   },
   props: ['showListCallback', 'showNextCallback', 'showLastCallback', 'lastDiable', 'nextDiable'],
   data() {
@@ -119,6 +129,11 @@ export default {
       playing: false,
       initTime: null,
       playerType: 'Jessibuca',
+      playerUrls: {
+        Jessibuca: ['ws_flv', 'wss_flv'],
+        WebRTC: ['rtc', 'rtcs'],
+        H265web: ['ws_flv', 'wss_flv']
+      },
       playSpeedRange: [1, 2, 4, 6, 8, 16, 20]
     }
   },
@@ -157,6 +172,10 @@ export default {
       }else {
         return ''
       }
+    },
+    playerLabel() {
+      const labels = { Jessibuca: 'Jessibuca', WebRTC: 'WebRTC', H265web: 'H265Web' }
+      return labels[this.playerType] || 'Jessibuca'
     }
   },
   created() {
@@ -168,9 +187,6 @@ export default {
     this.$destroy('recordVideoPlayer')
   },
   methods: {
-    changePlayer(command) {
-      this.playerType = command
-    },
     timeProcessMouseup(event) {
       this.isMousedown = false
     },
@@ -228,21 +244,15 @@ export default {
       if (this.playerType === playerType) {
         return
       }
-      let streamInfo = this.streamInfo
-      let videoUrl = this.videoUrl
-      this.$refs.recordVideoPlayer.destroy()
-      this.seekRecord(0, () => {
+      this.playerType = playerType
+      if (this.streamInfo) {
+        this.videoUrl = this.getUrlByStreamInfo()
         this.$nextTick(() => {
-          setTimeout(() => {
-            this.playerType = playerType
-            this.playerTime = 0
-            this.streamInfo = streamInfo
-            this.videoUrl = videoUrl
-          }, 1000)
-
+          if (this.$refs.recordVideoPlayer) {
+            this.$refs.recordVideoPlayer.play(this.videoUrl)
+          }
         })
-      })
-
+      }
     },
     seekBackward() {
       // 快退五秒
@@ -290,15 +300,31 @@ export default {
       this.isFullScreen = true
     },
     setStreamInfo(streamInfo, timeLen, startTime) {
+      const keys = this.playerUrls[this.playerType]
       if (location.protocol === 'https:') {
-        this.videoUrl = streamInfo['wss_flv']
+        this.videoUrl = streamInfo[keys[1]]
       } else {
-        this.videoUrl = streamInfo['ws_flv']
+        this.videoUrl = streamInfo[keys[0]]
       }
       console.log(location.protocol)
       this.streamInfo = streamInfo
       this.timeLen = timeLen
       this.startTime = startTime
+      this.$nextTick(() => {
+        if (this.$refs.recordVideoPlayer) {
+          this.$refs.recordVideoPlayer.play(this.videoUrl)
+        }
+      })
+    },
+    getUrlByStreamInfo() {
+      if (!this.streamInfo) return ''
+      const keys = this.playerUrls[this.playerType]
+      if (location.protocol === 'https:') {
+        this.videoUrl = this.streamInfo[keys[1]]
+      } else {
+        this.videoUrl = this.streamInfo[keys[0]]
+      }
+      return this.videoUrl
     },
     seekRecord(playSeekValue, callback) {
       this.$store.dispatch('cloudRecord/seek', {

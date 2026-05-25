@@ -50,38 +50,14 @@ export default {
       playerTime: 0,
       rotate: 0,
       vod: true, // 点播
-      forceNoOffscreen: false
+      forceNoOffscreen: false,
+      localVideoUrl: this.videoUrl
     }
   },
   created() {
-    if (this.$route.params.url) {
-      const paramUrl = decodeURIComponent(this.$route.params.url)
-      console.log(paramUrl)
-      if (!this.videoUrl) {
-        this.videoUrl = paramUrl
-      }
-    }
     this.btnDom = document.getElementById('buttonsBox')
   },
-  mounted() {
-    if (this.videoUrl) {
-      this.$nextTick(() => {
-        this.play(this.videoUrl)
-      })
-    }
-  },
-  watch: {
-    videoUrl: {
-      handler(newVal) {
-        if (newVal) {
-          this.$nextTick(() => {
-            this.play(newVal)
-          })
-        }
-      },
-      immediate: false
-    }
-  },
+  mounted() {},
   destroyed() {
     if (jessibucaPlayer[this._uid]) {
       jessibucaPlayer[this._uid].videoPTS = 0
@@ -223,7 +199,10 @@ export default {
         console.warn('Jessibuca -> invalid url, skip play')
         return
       }
-      this.videoUrl = url
+      if (this.playing) {
+        this.stop()
+      }
+      this.localVideoUrl = url
       console.log('Jessibuca -> url: ', url)
       if (!jessibucaPlayer[this._uid]) {
         this.create()

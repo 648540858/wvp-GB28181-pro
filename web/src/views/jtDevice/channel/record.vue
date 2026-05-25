@@ -52,9 +52,29 @@
             <div class="el-icon-loading" />
             <div style="width: 100%; line-height: 2rem">正在加载</div>
           </div>
-          <h265web
+          <jessibucaPlayer
+            v-if="activePlayer === 'jessibuca'"
             ref="recordVideoPlayer"
-            :video-url="videoUrl"
+            :has-audio="true"
+            :height="'calc(100vh - 250px)'"
+            :show-button="false"
+            autoplay
+            @playStatusChange="playingChange"
+            @playTimeChange="showPlayTimeChange"
+          />
+          <rtcPlayer
+            v-if="activePlayer === 'webRTC'"
+            ref="recordVideoPlayer"
+            :has-audio="true"
+            :show-controls="false"
+            style="height: calc(100vh - 250px)"
+            autoplay
+            @playStatusChange="playingChange"
+            @playTimeChange="showPlayTimeChange"
+          />
+          <h265web
+            v-if="activePlayer === 'h265web'"
+            ref="recordVideoPlayer"
             :height="'calc(100vh - 250px)'"
             :show-button="false"
             :has-audio="true"
@@ -176,6 +196,18 @@
           </div>
           <div style="text-align: right;">
             <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+              <el-dropdown @command="changePlayer">
+                <a
+                  target="_blank"
+                  class="record-play-control-item record-play-control-speed"
+                  title="切换播放器"
+                >{{ playerLabel }}</a>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="jessibuca">Jessibuca</el-dropdown-item>
+                  <el-dropdown-item command="webRTC">WebRTC</el-dropdown-item>
+                  <el-dropdown-item command="h265web">H265Web</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
               <a
                 v-if="!isFullScreen"
                 target="_blank"
@@ -203,6 +235,8 @@
 <script>
 
 import h265web from '../../common/h265web.vue'
+import jessibucaPlayer from '../../common/jessibuca.vue'
+import rtcPlayer from '../../common/rtcPlayer.vue'
 import VideoTimeline from '../../common/VideoTimeLine/index.vue'
 import recordDownload from '../../dialog/recordDownload.vue'
 import ChooseTimeRange from '../../dialog/chooseTimeRange.vue'
@@ -212,7 +246,7 @@ import screenfull from 'screenfull'
 export default {
   name: 'DeviceRecord',
   components: {
-    h265web, VideoTimeline, recordDownload, ChooseTimeRange
+    h265web, jessibucaPlayer, rtcPlayer, VideoTimeline, recordDownload, ChooseTimeRange
   },
   data() {
     return {
@@ -225,6 +259,7 @@ export default {
       detailFiles: [],
       videoUrl: null,
       streamInfo: null,
+      streamId: '',
       loading: false,
       chooseDate: null,
       playTime: null,
@@ -246,6 +281,12 @@ export default {
       timelineControl: false,
       showOtherSpeed: true,
       timeSegments: [],
+      activePlayer: 'jessibuca',
+      playerUrls: {
+        jessibuca: ['ws_flv', 'wss_flv'],
+        webRTC: ['rtc', 'rtcs'],
+        h265web: ['ws_flv', 'wss_flv']
+      },
       pickerOptions: {
         cellClassName: (date) => {
           // 通过显示一个点标识这一天有录像
@@ -260,6 +301,10 @@ export default {
     }
   },
   computed: {
+    playerLabel() {
+      const labels = { jessibuca: 'Jessibuca', webRTC: 'WebRTC', h265web: 'H265Web' }
+      return labels[this.activePlayer] || 'Jessibuca'
+    },
     boxStyle() {
       if (this.showSidebar) {
         return {
@@ -293,6 +338,18 @@ export default {
     window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {
+    changePlayer(player) {
+      if (this.activePlayer === player) return
+      this.activePlayer = player
+      if (this.streamInfo) {
+        this.videoUrl = this.getUrlByStreamInfo()
+        this.$nextTick(() => {
+          if (this.$refs.recordVideoPlayer) {
+            this.$refs.recordVideoPlayer.play(this.videoUrl)
+          }
+        })
+      }
+    },
     sidebarControl() {
       this.showSidebar = !this.showSidebar
     },
@@ -438,16 +495,23 @@ export default {
         })
           .then((data) => {
             this.streamInfo = data
+            this.streamId = data.stream
             this.videoUrl = this.getUrlByStreamInfo()
             this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
+            this.$nextTick(() => {
+              if (this.$refs.recordVideoPlayer) {
+                this.$refs.recordVideoPlayer.play(this.videoUrl)
+              }
+            })
           })
       }
     },
     getUrlByStreamInfo() {
+      const keys = this.playerUrls[this.activePlayer]
       if (location.protocol === 'https:') {
-        this.videoUrl = this.streamInfo['wss_flv']
+        this.videoUrl = this.streamInfo[keys[1]]
       } else {
-        this.videoUrl = this.streamInfo['ws_flv']
+        this.videoUrl = this.streamInfo[keys[0]]
       }
       return this.videoUrl
     },

@@ -288,15 +288,10 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/play/wasm/:url',
-    name: 'wasmPlayer',
+    path: '/play/share',
+    name: 'sharePlayer',
     hidden: true,
-    component: () => import('@/views/common/jessibuca.vue')
-  },
-  {
-    path: '/play/rtc/:url',
-    name: 'rtcPlayer',
-    component: () => import('@/views/common/rtcPlayer.vue')
+    component: () => import('@/views/common/share.vue')
   },
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

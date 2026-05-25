@@ -60,7 +60,6 @@
           </div>
           <h265web
             ref="recordVideoPlayer"
-            :video-url="videoUrl"
             :height="'calc(100vh - 250px)'"
             :show-button="false"
             :has-audio="true"
@@ -465,6 +464,11 @@ export default {
             this.streamInfo = data
             this.videoUrl = this.getUrlByStreamInfo()
             this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
+            this.$nextTick(() => {
+              if (this.$refs.recordVideoPlayer) {
+                this.$refs.recordVideoPlayer.play(this.videoUrl)
+              }
+            })
           })
       }
     },

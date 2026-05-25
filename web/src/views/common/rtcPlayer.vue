@@ -12,7 +12,7 @@ export default {
   name: 'RtcPlayer',
   props: {
     videoUrl: { type: String, default: '' },
-    error: { type: String, default: '' },
+    error: { default: '' },
     hasaudio: { type: Boolean, default: false },
     showControls: { type: Boolean, default: true }
   },
@@ -21,28 +21,16 @@ export default {
       timer: null
     }
   },
-  watch: {
-    videoUrl(newData, oldData) {
-      this.pause()
-      this.play(newData)
-    },
-    immediate: true
-  },
-  mounted() {
-    const paramUrl = decodeURIComponent(this.$route.params.url)
-    this.$nextTick(() => {
-      if (typeof (this.videoUrl) === 'undefined') {
-        this.videoUrl = paramUrl
-      }
-      console.log('初始化时的地址为: ' + this.videoUrl)
-      this.play(this.videoUrl)
-    })
-  },
+
+  mounted() {},
   destroyed() {
     clearTimeout(this.timer)
   },
   methods: {
     play: function(url) {
+      if (webrtcPlayer != null) {
+        this.pause()
+      }
       webrtcPlayer = new ZLMRTCClient.Endpoint({
         element: document.getElementById('webRtcPlayerBox'), // video 标签
         debug: true, // 是否打印日志
@@ -86,6 +74,9 @@ export default {
         webrtcPlayer.close()
         webrtcPlayer = null
       }
+    },
+    stop: function() {
+      this.pause()
     },
     eventcallbacK: function(type, message) {
       console.log('player 事件回调')

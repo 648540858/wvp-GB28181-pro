@@ -7,21 +7,21 @@
                  v-if="Object.keys(this.player).length > 1">
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog"
-                             :videoUrl="videoUrl" :error="videoError" :message="videoError"
+                             :error="videoError" :message="videoError"
                              :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">
             <rtc-player v-if="activePlayer === 'webRTC'" ref="webRTC" :visible.sync="showVideoDialog"
-                        :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px"
+                        :error="videoError" :message="videoError" height="100px"
                         :hasAudio="hasAudio" fluent autoplay live></rtc-player>
           </el-tab-pane>
           <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
         </el-tabs>
         <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca"
-                         :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
+                         :visible.sync="showVideoDialog" :error="videoError" :message="videoError"
                          :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
         <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca"
-                    :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
+                    :visible.sync="showVideoDialog" :error="videoError" :message="videoError"
                     height="100px" :hasAudio="hasAudio" fluent autoplay live></rtc-player>
 
       </div>
@@ -266,9 +266,12 @@ export default {
   },
   computed: {
     getPlayerShared: function () {
+      const typeMap = { jessibuca: 0, webRTC: 1, h265web: 2 }
+      const type = typeMap[this.activePlayer] || 0
+      const baseUrl = window.location.origin + '/#/play/share?type=' + type + '&url=' + encodeURIComponent(this.videoUrl)
       return {
-        sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
-        sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
+        sharedUrl: baseUrl,
+        sharedIframe: '<iframe src="' + baseUrl + '"></iframe>',
         sharedRtmp: this.videoUrl
       };
     }
@@ -359,6 +362,13 @@ export default {
       this.activePlayer = tab.name;
       this.videoUrl = this.getUrlByStreamInfo()
       console.log(this.videoUrl)
+      if (this.$refs[this.activePlayer]) {
+        this.$refs[this.activePlayer].play(this.videoUrl)
+      } else {
+        this.$nextTick(() => {
+          this.$refs[this.activePlayer].play(this.videoUrl)
+        })
+      }
     },
     openDialog: function (tab, deviceId, channelId, param) {
       if (this.showVideoDialog) {

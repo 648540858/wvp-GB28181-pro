@@ -164,7 +164,6 @@
       <div v-else-if="playbackStreamInfo">
         <h265web
           ref="playbackPlayer"
-          :video-url="playbackVideoUrl"
           :height="'400px'"
           :show-button="false"
           :has-audio="true"
@@ -315,6 +314,11 @@ export default {
           this.playbackVideoUrl = data['ws_flv']
         }
         this.playbackLoading = false
+        this.$nextTick(() => {
+          if (this.$refs.playbackPlayer) {
+            this.$refs.playbackPlayer.play(this.playbackVideoUrl)
+          }
+        })
       }).catch(err => {
         this.playbackLoading = false
         this.playbackError = (err && err.msg) ? err.msg : '回放请求失败，请检查通道是否有该时段录像'

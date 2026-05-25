@@ -20,10 +20,10 @@
         >
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer
+              style="min-height: 22.5vw"
               v-if="activePlayer === 'jessibuca'"
               ref="jessibuca"
               :visible.sync="showVideoDialog"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
@@ -37,7 +37,6 @@
               v-if="activePlayer === 'webRTC'"
               ref="webRTC"
               :visible.sync="showVideoDialog"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               height="100px"
@@ -51,7 +50,6 @@
             <h265web
               v-if="activePlayer === 'h265web'"
               ref="h265web"
-              :video-url="videoUrl"
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
@@ -63,44 +61,6 @@
 
           </el-tab-pane>
         </el-tabs>
-        <jessibucaPlayer
-          v-if="Object.keys(this.player).length == 1 && this.player.jessibuca"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
-        <rtc-player
-          v-if="Object.keys(this.player).length == 1 && this.player.webRTC"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          height="100px"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
-        <h265web
-          v-if="Object.keys(this.player).length == 1 && this.player.h265web"
-          ref="jessibuca"
-          :visible.sync="showVideoDialog"
-          :video-url="videoUrl"
-          :error="videoError"
-          :message="videoError"
-          height="100px"
-          :has-audio="hasAudio"
-          fluent
-          autoplay
-          live
-        />
       </div>
       <div id="shared" style="text-align: right; margin-top: 1rem;">
 
@@ -354,6 +314,7 @@
 
 <script>
 import rtcPlayer from '../../common/rtcPlayer.vue'
+import elDragDialog from '@/directive/el-drag-dialog'
 import crypto from 'crypto'
 import jessibucaPlayer from '../../common/jessibuca.vue'
 import mediaInfo from '../../common/mediaInfo.vue'
@@ -361,6 +322,7 @@ import H265web from '../../common/h265web.vue'
 
 export default {
   name: 'DevicePlayer',
+  directives: { elDragDialog },
   components: {
     mediaInfo, H265web,
     jessibucaPlayer, rtcPlayer
@@ -414,9 +376,12 @@ export default {
   },
   computed: {
     getPlayerShared: function() {
+      const typeMap = { jessibuca: 0, webRTC: 1, h265web: 2 }
+      const type = typeMap[this.activePlayer] || 0
+      const baseUrl = window.location.origin + '/#/play/share?type=' + type + '&url=' + encodeURIComponent(this.videoUrl)
       return {
-        sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
-        sharedIframe: '' + window.location.origin + '<iframe src="/public#/play/wasm/"></iframe>' + encodeURIComponent(this.videoUrl) + '',
+        sharedUrl: baseUrl,
+        sharedIframe: '<iframe src="' + baseUrl + '"></iframe>',
         sharedRtmp: this.videoUrl
       }
     }
@@ -440,6 +405,13 @@ export default {
     changePlayer: function(tab) {
       this.activePlayer = tab.name
       this.videoUrl = this.getUrlByStreamInfo()
+      if (this.$refs[this.activePlayer]) {
+        this.$refs[this.activePlayer].play(this.videoUrl)
+      } else {
+        this.$nextTick(() => {
+          this.$refs[this.activePlayer].play(this.videoUrl)
+        })
+      }
     },
     openDialog: function(tab, deviceId, channelId, param) {
       if (this.showVideoDialog) {

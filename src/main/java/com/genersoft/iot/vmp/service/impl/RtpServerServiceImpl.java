@@ -384,7 +384,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             hookResultForOnPublish.setMp4_max_second(mp4MaxSecond + 10);
         }
 
-        String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId);
+        String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId.toUpperCase());
         // 存储认证信息，过期时间为60秒， 过期则无法通过认证
         redisTemplate.opsForValue().set(key, hookResultForOnPublish);
         redisTemplate.expire(key, 60, TimeUnit.SECONDS);
@@ -392,7 +392,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
      @Override
      public ResultForOnPublish getAuthenticateInfo(String streamId) {
-         String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId);
+         String key = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, streamId.toUpperCase());
          Object obj = redisTemplate.opsForValue().get(key);
          if (obj instanceof ResultForOnPublish) {
              return (ResultForOnPublish) obj;

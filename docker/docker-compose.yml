@@ -70,7 +70,7 @@ services:
       - "${MediaRtc:-8000}:${MediaRtc:-8000}/udp"      # [WebRTC]UDP
     volumes:
       - ./volumes/video:/opt/media/bin/www/record/
-      - ./logs/media:/opt/media/log/
+      - ./logs/media:/opt/media/bin/log/
       - ./media/config.ini:/conf/config.ini
       - ./media/entrypoint.sh:/entrypoint.sh
     environment:

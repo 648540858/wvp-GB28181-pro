@@ -26,11 +26,11 @@
 
     <el-form v-if="selectPresetVisible" size="mini" :inline="true">
       <el-form-item>
-        <el-select v-model="selectPreset" placeholder="请选择预置点">
+        <el-select v-model="selectPreset" value-key="presetId" placeholder="请选择预置点">
           <el-option
             v-for="item in allPresetList"
             :key="item.presetId"
-            :label="item.presetName"
+            :label="item.presetName ? item.presetName : item.presetId"
             :value="item"
           />
         </el-select>

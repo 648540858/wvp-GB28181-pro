@@ -93,7 +93,6 @@ services:
       - media-net
     ports:
       - "${WebHttp:-8080}:8080"
-      - "18978:18978"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
     depends_on:

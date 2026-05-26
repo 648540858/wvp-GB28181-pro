@@ -39,4 +39,6 @@ public interface IReceiveRtpServerService {
     void addAuthenticateInfo(String streamId, String streamReplace, Boolean enableAudio, Boolean enableMp4, Integer mp4MaxSecond);
 
     ResultForOnPublish getAuthenticateInfo(String streamId);
+
+    void refreshAuthenticateInfo(String oldStreamId, String newStreamId);
 }

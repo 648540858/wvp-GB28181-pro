@@ -45,6 +45,10 @@ server {
         sub_filter "http://$original_host:80/mp4_record" "mp4_record";
         sub_filter "https://$original_host/mp4_record" "mp4_record";
         sub_filter "https://$original_host:443/mp4_record" "mp4_record";
+        sub_filter "ws://$original_host/mp4_record" "mp4_record";
+        sub_filter "ws://$original_host:80/mp4_record" "mp4_record";
+        sub_filter "wss://$original_host/mp4_record" "mp4_record";
+        sub_filter "wss://$original_host:443/mp4_record" "mp4_record";
 
         sub_filter_once off;
         sub_filter_types application/json;

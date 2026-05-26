@@ -50,7 +50,10 @@
         </div>
       </div>
       <div id="playerBox" style="width: 100%;">
-        <div class="playBox" style="height: calc(100vh - 220px); width: 100%; background-color: #000000">
+        <div :class="{
+          'play-box': true,
+          'play-box-fullscreen': isFullScreen,
+        }">
           <div
             v-if="playLoading"
             style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;"
@@ -88,8 +91,13 @@
             @playTimeChange="showPlayTimeChange"
           />
         </div>
-        <div class="player-option-box">
+        <div :class="{
+          'player-option-box': true,
+          'player-option-box-bottom': isFullScreen
+        }">
+          <div v-if="showTime" class="time-line-show">{{ showTimeValue }}</div>
           <VideoTimeline
+            style="height: 55px"
             ref="Timeline"
             :init-time="initTime"
             :time-segments="timeSegments"
@@ -98,135 +106,134 @@
             @mousedown="timelineMouseDown"
             @mouseup="mouseupTimeline"
           />
-          <div v-if="showTime" class="time-line-show">{{ showTimeValue }}</div>
-        </div>
-        <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 400px 1fr">
-          <div style="text-align: left;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-list"
-                title="列表"
-                @click="sidebarControl()"
-              />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-camera1196054easyiconnet"
-                title="截图"
-                @click="snap()"
-              />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-xiazai1"
-                title="下载录像"
-                @click="chooseTimeForRecord()"
-              />
-              <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
-            </div>
-          </div>
-          <div style="text-align: center;">
-            <div class="record-play-control">
-              <a
-                v-if="chooseFileIndex > 0"
-                target="_blank"
-                class="record-play-control-item iconfont icon-diyigeshipin"
-                title="上一个"
-                @click="playLast()"
-              />
-              <a
-                v-else
-                style="color: #acacac; cursor: not-allowed"
-                target="_blank"
-                class="record-play-control-item iconfont icon-diyigeshipin"
-                title="上一个"
-              />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-kuaijin"
-                title="快退五秒"
-                @click="seekBackward()"
-              />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-stop1"
-                style="font-size: 14px"
-                title="停止"
-                @click="stopPLay()"
-              />
-              <a
-                v-if="playing"
-                target="_blank"
-                class="record-play-control-item iconfont icon-zanting"
-                title="暂停"
-                @click="pausePlay()"
-              />
-              <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-houtui"
-                title="快进五秒"
-                @click="seekForward()"
-              />
-              <a
-                v-if="chooseFileIndex < detailFiles.length - 1"
-                target="_blank"
-                class="record-play-control-item iconfont icon-zuihouyigeshipin"
-                title="下一个"
-                @click="playNext()"
-              />
-              <a
-                v-else
-                style="color: #acacac; cursor: not-allowed"
-                target="_blank"
-                class="record-play-control-item iconfont icon-zuihouyigeshipin"
-                title="下一个"
-                @click="playNext()"
-              />
-              <el-dropdown @command="changePlaySpeed">
+          <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 400px 1fr">
+            <div style="text-align: left;">
+              <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
                 <a
                   target="_blank"
-                  class="record-play-control-item record-play-control-speed"
-                  title="倍速播放"
-                >{{ playSpeed }}X</a>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item
-                    v-for="item in playSpeedRange"
-                    :key="item"
-                    :command="item"
-                  >{{ item }}X
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-              <el-dropdown @command="changePlayer">
+                  class="record-play-control-item iconfont icon-list"
+                  title="列表"
+                  @click="sidebarControl()"
+                />
                 <a
                   target="_blank"
-                  class="record-play-control-item record-play-control-speed"
-                  title="切换播放器"
-                >{{ playerLabel }}</a>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="jessibuca">Jessibuca</el-dropdown-item>
-                  <el-dropdown-item command="webRTC">WebRTC</el-dropdown-item>
-                  <el-dropdown-item command="h265web">H265Web</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-              <a
-                v-if="!isFullScreen"
-                target="_blank"
-                class="record-play-control-item iconfont icon-fangdazhanshi"
-                title="全屏"
-                @click="fullScreen()"
-              />
-              <a
-                v-else
-                target="_blank"
-                class="record-play-control-item iconfont icon-suoxiao1"
-                title="全屏"
-                @click="fullScreen()"
-              />
+                  class="record-play-control-item iconfont icon-camera1196054easyiconnet"
+                  title="截图"
+                  @click="snap()"
+                />
+                <a
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-xiazai1"
+                  title="下载录像"
+                  @click="chooseTimeForRecord()"
+                />
+                <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
+              </div>
+            </div>
+            <div style="text-align: center;">
+              <div class="record-play-control">
+                <a
+                  v-if="chooseFileIndex > 0"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-diyigeshipin"
+                  title="上一个"
+                  @click="playLast()"
+                />
+                <a
+                  v-else
+                  style="color: #acacac; cursor: not-allowed"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-diyigeshipin"
+                  title="上一个"
+                />
+                <a
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-kuaijin"
+                  title="快退五秒"
+                  @click="seekBackward()"
+                />
+                <a
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-stop1"
+                  style="font-size: 14px"
+                  title="停止"
+                  @click="stopPLay()"
+                />
+                <a
+                  v-if="playing"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-zanting"
+                  title="暂停"
+                  @click="pausePlay()"
+                />
+                <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
+                <a
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-houtui"
+                  title="快进五秒"
+                  @click="seekForward()"
+                />
+                <a
+                  v-if="chooseFileIndex < detailFiles.length - 1"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-zuihouyigeshipin"
+                  title="下一个"
+                  @click="playNext()"
+                />
+                <a
+                  v-else
+                  style="color: #acacac; cursor: not-allowed"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-zuihouyigeshipin"
+                  title="下一个"
+                  @click="playNext()"
+                />
+                <el-dropdown @command="changePlaySpeed" placement="top">
+                  <a
+                    target="_blank"
+                    class="record-play-control-item record-play-control-speed"
+                    title="倍速播放"
+                  >{{ playSpeed }}X</a>
+                  <el-dropdown-menu slot="dropdown" :append-to-body="false">
+                    <el-dropdown-item
+                      v-for="item in playSpeedRange"
+                      :key="item"
+                      :command="item"
+                    >{{ item }}X
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+                <el-dropdown @command="changePlayer" placement="top">
+                  <a
+                    target="_blank"
+                    class="record-play-control-item record-play-control-speed"
+                    title="切换播放器"
+                  >{{ playerLabel }}</a>
+                  <el-dropdown-menu slot="dropdown" :append-to-body="false">
+                    <el-dropdown-item command="jessibuca">Jessibuca</el-dropdown-item>
+                    <el-dropdown-item command="webRTC">WebRTC</el-dropdown-item>
+                    <el-dropdown-item command="h265web">H265Web</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <a
+                  v-if="!isFullScreen"
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-fangdazhanshi"
+                  title="全屏"
+                  @click="fullScreen()"
+                />
+                <a
+                  v-else
+                  target="_blank"
+                  class="record-play-control-item iconfont icon-suoxiao1"
+                  title="全屏"
+                  @click="fullScreen()"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -444,8 +451,10 @@ export default {
       const playerHeight = this.$refs.recordVideoPlayer.playerHeight
       screenfull.request(document.getElementById('playerBox'))
       screenfull.on('change', (event) => {
-        this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
         this.isFullScreen = screenfull.isFullscreen
+        if (this.$refs.recordVideoPlayer && this.$refs.recordVideoPlayer.resize) {
+          this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
+        }
       })
       this.isFullScreen = true
     },
@@ -674,14 +683,31 @@ export default {
 }
 
 .player-option-box {
-  height: 50px
+  height: 95px;
+}
+
+.player-option-box-bottom {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
 }
 
 .time-line-show {
   position: relative;
   color: rgba(250, 249, 249, 0.89);
-  left: calc(50% - 85px);
-  top: -72px;
+  top: -24px;
+  height: 0;
+  width: stretch;
+  float: left;
+  text-align: center;
   text-shadow: 1px 0 #5f6b7c, -1px 0 #5f6b7c, 0 1px #5f6b7c, 0 -1px #5f6b7c, 1.1px 1.1px #5f6b7c, 1.1px -1.1px #5f6b7c, -1.1px 1.1px #5f6b7c, -1.1px -1.1px #5f6b7c;
+}
+.play-box {
+  width: 100%; aspect-ratio: 16 / 9;
+  background-color: #000000;
+  height: calc(100vh - 220px);
+}
+.play-box-fullscreen {
+  height: 100vh !important;
 }
 </style>

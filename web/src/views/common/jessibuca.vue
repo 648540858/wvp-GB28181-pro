@@ -273,6 +273,11 @@ export default {
     },
     setPlaybackRate: function() {
 
+    },
+    resize(width, height) {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].resize()
+      }
     }
   }
 }

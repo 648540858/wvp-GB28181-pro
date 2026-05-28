@@ -50,7 +50,7 @@ public class SSRCFactory {
     public void init() {
         String sipDomain = sipConfig.getDomain();
         domainPart = sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
-        scheduler.scheduleAtFixedRate(this::rebuild, 10, 30, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::rebuild, 5, 5, TimeUnit.SECONDS);
     }
 
     public String getPlaySsrc(String mediaServerId) {
@@ -127,10 +127,9 @@ public class SSRCFactory {
                 usedMap.put(server.getId(), bits);
                 if (count > 8000) {
                     log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
-                    }
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
                 }
             }
         }

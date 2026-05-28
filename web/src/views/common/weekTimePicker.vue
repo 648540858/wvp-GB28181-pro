@@ -148,10 +148,17 @@ export default {
     }
   },
   watch: {
-    planArray: function(array) {
-      for (let i = 0; i < array.length; i++) {
-        this.weekData[i].data = array[i].data
-      }
+    planArray: {
+      handler(array) {
+        if (!array || !array.length) {
+          return
+        }
+        for (let i = 0; i < array.length; i++) {
+          this.weekData[i].data = array[i].data
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   created() {

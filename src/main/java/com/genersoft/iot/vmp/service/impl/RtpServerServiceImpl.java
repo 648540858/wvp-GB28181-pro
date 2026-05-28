@@ -406,4 +406,22 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
          }
          return null;
      }
+
+     @Override
+     public void refreshAuthenticateInfo(String oldStreamId, String newStreamId) {
+         if (oldStreamId == null || newStreamId == null || oldStreamId.equals(newStreamId)) {
+             return;
+         }
+         String oldKey = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, oldStreamId);
+         Object obj = redisTemplate.opsForValue().get(oldKey);
+         if (obj instanceof ResultForOnPublish) {
+             String newKey = String.format("%s:%s", VideoManagerConstants.RTP_AUTHENTICATE, newStreamId);
+             redisTemplate.opsForValue().set(newKey, obj);
+             redisTemplate.expire(newKey, 60, TimeUnit.SECONDS);
+             redisTemplate.delete(oldKey);
+             log.info("[刷新RTP鉴权信息] {} -> {}", oldStreamId, newStreamId);
+         } else {
+             log.warn("[刷新RTP鉴权信息] 未找到旧key: {}", oldKey);
+         }
+     }
 }

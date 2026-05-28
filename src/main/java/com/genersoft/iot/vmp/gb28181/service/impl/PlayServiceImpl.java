@@ -859,6 +859,9 @@ public class PlayServiceImpl implements IPlayService {
             }
         }else {
             log.info("[Invite 200OK] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
+            String oldStreamId = String.format("%08x", Long.parseLong(ssrcInfo.getSsrc())).toUpperCase();
+            String newStreamId = String.format("%08x", Long.parseLong(ssrcInResponse)).toUpperCase();
+            receiveRtpServerService.refreshAuthenticateInfo(oldStreamId, newStreamId);
             // ssrc 不一致
             if (mediaServerItem.isRtpEnable()) {
                 // 多端口

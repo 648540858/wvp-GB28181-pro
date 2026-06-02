@@ -234,11 +234,27 @@ public class PlayServiceImpl implements IPlayService {
             }
         }else if (MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             // 释放ssrc
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
+             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok
                     && inviteInfo.getStreamInfo() != null && inviteInfo.getSsrcInfo() != null) {
-                // 发送bye
-                stop(inviteInfo);
+                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                    log.info("[流离开] 下载会话延迟停止，等待on_record_mp4处理完成, stream={}", event.getStream());
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(5000);
+                            InviteInfo inviteInfoDelay = inviteStreamService.getInviteInfoByStream(null, event.getStream());
+                            if (inviteInfoDelay != null && inviteInfoDelay.getType() == InviteSessionType.DOWNLOAD
+                                    && inviteInfoDelay.getStatus() == InviteSessionStatus.ok) {
+                                stop(inviteInfoDelay);
+                                log.info("[流离开] 下载会话延迟停止完成, stream={}", event.getStream());
+                            }
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
+                } else {
+                    stop(inviteInfo);
+                }
             }
 
         }

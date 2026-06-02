@@ -95,43 +95,52 @@ public class SSRCFactory {
     }
 
     void rebuild() {
-        List<MediaServer> servers = mediaServerService.getAll();
-        for (MediaServer server : servers) {
-            if (server.isRtpEnable() && userSetting.getSsrcRandom()) {
-                continue;
-            }
-            synchronized (lockMap.computeIfAbsent(server.getId(), k -> new Object())) {
-                BitSet bits = new BitSet(10000);
-                int count = 0;
+        try {
+            List<MediaServer> servers = mediaServerService.getAll();
+            for (MediaServer server : servers) {
                 try {
-                    ZLMResult<?> result = zlmresTfulUtils.getMediaList(server, null, null, "rtsp", null);
-                    if (result != null && result.getCode() == 0 && result.getData() != null) {
-                        List<JSONObject> list = (List<JSONObject>) result.getData();
-                        for (JSONObject obj : list) {
-                            if (obj.getIntValue("originType") != 3) continue;
-                            String originUrl = obj.getString("originUrl");
-                            if (originUrl == null) continue;
-                            int idx = originUrl.lastIndexOf("/rtp/");
-                            if (idx == -1) continue;
-                            try {
-                                int suffix = (int) (Long.parseLong(originUrl.substring(idx + 5), 16) % 10000);
-                                bits.set(suffix);
-                                count++;
-                            } catch (NumberFormatException ignored) {
-                            }
-                        }
+                    if (server.isRtpEnable() && userSetting.getSsrcRandom()) {
+                        continue;
                     }
-                } catch (Exception e) {
-                    log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
-                }
-                usedMap.put(server.getId(), bits);
-                if (count > 8000) {
-                    log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+                    synchronized (lockMap.computeIfAbsent(server.getId(), k -> new Object())) {
+                        BitSet bits = new BitSet(10000);
+                        int count = 0;
+                        try {
+                            ZLMResult<?> result = zlmresTfulUtils.getMediaList(server, null, null, "rtsp", null);
+                            if (result != null && result.getCode() == 0 && result.getData() != null) {
+                                List<JSONObject> list = (List<JSONObject>) result.getData();
+                                for (JSONObject obj : list) {
+                                    if (obj.getIntValue("originType") != 3) continue;
+                                    String originUrl = obj.getString("originUrl");
+                                    if (originUrl == null) continue;
+                                    int idx = originUrl.lastIndexOf("/rtp/");
+                                    if (idx == -1) continue;
+                                    try {
+                                        int suffix = (int) (Long.parseLong(originUrl.substring(idx + 5), 16) % 10000);
+                                        bits.set(suffix);
+                                        count++;
+                                    } catch (NumberFormatException ignored) {
+                                    }
+                                }
+                                usedMap.put(server.getId(), bits);
+                                if (count > 8000) {
+                                    log.info("[SSRC重建] 媒体节点 {} 的SSRC使用率已超过80%，请注意扩展服务提升性能", server.getId());
+                                }
+                                if (log.isDebugEnabled()) {
+                                    log.debug("[SSRC重建] 节点 {} 已占用 {} 个SSRC", server.getId(), count);
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("[SSRC重建] 查询媒体节点 {} 失败: {}", server.getId(), e.getMessage());
+                        }
+
+                    }
+                }catch (Exception e) {
+                    log.warn("[SSRC重建] 处理媒体节点 {} 失败: {}", server.getId(), e.getMessage());
                 }
             }
+        }catch (Exception e) {
+            log.error("[SSRC] 重建SSRC失败", e);
         }
     }
 }

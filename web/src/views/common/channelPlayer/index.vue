@@ -20,12 +20,14 @@
         >
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer
+              style="height: 22.5vw"
               v-if="activePlayer === 'jessibuca'"
               ref="jessibuca"
               :visible.sync="showVideoDialog"
               :error="videoError"
               :message="videoError"
               :has-audio="hasAudio"
+              :show-button="true"
               fluent
               autoplay
               live
@@ -61,12 +63,14 @@
           </el-tab-pane>
         </el-tabs>
         <jessibucaPlayer
+          style="height: 22.5vw"
           v-if="Object.keys(this.player).length == 1 && this.player.jessibuca"
           ref="jessibuca"
           :visible.sync="showVideoDialog"
           :error="videoError"
           :message="videoError"
           :has-audio="hasAudio"
+          :show-button="true"
           fluent
           autoplay
           live
@@ -455,6 +459,11 @@ export default {
       this.activePlayer = tab.name
       this.videoUrl = this.getUrlByStreamInfo()
       console.log(this.videoUrl)
+      this.$nextTick(() => {
+        if (this.$refs[this.activePlayer]) {
+          this.$refs[this.activePlayer].play(this.videoUrl)
+        }
+      })
     },
     openDialog: function(tab, channelId, param) {
       if (this.showVideoDialog) {
@@ -493,32 +502,34 @@ export default {
       this.streamId = streamInfo.stream
       this.app = streamInfo.app
       this.mediaServerId = streamInfo.mediaServerId
-      this.playFromStreamInfo(false, streamInfo)
+      this.playFromStreamInfo(hasAudio, streamInfo)
     },
-    getUrlByStreamInfo() {
+    getUrlByStreamInfo(streamInfo) {
       console.log(this.streamInfo)
-      let streamInfo = this.streamInfo
-      if (this.streamInfo.transcodeStream) {
-        streamInfo = this.streamInfo.transcodeStream
+      let info = streamInfo || this.streamInfo
+      if (!info) {
+        return ''
       }
+      if (info.transcodeStream) {
+        info = info.transcodeStream
+      }
+      let videoUrl
       if (location.protocol === 'https:') {
-        this.videoUrl = streamInfo[this.player[this.activePlayer][1]]
+        videoUrl = info[this.player[this.activePlayer][1]]
       } else {
-        this.videoUrl = streamInfo[this.player[this.activePlayer][0]]
+        videoUrl = info[this.player[this.activePlayer][0]]
       }
-      return this.videoUrl
+      return videoUrl
     },
 
     playFromStreamInfo: function(realHasAudio, streamInfo) {
       this.showVideoDialog = true
-      this.hasaudio = realHasAudio && this.hasaudio
-      if (this.$refs[this.activePlayer]) {
-        this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
-      } else {
-        this.$nextTick(() => {
+      this.hasAudio = realHasAudio !== undefined ? realHasAudio : this.hasAudio
+      this.$nextTick(() => {
+        if (this.$refs[this.activePlayer]) {
           this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
-        })
-      }
+        }
+      })
     },
     close: function() {
       console.log('关闭视频')

@@ -196,6 +196,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             sdpIp = platform.getSendStreamIp();
                         }
                         String content = createSendSdp(sendRtpItem, finalInviteInfo, sdpIp);
+
+                        // tcp主动模式，回复sdp后开启监听
+                        if (sendRtpItem.isTcpActive()) {
+                            MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                            try {
+                                mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 10000);
+                                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
+                                if (deviceChannel != null) {
+                                    redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, platform);
+                                }
+                            } catch (ControllerException e) {
+                                log.warn("[上级INVITE] tcp主动模式 发流失败", e);
+                                sendBye(platform, finalInviteInfo.getCallId());
+                            }
+                        }
+
                         // 超时未收到Ack应该回复bye,当前等待时间为10秒
                         dynamicTask.startDelay(finalInviteInfo.getCallId(), () -> {
                             log.info("[Ack ] 等待超时, {}/{}", finalInviteInfo.getCallId(), channel.getGbDeviceId());
@@ -208,20 +224,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             log.error("[命令发送失败] 上级INVITE 发送 200（SDP）: {}", e.getMessage());
                         }
 
-                        // tcp主动模式，回复sdp后开启监听
-                        if (sendRtpItem.isTcpActive()) {
-                            MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                            try {
-                                mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 5);
-                                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
-                                if (deviceChannel != null) {
-                                    redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, platform);
-                                }
-                            } catch (ControllerException e) {
-                                log.warn("[上级INVITE] tcp主动模式 发流失败", e);
-                                sendBye(platform, finalInviteInfo.getCallId());
-                            }
-                        }
+
                     }
                 }));
             }

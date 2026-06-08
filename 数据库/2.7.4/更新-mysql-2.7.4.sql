@@ -202,23 +202,27 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE `wvp_20260521`()
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS
+    IF NOT EXISTS (SELECT 1
+                   FROM information_schema.STATISTICS
                    WHERE TABLE_SCHEMA = (SELECT DATABASE())
                      AND TABLE_NAME = 'wvp_device_channel'
                      AND INDEX_NAME = 'uk_device_channel_source')
     THEN
-        -- 先清理可能的重复数据
-        DELETE t1 FROM wvp_device_channel t1
-        INNER JOIN wvp_device_channel t2
-        WHERE t1.id < t2.id
-          AND t1.data_device_id = t2.data_device_id
-          AND t1.device_id = t2.device_id;
-ALTER TABLE wvp_device_channel ADD UNIQUE INDEX uk_device_channel_source (data_device_id, device_id);
+        -- 用 GROUP BY + LEFT JOIN 替代自连接 DELETE
+        DELETE t1
+        FROM wvp_device_channel t1
+                 LEFT JOIN (SELECT MAX(id) as id
+                            FROM wvp_device_channel
+                            GROUP BY data_device_id, device_id) t2 ON t1.id = t2.id
+        WHERE t2.id IS NULL;
+
+ALTER TABLE wvp_device_channel
+    ADD UNIQUE INDEX uk_device_channel_source (data_device_id, device_id);
 END IF;
 END; //
+DELIMITER ;
 call wvp_20260521();
 DROP PROCEDURE wvp_20260521;
-DELIMITER ;
 
 
 

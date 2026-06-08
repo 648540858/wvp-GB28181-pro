@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * SIP命令类型： NOTIFY请求中的目录请求处理
@@ -294,10 +293,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		}
 
 		for (Map.Entry<String, List<NotifyCatalogChannel>> entry : grouped.entrySet()) {
-			ReentrantLock lock = catalogDataManager.getDeviceWriteLock(entry.getKey());
-			lock.lock();
-			try {
-				for (NotifyCatalogChannel notifyCatalogChannel : entry.getValue()) {
+			if (catalogDataManager.isSyncing(entry.getKey())) {
+				log.info("[NOTIFY] 设备 {} 正在同步中，跳过本次订阅通知", entry.getKey());
+				continue;
+			}
+			for (NotifyCatalogChannel notifyCatalogChannel : entry.getValue()) {
 					try {
 						switch (notifyCatalogChannel.getType()) {
 							case STATUS_CHANGED:
@@ -330,9 +330,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						log.error("[存储收到的通道-异常]类型：{}，编号：{}", notifyCatalogChannel.getType(),
 								notifyCatalogChannel.getChannel().getDeviceId(), e);
 					}
-				}
-			} finally {
-				lock.unlock();
 			}
 		}
 	}

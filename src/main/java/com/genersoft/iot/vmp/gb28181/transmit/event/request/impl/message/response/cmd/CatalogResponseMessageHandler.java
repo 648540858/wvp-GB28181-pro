@@ -3,12 +3,16 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IGroupService;
+import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.utils.Coordtransform;
 import gov.nist.javax.sip.message.SIPRequest;
+
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -43,6 +47,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private CatalogDataManager catalogDataCatch;
+
+    @Autowired
+    private IRegionService regionService;
+
+    @Autowired
+    private IGroupService groupService;
 
     @Autowired
     private SipConfig sipConfig;
@@ -144,7 +154,34 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                     if (catalogDataCatch.size(device.getDeviceId(), sn) > 0
                             && catalogDataCatch.size(device.getDeviceId(), sn) == catalogDataCatch.sumNum(device.getDeviceId(), sn)) {
-                        catalogDataCatch.setComplete(device.getDeviceId(), sn);
+                        ReentrantLock lock = catalogDataCatch.getDeviceWriteLock(device.getDeviceId());
+                        if (!lock.tryLock()) {
+                            log.info("[同步通道] 设备 {} 正在入库中，跳过重复写入", device.getDeviceId());
+                            return;
+                        }
+                        try {
+                            if (catalogDataCatch.isEnd(device.getDeviceId(), sn)) {
+                                return;
+                            }
+                            List<DeviceChannel> channels = catalogDataCatch.getDeviceChannelList(device.getDeviceId(), sn);
+                            if (!channels.isEmpty()) {
+                                deviceChannelService.resetChannels(device.getId(), channels);
+                            }
+                            List<Region> regions = catalogDataCatch.getRegionList(device.getDeviceId(), sn);
+                            if (regions != null && !regions.isEmpty()) {
+                                regionService.batchAdd(regions);
+                            }
+                            List<Group> groups = catalogDataCatch.getGroupList(device.getDeviceId(), sn);
+                            if (groups != null && !groups.isEmpty()) {
+                                groupService.batchAdd(groups);
+                            }
+                            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), sn, null);
+                        } catch (Exception e) {
+                            log.warn("[同步通道] 直接入库失败，交由定时器兜底", e);
+                            catalogDataCatch.setComplete(device.getDeviceId(), sn);
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
             }

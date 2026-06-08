@@ -551,7 +551,7 @@ public interface PlatformChannelMapper {
 
     @Select("<script>" +
             " select " +
-            "    wpgc.platform_id as platform_id" +
+            "    wpgc.platform_id as platform_id,\n" +
             "    wdc.id as gb_id,\n" +
             "    wdc.data_type,\n" +
             "    wdc.data_device_id,\n" +

@@ -40,6 +40,8 @@ public class CatalogDataManager{
 
     private final Map<String, CatalogData> dataMap = new ConcurrentHashMap<>();
 
+    private final Set<String> syncingDevices = ConcurrentHashMap.newKeySet();
+
     private final Map<String, ReentrantLock> deviceWriteLocks = new ConcurrentHashMap<>();
 
     public ReentrantLock getDeviceWriteLock(String deviceId) {
@@ -73,6 +75,7 @@ public class CatalogDataManager{
         catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
         catalogData.setTime(Instant.now());
         dataMap.put(buildMapKey(device.getDeviceId(),sn), catalogData);
+        syncingDevices.add(device.getDeviceId());
     }
 
     private void deleteRedisKeys(CatalogData catalogData) {
@@ -253,6 +256,7 @@ public class CatalogDataManager{
                     String errorMsg = "同步失败，等待回复超时";
                     catalogData.setErrorMsg(errorMsg);
                     catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+                    syncingDevices.remove(catalogData.getDevice().getDeviceId());
                 }
             }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                 boolean complete = catalogData.isComplete();
@@ -285,6 +289,7 @@ public class CatalogDataManager{
                         lock.unlock();
                     }
                     catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+                    syncingDevices.remove(deviceId);
                 }
             }else {
                 if (catalogData.getTime().isBefore(instantBefore30S)) {
@@ -294,6 +299,7 @@ public class CatalogDataManager{
                     if (deviceWriteLocks.containsKey(deviceId)) {
                         deviceWriteLocks.remove(deviceId);
                     }
+                    syncingDevices.remove(deviceId);
                     deleteRedisKeys(catalogData);
                 }
             }
@@ -317,6 +323,16 @@ public class CatalogDataManager{
         catalogData.setStatus(CatalogData.CatalogDataStatus.end);
         catalogData.setErrorMsg(errorMsg);
         catalogData.setTime(Instant.now());
+        syncingDevices.remove(deviceId);
+    }
+
+    public boolean isSyncing(String deviceId) {
+        return syncingDevices.contains(deviceId);
+    }
+
+    public boolean isEnd(String deviceId, int sn) {
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId, sn));
+        return catalogData != null && catalogData.getStatus() == CatalogData.CatalogDataStatus.end;
     }
 
     public int size(String deviceId, int sn) {

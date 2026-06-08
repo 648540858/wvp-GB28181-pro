@@ -174,8 +174,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
                         if (userSetting.getUseCustomSsrcForParentInvite()) {
                             // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                            finalInviteInfo.setSsrc(sendSsrcFactory.getSendSsrc(
-                                    "Play".equalsIgnoreCase(finalInviteInfo.getSessionName()) ? "0" : "1"));
+                            String sendSsrc = sendSsrcFactory.getSendSsrc(
+                                    "Play".equalsIgnoreCase(finalInviteInfo.getSessionName()) ? "0" : "1");
+                            finalInviteInfo.setSsrc(sendSsrc);
                         }
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),

@@ -404,12 +404,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             allChannelMap.remove(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
             upsertChannels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
-                if (subContMap.get(deviceChannel.getParentId()) == null) {
-                    subContMap.put(deviceChannel.getParentId(), 1);
-                } else {
-                    Integer count = subContMap.get(deviceChannel.getParentId());
-                    subContMap.put(deviceChannel.getParentId(), count++);
-                }
+                subContMap.merge(deviceChannel.getParentId(), 1, Integer::sum);
             }
         }
         deleteChannels.addAll(allChannelMap.values());

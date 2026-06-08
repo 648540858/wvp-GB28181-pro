@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -56,34 +57,43 @@ public class CatalogDataManager{
     }
 
     public void addReady(Device device, int sn ) {
-        CatalogData catalogData = dataMap.get(buildMapKey(device.getDeviceId(),sn));
-        if (catalogData != null) {
-            Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
-            if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
-                for (String deleteKey : redisKeysForChannel) {
-                    redisTemplate.opsForHash().delete(key, deleteKey);
-                }
+        // 清除该设备的所有旧条目
+        Iterator<Map.Entry<String, CatalogData>> it = dataMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, CatalogData> entry = it.next();
+            CatalogData old = entry.getValue();
+            if (old != null && device.getDeviceId().equals(old.getDevice().getDeviceId())) {
+                deleteRedisKeys(old);
+                it.remove();
             }
-            Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
-            if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
-                for (String deleteKey : redisKeysForRegion) {
-                    redisTemplate.opsForHash().delete(key, deleteKey);
-                }
-            }
-            Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
-            if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
-                for (String deleteKey : redisKeysForGroup) {
-                    redisTemplate.opsForHash().delete(key, deleteKey);
-                }
-            }
-            dataMap.remove(buildMapKey(device.getDeviceId(),sn));
         }
-        catalogData = new CatalogData();
+        CatalogData catalogData = new CatalogData();
         catalogData.setDevice(device);
         catalogData.setSn(sn);
         catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
         catalogData.setTime(Instant.now());
         dataMap.put(buildMapKey(device.getDeviceId(),sn), catalogData);
+    }
+
+    private void deleteRedisKeys(CatalogData catalogData) {
+        Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
+        if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
+            for (String deleteKey : redisKeysForChannel) {
+                redisTemplate.opsForHash().delete(key, deleteKey);
+            }
+        }
+        Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
+        if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
+            for (String deleteKey : redisKeysForRegion) {
+                redisTemplate.opsForHash().delete(key, deleteKey);
+            }
+        }
+        Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
+        if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
+            for (String deleteKey : redisKeysForGroup) {
+                redisTemplate.opsForHash().delete(key, deleteKey);
+            }
+        }
     }
 
     public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList,
@@ -188,10 +198,6 @@ public class CatalogDataManager{
                 }else {
                     syncStatus.setSyncIng(true);
                 }
-                if (catalogData.getErrorMsg() != null) {
-                    // 失败的同步信息,返回一次后直接移除
-                    dataMap.remove(key);
-                }
                 return syncStatus;
             }
         }
@@ -249,20 +255,19 @@ public class CatalogDataManager{
                     catalogData.setStatus(CatalogData.CatalogDataStatus.end);
                 }
             }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
-                if ( catalogData.getTime().isBefore(instantBefore5S)) {
+                boolean complete = catalogData.isComplete();
+                boolean timeout = catalogData.getTime().isBefore(instantBefore5S);
+                if (complete || timeout) {
                     String deviceId = catalogData.getDevice().getDeviceId();
                     ReentrantLock lock = getDeviceWriteLock(deviceId);
                     if (!lock.tryLock()) {
-                        // saveData() 正在执行，跳过本次，等下一个5s周期
                         continue;
                     }
                     try {
                         int sn = catalogData.getSn();
                         List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
-                        if (catalogData.getTotal() == deviceChannelList.size()) {
+                        if (!deviceChannelList.isEmpty()) {
                             deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
-                        } else {
-                            deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
                         }
                         List<Region> regionList = getRegionList(deviceId, sn);
                         if ( regionList!= null && !regionList.isEmpty()) {
@@ -272,10 +277,10 @@ public class CatalogDataManager{
                         if (groupList != null && !groupList.isEmpty()) {
                             groupService.batchAdd(groupList);
                         }
-                        String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
-                        catalogData.setErrorMsg(errorMsg);
+                        catalogData.setErrorMsg(null);
                     } catch (Exception e) {
                         log.error("[国标通道同步] 入库失败： ", e);
+                        catalogData.setErrorMsg("入库失败: " + e.getMessage());
                     } finally {
                         lock.unlock();
                     }
@@ -289,29 +294,20 @@ public class CatalogDataManager{
                     if (deviceWriteLocks.containsKey(deviceId)) {
                         deviceWriteLocks.remove(deviceId);
                     }
-                    Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
-                    if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
-                        for (String deleteKey : redisKeysForChannel) {
-                            redisTemplate.opsForHash().delete(key, deleteKey);
-                        }
-                    }
-                    Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
-                    if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
-                        for (String deleteKey : redisKeysForRegion) {
-                            redisTemplate.opsForHash().delete(key, deleteKey);
-                        }
-                    }
-                    Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
-                    if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
-                        for (String deleteKey : redisKeysForGroup) {
-                            redisTemplate.opsForHash().delete(key, deleteKey);
-                        }
-                    }
+                    deleteRedisKeys(catalogData);
                 }
             }
         }
     }
 
+
+    public void setComplete(String deviceId, int sn) {
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
+        if (catalogData == null) {
+            return;
+        }
+        catalogData.setComplete(true);
+    }
 
     public void setChannelSyncEnd(String deviceId, int sn, String errorMsg) {
         CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
@@ -328,7 +324,7 @@ public class CatalogDataManager{
         if (catalogData == null) {
             return 0;
         }
-        return catalogData.getRedisKeysForChannel().size() + catalogData.getErrorChannel().size();
+        return catalogData.getRedisKeysForChannel().size();
     }
 
     public int sumNum(String deviceId, int sn) {

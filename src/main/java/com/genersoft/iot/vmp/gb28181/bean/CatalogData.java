@@ -19,8 +19,8 @@ public class CatalogData {
     private Instant time;
     private Device device;
     private String errorMsg;
+    private boolean complete;
     private Set<String> redisKeysForChannel = new HashSet<>();
-    private Set<String> errorChannel = new HashSet<>();
     private Set<String> redisKeysForRegion = new HashSet<>();
     private Set<String> redisKeysForGroup = new HashSet<>();
 

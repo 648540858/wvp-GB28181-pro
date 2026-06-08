@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.session.CatalogDataManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -26,9 +27,12 @@ import javax.sip.header.FromHeader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * SIP命令类型： NOTIFY请求中的目录请求处理
@@ -55,6 +59,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private IGbChannelService channelService;
+
+	@Autowired
+	private CatalogDataManager catalogDataManager;
 
 
 	public void process(RequestEvent evt) {
@@ -149,7 +156,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								// 上线
 								log.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								channel.setStatus("ON");
-								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel, device.getDeviceId()));
 
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -163,7 +170,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									log.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
 									channel.setStatus("OFF");
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel, device.getDeviceId()));
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -177,7 +184,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									log.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
 									channel.setStatus("OFF");
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel, device.getDeviceId()));
 
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
@@ -192,7 +199,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									log.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
 									channel.setStatus("OFF");
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.STATUS_CHANGED, channel, device.getDeviceId()));
 
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
@@ -210,12 +217,12 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setId(deviceChannel.getId());
 									channel.setHasAudio(deviceChannel.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel, device.getDeviceId()));
 
 								} else {
 									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
 									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel, device.getDeviceId()));
 
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
@@ -227,7 +234,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							case CatalogEvent.DEL:
 								// 删除
 								log.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
-								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.DELETE, channel));
+								channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.DELETE, channel, device.getDeviceId()));
 
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -244,12 +251,12 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setHasAudio(deviceChannelForUpdate.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
 									channel.setUpdateTime(DateUtil.getNow());
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.UPDATE, channel, device.getDeviceId()));
 
 								} else {
 									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
 									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
-									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel));
+									channelList.add(NotifyCatalogChannel.getInstance(NotifyCatalogChannel.Type.ADD, channel, device.getDeviceId()));
 
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
@@ -281,38 +288,51 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			channelListForSave.add(channelList.poll());
 		}
 
-		for (NotifyCatalogChannel notifyCatalogChannel : channelListForSave) {
+		Map<String, List<NotifyCatalogChannel>> grouped = new HashMap<>();
+		for (NotifyCatalogChannel item : channelListForSave) {
+			grouped.computeIfAbsent(item.getDeviceId(), k -> new ArrayList<>()).add(item);
+		}
+
+		for (Map.Entry<String, List<NotifyCatalogChannel>> entry : grouped.entrySet()) {
+			ReentrantLock lock = catalogDataManager.getDeviceWriteLock(entry.getKey());
+			lock.lock();
 			try {
-				switch (notifyCatalogChannel.getType()) {
-					case STATUS_CHANGED:
-						deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
-						CommonGBChannel channelForStatus = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
-						if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
-							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
-						}else {
-							eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.OFF);
+				for (NotifyCatalogChannel notifyCatalogChannel : entry.getValue()) {
+					try {
+						switch (notifyCatalogChannel.getType()) {
+							case STATUS_CHANGED:
+								deviceChannelService.updateChannelStatusForNotify(notifyCatalogChannel.getChannel());
+								CommonGBChannel channelForStatus = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+								if ("ON".equals(notifyCatalogChannel.getChannel().getStatus()) ) {
+									eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.ON);
+								}else {
+									eventPublisher.channelEventPublish(channelForStatus, ChannelEvent.ChannelEventMessageType.OFF);
+								}
+								break;
+							case ADD:
+								deviceChannelService.addChannel(notifyCatalogChannel.getChannel());
+								CommonGBChannel channelForAdd = channelService.getOne(notifyCatalogChannel.getChannel().getId());
+								eventPublisher.channelEventPublish(channelForAdd, ChannelEvent.ChannelEventMessageType.ADD);
+								break;
+							case UPDATE:
+								CommonGBChannel oldCommonChannel = channelService.getOne(notifyCatalogChannel.getChannel().getId());
+								deviceChannelService.updateChannelForNotify(notifyCatalogChannel.getChannel());
+								CommonGBChannel channel = channelService.getOne(oldCommonChannel.getGbId());
+								eventPublisher.channelEventPublishForUpdate(channel, oldCommonChannel);
+								break;
+							case DELETE:
+								CommonGBChannel oldCommonChannelForDelete = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
+								deviceChannelService.deleteForNotify(notifyCatalogChannel.getChannel());
+								eventPublisher.channelEventPublish(oldCommonChannelForDelete, ChannelEvent.ChannelEventMessageType.DEL);
+								break;
 						}
-						break;
-					case ADD:
-						deviceChannelService.addChannel(notifyCatalogChannel.getChannel());
-						CommonGBChannel channelForAdd = channelService.getOne(notifyCatalogChannel.getChannel().getId());
-						eventPublisher.channelEventPublish(channelForAdd, ChannelEvent.ChannelEventMessageType.ADD);
-						break;
-					case UPDATE:
-						CommonGBChannel oldCommonChannel = channelService.getOne(notifyCatalogChannel.getChannel().getId());
-						deviceChannelService.updateChannelForNotify(notifyCatalogChannel.getChannel());
-						CommonGBChannel channel = channelService.getOne(oldCommonChannel.getGbId());
-						eventPublisher.channelEventPublishForUpdate(channel, oldCommonChannel);
-						break;
-					case DELETE:
-						CommonGBChannel oldCommonChannelForDelete = channelService.queryCommonChannelByDeviceChannel(notifyCatalogChannel.getChannel());
-						deviceChannelService.deleteForNotify(notifyCatalogChannel.getChannel());
-						eventPublisher.channelEventPublish(oldCommonChannelForDelete, ChannelEvent.ChannelEventMessageType.DEL);
-						break;
+					}catch (Exception e) {
+						log.error("[存储收到的通道-异常]类型：{}，编号：{}", notifyCatalogChannel.getType(),
+								notifyCatalogChannel.getChannel().getDeviceId(), e);
+					}
 				}
-			}catch (Exception e) {
-				log.error("[存储收到的通道-异常]类型：{}，编号：{}", notifyCatalogChannel.getType(),
-						notifyCatalogChannel.getChannel().getDeviceId(), e);
+			} finally {
+				lock.unlock();
 			}
 		}
 	}

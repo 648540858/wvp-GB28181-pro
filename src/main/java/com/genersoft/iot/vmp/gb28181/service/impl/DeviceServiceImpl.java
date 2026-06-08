@@ -750,13 +750,16 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void sync(Device device) {
-        if (catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
-            SyncStatus syncStatus = catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId());
-            log.info("[同步通道] 同步已存在, 设备: {}, 同步信息: {}", device.getDeviceId(), JSON.toJSON(syncStatus));
-            return;
+        int sn;
+        synchronized (device.getDeviceId().intern()) {
+            if (catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
+                SyncStatus syncStatus = catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId());
+                log.info("[同步通道] 同步已存在, 设备: {}, 同步信息: {}", device.getDeviceId(), JSON.toJSON(syncStatus));
+                return;
+            }
+            sn = (int)((Math.random()*9+1)*100000);
+            catalogResponseMessageHandler.setChannelSyncReady(device, sn);
         }
-        int sn = (int)((Math.random()*9+1)*100000);
-        catalogResponseMessageHandler.setChannelSyncReady(device, sn);
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);

@@ -393,25 +393,30 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         int result = platformChannelMapper.addChannels(platformId, channelList);
         if (result > 0) {
             // 查询通道相关的行政区划信息是否共享，如果没共享就添加
-            Set<Region> regionListNotShare =  getRegionNotShareByChannelList(channelList, platformId);
-            if (!regionListNotShare.isEmpty()) {
-                int addGroupResult = platformChannelMapper.addPlatformRegion(new ArrayList<>(regionListNotShare), platformId);
-                if (addGroupResult > 0) {
-                    for (Region region : regionListNotShare) {
-                        // 分组信息排序时需要将顶层排在最后
-                        channelList.add(0, CommonGBChannel.build(region));
+            // 判断平台是否客气了推送行政区划
+            if (platform.getCatalogWithRegion() != 0) {
+                Set<Region> regionListNotShare =  getRegionNotShareByChannelList(channelList, platformId);
+                if (!regionListNotShare.isEmpty()) {
+                    int addGroupResult = platformChannelMapper.addPlatformRegion(new ArrayList<>(regionListNotShare), platformId);
+                    if (addGroupResult > 0) {
+                        for (Region region : regionListNotShare) {
+                            // 分组信息排序时需要将顶层排在最后
+                            channelList.addFirst(CommonGBChannel.build(region));
+                        }
                     }
                 }
             }
 
-            // 查询通道相关的分组信息是否共享，如果没共享就添加
-            Set<Group> groupListNotShare =  getGroupNotShareByChannelList(channelList, platformId);
-            if (!groupListNotShare.isEmpty()) {
-                int addGroupResult = platformChannelMapper.addPlatformGroup(new ArrayList<>(groupListNotShare), platformId);
-                if (addGroupResult > 0) {
-                    for (Group group : groupListNotShare) {
-                        // 分组信息排序时需要将顶层排在最后
-                        channelList.add(0, CommonGBChannel.build(group));
+            if (platform.getCatalogWithGroup() != 0) {
+                // 查询通道相关的分组信息是否共享，如果没共享就添加
+                Set<Group> groupListNotShare =  getGroupNotShareByChannelList(channelList, platformId);
+                if (!groupListNotShare.isEmpty()) {
+                    int addGroupResult = platformChannelMapper.addPlatformGroup(new ArrayList<>(groupListNotShare), platformId);
+                    if (addGroupResult > 0) {
+                        for (Group group : groupListNotShare) {
+                            // 分组信息排序时需要将顶层排在最后
+                            channelList.addFirst(CommonGBChannel.build(group));
+                        }
                     }
                 }
             }

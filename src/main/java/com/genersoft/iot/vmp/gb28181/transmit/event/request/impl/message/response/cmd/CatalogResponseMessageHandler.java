@@ -3,8 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IGroupService;
-import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -17,7 +15,6 @@ import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -28,9 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantLock;
-import java.lang.Thread;
 
 /**
  * 目录查询的回复
@@ -44,16 +38,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
-    private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
-
     @Autowired
     private IDeviceChannelService deviceChannelService;
-
-    @Autowired
-    private IRegionService regionService;
-
-    @Autowired
-    private IGroupService groupService;
 
     @Autowired
     private CatalogDataManager catalogDataCatch;
@@ -155,56 +141,17 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                     catalogDataCatch.put(device.getDeviceId(), sn, sumNum, device,
                             channelList, regionList, groupList);
                     log.info("[收到通道]设备: {} -> {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.size(device.getDeviceId(), sn), sumNum);
+
+                    if (catalogDataCatch.size(device.getDeviceId(), sn) > 0
+                            && catalogDataCatch.size(device.getDeviceId(), sn) == catalogDataCatch.sumNum(device.getDeviceId(), sn)) {
+                        catalogDataCatch.setComplete(device.getDeviceId(), sn);
+                    }
                 }
             }
         } catch (Exception e) {
             log.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
             log.error("[收到通道] 异常内容： ", e);
-        } finally {
-            String deviceId = device.getDeviceId();
-            if (catalogDataCatch.size(deviceId, sn) > 0
-                    && catalogDataCatch.size(deviceId, sn) == catalogDataCatch.sumNum(deviceId, sn)) {
-                    // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
-                // 目前支持设备通道上线通知时和设备上线时向上级通知
-                int finalSn = sn;
-                Thread.startVirtualThread(() -> {
-                    ReentrantLock lock = catalogDataCatch.getDeviceWriteLock(device.getDeviceId());
-                    lock.lock();
-                    try {
-                        boolean resetChannelsResult = saveData(device, finalSn);
-                        if (!resetChannelsResult) {
-                            String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(deviceId, finalSn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(device.getDeviceId(), finalSn).size() + "条";
-                            catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, errorMsg);
-                        } else {
-                            catalogDataCatch.setChannelSyncEnd(deviceId, finalSn, null);
-                        }
-                    } finally {
-                        lock.unlock();
-                    }
-                });
-            }
         }
-    }
-
-    @Transactional
-    public boolean saveData(Device device, int sn) {
-
-        boolean result = true;
-        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId(), sn);
-        if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
-            result &= deviceChannelService.resetChannels(device.getId(), deviceChannelList);
-        }
-
-        List<Region> regionList = catalogDataCatch.getRegionList(device.getDeviceId(), sn);
-        if ( regionList!= null && !regionList.isEmpty()) {
-            result &= regionService.batchAdd(regionList);
-        }
-
-        List<Group> groupList = catalogDataCatch.getGroupList(device.getDeviceId(), sn);
-        if (groupList != null && !groupList.isEmpty()) {
-            result &= groupService.batchAdd(groupList);
-        }
-        return result;
     }
 
     @Override

@@ -177,6 +177,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             String sendSsrc = sendSsrcFactory.getSendSsrc(
                                     "Play".equalsIgnoreCase(finalInviteInfo.getSessionName()) ? "0" : "1");
                             finalInviteInfo.setSsrc(sendSsrc);
+                            log.info("[上级INVITE] 使用自定义SSRC: {}", sendSsrc);
                         }
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
@@ -224,8 +225,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             log.error("[命令发送失败] 上级INVITE 发送 200（SDP）: {}", e.getMessage());
                         }
-
-
                     }
                 }));
             }

@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
+    private static final int BATCH_SIZE = 500;
+
     private final PlatformChannelMapper platformChannelMapper;
 
     private final EventPublisher eventPublisher;
@@ -450,34 +452,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         }
         List<CommonGBChannel> channelListShare = platformChannelMapper.queryShare(platformId,  null);
         Assert.notEmpty(channelListShare, "未共享任何通道");
-        int result = platformChannelMapper.removeChannelsWithPlatform(platformId, channelListShare);
-        if (result > 0) {
-            // 查询通道相关的分组信息
-            Set<Region> regionSet = regionMapper.queryByChannelList(channelListShare);
-            Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platformId);
-            if (!deleteRegion.isEmpty()) {
-                for (Region region : deleteRegion) {
-                    channelListShare.add(0, CommonGBChannel.build(region));
-                }
-            }
-
-            // 查询通道相关的分组信息
-            Set<Group> groupSet = groupMapper.queryByChannelList(channelListShare);
-            Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
-            if (!deleteGroup.isEmpty()) {
-                for (Group group : deleteGroup) {
-                    channelListShare.add(0, CommonGBChannel.build(group));
-                }
-            }
-            // 发送消息
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(platform, channelListShare, CatalogEvent.DEL);
-            } catch (Exception e) {
-                log.warn("[移除全部关联通道] 发送失败，数量：{}", channelListShare.size(), e);
-            }
-        }
-        return result;
+        return removeChannelsFromDb(platform, platformId, channelListShare);
     }
 
     @Override
@@ -492,6 +467,44 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public void removeChannelByDevice(Integer platformId, List<Integer> deviceIds) {
         List<Integer> channelList = commonGBChannelMapper.queryByGbDeviceIdsForIds(ChannelDataType.GB28181, deviceIds);
         removeChannels(platformId, channelList);
+    }
+
+    private <T> List<List<T>> partition(List<T> list, int size) {
+        List<List<T>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            result.add(list.subList(i, Math.min(i + size, list.size())));
+        }
+        return result;
+    }
+
+    private int removeChannelsFromDb(Platform platform, Integer platformId, List<CommonGBChannel> channelList) {
+        List<List<CommonGBChannel>> batches = partition(channelList, BATCH_SIZE);
+        int totalResult = 0;
+        for (List<CommonGBChannel> batch : batches) {
+            totalResult += platformChannelMapper.removeChannelsWithPlatform(platformId, batch);
+        }
+        if (totalResult > 0) {
+            Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
+            Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platformId);
+            if (!deleteRegion.isEmpty()) {
+                for (Region region : deleteRegion) {
+                    channelList.add(0, CommonGBChannel.build(region));
+                }
+            }
+            Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
+            Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
+            if (!deleteGroup.isEmpty()) {
+                for (Group group : deleteGroup) {
+                    channelList.add(0, CommonGBChannel.build(group));
+                }
+            }
+            try {
+                eventPublisher.catalogEventPublish(platform, channelList, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[取消共享通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+        return totalResult;
     }
 
     @Transactional
@@ -513,35 +526,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             }
             return result;
         }
-        String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining(","));
-        int result = platformChannelMapper.removeChannelsWithPlatform(platformId, channelList);
+        int result = removeChannelsFromDb(platform, platformId, channelList);
         if (result <= 0) {
+            String deviceIds = channelList.stream().map(CommonGBChannel::getGbDeviceId).collect(Collectors.joining(","));
             log.info("[取消共享通道] 平台{}未关联通道： {}", platformId, deviceIds);
             return 0;
-        }
-        // 查询通道相关的分组信息
-        Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
-        Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platformId);
-        if (!deleteRegion.isEmpty()) {
-            for (Region region : deleteRegion) {
-                channelList.add(0, CommonGBChannel.build(region));
-            }
-        }
-
-        // 查询通道相关的分组信息
-        Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
-        Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
-        if (!deleteGroup.isEmpty()) {
-            for (Group group : deleteGroup) {
-                channelList.add(0, CommonGBChannel.build(group));
-            }
-        }
-        // 发送消息
-        try {
-            // 发送catalog
-            eventPublisher.catalogEventPublish(platform, channelList, CatalogEvent.DEL);
-        } catch (Exception e) {
-            log.warn("[取消共享通道] 发送失败，数量：{}", channelList.size(), e);
         }
         return result;
     }

@@ -45,9 +45,9 @@ BEGIN
         ALTER TABLE wvp_media_server ADD jtt_proxy_port  integer;
     END IF;
 END; //
+DELIMITER ;
 call wvp_20250708();
 DROP PROCEDURE wvp_20250708;
-DELIMITER ;
 
 /*
 * 20250917
@@ -67,9 +67,9 @@ BEGIN
         ALTER TABLE wvp_media_server ADD mp4_ssl_port integer;
     END IF;
 END; //
+DELIMITER ;
 call wvp_20250917();
 DROP PROCEDURE wvp_20250917;
-DELIMITER ;
 
 /*
 * 20250924
@@ -95,9 +95,9 @@ BEGIN
         ALTER TABLE wvp_common_group ADD alias varchar(255) default null;
     END IF;
 END; //
+DELIMITER ;
 call wvp_20250924();
 DROP PROCEDURE wvp_20250924;
-DELIMITER ;
 
 
 /*
@@ -112,11 +112,27 @@ BEGIN
         ALTER TABLE wvp_stream_proxy DROP enable_remove_none_reader;
     END IF;
 END; //
+DELIMITER ;
 call wvp_20251027();
 DROP PROCEDURE wvp_20251027;
-DELIMITER ;
 
-drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+/*
+* 20251101
+*/
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20251101`()
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.STATISTICS
+               WHERE TABLE_SCHEMA = (SELECT DATABASE())
+                 AND TABLE_NAME = 'wvp_media_server'
+                 AND INDEX_NAME = 'uk_media_server_unique_ip_http_port')
+    THEN
+        drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+    END IF;
+END; //
+DELIMITER ;
+call wvp_20251101();
+DROP PROCEDURE wvp_20251101;
 
 /*
 * 202601025
@@ -135,9 +151,9 @@ BEGIN
         ALTER TABLE wvp_device DROP keepalive_time;
     END IF;
 END; //
+DELIMITER ;
 call wvp_202601025();
 DROP PROCEDURE wvp_202601025;
-DELIMITER ;
 
 create table IF NOT EXISTS wvp_alarm (
     id serial primary key COMMENT '主键ID',
@@ -192,9 +208,9 @@ ALTER TABLE wvp_device_mobile_position RENAME TO wvp_mobile_position;
 END IF;
 
 END; //
+DELIMITER ;
 call wvp_20260417();
 DROP PROCEDURE wvp_20260417;
-DELIMITER ;
 
 /*
 * 20260521 添加wvp_device_channel唯一约束，防止通道重复写入

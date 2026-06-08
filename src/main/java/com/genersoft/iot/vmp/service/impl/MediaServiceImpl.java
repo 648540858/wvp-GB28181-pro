@@ -109,6 +109,7 @@ public class MediaServiceImpl implements IMediaService {
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
             }
+            result.setEnable_audio(true);
             result.setEnable_mp4(userSetting.getRecordPushLive());
             return result;
         }

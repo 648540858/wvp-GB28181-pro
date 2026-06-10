@@ -31,8 +31,6 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import jakarta.validation.constraints.NotNull;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -346,7 +344,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (values.isEmpty()) {
             return null;
         }
-        return (MediaServer) redisTemplate.opsForHash().get((String) values.get(0), mediaServerId);
+        for (Object value : values) {
+            MediaServer mediaServer = (MediaServer) redisTemplate.opsForHash().get((String) value, mediaServerId);
+            if (mediaServer != null){
+                return mediaServer;
+            }
+        }
+        return null;
     }
 
 

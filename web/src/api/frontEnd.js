@@ -182,7 +182,7 @@ export function wiper([deviceId, channelDeviceId, command]) {
   })
 }
 
-export function ptz([deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed]) {
+export function ptz({ deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed }) {
   return request({
     method: 'get',
     url: `/api/front-end/ptz/${deviceId}/${channelId}`,

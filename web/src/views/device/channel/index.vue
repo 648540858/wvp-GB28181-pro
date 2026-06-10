@@ -1,6 +1,6 @@
 <template>
   <div id="channelList" style="height: calc(100vh - 124px);">
-    <div v-if="!editId" style="height: 100%">
+    <div v-if="!editId && !ptzConfigChannelDeviceId" style="height: 100%">
       <el-form :inline="true" size="mini">
         <el-form-item style="margin-right: 2rem">
           <el-page-header content="通道列表" @back="showDevice" />
@@ -189,6 +189,8 @@
                   设备录像控制-开始</el-dropdown-item>
                 <el-dropdown-item command="stopRecord" :disabled="device == null || device.online === 0">
                   设备录像控制-停止</el-dropdown-item>
+                <el-dropdown-item command="ptzConfig" :disabled="device == null || device.online === 0">
+                  云台配置</el-dropdown-item>
               </el-dropdown-menu>
 
             </el-dropdown>
@@ -209,6 +211,7 @@
 
     <devicePlayer ref="devicePlayer" />
     <channel-edit v-if="editId" :id="editId" :close-edit="closeEdit" />
+    <ptzConfig v-if="ptzConfigChannelDeviceId" :device-id="ptzConfigDeviceId" :channel-device-id="ptzConfigChannelDeviceId" @close="closePtzConfig" />
 
   </div>
 </template>
@@ -216,12 +219,14 @@
 <script>
 import devicePlayer from '../../dialog/devicePlayer.vue'
 import Edit from './edit.vue'
+import ptzConfig from '@/views/device/common/ptzConfig.vue'
 
 export default {
   name: 'ChannelList',
   components: {
     devicePlayer,
-    ChannelEdit: Edit
+    ChannelEdit: Edit,
+    ptzConfig
   },
   props: {
     defaultPage: {
@@ -258,6 +263,8 @@ export default {
       total: 0,
       beforeUrl: '/device',
       editId: null,
+      ptzConfigDeviceId: null,
+      ptzConfigChannelDeviceId: null,
       loadSnap: {},
       ptzTypes: {
         0: '未知',
@@ -278,7 +285,6 @@ export default {
     }
   },
   mounted() {
-    console.log(23222)
     if (this.deviceId) {
       this.$store.dispatch('device/queryDeviceOne', this.deviceId)
         .then(data => {
@@ -372,6 +378,10 @@ export default {
           itemData.playLoading = false
         })
     },
+    closePtzConfig: function() {
+      this.ptzConfigDeviceId = null
+      this.ptzConfigChannelDeviceId = null
+    },
     moreClick: function(command, itemData) {
       if (command === 'records') {
         this.queryRecords(itemData)
@@ -381,6 +391,10 @@ export default {
         this.startRecord(itemData)
       } else if (command === 'stopRecord') {
         this.stopRecord(itemData)
+      } else if (command === 'ptzConfig') {
+        console.log(itemData.channelId)
+        this.ptzConfigDeviceId = this.deviceId
+        this.ptzConfigChannelDeviceId = itemData.deviceId
       }
     },
     queryRecords: function(itemData) {

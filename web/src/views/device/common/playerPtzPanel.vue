@@ -12,6 +12,7 @@
         :show-precise="false"
         @ptz-move="onPtzMove"
         @ptz-stop="onPtzStop"
+        @ptz-guard="onPtzGuard"
         @focus-move="onFocusMove"
         @focus-stop="onFocusStop"
         @iris-move="onIrisMove"
@@ -48,14 +49,35 @@ export default {
   },
   methods: {
     ptzSpeed(speed) {
-      return parseInt(speed * 255 / 8)
+      return parseInt(speed * 255 / 100)
     },
     onPtzMove(e) {
       const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/ptz', [this.deviceId, this.channelDeviceId, e.direction, speedVal, speedVal, speedVal])
+      this.$store.dispatch('frontEnd/ptz', {
+        deviceId: this.deviceId,
+        channelId: this.channelDeviceId,
+        command: e.direction,
+        horizonSpeed: speedVal,
+        verticalSpeed: speedVal,
+        zoomSpeed: speedVal
+      })
     },
     onPtzStop() {
-      this.$store.dispatch('frontEnd/ptz', [this.deviceId, this.channelDeviceId, 'stop', 0, 0, 0])
+      this.$store.dispatch('frontEnd/ptz', {
+        deviceId: this.deviceId,
+        channelId: this.channelDeviceId,
+        command: 'stop',
+        horizonSpeed: 0,
+        verticalSpeed: 0,
+        zoomSpeed: 0
+      })
+    },
+    onPtzGuard() {
+      this.$store.dispatch('device/homePosition', {
+        deviceId: this.deviceId,
+        channelId: this.channelDeviceId,
+        enabled: true
+      })
     },
     onFocusMove(e) {
       const speedVal = this.ptzSpeed(e.speed)

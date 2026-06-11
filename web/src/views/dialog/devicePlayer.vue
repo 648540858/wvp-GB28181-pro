@@ -15,17 +15,17 @@
 
         <div class="player-side">
           <div class="player-container" :style="{ height: playerHeight }">
-            <playerTabs ref="playerTabs" :video-url="videoUrl" :has-audio="hasAudio" :show-button="true" />
+            <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true" @playerChanged="playerChanged"/>
           </div>
         </div>
 
         <div class="control-side">
-          <div v-if="showPtz" class="ptz-section">
+          <div class="ptz-section">
             <ptzControls
-              :device-id="deviceId"
-              :channel-id="channelId"
+              btn-layout="row"
               @ptz-move="onPtzMove"
               @ptz-stop="onPtzStop"
+              @ptz-guard="onPtzGuard"
               @focus-move="onFocusMove"
               @focus-stop="onFocusStop"
               @iris-move="onIrisMove"
@@ -39,31 +39,31 @@
                 v-if="tabActiveName === 'preset'"
                 :device-id="deviceId"
                 :channel-device-id="channelId"
-                style="margin-top: 8px"
+                style="margin-top: 8px;"
               />
             </el-tab-pane>
             <el-tab-pane label="实时视频" name="media">
               <div v-if="tabActiveName === 'media'" class="media-info-content">
                 <div class="media-row">
                   <span class="media-label">播放地址：</span>
-                  <el-input v-model="getPlayerShared.sharedUrl" :disabled="true">
+                  <el-input v-model="playerUrlInfo.playerUrl" :disabled="true">
                     <template slot="append">
-                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(getPlayerShared.sharedUrl)" />
+                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playerUrl)" />
                     </template>
                   </el-input>
                 </div>
                 <div class="media-row">
                   <span class="media-label">iframe：</span>
-                  <el-input v-model="getPlayerShared.sharedIframe" :disabled="true">
+                  <el-input v-model="sharedIframe" :disabled="true">
                     <template slot="append">
-                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(getPlayerShared.sharedIframe)" />
+                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(sharedIframe)" />
                     </template>
                   </el-input>
                 </div>
                 <div class="media-row">
                   <span class="media-label">资源地址：</span>
-                  <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true">
-                    <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(getPlayerShared.sharedIframe)" />
+                  <el-input v-model="playerUrlInfo.playUrl" :disabled="true">
+                    <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playUrl)" />
                     <el-dropdown v-if="streamInfo" slot="prepend" trigger="click" @command="copyUrl">
                       <el-button>更多地址<i class="el-icon-arrow-down el-icon--right" /></el-button>
                       <el-dropdown-menu slot="dropdown">
@@ -148,25 +148,21 @@ export default {
       hasAudio: false,
       isLoging: false,
       showVideoDialog: false,
-      showPtz: true,
       showBroadcast: true,
       streamInfo: null,
       broadcastMode: true,
       broadcastRtc: null,
       broadcastStatus: -1,
-      playerHeight: '36vh'
+      playerHeight: '48vh',
+      playerUrlInfo: {
+        playerUrl: null,
+        playUrl: null,
+      }
     }
   },
   computed: {
-    getPlayerShared: function() {
-      const typeMap = { jessibuca: 0, webRTC: 1, h265web: 2 }
-      const type = typeMap['jessibuca'] || 0
-      const baseUrl = window.location.origin + '/#/play/share?type=' + type + '&url=' + encodeURIComponent(this.videoUrl)
-      return {
-        sharedUrl: baseUrl,
-        sharedIframe: '<iframe src="' + baseUrl + '"></iframe>',
-        sharedRtmp: this.videoUrl
-      }
+    sharedIframe: function(){
+      return `<iframe src="${this.playerUrlInfo.playerUrl}"></iframe>`
     }
   },
   created() {
@@ -174,14 +170,35 @@ export default {
   },
   methods: {
     ptzSpeed(speed) {
-      return parseInt(speed * 255 / 8)
+      return parseInt(speed * 255 / 100)
     },
     onPtzMove(e) {
       const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/ptz', [this.deviceId, this.channelId, e.direction, speedVal, speedVal, speedVal])
+      this.$store.dispatch('frontEnd/ptz', {
+        deviceId: this.deviceId,
+        channelId: this.channelId,
+        command: e.direction,
+        horizonSpeed: speedVal,
+        verticalSpeed: speedVal,
+        zoomSpeed:  parseInt(e.speed * 15 / 100)
+      })
     },
     onPtzStop() {
-      this.$store.dispatch('frontEnd/ptz', [this.deviceId, this.channelId, 'stop', 0, 0, 0])
+      this.$store.dispatch('frontEnd/ptz', {
+        deviceId: this.deviceId,
+        channelId: this.channelId,
+        command: 'stop',
+        horizonSpeed: 0,
+        verticalSpeed: 0,
+        zoomSpeed: 0
+      })
+    },
+    onPtzGuard() {
+      this.$store.dispatch('device/homePosition', {
+        deviceId: this.deviceId,
+        channelId: this.channelId,
+        enabled: true
+      })
     },
     onFocusMove(e) {
       const speedVal = this.ptzSpeed(e.speed)
@@ -221,25 +238,18 @@ export default {
       this.streamInfo = streamInfo
       this.hasAudio = hasAudio
       this.isLoging = false
-      this.videoUrl = this.getUrlByStreamInfo(streamInfo)
       this.streamId = streamInfo.stream
       this.app = streamInfo.app
       this.mediaServerId = streamInfo.mediaServerId
       this.showVideoDialog = true
       this.$nextTick(() => {
         if (this.$refs.playerTabs) {
-          this.$refs.playerTabs.play(this.videoUrl)
+          this.$refs.playerTabs.setStreamInfo(streamInfo)
         }
       })
     },
-    getUrlByStreamInfo(streamInfo) {
-      const info = streamInfo || this.streamInfo
-      if (!info) return ''
-      const src = info.transcodeStream || info
-      if (location.protocol === 'https:') {
-        return src['wss_flv']
-      }
-      return src['ws_flv']
+    playerChanged: function(playerUrlInfo) {
+      this.playerUrlInfo = playerUrlInfo
     },
     close: function() {
       if (this.$refs.playerTabs) {
@@ -248,9 +258,6 @@ export default {
       this.videoUrl = ''
       this.showVideoDialog = false
       this.stopBroadcast()
-    },
-    videoError: function(e) {
-      console.log('播放器错误：' + JSON.stringify(e))
     },
     copyUrl: function(dropdownItem) {
       this.$copyText(dropdownItem).then(() => {
@@ -318,7 +325,7 @@ export default {
 .player-container { width: 100%; }
 .control-side { flex: 2; min-width: 340px; display: flex; flex-direction: column; }
 .ptz-section { flex-shrink: 0; margin-bottom: 8px; }
-.control-tabs { flex: 1; display: flex; flex-direction: column; }
+.control-tabs { flex: 1; display: flex; flex-direction: column; min-height: 180px}
 .control-tabs .el-tabs__content { flex: 1; overflow: auto; }
 .media-info-content { overflow: auto; }
 .media-row { display: flex; margin-bottom: 0.5rem; height: 2.5rem; }

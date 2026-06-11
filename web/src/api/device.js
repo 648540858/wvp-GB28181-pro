@@ -69,6 +69,14 @@ export function resetGuard(deviceId) {
   })
 }
 
+export function homePosition(params) {
+  return request({
+    method: 'get',
+    url: '/api/device/control/home_position',
+    params
+  })
+}
+
 export function subscribeCatalog(params) {
   const { id, cycle } = params
   return request({

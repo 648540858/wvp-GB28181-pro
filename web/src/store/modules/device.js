@@ -3,6 +3,7 @@ import {
   changeChannelAudio,
   deleteDevice,
   deviceRecord, getKeepaliveTimeStatistics, getRegisterTimeStatistics,
+  homePosition,
   queryBasicParam,
   queryChannelOne,
   queryChannels,
@@ -76,6 +77,16 @@ const actions = {
   resetGuard({ commit }, deviceId) {
     return new Promise((resolve, reject) => {
       resetGuard(deviceId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  homePosition({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      homePosition(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

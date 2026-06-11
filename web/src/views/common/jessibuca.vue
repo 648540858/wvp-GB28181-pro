@@ -289,8 +289,6 @@ export default {
   height: 28px;
   background-color: rgba(43, 51, 63, 0.7);
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
   left: 0;
   bottom: 0;
@@ -302,7 +300,7 @@ export default {
   width: 20px;
   color: rgb(255, 255, 255);
   line-height: 27px;
-  margin: 0px 10px;
+  margin: 0px 20px;
   padding: 0px 2px;
   cursor: pointer;
   text-align: center;

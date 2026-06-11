@@ -1,6 +1,6 @@
 <template>
-  <div id="h265Player" ref="container" style="background-color: #000000; " @dblclick="fullscreenSwich">
-    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;" >
+  <div id="h265Player" ref="container" style="background-color: #000000; position: relative; display: flex; align-items: center; justify-content: center;" @dblclick="fullscreenSwich">
+    <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;">
       <div v-if="playerLoading" class="play-loading">
         <i class="el-icon-loading" />
         视频加载中
@@ -264,12 +264,14 @@ export default {
 }
 .buttons-box {
   width: 100%;
-  height: 28px;
-  background-color: rgba(43, 51, 63, 0.7);
+  height: 56px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
   position: absolute;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  align-items: flex-end;
+  padding-bottom: 10px;
   left: 0;
   bottom: 0;
   user-select: none;
@@ -279,7 +281,6 @@ export default {
 .h265web-btn {
   width: 20px;
   color: rgb(255, 255, 255);
-  line-height: 27px;
   margin: 0px 10px;
   padding: 0px 2px;
   cursor: pointer;
@@ -290,6 +291,7 @@ export default {
 .buttons-box-right {
   position: absolute;
   right: 0;
+  bottom: 10px;
 }
 .player-loading {
   width: fit-content;

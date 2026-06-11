@@ -1,69 +1,81 @@
 <template>
   <div class="ptz-section-inner">
-    <div class="ptz-left">
+    <div class="ptz-top">
       <div class="ptz-dpad">
         <div class="dpad-ring"></div>
-        <button class="dpad-btn card card-up" @mousedown.prevent="$emit('ptz-move', { direction: 'up', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">▲</button>
-        <button class="dpad-btn card card-right" @mousedown.prevent="$emit('ptz-move', { direction: 'right', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">▶</button>
-        <button class="dpad-btn card card-down" @mousedown.prevent="$emit('ptz-move', { direction: 'down', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">▼</button>
-        <button class="dpad-btn card card-left" @mousedown.prevent="$emit('ptz-move', { direction: 'left', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">◀</button>
-        <button class="dpad-btn diag diag-upright" @mousedown.prevent="$emit('ptz-move', { direction: 'upright', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')"><span style="display:inline-block;transform:rotate(45deg)">▲</span></button>
-        <button class="dpad-btn diag diag-downright" @mousedown.prevent="$emit('ptz-move', { direction: 'downright', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')"><span style="display:inline-block;transform:rotate(135deg)">▲</span></button>
-        <button class="dpad-btn diag diag-downleft" @mousedown.prevent="$emit('ptz-move', { direction: 'downleft', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')"><span style="display:inline-block;transform:rotate(225deg)">▲</span></button>
-        <button class="dpad-btn diag diag-upleft" @mousedown.prevent="$emit('ptz-move', { direction: 'upleft', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')"><span style="display:inline-block;transform:rotate(-45deg)">▲</span></button>
+        <button class="dpad-btn card card-up" @mousedown.prevent="handlePtzMove('up')" @mouseup.prevent="handlePtzStop()">▲</button>
+        <button class="dpad-btn card card-right" @mousedown.prevent="handlePtzMove('right')" @mouseup.prevent="handlePtzStop()">▶</button>
+        <button class="dpad-btn card card-down" @mousedown.prevent="handlePtzMove('down')" @mouseup.prevent="handlePtzStop()">▼</button>
+        <button class="dpad-btn card card-left" @mousedown.prevent="handlePtzMove('left')" @mouseup.prevent="handlePtzStop()">◀</button>
+        <button class="dpad-btn diag diag-upright" @mousedown.prevent="handlePtzMove('upright')" @mouseup.prevent="handlePtzStop()"><span style="display:inline-block;transform:rotate(45deg)">▲</span></button>
+        <button class="dpad-btn diag diag-downright" @mousedown.prevent="handlePtzMove('downright')" @mouseup.prevent="handlePtzStop()"><span style="display:inline-block;transform:rotate(135deg)">▲</span></button>
+        <button class="dpad-btn diag diag-downleft" @mousedown.prevent="handlePtzMove('downleft')" @mouseup.prevent="handlePtzStop()"><span style="display:inline-block;transform:rotate(225deg)">▲</span></button>
+        <button class="dpad-btn diag diag-upleft" @mousedown.prevent="handlePtzMove('upleft')" @mouseup.prevent="handlePtzStop()"><span style="display:inline-block;transform:rotate(-45deg)">▲</span></button>
         <button class="dpad-btn dpad-center" title="停止" @click="$emit('ptz-stop')">⏹</button>
       </div>
-      <div class="ptz-speed-slider">
-        <span class="ptz-speed-label">速度</span>
-        <el-slider v-model="controSpeed" :max="8" :min="1" style="flex: 1" />
+      <div class="ptz-func-col">
+        <div class="ptz-func-group" :class="{ row: btnLayout === 'row' }">
+          <div class="ptz-func-row">
+            <div class="ptz-func-row">
+              <div class="ptz-func-btn" title="看守位" @click.prevent="$emit('ptz-guard')">
+                <i class="el-icon-s-home" /><span>看守位</span>
+              </div>
+            </div>
+          </div>
+          <div class="ptz-func-row">
+            <div class="ptz-func-btn" title="变倍+" @mousedown.prevent="handlePtzMove('zoomin')" @mouseup.prevent="handlePtzStop()">
+              <i class="el-icon-zoom-in" /><span>变倍+</span>
+            </div>
+            <div class="ptz-func-btn" title="变倍-" @mousedown.prevent="handlePtzMove('zoomout')" @mouseup.prevent="handlePtzStop()">
+              <i class="el-icon-zoom-out" /><span>变倍-</span>
+            </div>
+          </div>
+          <div class="ptz-func-row">
+            <div class="ptz-func-btn" title="聚焦+" @mousedown.prevent="$emit('focus-move', { command: 'near', speed: controSpeed })" @mouseup.prevent="$emit('focus-stop')">
+              <i class="iconfont icon-bianjiao-fangda" /><span>聚焦+</span>
+            </div>
+            <div class="ptz-func-btn" title="聚焦-" @mousedown.prevent="$emit('focus-move', { command: 'far', speed: controSpeed })" @mouseup.prevent="$emit('focus-stop')">
+              <i class="iconfont icon-bianjiao-suoxiao" /><span>聚焦-</span>
+            </div>
+          </div>
+          <div class="ptz-func-row">
+            <div class="ptz-func-btn" title="光圈+" @mousedown.prevent="$emit('iris-move', { command: 'in', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
+              <i class="iconfont icon-guangquan" /><span>光圈+</span>
+            </div>
+            <div class="ptz-func-btn" title="光圈-" @mousedown.prevent="$emit('iris-move', { command: 'out', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
+              <i class="iconfont icon-guangquan-" /><span>光圈-</span>
+            </div>
+          </div>
+          <div class="ptz-func-row">
+            <div class="ptz-func-btn" title="拉框放大" @mousedown.prevent="$emit('iris-move', { command: 'in', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
+              <i class="iconfont icon-guangquan" /><span>拉框放大</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="ptz-right">
-      <div class="ptz-func-group">
-        <div class="ptz-func-row">
-          <div class="ptz-func-btn" title="变倍+" @mousedown.prevent="$emit('ptz-move', { direction: 'zoomin', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">
-            <i class="el-icon-zoom-in" /><span>变倍+</span>
-          </div>
-          <div class="ptz-func-btn" title="变倍-" @mousedown.prevent="$emit('ptz-move', { direction: 'zoomout', speed: controSpeed })" @mouseup.prevent="$emit('ptz-stop')">
-            <i class="el-icon-zoom-out" /><span>变倍-</span>
-          </div>
-        </div>
-        <div class="ptz-func-row">
-          <div class="ptz-func-btn" title="聚焦+" @mousedown.prevent="$emit('focus-move', { command: 'near', speed: controSpeed })" @mouseup.prevent="$emit('focus-stop')">
-            <i class="iconfont icon-bianjiao-fangda" /><span>聚焦+</span>
-          </div>
-          <div class="ptz-func-btn" title="聚焦-" @mousedown.prevent="$emit('focus-move', { command: 'far', speed: controSpeed })" @mouseup.prevent="$emit('focus-stop')">
-            <i class="iconfont icon-bianjiao-suoxiao" /><span>聚焦-</span>
-          </div>
-        </div>
-        <div class="ptz-func-row">
-          <div class="ptz-func-btn" title="光圈+" @mousedown.prevent="$emit('iris-move', { command: 'in', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
-            <i class="iconfont icon-guangquan" /><span>光圈+</span>
-          </div>
-          <div class="ptz-func-btn" title="光圈-" @mousedown.prevent="$emit('iris-move', { command: 'out', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
-            <i class="iconfont icon-guangquan-" /><span>光圈-</span>
-          </div>
-        </div>
+    <div class="ptz-bottom">
+      <div class="slider-with-controls">
+        <span class="slider-label">速度</span>
+        <el-button type="text" icon="el-icon-minus" class="slider-btn" @click="adjustSpeed(-1)" />
+        <el-slider v-model="controSpeed" :max="100" :min="1" />
+        <el-button type="text" icon="el-icon-plus" class="slider-btn" @click="adjustSpeed(1)" />
+        <span class="slider-value">{{ controSpeed }}</span>
       </div>
-      <ptzPrecise v-if="showPrecise" :device-id="deviceId" :channel-device-id="channelId" @position="$emit('precise-position', $event)" style="margin-top: 6px" />
     </div>
   </div>
 </template>
 
 <script>
-import ptzPrecise from './ptzPrecise.vue'
-
 export default {
   name: 'PtzControls',
-  components: { ptzPrecise },
   props: {
-    deviceId: { type: String, default: null },
-    channelId: { type: String, default: null },
-    showPrecise: { type: Boolean, default: true }
+    btnLayout: { type: String, default: 'column' }
   },
   data() {
     return {
-      controSpeed: 5
+      controSpeed: 50,
+      currentCommand: null
     }
   },
   mounted() {
@@ -73,8 +85,24 @@ export default {
     window.removeEventListener('mouseup', this.onWindowMouseUp)
   },
   methods: {
+    adjustSpeed(delta) {
+      const newVal = this.controSpeed + delta
+      if (newVal >= 1 && newVal <= 100) {
+        this.controSpeed = newVal
+      }
+    },
+    handlePtzMove(direction) {
+      this.currentCommand = direction
+      this.$emit('ptz-move', { direction, speed: this.controSpeed })
+    },
+    handlePtzStop() {
+      this.$emit('ptz-stop', { direction: this.currentCommand })
+      this.currentCommand = null
+    },
     onWindowMouseUp() {
-      this.$emit('ptz-stop')
+      if (this.currentCommand) {
+        this.handlePtzStop()
+      }
     }
   }
 }
@@ -83,14 +111,15 @@ export default {
 <style scoped>
 .ptz-section-inner {
   display: flex;
+  flex-direction: column;
   padding: 8px 4px;
   overflow-y: auto;
 }
-.ptz-left {
+.ptz-top {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 12px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
 }
 .ptz-dpad {
   position: relative;
@@ -185,19 +214,14 @@ export default {
   background: #337ecc;
   transform: translate(-50%, -50%) scale(0.92);
 }
-.ptz-speed-slider {
+.ptz-func-col {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  width: 120px;
-  margin-top: 8px;
+  justify-content: center;
+  min-width: 0;
 }
-.ptz-speed-label {
-  font-size: 12px;
-  color: #606266;
-  margin-right: 6px;
-  white-space: nowrap;
-}
-.ptz-right { flex: 1; }
 .ptz-func-group {
   display: flex;
   flex-wrap: wrap;
@@ -220,7 +244,7 @@ export default {
   cursor: pointer;
   background: #fff;
   user-select: none;
-  font-size: 11px;
+  font-size: 12px;
 }
 .ptz-func-btn:hover {
   background: #409EFF;
@@ -230,4 +254,39 @@ export default {
   background: #337ecc;
 }
 .ptz-func-btn i { font-size: 14px; margin-bottom: 2px; }
+.ptz-func-group.row .ptz-func-btn {
+  flex-direction: row;
+  gap: 4px;
+}
+.ptz-func-group.row .ptz-func-btn i {
+  margin-bottom: 0;
+  margin-right: 4px;
+}
+.ptz-bottom {
+  margin-top: 12px;
+  padding: 0 4px;
+}
+.slider-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+.slider-btn {
+  font-weight: bold;
+  color: #1a1a1a;
+}
+.slider-with-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slider-with-controls .el-slider {
+  flex: 1;
+}
+.slider-value {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+  color: #606266;
+}
 </style>

@@ -7,6 +7,7 @@ import {
   startScan, stopCruise,
   stopScan, wiper
 } from '@/api/frontEnd'
+import { dragZoomIn, dragZoomOut } from '@/api/device'
 
 const actions = {
   setSpeedForScan({ commit }, params) {
@@ -202,6 +203,26 @@ const actions = {
   focus({ commit }, params) {
     return new Promise((resolve, reject) => {
       focus(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  dragZoomIn({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      dragZoomIn(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  dragZoomOut({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      dragZoomOut(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

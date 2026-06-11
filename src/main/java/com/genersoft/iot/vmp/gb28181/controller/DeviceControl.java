@@ -170,7 +170,7 @@ public class DeviceControl {
 	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
 	@GetMapping("drag_zoom/zoom_in")
-	public DeferredResult<WVPResult<String>> dragZoomIn(@RequestParam String deviceId, String channelId,
+	public void dragZoomIn(@RequestParam String deviceId, String channelId,
 											 @RequestParam int length,
 											 @RequestParam int width,
 											 @RequestParam int midpointx,
@@ -182,28 +182,20 @@ public class DeviceControl {
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
-		deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy, (code, msg, data) -> {
-			result.setResult(new WVPResult<>(code, msg, data));
-		});
-		result.onTimeout(() -> {
-			log.warn("[设备拉框放大] 操作超时, 设备未返回应答指令, {}", deviceId);
-			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-		});
-		return result;
+		deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy);
 	}
 
 	@Operation(summary = "拉框缩小", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号")
 	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
-	@Parameter(name = "width", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "width", description = "播放窗口宽像素值", required = true)
 	@Parameter(name = "midpointx", description = "拉框中心的横轴坐标像素值", required = true)
 	@Parameter(name = "midpointy", description = "拉框中心的纵轴坐标像素值", required = true)
 	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
 	@GetMapping("/drag_zoom/zoom_out")
-	public DeferredResult<WVPResult<String>> dragZoomOut(@RequestParam String deviceId,
+	public void dragZoomOut(@RequestParam String deviceId,
 											  @RequestParam(required = false) String channelId,
 											  @RequestParam int length,
 											  @RequestParam int width,
@@ -217,14 +209,6 @@ public class DeviceControl {
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
-		deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy, (code, msg, data) -> {
-			result.setResult(new WVPResult<>(code, msg, data));
-		});
-		result.onTimeout(() -> {
-			log.warn("[设备拉框放大] 操作超时, 设备未返回应答指令, {}", deviceId);
-			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-		});
-		return result;
+		deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy);
 	}
 }

@@ -8,8 +8,10 @@
 
 <script>
 let webrtcPlayer = null
+import dragZoom from '../../mixins/dragZoom'
 export default {
   name: 'RtcPlayer',
+  mixins: [dragZoom],
   props: {
     videoUrl: { type: String, default: '' },
     error: { default: '' },
@@ -21,7 +23,6 @@ export default {
       timer: null
     }
   },
-
   mounted() {},
   destroyed() {
     clearTimeout(this.timer)
@@ -82,6 +83,35 @@ export default {
       console.log('player 事件回调')
       console.log(type)
       console.log(message)
+    },
+    getVideoElement() {
+      return document.getElementById('webRtcPlayerBox')
+    },
+    getVideoRect() {
+      const video = this.getVideoElement()
+      const rect = video.getBoundingClientRect()
+      if (video.videoWidth && video.videoHeight) {
+        const natRatio = video.videoWidth / video.videoHeight
+        const disRatio = rect.width / rect.height
+        let w, h, x, y
+        if (natRatio > disRatio) {
+          w = rect.width
+          h = w / natRatio
+          x = 0
+          y = (rect.height - h) / 2
+        } else {
+          h = rect.height
+          w = h * natRatio
+          x = (rect.width - w) / 2
+          y = 0
+        }
+        return {
+          left: rect.left + x, top: rect.top + y,
+          right: rect.left + x + w, bottom: rect.top + y + h,
+          width: w, height: h
+        }
+      }
+      return rect
     }
   }
 }
@@ -94,6 +124,7 @@ export default {
     #rtcPlayer{
         width: 100%;
         height: 100%;
+        position: relative;
     }
     #webRtcPlayerBox{
         width: 100%;

@@ -1,39 +1,41 @@
 <template>
-  <div
-    ref="container"
-    style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;"
-    @dblclick="fullscreenSwich"
-    @mouseenter="showBar = true" @mouseleave="showBar = false"
-  >
-    <div id="buttonsBox" class="buttons-box" v-if="showButton === undefined || showButton" :style="{ opacity: showBar ? 1 : 0, pointerEvents: showBar ? 'auto' : 'none' }">
-      <div class="buttons-box-left">
-        <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
-        <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
-        <i class="iconfont icon-stop jessibuca-btn" @click="stop" />
-        <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="mute()" />
-        <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="cancelMute()" />
-      </div>
-      <div class="buttons-box-right">
-        <span class="jessibuca-btn">{{ kBps }} kb/s</span>
-        <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
-        <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-        <i
-          class="iconfont icon-camera1196054easyiconnet jessibuca-btn"
-          style="font-size: 1rem !important"
-          @click="screenshot"
-        />
-        <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick" />
-        <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich" />
-        <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich" />
+    <div
+      ref="container"
+      style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;"
+      @dblclick="fullscreenSwich"
+      @mouseenter="showBar = true" @mouseleave="showBar = false"
+    >
+      <div id="buttonsBox" class="buttons-box" v-if="showButton === undefined || showButton" :style="{ opacity: showBar ? 1 : 0, pointerEvents: showBar ? 'auto' : 'none' }">
+        <div class="buttons-box-left">
+          <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
+          <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
+          <i class="iconfont icon-stop jessibuca-btn" @click="stop" />
+          <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="mute()" />
+          <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="cancelMute()" />
+        </div>
+        <div class="buttons-box-right">
+          <span class="jessibuca-btn">{{ kBps }} kb/s</span>
+          <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
+          <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
+          <i
+            class="iconfont icon-camera1196054easyiconnet jessibuca-btn"
+            style="font-size: 1rem !important"
+            @click="screenshot"
+          />
+          <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick" />
+          <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich" />
+          <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich" />
+        </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script>
 const jessibucaPlayer = {}
+import dragZoom from '../../mixins/dragZoom'
 export default {
   name: 'Jessibuca',
+  mixins: [dragZoom],
   props: ['videoUrl', 'error', 'hasAudio', 'height', 'showButton'],
   data() {
     return {
@@ -280,6 +282,14 @@ export default {
       if (jessibucaPlayer[this._uid]) {
         jessibucaPlayer[this._uid].resize()
       }
+    },
+    getVideoElement() {
+      return this.$refs.container.querySelector('canvas')
+    },
+    getVideoRect() {
+      const container = this.$refs.container
+      const canvas = this.getVideoElement()
+      return canvas ? canvas.getBoundingClientRect() : container.getBoundingClientRect()
     }
   }
 }

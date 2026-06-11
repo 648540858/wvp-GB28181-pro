@@ -5,7 +5,7 @@
       v-if="showVideoDialog"
       v-el-drag-dialog
       title="视频播放"
-      top="2vh"
+      top="10vh"
       width="65vw"
       :close-on-click-modal="false"
       :visible.sync="showVideoDialog"
@@ -15,7 +15,8 @@
 
         <div class="player-side">
           <div class="player-container" :style="{ height: playerHeight }">
-            <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true" @playerChanged="playerChanged"/>
+            <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true"
+              @playerChanged="playerChanged" />
           </div>
         </div>
 
@@ -29,6 +30,8 @@
               @focus-stop="onFocusStop"
               @iris-move="onIrisMove"
               @iris-stop="onIrisStop"
+              @toggle-drag-zoom="toggleDragZoom('in')"
+              @toggle-drag-zoom-out="toggleDragZoom('out')"
             />
           </div>
 
@@ -97,23 +100,6 @@
             <el-tab-pane label="编码信息" name="codec">
               <mediaInfo v-if="tabActiveName === 'codec'" ref="mediaInfo" :app="app" :stream="streamId" :media-server-id="mediaServerId" />
             </el-tab-pane>
-            <el-tab-pane v-if="showBroadcast" label="语音对讲" name="broadcast">
-              <div style="padding: 0 10px">
-                <el-radio-group v-model="broadcastMode" :disabled="broadcastStatus !== -1">
-                  <el-radio :label="true">喊话(Broadcast)</el-radio>
-                  <el-radio :label="false">对讲(Talk)</el-radio>
-                </el-radio-group>
-              </div>
-              <div class="trank" style="text-align: center;">
-                <el-button :type="getBroadcastStatus()" :disabled="broadcastStatus === -2" circle icon="el-icon-microphone" style="font-size: 32px; padding: 24px;margin-top: 24px;" @click="broadcastStatusClick()" />
-                <p>
-                  <span v-if="broadcastStatus === -2">正在释放资源</span>
-                  <span v-if="broadcastStatus === -1">点击开始对讲</span>
-                  <span v-if="broadcastStatus === 0">等待接通中...</span>
-                  <span v-if="broadcastStatus === 1">请说话</span>
-                </p>
-              </div>
-            </el-tab-pane>
           </el-tabs>
         </div>
 
@@ -124,7 +110,6 @@
 
 <script>
 import elDragDialog from '@/directive/el-drag-dialog'
-import crypto from 'crypto'
 import playerTabs from '../common/playerTabs.vue'
 import ptzControls from '../common/ptzControls.vue'
 import PtzPreset from '../common/ptzPreset.vue'
@@ -147,16 +132,13 @@ export default {
       hasAudio: false,
       isLoging: false,
       showVideoDialog: false,
-      showBroadcast: true,
       streamInfo: null,
-      broadcastMode: true,
-      broadcastRtc: null,
-      broadcastStatus: -1,
       playerHeight: '48vh',
       playerUrlInfo: {
         playerUrl: null,
         playUrl: null,
-      }
+      },
+      dragZoomDirection: ''
     }
   },
   computed: {
@@ -165,7 +147,6 @@ export default {
     }
   },
   created() {
-    this.broadcastStatus = -1
   },
   methods: {
     ptzSpeed(speed) {
@@ -249,68 +230,34 @@ export default {
       }
       this.videoUrl = ''
       this.showVideoDialog = false
-      this.stopBroadcast()
     },
     copyUrl: function(dropdownItem) {
       this.$copyText(dropdownItem).then(() => {
         this.$message.success({ showClose: true, message: '成功拷贝到粘贴板' })
       }, () => {})
     },
-    getBroadcastStatus() {
-      if (this.broadcastStatus == -2) return 'primary'
-      if (this.broadcastStatus == -1) return 'primary'
-      if (this.broadcastStatus == 0) return 'warning'
-      if (this.broadcastStatus === 1) return 'danger'
+
+    toggleDragZoom(direction) {
+      this.dragZoomDirection = direction
+      this.$refs.playerTabs.startDragZoom((params) => {
+        params.deviceId = this.deviceId
+        params.channelId = this.channelId
+        const action = this.dragZoomDirection === 'in' ? 'frontEnd/dragZoomIn' : 'frontEnd/dragZoomOut'
+        const successMsg = this.dragZoomDirection === 'in' ? '拉框放大成功' : '拉框缩小成功'
+        const failMsg = this.dragZoomDirection === 'in' ? '拉框放大失败' : '拉框缩小失败'
+        this.$store.dispatch(action, params).then(() => {
+          this.$message({ showClose: true, message: successMsg, type: 'success' })
+        }).catch(() => {
+          this.$message({ showClose: true, message: failMsg, type: 'error' })
+        })
+        this.dragZoomDirection = ''
+      })
     },
-    broadcastStatusClick() {
-      if (this.broadcastStatus === -1) {
-        this.broadcastStatus = 0
-        this.$store.dispatch('play/broadcastStart', [this.deviceId, this.channelId, this.broadcastMode])
-          .then(data => {
-            const si = data.streamInfo
-            if (document.location.protocol.includes('https')) {
-              this.startBroadcast(si.rtcs)
-            } else {
-              this.startBroadcast(si.rtc)
-            }
-          })
-      } else if (this.broadcastStatus === 1) {
-        this.broadcastStatus = -1
-        this.broadcastRtc.close()
-      }
-    },
-    startBroadcast(url) {
-      this.$store.dispatch('user/getUserInfo')
-        .then((data) => {
-          if (data === null) { this.broadcastStatus = -1; return }
-          const pushKey = data.pushKey
-          url += '&sign=' + crypto.createHash('md5').update(pushKey, 'utf8').digest('hex')
-          this.broadcastRtc = new ZLMRTCClient.Endpoint({
-            debug: true, zlmsdpUrl: url, simulecast: false, useCamera: false,
-            audioEnable: true, videoEnable: false, recvOnly: false
-          })
-          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT, () => { this.broadcastStatus = -1 })
-          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR, () => { this.broadcastStatus = -1 })
-          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, () => { this.broadcastStatus = -1 })
-          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE, (e) => {
-            if (e === 'connecting') this.broadcastStatus = 0
-            else if (e === 'connected') this.broadcastStatus = 1
-            else if (e === 'disconnected') this.broadcastStatus = -1
-          })
-          this.broadcastRtc.on(ZLMRTCClient.Events.CAPTURE_STREAM_FAILED, () => { this.broadcastStatus = -1 })
-        }).catch(() => { this.broadcastStatus = -1 })
-    },
-    stopBroadcast() {
-      this.broadcastRtc && this.broadcastRtc.close()
-      this.broadcastStatus = -1
-      this.$store.dispatch('play/broadcastStop', [this.deviceId, this.channelId])
-    }
   }
 }
 </script>
 
 <style>
-#devicePlayer .el-dialog { margin-top: 2vh !important; }
 #devicePlayer .el-dialog__body { padding: 10px 20px; }
 .dhsdk-player-body { display: flex; gap: 16px; }
 .player-side { flex: 3; min-width: 0; }

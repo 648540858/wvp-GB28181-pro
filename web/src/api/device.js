@@ -283,3 +283,19 @@ export function getRegisterTimeStatistics({ deviceId, count }) {
   })
 }
 
+export function dragZoomIn(params) {
+  return request({
+    method: 'get',
+    url: '/api/device/control/drag_zoom/zoom_in',
+    params
+  })
+}
+
+export function dragZoomOut(params) {
+  return request({
+    method: 'get',
+    url: '/api/device/control/drag_zoom/zoom_out',
+    params
+  })
+}
+

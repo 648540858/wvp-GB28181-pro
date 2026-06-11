@@ -47,8 +47,11 @@
             </div>
           </div>
           <div class="ptz-func-row">
-            <div class="ptz-func-btn" title="拉框放大" @mousedown.prevent="$emit('iris-move', { command: 'in', speed: controSpeed })" @mouseup.prevent="$emit('iris-stop')">
+            <div class="ptz-func-btn" title="拉框放大" @click="$emit('toggle-drag-zoom')">
               <i class="iconfont icon-guangquan" /><span>拉框放大</span>
+            </div>
+            <div class="ptz-func-btn" title="拉框缩小" @click="$emit('toggle-drag-zoom-out')">
+              <i class="iconfont icon-guangquan-" /><span>拉框缩小</span>
             </div>
           </div>
         </div>

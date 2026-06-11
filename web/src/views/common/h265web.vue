@@ -38,8 +38,10 @@ const h265webPlayer = {}
  * @see https://github.com/numberwolf/h265web.js/blob/master/example_normal/index.js
  */
 const token = 'base64:QXV0aG9yOmNoYW5neWFubG9uZ3xudW1iZXJ3b2xmLEdpdGh1YjpodHRwczovL2dpdGh1Yi5jb20vbnVtYmVyd29sZixFbWFpbDpwb3JzY2hlZ3QyM0Bmb3htYWlsLmNvbSxRUTo1MzEzNjU4NzIsSG9tZVBhZ2U6aHR0cDovL3h2aWRlby52aWRlbyxEaXNjb3JkOm51bWJlcndvbGYjODY5NCx3ZWNoYXI6bnVtYmVyd29sZjExLEJlaWppbmcsV29ya0luOkJhaWR1'
+import dragZoom from '../../mixins/dragZoom'
 export default {
   name: 'H265web',
+  mixins: [dragZoom],
   props: ['videoUrl', 'error', 'hasAudio', 'height', 'showButton'],
   data() {
     return {
@@ -247,6 +249,12 @@ export default {
     },
     setPlaybackRate: function(speed) {
       h265webPlayer[this._uid].setPlaybackRate(speed)
+    },
+    getVideoElement() {
+      return this.$refs.playerBox
+    },
+    getVideoRect() {
+      return this.getVideoElement().getBoundingClientRect()
     }
   }
 }

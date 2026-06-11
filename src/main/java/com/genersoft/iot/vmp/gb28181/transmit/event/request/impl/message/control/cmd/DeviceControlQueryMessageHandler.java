@@ -390,9 +390,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmdXml.append("<LengthX>" + dragZoom.getLengthX() + "</LengthX>\r\n");
             cmdXml.append("<LengthY>" + dragZoom.getLengthY() + "</LengthY>\r\n");
             cmdXml.append("</" + type.getVal() + ">\r\n");
-            cmder.dragZoomCmd(device, deviceChannel.getDeviceId(), cmdXml.toString(), (code, msg, data) -> {
-
-            });
+            cmder.dragZoomCmd(device, deviceChannel.getDeviceId(), cmdXml.toString());
             responseAck(request, Response.OK);
         } catch (Exception e) {
             log.error("[命令发送失败] 拉框控制: {}", e.getMessage());

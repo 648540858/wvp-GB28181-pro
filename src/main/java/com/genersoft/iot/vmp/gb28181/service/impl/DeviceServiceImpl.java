@@ -1276,7 +1276,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback) {
+    public void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcService.dragZoomIn(device.getServerId(), device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
             return;
@@ -1292,16 +1292,15 @@ public class DeviceServiceImpl implements IDeviceService {
         cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
         cmdXml.append("</DragZoomIn>\r\n");
         try {
-            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString(), callback);
+            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString());
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
-            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
         }
     }
 
     @Override
-    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback) {
+    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
             return;
@@ -1317,10 +1316,9 @@ public class DeviceServiceImpl implements IDeviceService {
         cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
         cmdXml.append("</DragZoomOut>\r\n");
         try {
-            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString(), callback);
+            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString());
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
-            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
         }
     }

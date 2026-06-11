@@ -191,6 +191,8 @@
                   设备录像控制-停止</el-dropdown-item>
                 <el-dropdown-item command="ptzConfig" :disabled="device == null || device.online === 0">
                   云台配置</el-dropdown-item>
+                <el-dropdown-item command="audioTalk" :disabled="device == null || device.online === 0">
+                  语音对讲</el-dropdown-item>
               </el-dropdown-menu>
 
             </el-dropdown>
@@ -212,12 +214,14 @@
     <devicePlayer ref="devicePlayer" />
     <channel-edit v-if="editId" :id="editId" :close-edit="closeEdit" />
     <ptzConfig v-if="ptzConfigChannelDeviceId" :device-id="ptzConfigDeviceId" :channel-device-id="ptzConfigChannelDeviceId" @close="closePtzConfig" />
+    <audioTalk ref="audioTalk" />
 
   </div>
 </template>
 
 <script>
 import devicePlayer from '../../dialog/devicePlayer.vue'
+import audioTalk from '../../dialog/audioTalk.vue'
 import Edit from './edit.vue'
 import ptzConfig from '@/views/device/common/ptzConfig.vue'
 
@@ -225,6 +229,7 @@ export default {
   name: 'ChannelList',
   components: {
     devicePlayer,
+    audioTalk,
     ChannelEdit: Edit,
     ptzConfig
   },
@@ -395,6 +400,8 @@ export default {
         console.log(itemData.channelId)
         this.ptzConfigDeviceId = this.deviceId
         this.ptzConfigChannelDeviceId = itemData.deviceId
+      } else if (command === 'audioTalk') {
+        this.$refs.audioTalk.openDialog(this.deviceId, itemData.deviceId)
       }
     },
     queryRecords: function(itemData) {

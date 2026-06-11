@@ -102,6 +102,16 @@ export default {
       if (this.$refs[this.activePlayer]) {
         this.$refs[this.activePlayer].pause()
       }
+    },
+    getVideoRect() {
+      const player = this.$refs[this.activePlayer]
+      return player && player.getVideoRect ? player.getVideoRect() : null
+    },
+    startDragZoom(callback) {
+      const player = this.$refs[this.activePlayer]
+      if (player && player.startDragZoom) {
+        player.startDragZoom(callback)
+      }
     }
   }
 }

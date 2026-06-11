@@ -332,18 +332,15 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy, (code, msg, data) -> {
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(new WVPResult<>(code, msg, data));
-                // 手动发送结果
-                sendResponse(response);
-            });
+            deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
-            sendResponse(response);
+            return response;
         }
-        return null;
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        response.setBody(WVPResult.success());
+        return response;
     }
 
     @RedisRpcMapping("dragZoomOut")
@@ -367,18 +364,15 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy, (code, msg, data) -> {
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(new WVPResult<>(code, msg, data));
-                // 手动发送结果
-                sendResponse(response);
-            });
+            deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
-            sendResponse(response);
+            return response;
         }
-        return null;
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        response.setBody(WVPResult.success());
+        return response;
     }
 
     @RedisRpcMapping("alarm")

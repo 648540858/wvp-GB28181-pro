@@ -257,12 +257,6 @@ public class CommonGBChannel {
                 if (this.getGbAddress() != null) {
                     content.append("<Address>" + this.getGbAddress() + "</Address>\n");
                 }
-                if (this.getGbRegisterWay() != null) {
-                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
-                }
-                if (this.getGbSecrecy() != null) {
-                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
-                }
                 if (this.getGbParentId() != null) {
                     content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
                 }

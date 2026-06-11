@@ -149,7 +149,7 @@
 </template>
 
 <script>
-import devicePlayer from '../dialog/devicePlayer.vue'
+import devicePlayer from '../device/dialog/devicePlayer.vue'
 import addStreamTOGB from '../dialog/pushStreamEdit.vue'
 import importChannel from '../dialog/importChannel.vue'
 import StreamPushEdit from './edit.vue'

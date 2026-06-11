@@ -220,7 +220,7 @@
 </template>
 
 <script>
-import devicePlayer from '../../dialog/devicePlayer.vue'
+import devicePlayer from '../dialog/devicePlayer.vue'
 import audioTalk from '../../dialog/audioTalk.vue'
 import Edit from './edit.vue'
 import ptzConfig from '@/views/device/channel/ptzConfig.vue'

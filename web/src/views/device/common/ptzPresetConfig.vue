@@ -145,7 +145,7 @@ export default {
     },
     getNextAvailableId() {
       if (!this.presetList || this.presetList.length === 0) return 1
-      const used = this.presetList.map(p => p.presetId).sort((a, b) => a - b)
+      const used = this.presetList.map(p => Number(p.presetId)).sort((a, b) => a - b)
       for (let i = 0; i < used.length - 1; i++) {
         if (used[i + 1] - used[i] > 1) return used[i] + 1
       }

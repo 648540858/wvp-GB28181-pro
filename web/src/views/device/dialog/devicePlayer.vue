@@ -21,19 +21,11 @@
         </div>
 
         <div class="control-side">
-          <div class="ptz-section">
-            <ptzControls
-              btn-layout="row"
-              @ptz-move="onPtzMove"
-              @ptz-stop="onPtzStop"
-              @focus-move="onFocusMove"
-              @focus-stop="onFocusStop"
-              @iris-move="onIrisMove"
-              @iris-stop="onIrisStop"
-              @toggle-drag-zoom="toggleDragZoom('in')"
-              @toggle-drag-zoom-out="toggleDragZoom('out')"
-            />
-          </div>
+          <devicePtzPanel
+            :device-id="deviceId"
+            :channel-id="channelId"
+            @drag-zoom-start="toggleDragZoom"
+          />
 
           <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick" class="control-tabs">
             <el-tab-pane label="预置位" name="preset">
@@ -110,15 +102,15 @@
 
 <script>
 import elDragDialog from '@/directive/el-drag-dialog'
-import playerTabs from '../common/playerTabs.vue'
-import ptzControls from '../common/ptzControls.vue'
-import PtzPreset from '../common/ptzPreset.vue'
-import mediaInfo from '../common/mediaInfo.vue'
+import playerTabs from '../../common/playerTabs.vue'
+import devicePtzPanel from '../common/devicePtzPanel.vue'
+import PtzPreset from '../../common/ptzPreset.vue'
+import mediaInfo from '../../common/mediaInfo.vue'
 
 export default {
   name: 'DevicePlayer',
   directives: { elDragDialog },
-  components: { playerTabs, ptzControls, PtzPreset, mediaInfo },
+  components: { playerTabs, devicePtzPanel, PtzPreset, mediaInfo },
   props: {},
   data() {
     return {
@@ -149,44 +141,6 @@ export default {
   created() {
   },
   methods: {
-    ptzSpeed(speed) {
-      return parseInt(speed * 255 / 100)
-    },
-    onPtzMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/ptz', {
-        deviceId: this.deviceId,
-        channelId: this.channelId,
-        command: e.direction,
-        horizonSpeed: speedVal,
-        verticalSpeed: speedVal,
-        zoomSpeed:  parseInt(e.speed * 15 / 100)
-      })
-    },
-    onPtzStop() {
-      this.$store.dispatch('frontEnd/ptz', {
-        deviceId: this.deviceId,
-        channelId: this.channelId,
-        command: 'stop',
-        horizonSpeed: 0,
-        verticalSpeed: 0,
-        zoomSpeed: 0
-      })
-    },
-    onFocusMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/focus', [this.deviceId, this.channelId, e.command, speedVal])
-    },
-    onFocusStop() {
-      this.$store.dispatch('frontEnd/focus', [this.deviceId, this.channelId, 'stop', 0])
-    },
-    onIrisMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/iris', [this.deviceId, this.channelId, e.command, speedVal])
-    },
-    onIrisStop() {
-      this.$store.dispatch('frontEnd/iris', [this.deviceId, this.channelId, 'stop', 0])
-    },
     tabHandleClick: function(tab) {
       if (tab.name === 'codec') {
         this.$refs.mediaInfo && this.$refs.mediaInfo.startTask()
@@ -263,7 +217,6 @@ export default {
 .player-side { flex: 3; min-width: 0; }
 .player-container { width: 100%; }
 .control-side { flex: 2; min-width: 340px; display: flex; flex-direction: column; }
-.ptz-section { flex-shrink: 0; margin-bottom: 8px; }
 .control-tabs { flex: 1; display: flex; flex-direction: column; min-height: 180px}
 .control-tabs .el-tabs__content { flex: 1; overflow: auto; }
 .media-info-content { overflow: auto; }

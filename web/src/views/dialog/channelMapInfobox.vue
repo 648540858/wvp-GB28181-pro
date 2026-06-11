@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import devicePlayer from '../dialog/devicePlayer.vue'
+import devicePlayer from '../device/dialog/devicePlayer.vue'
 
 export default {
   name: "channelMapInfobox",

@@ -124,7 +124,7 @@
 </template>
 
 <script>
-import devicePlayer from '../dialog/devicePlayer.vue'
+import devicePlayer from '../device/dialog/devicePlayer.vue'
 import StreamProxyEdit from './edit.vue'
 import Vue from 'vue'
 

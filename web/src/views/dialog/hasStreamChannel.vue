@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import devicePlayer from "@/views/dialog/devicePlayer";
+import devicePlayer from "@/views/device/dialog/devicePlayer";
 import elDragDialog from "@/directive/el-drag-dialog";
 
 export default {

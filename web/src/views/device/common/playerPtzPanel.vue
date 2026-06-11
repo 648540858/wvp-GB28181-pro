@@ -5,29 +5,21 @@
         <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true" />
       </div>
     </div>
-    <div class="ptz-section">
-      <ptzControls
-        :device-id="deviceId"
-        :channel-id="channelDeviceId"
-        :show-precise="false"
-        @ptz-move="onPtzMove"
-        @ptz-stop="onPtzStop"
-        @focus-move="onFocusMove"
-        @focus-stop="onFocusStop"
-        @iris-move="onIrisMove"
-        @iris-stop="onIrisStop"
-      />
-    </div>
+    <devicePtzPanel
+      :device-id="deviceId"
+      :channel-id="channelDeviceId"
+      @drag-zoom-start="toggleDragZoom"
+    />
   </div>
 </template>
 
 <script>
 import playerTabs from '../../common/playerTabs.vue'
-import ptzControls from '../../common/ptzControls.vue'
+import devicePtzPanel from './devicePtzPanel.vue'
 
 export default {
   name: 'PlayerPtzPanel',
-  components: { playerTabs, ptzControls },
+  components: { playerTabs, devicePtzPanel },
   props: {
     deviceId: { type: String, default: null },
     channelDeviceId: { type: String, default: null }
@@ -35,7 +27,8 @@ export default {
   data() {
     return {
       hasAudio: false,
-      playerHeight: '36vh'
+      playerHeight: '36vh',
+      dragZoomDirection: ''
     }
   },
   mounted() {
@@ -45,44 +38,6 @@ export default {
     this.stopPlay()
   },
   methods: {
-    ptzSpeed(speed) {
-      return parseInt(speed * 255 / 100)
-    },
-    onPtzMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/ptz', {
-        deviceId: this.deviceId,
-        channelId: this.channelDeviceId,
-        command: e.direction,
-        horizonSpeed: speedVal,
-        verticalSpeed: speedVal,
-        zoomSpeed: parseInt(e.speed * 15 / 100)
-      })
-    },
-    onPtzStop() {
-      this.$store.dispatch('frontEnd/ptz', {
-        deviceId: this.deviceId,
-        channelId: this.channelDeviceId,
-        command: 'stop',
-        horizonSpeed: 0,
-        verticalSpeed: 0,
-        zoomSpeed: 0
-      })
-    },
-    onFocusMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/focus', [this.deviceId, this.channelDeviceId, e.command, speedVal])
-    },
-    onFocusStop() {
-      this.$store.dispatch('frontEnd/focus', [this.deviceId, this.channelDeviceId, 'stop', 0])
-    },
-    onIrisMove(e) {
-      const speedVal = this.ptzSpeed(e.speed)
-      this.$store.dispatch('frontEnd/iris', [this.deviceId, this.channelDeviceId, e.command, speedVal])
-    },
-    onIrisStop() {
-      this.$store.dispatch('frontEnd/iris', [this.deviceId, this.channelDeviceId, 'stop', 0])
-    },
     startPlay() {
       this.$store.dispatch('play/play', [this.deviceId, this.channelDeviceId])
         .then(data => {
@@ -101,7 +56,22 @@ export default {
       this.$store.dispatch('play/stop', { deviceId: this.deviceId, channelId: this.channelDeviceId })
         .catch(() => {})
     },
-
+    toggleDragZoom(direction) {
+      this.dragZoomDirection = direction
+      this.$refs.playerTabs.startDragZoom((params) => {
+        params.deviceId = this.deviceId
+        params.channelId = this.channelDeviceId
+        const action = this.dragZoomDirection === 'in' ? 'frontEnd/dragZoomIn' : 'frontEnd/dragZoomOut'
+        const successMsg = this.dragZoomDirection === 'in' ? '拉框放大成功' : '拉框缩小成功'
+        const failMsg = this.dragZoomDirection === 'in' ? '拉框放大失败' : '拉框缩小失败'
+        this.$store.dispatch(action, params).then(() => {
+          this.$message({ showClose: true, message: successMsg, type: 'success' })
+        }).catch(() => {
+          this.$message({ showClose: true, message: failMsg, type: 'error' })
+        })
+        this.dragZoomDirection = ''
+      })
+    },
   }
 }
 </script>
@@ -114,10 +84,6 @@ export default {
 }
 .player-section {
   flex: 0.8;
-}
-.ptz-section {
-  flex-shrink: 0;
-  display: flex;
 }
 .player-wrapper {
   position: relative;

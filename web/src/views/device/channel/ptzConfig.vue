@@ -13,8 +13,8 @@
             <span>巡航组</span>
           </el-menu-item>
           <el-menu-item index="scan">
-            <i class="el-icon-s-grid" style="margin-right: 6px" />
-            <span>自动扫描</span>
+            <i class="iconfont icon-slider-right" style="margin-right: 6px" />
+            <span>线性扫描</span>
           </el-menu-item>
           <el-menu-item index="wiper">
             <i class="el-icon-umbrella" style="margin-right: 6px" />
@@ -43,12 +43,12 @@
 </template>
 
 <script>
-import playerPtzPanel from './playerPtzPanel.vue'
-import ptzPresetConfig from './ptzPresetConfig.vue'
-import ptzCruiseConfig from './ptzCruiseConfig.vue'
-import ptzScanConfig from './ptzScanConfig.vue'
-import ptzWiperConfig from './ptzWiperConfig.vue'
-import ptzSwitchConfig from './ptzSwitchConfig.vue'
+import playerPtzPanel from '../common/playerPtzPanel.vue'
+import ptzPresetConfig from '../common/ptzPresetConfig.vue'
+import ptzCruiseConfig from '../common/ptzCruiseConfig.vue'
+import ptzScanConfig from '../common/ptzScanConfig.vue'
+import ptzWiperConfig from '../common/ptzWiperConfig.vue'
+import ptzSwitchConfig from '../common/ptzSwitchConfig.vue'
 
 export default {
   name: 'PtzConfigPage',

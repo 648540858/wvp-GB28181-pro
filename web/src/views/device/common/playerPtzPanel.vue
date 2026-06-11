@@ -2,7 +2,7 @@
   <div class="player-ptz-panel">
     <div class="player-section">
       <div class="player-wrapper" :style="{ height: playerHeight }">
-        <playerTabs ref="playerTabs" :video-url="videoUrl" :has-audio="hasAudio" :show-button="true" />
+        <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true" />
       </div>
     </div>
     <div class="ptz-section">
@@ -34,8 +34,6 @@ export default {
   },
   data() {
     return {
-      streamInfo: null,
-      videoUrl: '',
       hasAudio: false,
       playerHeight: '36vh'
     }
@@ -58,7 +56,7 @@ export default {
         command: e.direction,
         horizonSpeed: speedVal,
         verticalSpeed: speedVal,
-        zoomSpeed: speedVal
+        zoomSpeed: parseInt(e.speed * 15 / 100)
       })
     },
     onPtzStop() {
@@ -88,12 +86,10 @@ export default {
     startPlay() {
       this.$store.dispatch('play/play', [this.deviceId, this.channelDeviceId])
         .then(data => {
-          this.streamInfo = data
           this.hasAudio = data.hasAudio
-          this.videoUrl = this.getUrlByStreamInfo(data)
           this.$nextTick(() => {
             if (this.$refs.playerTabs) {
-              this.$refs.playerTabs.play(this.videoUrl)
+              this.$refs.playerTabs.setStreamInfo(data)
             }
           })
         })
@@ -105,15 +101,7 @@ export default {
       this.$store.dispatch('play/stop', { deviceId: this.deviceId, channelId: this.channelDeviceId })
         .catch(() => {})
     },
-    getUrlByStreamInfo(streamInfo) {
-      const info = streamInfo || this.streamInfo
-      if (!info) return ''
-      const src = info.transcodeStream || info
-      if (location.protocol === 'https:') {
-        return src['wss_flv']
-      }
-      return src['ws_flv']
-    }
+
   }
 }
 </script>
@@ -125,7 +113,7 @@ export default {
   height: 100%;
 }
 .player-section {
-  flex: 1;
+  flex: 0.8;
 }
 .ptz-section {
   flex-shrink: 0;

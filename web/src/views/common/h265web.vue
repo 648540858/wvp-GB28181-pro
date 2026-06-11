@@ -1,13 +1,13 @@
 <template>
-  <div id="h265Player" ref="container" style="background-color: #000000; position: relative; display: flex; align-items: center; justify-content: center;" @dblclick="fullscreenSwich">
+  <div id="h265Player" ref="container" style="background-color: #000000; position: relative; display: flex; align-items: center; justify-content: center;" @dblclick="fullscreenSwich" @mouseenter="showBar = true" @mouseleave="showBar = false">
     <div id="glplayer" ref="playerBox" style="width: 100%; height: 100%; margin: 0 auto;">
       <div v-if="playerLoading" class="play-loading">
         <i class="el-icon-loading" />
-        视频加载中
+        <span style="margin-left: 5px">视频加载中</span>
       </div>
     </div>
 
-    <div v-if="showButton" id="buttonsBox" class="buttons-box">
+    <div v-if="showButton" id="buttonsBox" class="buttons-box" :style="{ opacity: showBar ? 1 : 0, pointerEvents: showBar ? 'auto' : 'none' }">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play h265web-btn" @click="unPause" />
         <i v-if="playing" class="iconfont icon-pause h265web-btn" @click="pause" />
@@ -60,7 +60,8 @@ export default {
       playerHeight: 0,
       inited: false,
       playerLoading: false,
-      mediaInfo: null
+      mediaInfo: null,
+      showBar: true
     }
   },
   watch: {
@@ -267,6 +268,7 @@ export default {
   height: 56px;
   background: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
   position: absolute;
+  transition: opacity 0.3s ease;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

@@ -120,7 +120,7 @@ export default {
 }
 .player-video-area {
   width: 100%;
-  height: 100%;
+  height:calc(100% - 36px);;
   background: #000;
 }
 </style>

@@ -25,7 +25,6 @@
               btn-layout="row"
               @ptz-move="onPtzMove"
               @ptz-stop="onPtzStop"
-              @ptz-guard="onPtzGuard"
               @focus-move="onFocusMove"
               @focus-stop="onFocusStop"
               @iris-move="onIrisMove"
@@ -191,13 +190,6 @@ export default {
         horizonSpeed: 0,
         verticalSpeed: 0,
         zoomSpeed: 0
-      })
-    },
-    onPtzGuard() {
-      this.$store.dispatch('device/homePosition', {
-        deviceId: this.deviceId,
-        channelId: this.channelId,
-        enabled: true
       })
     },
     onFocusMove(e) {

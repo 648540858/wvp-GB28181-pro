@@ -3,8 +3,9 @@
     ref="container"
     style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;"
     @dblclick="fullscreenSwich"
+    @mouseenter="showBar = true" @mouseleave="showBar = false"
   >
-    <div id="buttonsBox" class="buttons-box" v-if="showButton === undefined || showButton">
+    <div id="buttonsBox" class="buttons-box" v-if="showButton === undefined || showButton" :style="{ opacity: showBar ? 1 : 0, pointerEvents: showBar ? 'auto' : 'none' }">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick" />
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause" />
@@ -51,7 +52,8 @@ export default {
       rotate: 0,
       vod: true, // 点播
       forceNoOffscreen: false,
-      localVideoUrl: this.videoUrl
+      localVideoUrl: this.videoUrl,
+      showBar: true
     }
   },
   created() {
@@ -289,6 +291,7 @@ export default {
   height: 28px;
   background-color: rgba(43, 51, 63, 0.7);
   position: absolute;
+  transition: opacity 0.3s ease;
   display: flex;
   left: 0;
   bottom: 0;

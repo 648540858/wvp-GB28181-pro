@@ -15,7 +15,7 @@
       </div>
       <div class="ptz-func-col">
         <div class="ptz-func-group" :class="{ row: btnLayout === 'row' }">
-          <div class="ptz-func-row">
+          <div class="ptz-func-row" v-if="homePosition">
             <div class="ptz-func-row">
               <div class="ptz-func-btn" title="看守位" @click.prevent="$emit('ptz-guard')">
                 <i class="el-icon-s-home" /><span>看守位</span>
@@ -70,7 +70,8 @@
 export default {
   name: 'PtzControls',
   props: {
-    btnLayout: { type: String, default: 'column' }
+    btnLayout: { type: String, default: 'column' },
+    homePosition: { type: Boolean, default: false }
   },
   data() {
     return {

@@ -33,8 +33,8 @@
               Your browser is too old which doesn't support HTML5 video.
             </video>
             <el-radio-group v-model="talkMode" size="big" @change="onModeChange">
-              <el-radio-button :label="false">喊话</el-radio-button>
-              <el-radio-button :label="true">对讲</el-radio-button>
+              <el-radio-button :label="true">喊话</el-radio-button>
+              <el-radio-button :label="false">对讲</el-radio-button>
             </el-radio-group>
             <p style="color: #909399; font-size: 14px; margin-top: 4px;">
               {{ talkMode ? '双向语音交互，可听到设备声音' : '单向喊话，仅向设备发送语音' }}

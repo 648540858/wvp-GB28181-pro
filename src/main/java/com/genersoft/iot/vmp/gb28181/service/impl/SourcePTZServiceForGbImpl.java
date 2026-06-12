@@ -121,6 +121,11 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                         log.error("[FI失败] 未知的聚焦指令 {}", frontEndControlCode.getFocus());
                         callback.run(ErrorCode.ERROR100.getCode(), "未知的指令", null);
                     }
+                    if (frontEndControlCode.getFocusSpeed() == null) {
+                        callback.run(ErrorCode.ERROR100.getCode(), "参数异常", null);
+                        return;
+                    }
+                    focusSpeed = frontEndControlCode.getFocusSpeed();
                 }
                 if (frontEndControlCode.getIris() != null) {
                     if (frontEndControlCode.getIris() == 0) {
@@ -131,17 +136,12 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
                         log.error("[FI失败] 未知的光圈指令 {}", frontEndControlCode.getIris());
                         callback.run(ErrorCode.ERROR100.getCode(), "未知的指令", null);
                     }
+                    if (frontEndControlCode.getIrisSpeed() == null) {
+                        callback.run(ErrorCode.ERROR100.getCode(), "参数异常", null);
+                        return;
+                    }
+                    irisSpeed = frontEndControlCode.getIrisSpeed();
                 }
-                if (frontEndControlCode.getFocusSpeed() == null) {
-                    callback.run(ErrorCode.ERROR100.getCode(), "参数异常", null);
-                    return;
-                }
-                if (frontEndControlCode.getIrisSpeed() == null) {
-                    callback.run(ErrorCode.ERROR100.getCode(), "参数异常", null);
-                    return;
-                }
-                focusSpeed = frontEndControlCode.getFocusSpeed();
-                irisSpeed = frontEndControlCode.getIrisSpeed();
             }
             ptzService.frontEndCommand(channel, cmdCode, focusSpeed, irisSpeed, parameter3);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
@@ -347,5 +347,17 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
     @Override
     public void queryPreset(CommonGBChannel channel, ErrorCallback<List<Preset>> callback) {
         ptzService.queryPresetList(channel, callback);
+    }
+
+    @Override
+    public void dragZoom(CommonGBChannel channel, FrontEndControlCodeForDragZoom controlCode, ErrorCallback<String> callback) {
+        if (controlCode.getCode() == 1) {
+            ptzService.dragZoomIn(channel, controlCode.getLength(), controlCode.getWidth(), controlCode.getMidPointX(),
+                    controlCode.getMidPointY(), controlCode.getLengthX(), controlCode.getLengthY());
+        }else {
+            ptzService.dragZoomOut(channel, controlCode.getLength(), controlCode.getWidth(), controlCode.getMidPointX(),
+                    controlCode.getMidPointY(), controlCode.getLengthX(), controlCode.getLengthY());
+        }
+        callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
     }
 }

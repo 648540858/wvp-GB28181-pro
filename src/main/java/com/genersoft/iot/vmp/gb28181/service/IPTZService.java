@@ -18,4 +18,8 @@ public interface IPTZService {
 
     void queryPresetList(CommonGBChannel channel, ErrorCallback<List<Preset>> callback);
 
+    void dragZoomIn(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY);
+
+    void dragZoomOut(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY);
+
 }

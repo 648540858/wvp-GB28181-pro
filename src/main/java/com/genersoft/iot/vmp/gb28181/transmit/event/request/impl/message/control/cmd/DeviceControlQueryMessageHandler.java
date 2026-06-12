@@ -241,6 +241,19 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                         }
                     }));
                     break;
+                case DRAG_ZOOM:
+                    channelControlService.dragZoom(channel, (FrontEndControlCodeForDragZoom) frontEndControlCode, ((code, msg, data) -> {
+                        try {
+                            if (code == ErrorCode.SUCCESS.getCode()) {
+                                responseAck(request, Response.OK);
+                            }else {
+                                responseAck(request, Response.FORBIDDEN);
+                            }
+                        }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                            log.error("[命令发送失败] 辅助开关指令: {}", exception.getMessage());
+                        }
+                    }));
+                    break;
                 default:
                     log.info("[INFO 消息] 设备不支持的控制方式");
                     try {

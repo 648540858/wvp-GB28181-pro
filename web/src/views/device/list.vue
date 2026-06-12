@@ -197,7 +197,7 @@
 import deviceEdit from './edit.vue'
 import syncChannelProgress from '../dialog/SyncChannelProgress.vue'
 import configInfo from '../dialog/configInfo.vue'
-import timeStatistics from './timeStatistics.vue'
+import timeStatistics from './dialog/timeStatistics.vue'
 import Vue from 'vue'
 
 export default {

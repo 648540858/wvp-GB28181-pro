@@ -48,7 +48,8 @@ import {
   stopPlayback,
   pausePlayback,
   resumePlayback,
-  seekPlayback, speedPlayback, getAllForMap, test, saveLevel, resetLevel, clearThin, thinProgress, drawThin, saveThin
+  seekPlayback, speedPlayback, getAllForMap, test, saveLevel, resetLevel, clearThin, thinProgress, drawThin, saveThin,
+  dragZoomIn, dragZoomOut
 } from '@/api/commonChannel'
 
 const actions = {
@@ -485,6 +486,26 @@ const actions = {
   focus({ commit }, params) {
     return new Promise((resolve, reject) => {
       focus(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  dragZoomIn({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      dragZoomIn(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  dragZoomOut({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      dragZoomOut(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

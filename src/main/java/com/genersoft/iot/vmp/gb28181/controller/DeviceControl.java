@@ -165,24 +165,24 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
 	@Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
-	@Parameter(name = "midpointx", description = "拉框中心的横轴坐标像素值", required = true)
-	@Parameter(name = "midpointy", description = "拉框中心的纵轴坐标像素值", required = true)
-	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
-	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
+	@Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+	@Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
+	@Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
 	@GetMapping("drag_zoom/zoom_in")
 	public void dragZoomIn(@RequestParam String deviceId, String channelId,
 											 @RequestParam int length,
 											 @RequestParam int width,
-											 @RequestParam int midpointx,
-											 @RequestParam int midpointy,
-											 @RequestParam int lengthx,
-											 @RequestParam int lengthy) {
+											 @RequestParam int midpointX,
+											 @RequestParam int midpointY,
+											 @RequestParam int lengthX,
+											 @RequestParam int lengthY) {
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
+			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy);
+		deviceService.dragZoomIn(device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
 	}
 
 	@Operation(summary = "拉框缩小", security = @SecurityRequirement(name = JwtUtils.HEADER))

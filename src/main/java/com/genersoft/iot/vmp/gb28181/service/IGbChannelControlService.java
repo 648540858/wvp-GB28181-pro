@@ -16,4 +16,5 @@ public interface IGbChannelControlService {
     void wiper(CommonGBChannel channel, FrontEndControlCodeForWiper controlCode, ErrorCallback<String> callback);
     void auxiliary(CommonGBChannel channel, FrontEndControlCodeForAuxiliary frontEndControlCode, ErrorCallback<String> callback);
     void queryPreset(CommonGBChannel channel, ErrorCallback<List<Preset>> callback);
+    void dragZoom(CommonGBChannel channel, FrontEndControlCodeForDragZoom frontEndControlCode, ErrorCallback<String> callback);
 }

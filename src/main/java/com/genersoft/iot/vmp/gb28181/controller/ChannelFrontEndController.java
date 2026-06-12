@@ -598,4 +598,94 @@ public class ChannelFrontEndController {
         channelControlService.auxiliary(channel, controlCode, callback);
         return result;
     }
+
+    @Operation(summary = "拉框放大", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "length", description = "播放窗口长度像素值", required = true)
+    @Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
+    @Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
+    @Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+    @Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
+    @Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
+    @GetMapping("/drag_zoom_in")
+    public DeferredResult<WVPResult<String>> dragZoomIn(Integer channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY){
+
+        if (log.isDebugEnabled()) {
+            log.debug("[通用通道]拉框放大 API调用，channelId：{} ，length：{} ，width：{} ，midpointX：{} ，midpointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+        }
+
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        FrontEndControlCodeForDragZoom controlCode = new FrontEndControlCodeForDragZoom();
+        controlCode.setCode(1);
+        controlCode.setLength(length);
+        controlCode.setWidth(width);
+        controlCode.setMidPointX(midpointX);
+        controlCode.setMidPointY(midpointY);
+        controlCode.setLengthX(lengthX);
+        controlCode.setLengthY(lengthY);
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+
+        result.onTimeout(()->{
+            WVPResult<String> wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "请求超时");
+            result.setResult(wvpResult);
+        });
+
+        ErrorCallback<String> callback = (code, msg, data) -> {
+            WVPResult<String> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            wvpResult.setData(data);
+            result.setResult(wvpResult);
+        };
+        channelControlService.dragZoom(channel, controlCode, callback);
+        return result;
+    }
+
+    @Operation(summary = "拉框缩小", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "length", description = "播放窗口长度像素值", required = true)
+    @Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
+    @Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
+    @Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+    @Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
+    @Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
+    @GetMapping("/drag_zoom_out")
+    public DeferredResult<WVPResult<String>> dragZoomOut(Integer channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY){
+
+        if (log.isDebugEnabled()) {
+            log.debug("[通用通道]拉框缩小 API调用，channelId：{} ，length：{} ，width：{} ，midpointX：{} ，midpointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+        }
+
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        FrontEndControlCodeForDragZoom controlCode = new FrontEndControlCodeForDragZoom();
+        controlCode.setCode(2);
+        controlCode.setLength(length);
+        controlCode.setWidth(width);
+        controlCode.setMidPointX(midpointX);
+        controlCode.setMidPointY(midpointY);
+        controlCode.setLengthX(lengthX);
+        controlCode.setLengthY(lengthY);
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+
+        result.onTimeout(()->{
+            WVPResult<String> wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "请求超时");
+            result.setResult(wvpResult);
+        });
+
+        ErrorCallback<String> callback = (code, msg, data) -> {
+            WVPResult<String> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            wvpResult.setData(data);
+            result.setResult(wvpResult);
+        };
+        channelControlService.dragZoom(channel, controlCode, callback);
+        return result;
+    }
 }

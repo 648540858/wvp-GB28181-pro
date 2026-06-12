@@ -125,4 +125,17 @@ public class GbChannelControlServiceImpl implements IGbChannelControlService {
         }
         sourcePTZService.queryPreset(channel, callback);
     }
+
+    @Override
+    public void dragZoom(CommonGBChannel channel, FrontEndControlCodeForDragZoom frontEndControlCode, ErrorCallback<String> callback) {
+        log.info("[通用通道] 拉框{} 类型： {}， 编号：{}", frontEndControlCode.getCode() == 1 ? "放大": "缩小", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePTZService sourcePTZService = sourcePTZServiceMap.get(ChannelDataType.PTZ_SERVICE + dataType);
+        if (sourcePTZService == null) {
+            // 通道数据异常
+            log.error("[点播通用通道] 类型： {} 不支持拉框控制", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        sourcePTZService.dragZoom(channel, frontEndControlCode, callback);
+    }
 }

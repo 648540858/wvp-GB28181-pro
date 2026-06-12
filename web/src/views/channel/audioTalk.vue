@@ -3,7 +3,7 @@
     <el-dialog
       title="语音对讲"
       top="10vh"
-      width="65vw"
+      width="61.5vw"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       @close="close()"
@@ -66,14 +66,13 @@
 import playerTabs from '../common/playerTabs.vue'
 
 export default {
-  name: 'AudioTalk',
+  name: 'ChAudioTalk',
   components: { playerTabs },
   data() {
     return {
       showDialog: false,
       showPlayer: false,
       previewLoading: false,
-      deviceId: null,
       channelId: null,
       hasAudio: false,
       streamInfo: null,
@@ -91,9 +90,8 @@ export default {
     this.talkStatus = -1
   },
   methods: {
-    openDialog(deviceId, channelId) {
+    openDialog(channelId) {
       if (this.showDialog) return
-      this.deviceId = deviceId
       this.channelId = channelId
       this.talkMode = false
       this.showPlayer = false
@@ -107,7 +105,7 @@ export default {
     },
     startPreview() {
       this.previewLoading = true
-      this.$store.dispatch('play/play', [this.deviceId, this.channelId])
+      this.$store.dispatch('commonChanel/playChannel', this.channelId)
         .then(data => {
           this.streamInfo = data
           this.hasAudio = data.hasAudio
@@ -141,7 +139,7 @@ export default {
     async startTalk() {
       this.talkStatus = 0
       try {
-        const data = await this.$store.dispatch('play/broadcastStart', [this.deviceId, this.channelId, this.talkMode])
+        const data = await this.$store.dispatch('play/broadcastStart', [this.channelId, this.channelId, this.talkMode])
         const si = data.streamInfo
         const url = document.location.protocol.includes('https') ? si.rtcs : si.rtc
         this.startWebrtcPush(url)
@@ -199,7 +197,7 @@ export default {
       this.talkAudioPlayStream = null
       this.playConnected = false
       try {
-        await this.$store.dispatch('play/broadcastStop', [this.deviceId, this.channelId])
+        await this.$store.dispatch('play/broadcastStop', [this.channelId, this.channelId])
       } catch (e) {
         console.warn('停止对讲失败', e)
       }

@@ -92,6 +92,34 @@ public class PTZServiceImpl implements IPTZService {
     }
 
     @Override
+    public void dragZoomIn(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
+            log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
+        }
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        deviceService.dragZoomIn(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
+    }
+
+    @Override
+    public void dragZoomOut(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
+            log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
+        }
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        deviceService.dragZoomOut(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
+    }
+
+    @Override
     public void queryPresetList(CommonGBChannel channel, ErrorCallback<List<Preset>> callback) {
         if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只有国标通道的支持云台控制
@@ -108,4 +136,6 @@ public class PTZServiceImpl implements IPTZService {
         }
         deviceService.queryPreset(device, deviceChannel.getDeviceId(), callback);
     }
+
+
 }

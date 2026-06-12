@@ -5,10 +5,9 @@
         <playerTabs ref="playerTabs" :has-audio="hasAudio" :show-button="true" />
       </div>
     </div>
-    <devicePtzPanel
+    <channelPtzPanel
       style="margin-top: 5vh"
-      :device-id="deviceId"
-      :channel-id="channelDeviceId"
+      :channel-id="channelId"
       @drag-zoom-start="toggleDragZoom"
     />
   </div>
@@ -16,14 +15,13 @@
 
 <script>
 import playerTabs from '../../common/playerTabs.vue'
-import devicePtzPanel from './devicePtzPanel.vue'
+import channelPtzPanel from './channelPtzPanel.vue'
 
 export default {
-  name: 'PlayerPtzPanel',
-  components: { playerTabs, devicePtzPanel },
+  name: 'ChPlayerPtzPanel',
+  components: { playerTabs, channelPtzPanel },
   props: {
-    deviceId: { type: String, default: null },
-    channelDeviceId: { type: String, default: null }
+    channelId: { type: String, default: null }
   },
   data() {
     return {
@@ -40,7 +38,7 @@ export default {
   },
   methods: {
     startPlay() {
-      this.$store.dispatch('play/play', [this.deviceId, this.channelDeviceId])
+      this.$store.dispatch('commonChanel/playChannel', this.channelId)
         .then(data => {
           this.hasAudio = data.hasAudio
           this.$nextTick(() => {
@@ -54,15 +52,15 @@ export default {
         })
     },
     stopPlay() {
-      this.$store.dispatch('play/stop', { deviceId: this.deviceId, channelId: this.channelDeviceId })
+      this.$store.dispatch('commonChanel/stopPlayChannel', this.channelId)
         .catch(() => {})
     },
     toggleDragZoom(direction) {
       this.dragZoomDirection = direction
       this.$refs.playerTabs.startDragZoom((params) => {
-        params.deviceId = this.deviceId
-        params.channelId = this.channelDeviceId
-        const action = this.dragZoomDirection === 'in' ? 'frontEnd/dragZoomIn' : 'frontEnd/dragZoomOut'
+        params.deviceId = this.channelId
+        params.channelId = this.channelId
+        const action = this.dragZoomDirection === 'in' ? 'commonChanel/dragZoomIn' : 'commonChanel/dragZoomOut'
         const successMsg = this.dragZoomDirection === 'in' ? '拉框放大成功' : '拉框缩小成功'
         const failMsg = this.dragZoomDirection === 'in' ? '拉框放大失败' : '拉框缩小失败'
         this.$store.dispatch(action, params).then(() => {
@@ -72,7 +70,7 @@ export default {
         })
         this.dragZoomDirection = ''
       })
-    },
+    }
   }
 }
 </script>

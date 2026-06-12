@@ -1,6 +1,6 @@
 <template>
   <div id="channelList" class="app-container" style="height: calc(100vh - 124px);">
-    <div v-if="!editId" style="height: 100%">
+    <div v-if="!editId && !showPtzConfig" style="height: 100%">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -149,6 +149,10 @@
                   设备录像</el-dropdown-item>
                 <el-dropdown-item command="cloudRecords" :disabled="scope.row.gbStatus !== 'ON'">
                   云端录像</el-dropdown-item>
+                <el-dropdown-item command="ptzConfig" :disabled="scope.row.gbStatus !== 'ON'">
+                  云台配置</el-dropdown-item>
+                <el-dropdown-item command="audioTalk" :disabled="scope.row.gbStatus !== 'ON'">
+                  语音对讲</el-dropdown-item>
               </el-dropdown-menu>
 
             </el-dropdown>
@@ -168,6 +172,8 @@
     </div>
 
     <devicePlayer ref="devicePlayer" />
+    <audioTalk ref="audioTalk" />
+    <ptzConfig v-if="showPtzConfig" :channel-id="ptzConfigChannelId" @close="showPtzConfig = false" />
     <channel-edit v-if="editId" :id="editId" :close-edit="closeEdit" />
     <chooseCivilCode ref="chooseCivilCode" />
     <chooseGroup ref="chooseGroup" />
@@ -176,7 +182,9 @@
 </template>
 
 <script>
-import devicePlayer from '@/views/common/channelPlayer/index.vue'
+import devicePlayer from './player.vue'
+import audioTalk from './audioTalk.vue'
+import ptzConfig from './ptzConfig.vue'
 import Edit from './edit.vue'
 import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
 import ChooseGroup from '@/views/dialog/chooseGroup.vue'
@@ -186,6 +194,8 @@ export default {
   components: {
     ChooseGroup,
     devicePlayer,
+    audioTalk,
+    ptzConfig,
     ChooseCivilCode,
     ChannelEdit: Edit
   },
@@ -241,6 +251,8 @@ export default {
       total: 0,
       beforeUrl: '/device',
       editId: null,
+      showPtzConfig: false,
+      ptzConfigChannelId: null,
       civilCodeName: null,
       civilCodeDeviceId: null,
 
@@ -307,7 +319,7 @@ export default {
       this.$store.dispatch('commonChanel/playChannel', itemData.gbId)
         .then((data) => {
           itemData.streamId = data.stream
-          this.$refs.devicePlayer.openDialog('media', itemData.gbId, {
+          this.$refs.devicePlayer.openDialog('media', itemData.gbId, itemData.gbId, {
             streamInfo: data,
             hasAudio: itemData.hasAudio
           })
@@ -391,6 +403,11 @@ export default {
         this.queryRecords(itemData)
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
+      } else if (command === 'ptzConfig') {
+        this.ptzConfigChannelId = itemData.gbId
+        this.showPtzConfig = true
+      } else if (command === 'audioTalk') {
+        this.$refs.audioTalk.openDialog(itemData.gbId)
       }
     },
     getCheckIds: function() {

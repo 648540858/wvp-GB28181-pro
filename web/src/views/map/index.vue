@@ -126,7 +126,7 @@
 import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
-import devicePlayer from '../common/channelPlayer/index.vue'
+import devicePlayer from '../channel/player.vue'
 import CommonChannelEditDialog from '../dialog/commonChannelEditDialog.vue'
 import DrawThinProgress from './dialog/drawThinProgress.vue'
 

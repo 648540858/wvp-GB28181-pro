@@ -512,6 +512,20 @@ export function focus({ channelId, command, speed }) {
     }
   })
 }
+export function dragZoomIn(params) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/drag_zoom_in',
+    params
+  })
+}
+export function dragZoomOut(params) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/drag_zoom_out',
+    params
+  })
+}
 export function queryRecord({ channelId, startTime, endTime }) {
   return request({
     method: 'get',

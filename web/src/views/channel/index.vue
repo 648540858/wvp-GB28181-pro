@@ -180,8 +180,6 @@ import devicePlayer from '@/views/common/channelPlayer/index.vue'
 import Edit from './edit.vue'
 import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
 import ChooseGroup from '@/views/dialog/chooseGroup.vue'
-import { MessageBox } from 'element-ui'
-import store from '@/store'
 
 export default {
   name: 'ChannelList',

@@ -58,7 +58,7 @@
 import moment from 'moment'
 import momentDurationFormatSetup from 'moment-duration-format'
 import screenfull from 'screenfull'
-import cloudRecordPlayer from './cloudRecordPlayer.vue'
+import cloudRecordPlayer from './player.vue'
 
 momentDurationFormatSetup(moment)
 
@@ -284,12 +284,15 @@ export default {
           this.$refs.cloudRecordPlayer.setStreamInfo(data, this.detailFiles[this.chooseFileIndex].timeLen, this.detailFiles[this.chooseFileIndex].startTime)
         })
         .catch((error) => {
-          console.log(error)
+          this.$message({
+            showClose: true,
+            message: error,
+            type: 'error'
+          })
         })
         .finally(() => {
           this.playLoading = false
         })
-
     },
     downloadFile(file) {
       this.$store.dispatch('cloudRecord/getPlayPath', file.id)

@@ -1,9 +1,7 @@
 <template>
   <div class="player-tabs-wrapper" ref="playerWrapper">
-    <el-tabs v-if="showTab && playerCount > 1" v-model="activePlayer" type="card" :stretch="true" @tab-click="changePlayer">
-      <el-tab-pane label="Jessibuca" name="jessibuca"></el-tab-pane>
-      <el-tab-pane label="WebRTC" name="webRTC"></el-tab-pane>
-      <el-tab-pane label="h265web" name="h265web"></el-tab-pane>
+    <el-tabs v-if="showTab && playerList.length > 1" v-model="activePlayer" type="card" :stretch="true" @tab-click="changePlayer">
+      <el-tab-pane v-for="p in playerList" :key="p.key" :label="p.label" :name="p.key"></el-tab-pane>
     </el-tabs>
     <div class="player-video-area">
       <jessibucaPlayer
@@ -13,6 +11,8 @@
         :has-audio="hasAudio"
         :show-button="showButton"
         fluent autoplay live
+        @playTimeChange="$emit('playTimeChange', $event)"
+        @playStatusChange="$emit('playStatusChange', $event)"
       />
       <rtc-player
         v-if="activePlayer === 'webRTC'"
@@ -21,6 +21,8 @@
         :has-audio="hasAudio"
         :show-button="showButton"
         fluent autoplay live
+        @playTimeChange="$emit('playTimeChange', $event)"
+        @playStatusChange="$emit('playStatusChange', $event)"
       />
       <h265web
         v-if="activePlayer === 'h265web'"
@@ -29,6 +31,8 @@
         :has-audio="hasAudio"
         :show-button="showButton"
         fluent autoplay live
+        @playTimeChange="$emit('playTimeChange', $event)"
+        @playStatusChange="$emit('playStatusChange', $event)"
       />
     </div>
   </div>
@@ -44,38 +48,59 @@ export default {
   components: { jessibucaPlayer, rtcPlayer, h265web },
   props: {
     hasAudio: { type: Boolean, default: false },
-    showButton: { type: Boolean, default: true }
+    showButton: { type: Boolean, default: true },
+    showTab: { type: Boolean, default: true }
   },
   data() {
     return {
-      showTab: true,
       streamInfo: null,
       activePlayer: 'jessibuca',
-      player: { jessibuca: ['ws_flv', 'wss_flv'], webRTC: ['rtc', 'rtcs'], h265web: ['ws_flv', 'wss_flv'] }
+      player: { jessibuca: ['ws_flv', 'wss_flv'], webRTC: ['rtc', 'rtcs'], h265web: ['ws_flv', 'wss_flv'] },
+      allPlayerList: [
+        { key: 'jessibuca', label: 'Jessibuca' },
+        { key: 'webRTC', label: 'WebRTC' },
+        { key: 'h265web', label: 'H265web' }
+      ]
     }
   },
   computed: {
+    playerList() {
+      return this.allPlayerList
+    },
     playerCount() {
-      return Object.keys(this.player).length
+      return this.playerList.length
     }
   },
   created() {
     if (this.playerCount === 1) {
-      this.activePlayer = Object.keys(this.player)[0]
+      this.activePlayer = this.playerList[0].key
     }
   },
   methods: {
+    getPlayerList() {
+      return this.playerList
+    },
+    getActivePlayer() {
+      return this.activePlayer
+    },
+    switchPlayer(key) {
+      if (this.activePlayer === key) return
+      this.activePlayer = key
+      if (this.streamInfo) {
+        this.play()
+      }
+    },
     getUrlByStreamInfo() {
       if (!this.streamInfo) return ''
-      const src = this.streamInfo.transcodeStream || this.streamInfo
       if (location.protocol === 'https:') {
-        return src[this.player[this.activePlayer][1]]
+        return this.streamInfo[this.player[this.activePlayer][1]]
       }
-      return src[this.player[this.activePlayer][0]]
+      return this.streamInfo[this.player[this.activePlayer][0]]
     },
     changePlayer(tab) {
       this.activePlayer = tab.name
       this.play()
+      this.$emit('player-changed', this.activePlayer)
     },
     setStreamInfo(streamInfo) {
       this.streamInfo = streamInfo
@@ -101,6 +126,30 @@ export default {
     pause() {
       if (this.$refs[this.activePlayer]) {
         this.$refs[this.activePlayer].pause()
+      }
+    },
+    destroy() {
+      const player = this.$refs[this.activePlayer]
+      if (player && player.destroy) {
+        player.destroy()
+      }
+    },
+    setPlaybackRate(rate) {
+      const player = this.$refs[this.activePlayer]
+      if (player && player.setPlaybackRate) {
+        player.setPlaybackRate(rate)
+      }
+    },
+    resize(width, height) {
+      const player = this.$refs[this.activePlayer]
+      if (player && player.resize) {
+        player.resize(width, height)
+      }
+    },
+    screenshot() {
+      const player = this.$refs[this.activePlayer]
+      if (player && player.screenshot) {
+        return player.screenshot()
       }
     },
     getVideoRect() {

@@ -38,55 +38,54 @@
             </el-tab-pane>
             <el-tab-pane label="实时视频" name="media">
               <div v-if="tabActiveName === 'media'" class="media-info-content">
-                <div class="media-row">
-                  <span class="media-label">播放地址：</span>
-                  <el-input v-model="playerUrlInfo.playerUrl" :disabled="true">
-                    <template slot="append">
-                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playerUrl)" />
-                    </template>
-                  </el-input>
-                </div>
-                <div class="media-row">
-                  <span class="media-label">iframe：</span>
-                  <el-input v-model="sharedIframe" :disabled="true">
-                    <template slot="append">
-                      <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(sharedIframe)" />
-                    </template>
-                  </el-input>
-                </div>
-                <div class="media-row">
-                  <span class="media-label">资源地址：</span>
-                  <el-input v-model="playerUrlInfo.playUrl" :disabled="true">
-                    <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playUrl)" />
-                    <el-dropdown v-if="streamInfo" slot="prepend" trigger="click" @command="copyUrl">
-                      <el-button>更多地址<i class="el-icon-arrow-down el-icon--right" /></el-button>
-                      <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv"><el-tag>FLV:</el-tag><span>{{ streamInfo.flv }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv"><el-tag>FLV(https):</el-tag><span>{{ streamInfo.https_flv }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.ws_flv" :command="streamInfo.ws_flv"><el-tag>FLV(ws):</el-tag><span>{{ streamInfo.ws_flv }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.wss_flv" :command="streamInfo.wss_flv"><el-tag>FLV(wss):</el-tag><span>{{ streamInfo.wss_flv }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.fmp4" :command="streamInfo.fmp4"><el-tag>FMP4:</el-tag><span>{{ streamInfo.fmp4 }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.https_fmp4" :command="streamInfo.https_fmp4"><el-tag>FMP4(https):</el-tag><span>{{ streamInfo.https_fmp4 }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.ws_fmp4" :command="streamInfo.ws_fmp4"><el-tag>FMP4(ws):</el-tag><span>{{ streamInfo.ws_fmp4 }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.wss_fmp4" :command="streamInfo.wss_fmp4"><el-tag>FMP4(wss):</el-tag><span>{{ streamInfo.wss_fmp4 }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.hls" :command="streamInfo.hls"><el-tag>HLS:</el-tag><span>{{ streamInfo.hls }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.https_hls" :command="streamInfo.https_hls"><el-tag>HLS(https):</el-tag><span>{{ streamInfo.https_hls }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.ws_hls" :command="streamInfo.ws_hls"><el-tag>HLS(ws):</el-tag><span>{{ streamInfo.ws_hls }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.wss_hls" :command="streamInfo.wss_hls"><el-tag>HLS(wss):</el-tag><span>{{ streamInfo.wss_hls }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.ts" :command="streamInfo.ts"><el-tag>TS:</el-tag><span>{{ streamInfo.ts }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.https_ts" :command="streamInfo.https_ts"><el-tag>TS(https):</el-tag><span>{{ streamInfo.https_ts }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.ws_ts" :command="streamInfo.ws_ts"><el-tag>TS(ws):</el-tag><span>{{ streamInfo.ws_ts }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.wss_ts" :command="streamInfo.wss_ts"><el-tag>TS(wss):</el-tag><span>{{ streamInfo.wss_ts }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtc" :command="streamInfo.rtc"><el-tag>RTC:</el-tag><span>{{ streamInfo.rtc }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs"><el-tag>RTCS:</el-tag><span>{{ streamInfo.rtcs }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp"><el-tag>RTMP:</el-tag><span>{{ streamInfo.rtmp }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtmps" :command="streamInfo.rtmps"><el-tag>RTMPS:</el-tag><span>{{ streamInfo.rtmps }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtsp" :command="streamInfo.rtsp"><el-tag>RTSP:</el-tag><span>{{ streamInfo.rtsp }}</span></el-dropdown-item>
-                        <el-dropdown-item v-if="streamInfo.rtsps" :command="streamInfo.rtsps"><el-tag>RTSPS:</el-tag><span>{{ streamInfo.rtsps }}</span></el-dropdown-item>
-                      </el-dropdown-menu>
-                    </el-dropdown>
-                  </el-input>
-                </div>
+                <el-form label-width="90px" size="small">
+                  <el-form-item label="播放地址">
+                    <el-input v-model="playerUrlInfo.playerUrl" :disabled="true">
+                      <template slot="append">
+                        <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playerUrl)" />
+                      </template>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="iframe">
+                    <el-input v-model="sharedIframe" :disabled="true" >
+                      <template slot="append">
+                        <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(sharedIframe)" />
+                      </template>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="资源地址">
+                    <el-input v-model="playerUrlInfo.playUrl" :disabled="true" size="mini">
+                      <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrlInfo.playUrl)" />
+                      <el-dropdown v-if="streamInfo" slot="prepend" trigger="click" @command="copyUrl">
+                        <el-button>更多地址<i class="el-icon-arrow-down el-icon--right" size="mini"/></el-button>
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv"><el-tag>FLV:</el-tag><span>{{ streamInfo.flv }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv"><el-tag>FLV(https):</el-tag><span>{{ streamInfo.https_flv }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.ws_flv" :command="streamInfo.ws_flv"><el-tag>FLV(ws):</el-tag><span>{{ streamInfo.ws_flv }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.wss_flv" :command="streamInfo.wss_flv"><el-tag>FLV(wss):</el-tag><span>{{ streamInfo.wss_flv }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.fmp4" :command="streamInfo.fmp4"><el-tag>FMP4:</el-tag><span>{{ streamInfo.fmp4 }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.https_fmp4" :command="streamInfo.https_fmp4"><el-tag>FMP4(https):</el-tag><span>{{ streamInfo.https_fmp4 }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.ws_fmp4" :command="streamInfo.ws_fmp4"><el-tag>FMP4(ws):</el-tag><span>{{ streamInfo.ws_fmp4 }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.wss_fmp4" :command="streamInfo.wss_fmp4"><el-tag>FMP4(wss):</el-tag><span>{{ streamInfo.wss_fmp4 }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.hls" :command="streamInfo.hls"><el-tag>HLS:</el-tag><span>{{ streamInfo.hls }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.https_hls" :command="streamInfo.https_hls"><el-tag>HLS(https):</el-tag><span>{{ streamInfo.https_hls }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.ws_hls" :command="streamInfo.ws_hls"><el-tag>HLS(ws):</el-tag><span>{{ streamInfo.ws_hls }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.wss_hls" :command="streamInfo.wss_hls"><el-tag>HLS(wss):</el-tag><span>{{ streamInfo.wss_hls }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.ts" :command="streamInfo.ts"><el-tag>TS:</el-tag><span>{{ streamInfo.ts }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.https_ts" :command="streamInfo.https_ts"><el-tag>TS(https):</el-tag><span>{{ streamInfo.https_ts }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.ws_ts" :command="streamInfo.ws_ts"><el-tag>TS(ws):</el-tag><span>{{ streamInfo.ws_ts }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.wss_ts" :command="streamInfo.wss_ts"><el-tag>TS(wss):</el-tag><span>{{ streamInfo.wss_ts }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtc" :command="streamInfo.rtc"><el-tag>RTC:</el-tag><span>{{ streamInfo.rtc }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs"><el-tag>RTCS:</el-tag><span>{{ streamInfo.rtcs }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp"><el-tag>RTMP:</el-tag><span>{{ streamInfo.rtmp }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtmps" :command="streamInfo.rtmps"><el-tag>RTMPS:</el-tag><span>{{ streamInfo.rtmps }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtsp" :command="streamInfo.rtsp"><el-tag>RTSP:</el-tag><span>{{ streamInfo.rtsp }}</span></el-dropdown-item>
+                          <el-dropdown-item v-if="streamInfo.rtsps" :command="streamInfo.rtsps"><el-tag>RTSPS:</el-tag><span>{{ streamInfo.rtsps }}</span></el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </el-input>
+                  </el-form-item>
+                </el-form>
               </div>
             </el-tab-pane>
             <el-tab-pane label="编码信息" name="codec">
@@ -171,7 +170,7 @@ export default {
       this.showVideoDialog = true
       this.$nextTick(() => {
         if (this.$refs.playerTabs) {
-          this.$refs.playerTabs.setStreamInfo(streamInfo)
+          this.$refs.playerTabs.setStreamInfo(streamInfo.transcodeStream || streamInfo)
         }
       })
     },
@@ -217,7 +216,7 @@ export default {
 .player-side { flex: 3; min-width: 0; }
 .player-container { width: 100%; }
 .control-side { flex: 2; min-width: 340px; display: flex; flex-direction: column; }
-.control-tabs { flex: 1; display: flex; flex-direction: column; min-height: 180px}
+.control-tabs { flex: 1; display: flex; flex-direction: column; min-height: 220px}
 .control-tabs .el-tabs__content { flex: 1; overflow: auto; }
 .media-info-content { overflow: auto; }
 .media-row { display: flex; margin-bottom: 0.5rem; height: 2.5rem; }

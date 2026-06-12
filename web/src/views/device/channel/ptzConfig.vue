@@ -16,10 +16,6 @@
             <i class="iconfont icon-slider-right" style="margin-right: 6px" />
             <span>线性扫描</span>
           </el-menu-item>
-          <el-menu-item index="wiper">
-            <i class="el-icon-umbrella" style="margin-right: 6px" />
-            <span>雨刷</span>
-          </el-menu-item>
           <el-menu-item index="switch">
             <i class="el-icon-s-tools" style="margin-right: 6px" />
             <span>辅助开关</span>
@@ -34,7 +30,6 @@
           <ptzPresetConfig v-if="activeTab === 'preset'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
           <ptzCruiseConfig v-if="activeTab === 'cruise'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
           <ptzScanConfig v-if="activeTab === 'scan'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
-          <ptzWiperConfig v-if="activeTab === 'wiper'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
           <ptzSwitchConfig v-if="activeTab === 'switch'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
         </div>
       </div>
@@ -47,12 +42,11 @@ import playerPtzPanel from '../common/playerPtzPanel.vue'
 import ptzPresetConfig from '../common/ptzPresetConfig.vue'
 import ptzCruiseConfig from '../common/ptzCruiseConfig.vue'
 import ptzScanConfig from '../common/ptzScanConfig.vue'
-import ptzWiperConfig from '../common/ptzWiperConfig.vue'
 import ptzSwitchConfig from '../common/ptzSwitchConfig.vue'
 
 export default {
   name: 'PtzConfigPage',
-  components: { playerPtzPanel, ptzPresetConfig, ptzCruiseConfig, ptzScanConfig, ptzWiperConfig, ptzSwitchConfig },
+  components: { playerPtzPanel, ptzPresetConfig, ptzCruiseConfig, ptzScanConfig, ptzSwitchConfig },
   props: {
     deviceId: { type: String, default: null },
     channelDeviceId: { type: String, default: null }

@@ -114,7 +114,7 @@ export default {
           this.showPlayer = true
           this.$nextTick(() => {
             if (this.$refs.playerTabs) {
-              this.$refs.playerTabs.setStreamInfo(data)
+              this.$refs.playerTabs.setStreamInfo(data.transcodeStream || data)
             }
           })
         })

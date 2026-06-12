@@ -21,7 +21,7 @@
 <script>
 
 import elDragDialog from '@/directive/el-drag-dialog'
-import cloudRecordPlayer from './cloudRecordPlayer.vue'
+import cloudRecordPlayer from './player.vue'
 
 export default {
   name: 'PlayerDialog',

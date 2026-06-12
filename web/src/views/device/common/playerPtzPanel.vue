@@ -44,7 +44,7 @@ export default {
           this.hasAudio = data.hasAudio
           this.$nextTick(() => {
             if (this.$refs.playerTabs) {
-              this.$refs.playerTabs.setStreamInfo(data)
+              this.$refs.playerTabs.setStreamInfo(data.transcodeStream || data)
             }
           })
         })

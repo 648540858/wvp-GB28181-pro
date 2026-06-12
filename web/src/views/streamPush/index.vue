@@ -140,7 +140,7 @@
         @current-change="currentChange"
       />
     </div>
-    <devicePlayer ref="devicePlayer" />
+    <streamPushPlayer ref="streamPushPlayer" />
     <addStreamTOGB ref="addStreamTOGB" />
     <importChannel ref="importChannel" />
     <stream-push-edit v-if="streamPush" :stream-push="streamPush" :close-edit="closeEdit" />
@@ -149,7 +149,7 @@
 </template>
 
 <script>
-import devicePlayer from '../device/dialog/devicePlayer.vue'
+import streamPushPlayer from './player.vue'
 import addStreamTOGB from '../dialog/pushStreamEdit.vue'
 import importChannel from '../dialog/importChannel.vue'
 import StreamPushEdit from './edit.vue'
@@ -159,7 +159,7 @@ export default {
   name: 'PushList',
   components: {
     StreamPushEdit,
-    devicePlayer,
+    streamPushPlayer,
     addStreamTOGB,
     importChannel,
     buildPushStreamUrl
@@ -244,10 +244,7 @@ export default {
       row.playLoading = true
       this.$store.dispatch('streamPush/play', row.id)
         .then((data) => {
-          this.$refs.devicePlayer.openDialog('streamPlay', null, null, {
-            streamInfo: data,
-            hasAudio: true
-          })
+          this.$refs.streamPushPlayer.openDialog(data, true)
         })
         .catch((error) => {
           this.$message({

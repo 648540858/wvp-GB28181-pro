@@ -49,7 +49,7 @@
           <el-button icon="el-icon-refresh-right" circle @click="refresh()" />
         </el-form-item>
       </el-form>
-      <devicePlayer ref="devicePlayer" />
+      <streamProxyPlayer ref="streamProxyPlayer" />
       <el-table size="small" :data="streamProxyList" style="width: 100%" height="calc(100% - 64px)">
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip />
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip />
@@ -124,14 +124,14 @@
 </template>
 
 <script>
-import devicePlayer from '../device/dialog/devicePlayer.vue'
+import streamProxyPlayer from './player.vue'
 import StreamProxyEdit from './edit.vue'
 import Vue from 'vue'
 
 export default {
   name: 'Proxy',
   components: {
-    devicePlayer,
+    streamProxyPlayer,
     StreamProxyEdit
   },
   data() {
@@ -237,10 +237,7 @@ export default {
       row.playLoading = true
       this.$store.dispatch('streamProxy/play', row.id)
         .then((data) => {
-          this.$refs.devicePlayer.openDialog('streamPlay', null, null, {
-            streamInfo: data,
-            hasAudio: true
-          })
+          this.$refs.streamProxyPlayer.openDialog(data, true)
         })
         .catch((error) => {
           this.$message({

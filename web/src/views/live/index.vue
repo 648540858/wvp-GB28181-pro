@@ -13,6 +13,14 @@
             <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2" />
             <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3" />
           </div>
+          <div class="global-player-control">
+            播放器:
+            <el-select v-model="globalPlayer" size="mini" style="width: 120px">
+              <el-option label="Jessibuca" value="jessibuca" />
+              <el-option label="WebRTC" value="webRTC" />
+              <el-option label="H265web" value="h265web" />
+            </el-select>
+          </div>
           <div class="fullscreen-control">
             <i class="el-icon-full-screen btn" @click="fullScreen()" />
           </div>
@@ -30,15 +38,12 @@
               :class="getPlayerClass(spiltIndex, i)"
               @click="playerIdx = (i-1)"
             >
-              <div v-if="!videoUrl[i-1]" class="no-signal">{{ videoTip[i-1]?videoTip[i-1]:"无信号" }}</div>
-              <player
+              <div v-if="!streamInfo[i-1]" class="no-signal">{{ videoTip[i-1]?videoTip[i-1]:"无信号" }}</div>
+              <PlayerTabs
                 v-else
-                :ref="'player' + i"
-                fluent
-                autoplay
+                :ref="'playerTabs' + i"
+                :show-tab="false"
                 :show-button="true"
-                @screenshot="shot"
-                @destroy="destroy"
               />
             </div>
           </div>
@@ -49,20 +54,21 @@
 </template>
 <script>
 
-import player from '../common/jessibuca.vue'
+import PlayerTabs from '../common/playerTabs.vue'
 import DeviceTree from '../common/DeviceTree.vue'
 import screenFull from 'screenfull'
 
 export default {
   name: 'Live',
   components: {
-    player, DeviceTree
+    PlayerTabs, DeviceTree
   },
 
   data() {
     return {
-      videoUrl: [''],
+      streamInfo: [null],
       videoTip: [''],
+      globalPlayer: 'jessibuca',
       spiltIndex: 2, // 分屏
       playerIdx: 0, // 激活播放器
 
@@ -122,22 +128,32 @@ export default {
     }
   },
   watch: {
-    spilt(newValue) {
+    spiltIndex(newValue) {
       console.log('切换画幅;' + newValue)
       const that = this
-      for (let i = 1; i <= newValue; i++) {
-        if (!that.$refs['player' + i]) {
+      for (let i = 1; i <= this.layout[newValue].spilt; i++) {
+        if (!that.$refs['playerTabs' + i]) {
           continue
         }
         this.$nextTick(() => {
-          if (that.$refs['player' + i] instanceof Array) {
-            that.$refs['player' + i][0].resize()
-          } else {
-            that.$refs['player' + i].resize()
+          const ref = that.$refs['playerTabs' + i]
+          const instance = ref instanceof Array ? ref[0] : ref
+          if (instance && instance.resize) {
+            instance.resize()
           }
         })
       }
       window.localStorage.setItem('split', newValue)
+    },
+    globalPlayer(newKey) {
+      for (let i = 1; i <= this.layout[this.spiltIndex].spilt; i++) {
+        const ref = this.$refs['playerTabs' + i]
+        if (ref) {
+          const instance = ref instanceof Array ? ref[0] : ref
+          instance.switchPlayer(newKey)
+        }
+      }
+      window.localStorage.setItem('globalPlayer', newKey)
     },
     '$route.fullPath': 'checkPlayByParam'
   },
@@ -156,26 +172,17 @@ export default {
   },
   methods: {
     handleResize() {
-      // Force update to recalculate responsive layout
       this.$forceUpdate()
 
-      // Resize any active players
       this.$nextTick(() => {
         for (let i = 0; i < this.layout[this.spiltIndex].spilt; i++) {
-          const playerRef = this.$refs[`player${i + 1}`]
-          if (playerRef) {
-            if (playerRef instanceof Array) {
-              playerRef[0].resize && playerRef[0].resize()
-            } else {
-              playerRef.resize && playerRef.resize()
-            }
+          const ref = this.$refs[`playerTabs${i + 1}`]
+          if (ref) {
+            const instance = ref instanceof Array ? ref[0] : ref
+            instance.resize && instance.resize()
           }
         }
       })
-    },
-    destroy(idx) {
-      console.log(idx)
-      this.clear(idx.substring(idx.length - 1))
     },
     clickEvent: function(channelId) {
       this.sendDevicePush(channelId)
@@ -194,17 +201,11 @@ export default {
     sendDevicePush: function(channelId) {
       this.save(channelId)
       const idxTmp = this.playerIdx
-      this.setPlayUrl('', idxTmp)
+      this.$set(this.streamInfo, idxTmp, null)
       this.$set(this.videoTip, idxTmp, '正在拉流...')
       this.$store.dispatch('commonChanel/playChannel', channelId)
         .then(data => {
-          let videoUrl
-          if (location.protocol === 'https:') {
-            videoUrl = data.wss_flv
-          } else {
-            videoUrl = data.ws_flv
-          }
-          this.setPlayUrl(videoUrl, idxTmp)
+          this.setPlayStream(data.transcodeStream || data, idxTmp)
         })
         .catch(err => {
           this.$set(this.videoTip, idxTmp, '播放失败: ' + err)
@@ -213,18 +214,15 @@ export default {
           this.loading = false
         })
     },
-    setPlayUrl(url, idx) {
-      this.$set(this.videoUrl, idx, url)
-      const _this = this
-      setTimeout(() => {
-        window.localStorage.setItem('videoUrl', JSON.stringify(_this.videoUrl))
-      }, 100)
+    setPlayStream(streamInfo, idx) {
+      this.$set(this.streamInfo, idx, streamInfo)
       this.$nextTick(() => {
-        const refName = 'player' + (idx + 1)
-        if (this.$refs[refName]) {
-          const player = this.$refs[refName] instanceof Array ? this.$refs[refName][0] : this.$refs[refName]
-          if (player && player.play) {
-            player.play(url)
+        const refName = 'playerTabs' + (idx + 1)
+        const ref = this.$refs[refName]
+        if (ref) {
+          const instance = ref instanceof Array ? ref[0] : ref
+          if (instance && instance.setStreamInfo) {
+            instance.setStreamInfo(streamInfo)
           }
         }
       })
@@ -235,28 +233,7 @@ export default {
         this.sendDevicePush(query.channelId)
       }
     },
-    shot(e) {
-      var base64ToBlob = function(code) {
-        const parts = code.split(';base64,')
-        const contentType = parts[0].split(':')[1]
-        const raw = window.atob(parts[1])
-        const rawLength = raw.length
-        const uInt8Array = new Uint8Array(rawLength)
-        for (let i = 0; i < rawLength; ++i) {
-          uInt8Array[i] = raw.charCodeAt(i)
-        }
-        return new Blob([uInt8Array], {
-          type: contentType
-        })
-      }
-      const aLink = document.createElement('a')
-      const blob = base64ToBlob(e) // new Blob([content]);
-      const evt = document.createEvent('HTMLEvents')
-      evt.initEvent('click', true, true) // initEvent 不加后两个参数在FF下会报错  事件类型，是否冒泡，是否阻止浏览器的默认行为
-      aLink.download = '截图'
-      aLink.href = URL.createObjectURL(blob)
-      aLink.click()
-    },
+
     save(item) {
       const dataStr = window.localStorage.getItem('playData') || '[]'
       const data = JSON.parse(dataStr)
@@ -340,6 +317,13 @@ export default {
   padding-right: 10px;
 }
 
+.global-player-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
 .player-container {
   flex: 1;
   display: flex;
@@ -354,6 +338,7 @@ export default {
   height: 100%;
   max-height: calc(100vh - 180px);
   aspect-ratio: 16/9;
+  border: 4px solid rgb(169, 168, 168);
 }
 
 .btn {
@@ -370,7 +355,7 @@ export default {
 }
 
 .redborder {
-  border: 4px solid rgb(0, 198, 255) !important;
+  outline: 4px solid rgb(0, 198, 255);
 }
 
 .play-box {

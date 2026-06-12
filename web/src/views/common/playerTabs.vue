@@ -3,7 +3,7 @@
     <el-tabs v-if="showTab && playerList.length > 1" v-model="activePlayer" type="card" :stretch="true" @tab-click="changePlayer">
       <el-tab-pane v-for="p in playerList" :key="p.key" :label="p.label" :name="p.key"></el-tab-pane>
     </el-tabs>
-    <div class="player-video-area">
+    <div class="player-video-area" :style="{ height: showTab ? 'calc(100% - 36px)' : '100%' }">
       <jessibucaPlayer
         v-if="activePlayer === 'jessibuca'"
         ref="jessibuca"
@@ -179,7 +179,7 @@ export default {
 }
 .player-video-area {
   width: 100%;
-  height:calc(100% - 36px);;
+  height: 100%;
   background: #000;
 }
 </style>

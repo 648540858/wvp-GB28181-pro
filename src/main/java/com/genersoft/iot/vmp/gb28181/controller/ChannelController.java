@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.AudioTalkResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -350,6 +351,42 @@ public class ChannelController {
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
         channelPlayService.stopPlay(channel);
+    }
+
+    @Operation(summary = "开始对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/talk/start")
+    public AudioTalkResult startTalk(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        return channelPlayService.startTalk(channel);
+    }
+
+    @Operation(summary = "停止对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/talk/stop")
+    public void stopTalk(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopTalk(channel);
+    }
+
+    @Operation(summary = "开始喊话", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/broadcast/start")
+    public AudioTalkResult startBroadcast(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        return channelPlayService.startBroadcast(channel);
+    }
+
+    @Operation(summary = "停止喊话", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/broadcast/stop")
+    public void stopBroadcast(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopBroadcast(channel);
     }
 
     @Operation(summary = "录像查询", security = @SecurityRequirement(name = JwtUtils.HEADER))

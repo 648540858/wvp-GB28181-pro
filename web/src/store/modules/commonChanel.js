@@ -49,7 +49,8 @@ import {
   pausePlayback,
   resumePlayback,
   seekPlayback, speedPlayback, getAllForMap, test, saveLevel, resetLevel, clearThin, thinProgress, drawThin, saveThin,
-  dragZoomIn, dragZoomOut
+  dragZoomIn, dragZoomOut,
+  talkStart, talkStop, broadcastStart, broadcastStop
 } from '@/api/commonChannel'
 
 const actions = {
@@ -276,6 +277,46 @@ const actions = {
   stopPlayChannel({ commit }, channelId) {
     return new Promise((resolve, reject) => {
       stopPlayChannel(channelId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  talkStart({ commit }, channelId) {
+    return new Promise((resolve, reject) => {
+      talkStart(channelId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  talkStop({ commit }, channelId) {
+    return new Promise((resolve, reject) => {
+      talkStop(channelId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  broadcastStart({ commit }, channelId) {
+    return new Promise((resolve, reject) => {
+      broadcastStart(channelId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  broadcastStop({ commit }, channelId) {
+    return new Promise((resolve, reject) => {
+      broadcastStop(channelId).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

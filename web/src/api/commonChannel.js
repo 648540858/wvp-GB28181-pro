@@ -270,6 +270,38 @@ export function stopPlayChannel(channelId) {
   })
 }
 
+export function talkStart(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/talk/start',
+    params: { channelId }
+  })
+}
+
+export function talkStop(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/talk/stop',
+    params: { channelId }
+  })
+}
+
+export function broadcastStart(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/broadcast/start',
+    params: { channelId }
+  })
+}
+
+export function broadcastStop(channelId) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/broadcast/stop',
+    params: { channelId }
+  })
+}
+
 
 // 前端控制
 

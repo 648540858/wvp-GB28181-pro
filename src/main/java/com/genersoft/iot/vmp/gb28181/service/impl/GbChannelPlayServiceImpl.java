@@ -7,9 +7,11 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.gb28181.service.ISourceBroadcastService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceDownloadService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePlayService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePlaybackService;
+import com.genersoft.iot.vmp.vmanager.bean.AudioTalkResult;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Autowired
     private Map<String, ISourceDownloadService> sourceDownloadServiceMap;
+
+    @Autowired
+    private Map<String, ISourceBroadcastService> sourceBroadcastServiceMap;
 
 
     @Override
@@ -246,5 +251,53 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         sourceChannelPlayService.getSnap(channel, callback);
+    }
+
+    @Override
+    public AudioTalkResult startTalk(CommonGBChannel channel) {
+        log.info("[通用通道] 开始对讲， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourceBroadcastService broadcastService = sourceBroadcastServiceMap.get(ChannelDataType.BROADCAST_SERVICE + dataType);
+        if (broadcastService == null) {
+            log.error("[通用通道] 类型编号： {} 不支持对讲", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        return broadcastService.startTalk(channel);
+    }
+
+    @Override
+    public void stopTalk(CommonGBChannel channel) {
+        log.info("[通用通道] 停止对讲， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourceBroadcastService broadcastService = sourceBroadcastServiceMap.get(ChannelDataType.BROADCAST_SERVICE + dataType);
+        if (broadcastService == null) {
+            log.error("[通用通道] 类型编号： {} 不支持对讲", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        broadcastService.stopTalk(channel);
+    }
+
+    @Override
+    public AudioTalkResult startBroadcast(CommonGBChannel channel) {
+        log.info("[通用通道] 开始喊话， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourceBroadcastService broadcastService = sourceBroadcastServiceMap.get(ChannelDataType.BROADCAST_SERVICE + dataType);
+        if (broadcastService == null) {
+            log.error("[通用通道] 类型编号： {} 不支持喊话", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        return broadcastService.startBroadcast(channel);
+    }
+
+    @Override
+    public void stopBroadcast(CommonGBChannel channel) {
+        log.info("[通用通道] 停止喊话， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourceBroadcastService broadcastService = sourceBroadcastServiceMap.get(ChannelDataType.BROADCAST_SERVICE + dataType);
+        if (broadcastService == null) {
+            log.error("[通用通道] 类型编号： {} 不支持喊话", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        broadcastService.stopBroadcast(channel);
     }
 }

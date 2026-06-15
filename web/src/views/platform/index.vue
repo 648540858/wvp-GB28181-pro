@@ -141,7 +141,7 @@
 </template>
 
 <script>
-import shareChannel from '../dialog/shareChannel.vue'
+import shareChannel from './dialog/shareChannel.vue'
 import platformEdit from './edit.vue'
 import Vue from 'vue'
 

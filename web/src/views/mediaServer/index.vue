@@ -27,16 +27,16 @@
         </el-card>
       </el-col>
     </el-row>
-    <mediaServerEdit ref="mediaServerEdit" />
+    <edit ref="edit" />
   </div>
 </template>
 
 <script>
-import mediaServerEdit from '../dialog/MediaServerEdit'
+import edit from './edit.vue'
 export default {
   name: 'MediaServer',
   components: {
-    mediaServerEdit
+    edit
   },
   data() {
     return {
@@ -73,10 +73,10 @@ export default {
         })
     },
     add: function() {
-      this.$refs.mediaServerEdit.openDialog(null, this.initData)
+      this.$refs.edit.openDialog(null, this.initData)
     },
     edit: function(row) {
-      this.$refs.mediaServerEdit.openDialog(row, this.initData)
+      this.$refs.edit.openDialog(row, this.initData)
     },
     del: function(row) {
       this.$confirm('确认删除此节点？', '提示', {

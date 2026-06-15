@@ -125,7 +125,7 @@
 
 <script>
 
-import gbDeviceSelect from './GbDeviceSelect.vue'
+import gbDeviceSelect from '../../dialog/GbDeviceSelect.vue'
 
 export default {
   name: 'ShareChannelAdd',

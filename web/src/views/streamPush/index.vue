@@ -150,8 +150,8 @@
 
 <script>
 import streamPushPlayer from './player.vue'
-import addStreamTOGB from '../dialog/pushStreamEdit.vue'
-import importChannel from '../dialog/importChannel.vue'
+import addStreamTOGB from './dialog/pushStreamEdit.vue'
+import importChannel from './dialog/importChannel.vue'
 import StreamPushEdit from './edit.vue'
 import buildPushStreamUrl from './buildPushStreamUrl.vue'
 

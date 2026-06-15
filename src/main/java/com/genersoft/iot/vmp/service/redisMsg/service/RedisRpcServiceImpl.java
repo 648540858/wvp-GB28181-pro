@@ -433,15 +433,15 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointx,
-                           int midpointy, int lengthx, int lengthy) {
+    public void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointX,
+                           int midpointY, int lengthx, int lengthy) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device", device.getDeviceId());
         jsonObject.put("channelId", channelId);
         jsonObject.put("length", length);
         jsonObject.put("width", width);
-        jsonObject.put("midpointx", midpointx);
-        jsonObject.put("midpointy", midpointy);
+        jsonObject.put("midpointX", midpointX);
+        jsonObject.put("midpointY", midpointY);
         jsonObject.put("lengthx", lengthx);
         jsonObject.put("lengthy", lengthy);
         RedisRpcRequest request = buildRequest("device/dragZoomIn", jsonObject);
@@ -450,14 +450,14 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
+    public void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device", device.getDeviceId());
         jsonObject.put("channelId", channelId);
         jsonObject.put("length", length);
         jsonObject.put("width", width);
-        jsonObject.put("midpointx", midpointx);
-        jsonObject.put("midpointy", midpointy);
+        jsonObject.put("midpointX", midpointX);
+        jsonObject.put("midpointY", midpointY);
         jsonObject.put("lengthx", lengthx);
         jsonObject.put("lengthy", lengthy);
         RedisRpcRequest request = buildRequest("device/dragZoomOut", jsonObject);

@@ -60,9 +60,9 @@
 </template>
 
 <script>
-import changePasswordForAdmin from '../dialog/changePasswordForAdmin.vue'
-import changePushKey from '../dialog/changePushKey.vue'
-import addUser from '../dialog/addUser.vue'
+import changePasswordForAdmin from './dialog/changePasswordForAdmin.vue'
+import changePushKey from './dialog/changePushKey.vue'
+import addUser from './dialog/addUser.vue'
 import apiKeyManager from './apiKeyManager.vue'
 
 export default {

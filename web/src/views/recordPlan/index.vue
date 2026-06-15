@@ -54,19 +54,19 @@
       />
     </div>
 
-    <editRecordPlan ref="editRecordPlan" />
+    <edit ref="edit" />
     <LinkChannelRecord ref="linkChannelRecord" />
   </div>
 </template>
 
 <script>
-import EditRecordPlan from '../dialog/editRecordPlan.vue'
-import LinkChannelRecord from '../dialog/linkChannelRecord.vue'
+import edit from './edit.vue'
+import LinkChannelRecord from './dialog/linkChannelRecord.vue'
 
 export default {
   name: 'RecordPlan',
   components: {
-    EditRecordPlan,
+    edit,
     LinkChannelRecord
   },
   data() {
@@ -128,12 +128,12 @@ export default {
       this.initData()
     },
     add: function() {
-      this.$refs.editRecordPlan.openDialog(null, () => {
+      this.$refs.edit.openDialog(null, () => {
         this.initData()
       })
     },
     edit: function(plan) {
-      this.$refs.editRecordPlan.openDialog(plan, () => {
+      this.$refs.edit.openDialog(plan, () => {
         this.initData()
       })
     },

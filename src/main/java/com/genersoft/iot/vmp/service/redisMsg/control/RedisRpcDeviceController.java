@@ -318,8 +318,8 @@ public class RedisRpcDeviceController extends RpcController {
         String channelId = paramJson.getString("channelId");
         Integer length = paramJson.getInteger("length");
         Integer width = paramJson.getInteger("width");
-        Integer midpointx = paramJson.getInteger("midpointx");
-        Integer midpointy = paramJson.getInteger("midpointy");
+        Integer midpointX = paramJson.getInteger("midpointX");
+        Integer midpointY = paramJson.getInteger("midpointY");
         Integer lengthx = paramJson.getInteger("lengthx");
         Integer lengthy = paramJson.getInteger("lengthy");
 
@@ -332,7 +332,7 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            deviceService.dragZoomIn(device, channelId, length, width, midpointX, midpointY, lengthx, lengthy);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
@@ -350,8 +350,8 @@ public class RedisRpcDeviceController extends RpcController {
         String channelId = paramJson.getString("channelId");
         Integer length = paramJson.getInteger("length");
         Integer width = paramJson.getInteger("width");
-        Integer midpointx = paramJson.getInteger("midpointx");
-        Integer midpointy = paramJson.getInteger("midpointy");
+        Integer midpointX = paramJson.getInteger("midpointX");
+        Integer midpointY = paramJson.getInteger("midpointY");
         Integer lengthx = paramJson.getInteger("lengthx");
         Integer lengthy = paramJson.getInteger("lengthy");
 
@@ -364,7 +364,7 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthx, lengthy);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));

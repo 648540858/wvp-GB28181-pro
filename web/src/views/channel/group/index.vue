@@ -120,7 +120,7 @@
 <script>
 import GroupTree from '../../common/GroupTree.vue'
 import GbChannelSelect from '../../dialog/GbChannelSelect.vue'
-import UnusualGroupChannelSelect from '../../dialog/UnusualGroupChannelSelect.vue'
+import UnusualGroupChannelSelect from './UnusualGroupChannelSelect.vue'
 
 export default {
   name: 'Group',

@@ -54,7 +54,7 @@
 import elDragDialog from '@/directive/el-drag-dialog'
 import playerTabs from '../../common/playerTabs.vue'
 import devicePtzPanel from '../common/devicePtzPanel.vue'
-import PtzPreset from '../../common/ptzPreset.vue'
+import PtzPreset from './ptzPreset.vue'
 import mediaInfo from '../../common/mediaInfo.vue'
 import streamMediaPanel from '../../common/streamMediaPanel.vue'
 

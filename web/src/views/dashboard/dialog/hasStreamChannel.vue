@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import devicePlayer from "@/views/device/dialog/devicePlayer";
+import devicePlayer from "@/views/device/dialog/devicePlayer.vue";
 import elDragDialog from "@/directive/el-drag-dialog";
 
 export default {

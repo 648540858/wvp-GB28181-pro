@@ -69,9 +69,9 @@ public interface IRedisRpcService {
 
     WVPResult<String> homePosition(String serverId, Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex);
 
-    void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+    void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy);
 
-    void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+    void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy);
 
     WVPResult<String> deviceStatus(String serverId, Device device);
 

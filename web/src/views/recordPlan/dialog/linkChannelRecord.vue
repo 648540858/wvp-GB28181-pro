@@ -108,7 +108,7 @@
 <script>
 
 import elDragDialog from '@/directive/el-drag-dialog'
-import gbDeviceSelect from './GbDeviceSelect.vue'
+import gbDeviceSelect from '../../dialog/GbDeviceSelect.vue'
 
 export default {
   name: 'LinkChannelRecord',

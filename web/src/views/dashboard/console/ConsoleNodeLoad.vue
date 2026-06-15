@@ -9,7 +9,7 @@
 
 <script>
 import veHistogram from 'v-charts/lib/histogram'
-import HasStreamChannel from "@/views/dialog/hasStreamChannel";
+import HasStreamChannel from "@/views/dashboard/dialog/hasStreamChannel.vue";
 
 export default {
   name: 'ConsoleNodeLoad',

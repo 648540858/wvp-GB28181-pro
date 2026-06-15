@@ -118,7 +118,7 @@
 <script>
 import RegionTree from '../..//common/RegionTree.vue'
 import GbChannelSelect from '../../dialog/GbChannelSelect.vue'
-import UnusualRegionChannelSelect from '../../dialog/UnusualRegionChannelSelect.vue'
+import UnusualRegionChannelSelect from './UnusualRegionChannelSelect.vue'
 
 export default {
   name: 'Region',

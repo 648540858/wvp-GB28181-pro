@@ -155,6 +155,7 @@ export default {
         y: e.clientY - videoRect.top
       }
       this.dragCurrent = { ...this.dragStart }
+      console.log('[dragZoom mousedown] getVideoRect:', JSON.stringify(videoRect), 'clientX/Y:', e.clientX, e.clientY, 'dragStart:', JSON.stringify(this.dragStart))
       this._drawOverlay()
     },
     _onDragMove(e) {
@@ -179,15 +180,18 @@ export default {
         this._resetDrag()
         return
       }
+      console.log('[dragZoom dragEnd] sx:', sx, 'sy:', sy, 'ex:', ex, 'ey:', ey, 'rectW:', rectW, 'rectH:', rectH)
       if (this.dragCallback) {
-        this.dragCallback({
+        const params = {
           length: Math.round(this.dragVideoRect.width),
           width: Math.round(this.dragVideoRect.height),
           midpointX: Math.round(sx + rectW / 2),
           midpointY: Math.round(sy + rectH / 2),
           lengthX: Math.round(rectW),
           lengthY: Math.round(rectH)
-        })
+        }
+        console.log('[dragZoom dragEnd] callback params:', JSON.stringify(params))
+        this.dragCallback(params)
       }
       this._resetDrag()
     },

@@ -87,7 +87,7 @@ public class PTZServiceImpl implements IPTZService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
         }
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         frontEndCommand(device, deviceChannel.getDeviceId(), cmdCode, parameter1, parameter2, combindCode2);
     }
 
@@ -101,7 +101,7 @@ public class PTZServiceImpl implements IPTZService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
         }
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         deviceService.dragZoomIn(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
     }
 
@@ -115,7 +115,7 @@ public class PTZServiceImpl implements IPTZService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
         }
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         deviceService.dragZoomOut(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
     }
 

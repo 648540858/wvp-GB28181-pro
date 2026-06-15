@@ -653,7 +653,7 @@ public class ChannelFrontEndController {
     @Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
     @Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
     @GetMapping("/drag_zoom_out")
-    public DeferredResult<WVPResult<String>> dragZoomOut(Integer channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY){
+    public DeferredResult<WVPResult<String>> dragZoomOut(Integer channelId, Integer length, Integer width, Integer midpointX, Integer midpointY, Integer lengthX, Integer lengthY){
 
         if (log.isDebugEnabled()) {
             log.debug("[通用通道]拉框缩小 API调用，channelId：{} ，length：{} ，width：{} ，midpointX：{} ，midpointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midpointX, midpointY, lengthX, lengthY);

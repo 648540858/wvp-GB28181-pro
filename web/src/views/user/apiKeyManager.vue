@@ -107,8 +107,8 @@
 </template>
 
 <script>
-import addUserApiKey from '../dialog/addUserApiKey.vue'
-import remarkUserApiKey from '../dialog/remarkUserApiKey.vue'
+import addUserApiKey from './dialog/addUserApiKey.vue'
+import remarkUserApiKey from './dialog/remarkUserApiKey.vue'
 import moment from 'moment'
 
 export default {

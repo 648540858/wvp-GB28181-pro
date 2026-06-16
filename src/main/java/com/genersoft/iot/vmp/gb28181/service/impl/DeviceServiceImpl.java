@@ -1276,9 +1276,9 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void dragZoomIn(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+    public void dragZoomIn(Device device, String channelId, int length, int width, int midPointX, int midPointY, int lengthX, int lengthY) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcService.dragZoomIn(device.getServerId(), device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+            redisRpcService.dragZoomIn(device.getServerId(), device, channelId, length, width, midPointX, midPointY, lengthX, lengthY);
             return;
         }
 
@@ -1286,8 +1286,8 @@ public class DeviceServiceImpl implements IDeviceService {
         cmdXml.append("<DragZoomIn>\r\n");
         cmdXml.append("<Length>" + length+ "</Length>\r\n");
         cmdXml.append("<Width>" + width+ "</Width>\r\n");
-        cmdXml.append("<MidPointX>" + midpointX+ "</MidPointX>\r\n");
-        cmdXml.append("<MidPointY>" + midpointY+ "</MidPointY>\r\n");
+        cmdXml.append("<MidPointX>" + midPointX+ "</MidPointX>\r\n");
+        cmdXml.append("<MidPointY>" + midPointY+ "</MidPointY>\r\n");
         cmdXml.append("<LengthX>" + lengthX+ "</LengthX>\r\n");
         cmdXml.append("<LengthY>" + lengthY+ "</LengthY>\r\n");
         cmdXml.append("</DragZoomIn>\r\n");
@@ -1300,9 +1300,9 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+    public void dragZoomOut(Device device, String channelId, int length, int width, int midPointX, int midPointY, int lengthX, int lengthY) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+            redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midPointX, midPointY, lengthX, lengthY);
             return;
         }
 
@@ -1310,8 +1310,8 @@ public class DeviceServiceImpl implements IDeviceService {
         cmdXml.append("<DragZoomOut>\r\n");
         cmdXml.append("<Length>" + length+ "</Length>\r\n");
         cmdXml.append("<Width>" + width+ "</Width>\r\n");
-        cmdXml.append("<MidPointX>" + midpointX+ "</MidPointX>\r\n");
-        cmdXml.append("<MidPointY>" + midpointY+ "</MidPointY>\r\n");
+        cmdXml.append("<MidPointX>" + midPointX+ "</MidPointX>\r\n");
+        cmdXml.append("<MidPointY>" + midPointY+ "</MidPointY>\r\n");
         cmdXml.append("<LengthX>" + lengthX+ "</LengthX>\r\n");
         cmdXml.append("<LengthY>" + lengthY+ "</LengthY>\r\n");
         cmdXml.append("</DragZoomOut>\r\n");

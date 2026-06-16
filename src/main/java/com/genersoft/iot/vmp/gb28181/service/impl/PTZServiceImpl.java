@@ -92,7 +92,7 @@ public class PTZServiceImpl implements IPTZService {
     }
 
     @Override
-    public void dragZoomIn(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+    public void dragZoomIn(CommonGBChannel channel, int length, int width, int midPointX, int midPointY, int lengthX, int lengthY) {
         if (channel.getDataType() != ChannelDataType.GB28181) {
             log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
@@ -102,11 +102,11 @@ public class PTZServiceImpl implements IPTZService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        deviceService.dragZoomIn(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
+        deviceService.dragZoomIn(device, deviceChannel.getDeviceId(), length, width, midPointX, midPointY, lengthX, lengthY);
     }
 
     @Override
-    public void dragZoomOut(CommonGBChannel channel, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
+    public void dragZoomOut(CommonGBChannel channel, int length, int width, int midPointX, int midPointY, int lengthX, int lengthY) {
         if (channel.getDataType() != ChannelDataType.GB28181) {
             log.warn("[INFO 消息] 只有国标通道的支持云台控制， 通道ID： {}", channel.getGbId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
@@ -116,7 +116,7 @@ public class PTZServiceImpl implements IPTZService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备ID");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        deviceService.dragZoomOut(device, deviceChannel.getDeviceId(), length, width, midpointX, midpointY, lengthX, lengthY);
+        deviceService.dragZoomOut(device, deviceChannel.getDeviceId(), length, width, midPointX, midPointY, lengthX, lengthY);
     }
 
     @Override

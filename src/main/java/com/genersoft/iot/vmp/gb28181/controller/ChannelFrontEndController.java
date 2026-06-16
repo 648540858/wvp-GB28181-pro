@@ -603,15 +603,15 @@ public class ChannelFrontEndController {
     @Parameter(name = "channelId", description = "通道ID", required = true)
     @Parameter(name = "length", description = "播放窗口长度像素值", required = true)
     @Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
-    @Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
-    @Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+    @Parameter(name = "midPointX", description = "拉框中心的横轴坐标像素值", required = true)
+    @Parameter(name = "midPointY", description = "拉框中心的纵轴坐标像素值", required = true)
     @Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
     @Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
     @GetMapping("/drag_zoom_in")
-    public DeferredResult<WVPResult<String>> dragZoomIn(Integer channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY){
+    public DeferredResult<WVPResult<String>> dragZoomIn(Integer channelId, int length, int width, int midPointX, int midPointY, int lengthX, int lengthY){
 
         if (log.isDebugEnabled()) {
-            log.debug("[通用通道]拉框放大 API调用，channelId：{} ，length：{} ，width：{} ，midpointX：{} ，midpointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+            log.debug("[通用通道]拉框放大 API调用，channelId：{} ，length：{} ，width：{} ，midPointX：{} ，midPointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midPointX, midPointY, lengthX, lengthY);
         }
 
         CommonGBChannel channel = channelService.getOne(channelId);
@@ -621,8 +621,8 @@ public class ChannelFrontEndController {
         controlCode.setCode(1);
         controlCode.setLength(length);
         controlCode.setWidth(width);
-        controlCode.setMidPointX(midpointX);
-        controlCode.setMidPointY(midpointY);
+        controlCode.setMidPointX(midPointX);
+        controlCode.setMidPointY(midPointY);
         controlCode.setLengthX(lengthX);
         controlCode.setLengthY(lengthY);
 
@@ -648,15 +648,15 @@ public class ChannelFrontEndController {
     @Parameter(name = "channelId", description = "通道ID", required = true)
     @Parameter(name = "length", description = "播放窗口长度像素值", required = true)
     @Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
-    @Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
-    @Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+    @Parameter(name = "midPointX", description = "拉框中心的横轴坐标像素值", required = true)
+    @Parameter(name = "midPointY", description = "拉框中心的纵轴坐标像素值", required = true)
     @Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
     @Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
     @GetMapping("/drag_zoom_out")
-    public DeferredResult<WVPResult<String>> dragZoomOut(Integer channelId, Integer length, Integer width, Integer midpointX, Integer midpointY, Integer lengthX, Integer lengthY){
+    public DeferredResult<WVPResult<String>> dragZoomOut(Integer channelId, Integer length, Integer width, Integer midPointX, Integer midPointY, Integer lengthX, Integer lengthY){
 
         if (log.isDebugEnabled()) {
-            log.debug("[通用通道]拉框缩小 API调用，channelId：{} ，length：{} ，width：{} ，midpointX：{} ，midpointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+            log.debug("[通用通道]拉框缩小 API调用，channelId：{} ，length：{} ，width：{} ，midPointX：{} ，midPointY：{} ，lengthX：{} ，lengthY：{}",channelId, length, width, midPointX, midPointY, lengthX, lengthY);
         }
 
         CommonGBChannel channel = channelService.getOne(channelId);
@@ -666,8 +666,8 @@ public class ChannelFrontEndController {
         controlCode.setCode(2);
         controlCode.setLength(length);
         controlCode.setWidth(width);
-        controlCode.setMidPointX(midpointX);
-        controlCode.setMidPointY(midpointY);
+        controlCode.setMidPointX(midPointX);
+        controlCode.setMidPointY(midPointY);
         controlCode.setLengthX(lengthX);
         controlCode.setLengthY(lengthY);
 

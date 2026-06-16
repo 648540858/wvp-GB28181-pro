@@ -185,8 +185,8 @@ export default {
         const params = {
           length: Math.round(this.dragVideoRect.width),
           width: Math.round(this.dragVideoRect.height),
-          midpointX: Math.round(sx + rectW / 2),
-          midpointY: Math.round(sy + rectH / 2),
+          midPointX: Math.round(sx + rectW / 2),
+          midPointY: Math.round(sy + rectH / 2),
           lengthX: Math.round(rectW),
           lengthY: Math.round(rectH)
         }

@@ -165,24 +165,24 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
 	@Parameter(name = "width", description = "播放窗口宽度像素值", required = true)
-	@Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
-	@Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+	@Parameter(name = "midPointX", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midPointY", description = "拉框中心的纵轴坐标像素值", required = true)
 	@Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
 	@GetMapping("drag_zoom/zoom_in")
 	public void dragZoomIn(@RequestParam String deviceId, String channelId,
 											 @RequestParam int length,
 											 @RequestParam int width,
-											 @RequestParam int midpointX,
-											 @RequestParam int midpointY,
+											 @RequestParam int midPointX,
+											 @RequestParam int midPointY,
 											 @RequestParam int lengthX,
 											 @RequestParam int lengthY) {
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
+			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midPointX：%d ，midPointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midPointX, midPointY,lengthX, lengthY));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		deviceService.dragZoomIn(device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
+		deviceService.dragZoomIn(device, channelId, length, width, midPointX, midPointY, lengthX, lengthY);
 	}
 
 	@Operation(summary = "拉框缩小", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -190,8 +190,8 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号")
 	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
 	@Parameter(name = "width", description = "播放窗口宽像素值", required = true)
-	@Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
-	@Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
+	@Parameter(name = "midPointX", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midPointY", description = "拉框中心的纵轴坐标像素值", required = true)
 	@Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
 	@GetMapping("/drag_zoom/zoom_out")
@@ -199,16 +199,16 @@ public class DeviceControl {
 											  @RequestParam(required = false) String channelId,
 											  @RequestParam int length,
 											  @RequestParam int width,
-											  @RequestParam int midpointX,
-											  @RequestParam int midpointY,
+											  @RequestParam int midPointX,
+											  @RequestParam int midPointY,
 											  @RequestParam int lengthX,
 											  @RequestParam int lengthY){
 
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
+			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midPointX：%d ，midPointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midPointX, midPointY,lengthX, lengthY));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthX,lengthY);
+		deviceService.dragZoomOut(device, channelId, length, width, midPointX, midPointY, lengthX,lengthY);
 	}
 }

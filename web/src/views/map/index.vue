@@ -115,7 +115,7 @@
           </div>
         </transition>
       </div>
-      <devicePlayer ref="devicePlayer" ></devicePlayer>
+      <player ref="player" ></player>
       <queryTrace ref="queryTrace" ></queryTrace>
       <CommonChannelEditDialog ref="commonChannelEditDialog" ></CommonChannelEditDialog>
       <DrawThinProgress ref="drawThinProgress" ></DrawThinProgress>
@@ -126,14 +126,10 @@
 import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
 import MapComponent from '../common/MapComponent.vue'
-import devicePlayer from '../channel/player.vue'
+import player from '../channel/player.vue'
 import CommonChannelEditDialog from '../dialog/commonChannelEditDialog.vue'
 import DrawThinProgress from './dialog/drawThinProgress.vue'
 
-let cameraListForSource = []
-let cameraList = []
-let cameraListForLevelMap = new Map()
-let cameraLayerExtent = []
 let channelLayer, channelTileLayer = null
 export default {
   name: 'Map',
@@ -141,7 +137,7 @@ export default {
     DrawThinProgress,
     CommonChannelEditDialog,
     DeviceTree,
-    devicePlayer,
+    player,
     queryTrace,
     MapComponent
   },
@@ -362,7 +358,7 @@ export default {
       })
       this.$store.dispatch('commonChanel/playChannel', channel.gbId)
         .then((data) => {
-          this.$refs.devicePlayer.openDialog('media', channel.gbId, {
+          this.$refs.player.openDialog('media', channel.gbId, {
             streamInfo: data,
             hasAudio: channel.hasAudio
           })

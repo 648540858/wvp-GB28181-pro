@@ -67,7 +67,6 @@ export default {
       streamId: '',
       app: '',
       mediaServerId: '',
-      deviceId: '',
       channelId: '',
       tabActiveName: 'preset',
       hasAudio: false,
@@ -90,10 +89,9 @@ export default {
         this.$refs.mediaInfo && this.$refs.mediaInfo.stopTask()
       }
     },
-    openDialog(tab, deviceId, channelId, param) {
+    openDialog(tab, channelId, param) {
       if (this.showVideoDialog) return
       this.tabActiveName = tab || 'preset'
-      this.deviceId = deviceId
       this.channelId = channelId
       this.streamId = ''
       this.mediaServerId = ''
@@ -130,7 +128,6 @@ export default {
     toggleDragZoom(direction) {
       this.dragZoomDirection = direction
       this.$refs.playerTabs.startDragZoom((params) => {
-        params.deviceId = this.deviceId
         params.channelId = this.channelId
         const action = this.dragZoomDirection === 'in' ? 'commonChanel/dragZoomIn' : 'commonChanel/dragZoomOut'
         const successMsg = this.dragZoomDirection === 'in' ? '拉框放大成功' : '拉框缩小成功'

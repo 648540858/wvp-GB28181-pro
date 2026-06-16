@@ -319,7 +319,7 @@ export default {
       this.$store.dispatch('commonChanel/playChannel', itemData.gbId)
         .then((data) => {
           itemData.streamId = data.stream
-          this.$refs.devicePlayer.openDialog('media', itemData.gbId, itemData.gbId, {
+          this.$refs.devicePlayer.openDialog('media', itemData.gbId, {
             streamInfo: data,
             hasAudio: itemData.hasAudio
           })

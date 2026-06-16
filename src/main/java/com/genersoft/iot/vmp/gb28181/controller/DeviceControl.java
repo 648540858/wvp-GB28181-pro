@@ -178,7 +178,7 @@ public class DeviceControl {
 											 @RequestParam int lengthX,
 											 @RequestParam int lengthY) {
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
+			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
@@ -192,8 +192,8 @@ public class DeviceControl {
 	@Parameter(name = "width", description = "播放窗口宽像素值", required = true)
 	@Parameter(name = "midpointX", description = "拉框中心的横轴坐标像素值", required = true)
 	@Parameter(name = "midpointY", description = "拉框中心的纵轴坐标像素值", required = true)
-	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
-	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
+	@Parameter(name = "lengthX", description = "拉框长度像素值", required = true)
+	@Parameter(name = "lengthY", description = "拉框宽度像素值", required = true)
 	@GetMapping("/drag_zoom/zoom_out")
 	public void dragZoomOut(@RequestParam String deviceId,
 											  @RequestParam(required = false) String channelId,
@@ -201,14 +201,14 @@ public class DeviceControl {
 											  @RequestParam int width,
 											  @RequestParam int midpointX,
 											  @RequestParam int midpointY,
-											  @RequestParam int lengthx,
-											  @RequestParam int lengthy){
+											  @RequestParam int lengthX,
+											  @RequestParam int lengthY){
 
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthx, lengthy));
+			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointX：%d ，midpointY：%d ，lengthX：%d ，lengthY：%d",deviceId, channelId, length, width, midpointX, midpointY,lengthX, lengthY));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthx,lengthy);
+		deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthX,lengthY);
 	}
 }

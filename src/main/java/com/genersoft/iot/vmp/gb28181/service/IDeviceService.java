@@ -185,9 +185,9 @@ public interface IDeviceService {
 
     void homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback);
 
-    void dragZoomIn(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy);
+    void dragZoomIn(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY);
 
-    void dragZoomOut(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy);
+    void dragZoomOut(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY);
 
     void deviceStatus(Device device, ErrorCallback<String> callback);
 

@@ -320,8 +320,8 @@ public class RedisRpcDeviceController extends RpcController {
         Integer width = paramJson.getInteger("width");
         Integer midpointX = paramJson.getInteger("midpointX");
         Integer midpointY = paramJson.getInteger("midpointY");
-        Integer lengthx = paramJson.getInteger("lengthx");
-        Integer lengthy = paramJson.getInteger("lengthy");
+        Integer lengthX = paramJson.getInteger("lengthX");
+        Integer lengthY = paramJson.getInteger("lengthY");
 
         Device device = deviceService.getDeviceByDeviceId(deviceId);
 
@@ -332,7 +332,7 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomIn(device, channelId, length, width, midpointX, midpointY, lengthx, lengthy);
+            deviceService.dragZoomIn(device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
@@ -352,8 +352,8 @@ public class RedisRpcDeviceController extends RpcController {
         Integer width = paramJson.getInteger("width");
         Integer midpointX = paramJson.getInteger("midpointX");
         Integer midpointY = paramJson.getInteger("midpointY");
-        Integer lengthx = paramJson.getInteger("lengthx");
-        Integer lengthy = paramJson.getInteger("lengthy");
+        Integer lengthX = paramJson.getInteger("lengthX");
+        Integer lengthY = paramJson.getInteger("lengthY");
 
         Device device = deviceService.getDeviceByDeviceId(deviceId);
 
@@ -364,7 +364,7 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthx, lengthy);
+            deviceService.dragZoomOut(device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));

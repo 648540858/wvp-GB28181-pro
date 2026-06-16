@@ -1300,9 +1300,9 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthx, int lengthy) {
+    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointX, int midpointY, int lengthX, int lengthY) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midpointX, midpointY, lengthx, lengthy);
+            redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midpointX, midpointY, lengthX, lengthY);
             return;
         }
 
@@ -1312,8 +1312,8 @@ public class DeviceServiceImpl implements IDeviceService {
         cmdXml.append("<Width>" + width+ "</Width>\r\n");
         cmdXml.append("<MidPointX>" + midpointX+ "</MidPointX>\r\n");
         cmdXml.append("<MidPointY>" + midpointY+ "</MidPointY>\r\n");
-        cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
-        cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
+        cmdXml.append("<LengthX>" + lengthX+ "</LengthX>\r\n");
+        cmdXml.append("<LengthY>" + lengthY+ "</LengthY>\r\n");
         cmdXml.append("</DragZoomOut>\r\n");
         try {
             sipCommander.dragZoomCmd(device, channelId, cmdXml.toString());

@@ -161,11 +161,11 @@
         <i class="el-icon-warning-outline" style="font-size: 32px;" />
         <div style="margin-top: 10px;">{{ playbackError }}</div>
       </div>
-      <div v-else-if="playbackStreamInfo">
-        <h265web
+      <div v-else-if="playbackStreamInfo" style="height: 400px;">
+        <playerTabs
           ref="playbackPlayer"
-          :height="'400px'"
           :show-button="false"
+          :showTab="true"
           :has-audio="true"
         />
       </div>
@@ -177,7 +177,7 @@
 </template>
 
 <script>
-import h265web from '../common/h265web.vue'
+import playerTabs from '../common/playerTabs.vue'
 
 const ALARM_TYPE_OPTIONS = [
   { value: 'VideoLoss', label: '视频丢失报警' },
@@ -221,7 +221,7 @@ function formatDatetime(ts) {
 
 export default {
   name: 'AlarmManage',
-  components: { h265web },
+  components: { playerTabs },
   data() {
     return {
       alarmList: [],
@@ -238,7 +238,6 @@ export default {
       playbackLoading: false,
       playbackError: null,
       playbackStreamInfo: null,
-      playbackVideoUrl: null,
       playbackTitle: '录像回放',
       currentPlaybackChannelId: null
     }
@@ -308,15 +307,10 @@ export default {
         endTime: endTime
       }).then(data => {
         this.playbackStreamInfo = data
-        if (location.protocol === 'https:') {
-          this.playbackVideoUrl = data['wss_flv']
-        } else {
-          this.playbackVideoUrl = data['ws_flv']
-        }
         this.playbackLoading = false
         this.$nextTick(() => {
           if (this.$refs.playbackPlayer) {
-            this.$refs.playbackPlayer.play(this.playbackVideoUrl)
+            this.$refs.playbackPlayer.setStreamInfo(data)
           }
         })
       }).catch(err => {
@@ -326,6 +320,9 @@ export default {
       })
     },
     closePlayback() {
+      if (this.$refs.playbackPlayer) {
+        this.$refs.playbackPlayer.stop()
+      }
       if (this.playbackStreamInfo && this.currentPlaybackChannelId) {
         this.$store.dispatch('commonChanel/stopPlayback', {
           channelId: this.currentPlaybackChannelId,
@@ -336,7 +333,6 @@ export default {
       }
       this.playbackDialogVisible = false
       this.playbackStreamInfo = null
-      this.playbackVideoUrl = null
       this.playbackError = null
       this.currentPlaybackChannelId = null
     },

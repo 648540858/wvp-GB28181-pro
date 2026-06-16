@@ -574,9 +574,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean removeCatalogSubscribe(@NotNull Device device, CommonCallback<Boolean> callback) {
-        log.info("[移除目录订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForCatalog.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
+            log.info("[移除目录订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除目录订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -638,9 +638,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback) {
-        log.info("[移除移动位置订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForMobilPosition.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
+            log.info("[移除移动位置订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除移动位置订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -703,9 +703,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean removeAlarmSubscribe(Device device, CommonCallback<Boolean> callback) {
-        log.info("[移除报警订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForAlarm.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
+            log.info("[移除报警订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除报警订阅] 未找到事务信息，{}", device.getDeviceId());

@@ -51,9 +51,19 @@
             />
             <p style="margin-top: 16px; color: #606266;">
               <span v-if="talkStatus === -2">正在释放资源</span>
-              <span v-if="talkStatus === -1">点击开始{{ talkMode ? '对讲' : '喊话' }}</span>
+              <span v-if="talkStatus === -1">点击开始{{ talkMode ? '喊话' : '对讲' }}</span>
               <span v-if="talkStatus === 0">等待接通中...</span>
-              <span v-if="talkStatus === 1">请说话</span>
+              <span v-if="talkStatus === 1 && talkMode">喊话中</span>
+              <span v-if="talkStatus === 1 && !talkMode && !playConnected">等待接通中...</span>
+              <span v-if="talkStatus === 1 && !talkMode && playConnected">对讲中</span>
+            </p>
+            <p v-if="talkStatus === 1 && !talkMode && talkAudioFailed" style="margin-top: 8px;">
+              <el-button
+                type="warning"
+                size="mini"
+                icon="el-icon-refresh"
+                @click="retryTalkAudio"
+              >重试音频</el-button>
             </p>
           </div>
         </div>
@@ -129,7 +139,10 @@ export default {
       if (this.talkStatus === -2) return 'primary'
       if (this.talkStatus === -1) return 'primary'
       if (this.talkStatus === 0) return 'warning'
-      if (this.talkStatus === 1) return 'danger'
+      if (this.talkStatus === 1) {
+        if (!this.talkMode && !this.playConnected) return 'warning'
+        return 'danger'
+      }
     },
     async talkButtonClick() {
       if (this.talkStatus === -1) {
@@ -145,6 +158,13 @@ export default {
         const si = data.streamInfo
         const url = document.location.protocol.includes('https') ? si.rtcs : si.rtc
         this.startWebrtcPush(url)
+
+        const playStreamInfo = data?.playStreamInfo
+        if (!this.talkMode && playStreamInfo) {
+          this.talkAudioPlayStream = playStreamInfo
+          this.startTalkAudioPlay(playStreamInfo)
+          this.muteVideoPlayer()
+        }
       } catch (e) {
         this.$message({ showClose: true, message: e, type: 'error' })
         this.talkStatus = -1
@@ -181,6 +201,105 @@ export default {
         })
         .catch(() => { this.talkStatus = -1 })
     },
+    muteVideoPlayer() {
+      const player = this.$refs.playerTabs
+      if (!player) return
+      if (player.mute) {
+        player.mute()
+      }
+    },
+    unmuteVideoPlayer() {
+      const player = this.$refs.playerTabs
+      if (!player) return
+      if (player.cancelMute) {
+        player.cancelMute()
+      }
+    },
+    startTalkAudioPlay(playStreamInfo) {
+      if (this.talkAudioRtc) {
+        this.talkAudioRtc.close()
+      }
+      if (this.talkAudioRetryTimer) {
+        clearTimeout(this.talkAudioRetryTimer)
+      }
+
+      const url = location.protocol === 'https:' ? playStreamInfo.rtcs : playStreamInfo.rtc
+      if (!url) {
+        console.warn('[AudioTalk] 无可用的设备音频播放地址')
+        return
+      }
+      this.talkAudioRetryTimer = setTimeout(() => {
+        this.pollMediaInfoAndPlay(playStreamInfo)
+      }, 800)
+    },
+    async pollMediaInfoAndPlay(playStreamInfo) {
+      try {
+        const data = await this.$store.dispatch('server/getMediaInfo', {
+          app: playStreamInfo.app,
+          stream: playStreamInfo.stream,
+          mediaServerId: playStreamInfo.mediaServerId
+        })
+        if (data) {
+          const url = location.protocol === 'https:' ? playStreamInfo.rtcs : playStreamInfo.rtc
+          this.startTalkAudioByRtc(url)
+        } else {
+          throw new Error('no data')
+        }
+      } catch (e) {
+        if (this.talkStatus === 1 || this.talkStatus === 0) {
+          this.talkAudioRetryTimer = setTimeout(() => {
+            this.pollMediaInfoAndPlay(playStreamInfo)
+          }, 800)
+        }
+      }
+    },
+    startTalkAudioByRtc(url) {
+      this.talkAudioFailed = false
+      this.talkAudioRtc = new ZLMRTCClient.Endpoint({
+        debug: false,
+        element: document.getElementById('audioTalkVideo'),
+        zlmsdpUrl: url,
+        simulecast: false,
+        useCamera: false,
+        audioEnable: true,
+        videoEnable: false,
+        recvOnly: true,
+        usedatachannel: false
+      })
+
+      this.talkAudioRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, (e) => {
+        console.warn('[AudioTalk] 播放流offer失败:', e?.code, e?.msg)
+        if (e && e.code == -400 && e.msg == '流不存在') {
+          this.talkAudioRetryTimer = setTimeout(() => {
+            this.startTalkAudioByRtc(url)
+          }, 1000)
+        }
+      })
+
+      this.talkAudioRtc.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS, () => {
+        console.warn('[AudioTalk] 设备音频流到达')
+        this.playConnected = true
+      })
+
+      this.talkAudioRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR, () => {
+        console.error('[AudioTalk] 音频播放ICE协商失败')
+      })
+
+      this.talkAudioRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE, (s) => {
+        console.warn('[AudioTalk] 音频播放连接状态:', s)
+        if (s === 'connected') {
+          this.playConnected = true
+        } else if (s === 'disconnected' || s === 'failed' || s === 'closed') {
+          this.playConnected = false
+          this.talkAudioFailed = true
+          if (this.talkStatus === 1) {
+            this.talkAudioRetryTimer = setTimeout(() => {
+              this.startTalkAudioByRtc(url)
+            }, 2000)
+          }
+        }
+      })
+    },
     async stopTalk() {
       this.talkStatus = -2
       if (this.broadcastRtc) {
@@ -198,12 +317,18 @@ export default {
       this.talkAudioFailed = false
       this.talkAudioPlayStream = null
       this.playConnected = false
+      this.unmuteVideoPlayer()
       try {
         await this.$store.dispatch('play/broadcastStop', [this.deviceId, this.channelId])
       } catch (e) {
         console.warn('停止对讲失败', e)
       }
       this.talkStatus = -1
+    },
+    retryTalkAudio() {
+      if (this.talkAudioPlayStream) {
+        this.startTalkAudioPlay(this.talkAudioPlayStream)
+      }
     },
     close() {
       if (this.showPlayer && this.$refs.playerTabs) {

@@ -355,7 +355,9 @@ export default {
 
       this.talkAudioRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE, (s) => {
         console.warn('[ChAudioTalk] 音频播放连接状态:', s)
-        if (s === 'disconnected' || s === 'failed' || s === 'closed') {
+        if (s === 'connected') {
+          this.playConnected = true
+        } else if (s === 'disconnected' || s === 'failed' || s === 'closed') {
           this.playConnected = false
           this.talkAudioFailed = true
           if (this.talkStatus === 1) {

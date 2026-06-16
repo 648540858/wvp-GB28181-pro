@@ -1,8 +1,13 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author lin
  */
+@Setter
+@Getter
 public class AudioBroadcastResult {
     /**
      * 推流的各个方式流地址
@@ -24,36 +29,10 @@ public class AudioBroadcastResult {
      */
     private String stream;
 
+    /**
+     * 播放流地址（设备音频通过ZLM播放给浏览器），对讲时设置
+     */
+    private StreamContent playStreamInfo;
 
-    public StreamContent getStreamInfo() {
-        return streamInfo;
-    }
 
-    public void setStreamInfo(StreamContent streamInfo) {
-        this.streamInfo = streamInfo;
-    }
-
-    public String getCodec() {
-        return codec;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
 }

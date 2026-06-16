@@ -496,7 +496,7 @@ public class SIPCommander implements ISIPCommander {
         }
         if (!mediaServerItem.isRtpEnable()) {
             // 单端口暂不支持语音喊话
-            log.info("[语音喊话] 单端口暂不支持此操作");
+            log.warn("[语音喊话] 单端口暂不支持此操作");
             return;
         }
 

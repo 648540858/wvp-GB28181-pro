@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
-import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -11,12 +9,9 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceBroadcastService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.AudioTalkResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,12 +28,6 @@ public class SourceBroadcastServiceForGbImpl implements ISourceBroadcastService 
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
-
-    @Autowired
-    private IMediaServerService mediaServerService;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Override
     public AudioTalkResult startBroadcast(CommonGBChannel channel) {
@@ -79,14 +68,9 @@ public class SourceBroadcastServiceForGbImpl implements ISourceBroadcastService 
         }
         AudioBroadcastResult abResult = playService.audioBroadcast(
                 device.getDeviceId(), deviceChannel.getDeviceId(), false);
-        MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
-        StreamContent playStream = new StreamContent(
-                mediaServerService.getStreamInfoByAppAndStream(mediaServer,
-                        MediaStreamUtil.GB28181_TALK, abResult.getStream() + "_talk",
-                        null, null, null, false));
         AudioTalkResult result = new AudioTalkResult();
         result.setPushStream(abResult.getStreamInfo());
-        result.setPlayStream(playStream);
+        result.setPlayStream(abResult.getPlayStreamInfo());
         return result;
     }
 

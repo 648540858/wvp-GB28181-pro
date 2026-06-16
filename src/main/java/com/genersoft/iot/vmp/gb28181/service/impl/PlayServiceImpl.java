@@ -1229,6 +1229,12 @@ public class PlayServiceImpl implements IPlayService {
         audioBroadcastResult.setApp(app);
         audioBroadcastResult.setStream(stream);
         audioBroadcastResult.setStreamInfo(new StreamContent(mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null, false)));
+        if (!broadcastMode) {
+            audioBroadcastResult.setPlayStreamInfo(new StreamContent(
+                    mediaServerService.getStreamInfoByAppAndStream(mediaServerItem,
+                            MediaStreamUtil.GB28181_TALK, stream + "_talk",
+                            null, null, null, true)));
+        }
         audioBroadcastResult.setCodec("G.711");
         return audioBroadcastResult;
     }

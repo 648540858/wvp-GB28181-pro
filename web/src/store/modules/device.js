@@ -14,6 +14,7 @@ import {
   queryDeviceTree,
   queryHasStreamChannels,
   resetGuard,
+  setBasicParam,
   setGuard,
   subscribeCatalog, subscribeForAlarm,
   subscribeMobilePosition,
@@ -124,9 +125,19 @@ const actions = {
       })
     })
   },
-  queryBasicParam({ commit }, deviceId) {
+  queryBasicParam({ commit }, params) {
     return new Promise((resolve, reject) => {
-      queryBasicParam(deviceId).then(response => {
+      queryBasicParam(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  setBasicParam({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      setBasicParam(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

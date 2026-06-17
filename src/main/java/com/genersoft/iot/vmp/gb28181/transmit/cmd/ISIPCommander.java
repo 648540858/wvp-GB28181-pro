@@ -248,9 +248,9 @@ public interface ISIPCommander {
 	 *
 	 * @param device 		视频设备
 	 * @param channelId		通道编码（可选）
-	 * @param configType	配置类型：
+	 * @param configClass	配置类型：
 	 */
-	void deviceConfigQuery(Device device, String channelId, String configType,  ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
+	<T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 查询设备预置位置

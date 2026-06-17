@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -331,7 +332,7 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.updateDevice(device);
             try {
                 commander.deviceInfoQuery(device, null);
-                commander.deviceConfigQuery(device, null, "BasicParam", null);
+                commander.deviceConfigQuery(device, null, BasicParam.class, null);
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
             }
@@ -500,37 +501,37 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     private void catalogSubscribeExpire(String deviceId, SipTransactionInfo transactionInfo) {
-        log.info("[目录订阅] 到期， 编号： {}", deviceId);
         Device device = getDeviceByDeviceId(deviceId);
         if (device == null) {
             log.info("[目录订阅] 到期， 编号： {}, 设备不存在， 忽略", deviceId);
             return;
         }
         if (device.isOnLine() && device.getSubscribeCycleForCatalog() > 0) {
+            log.info("[目录订阅] 到期， 编号： {}", deviceId);
             addCatalogSubscribe(device, transactionInfo);
         }
     }
 
     private void mobilPositionSubscribeExpire(String deviceId, SipTransactionInfo transactionInfo) {
-        log.info("[移动位置订阅] 到期， 编号： {}", deviceId);
         Device device = getDeviceByDeviceId(deviceId);
         if (device == null) {
             log.info("[移动位置订阅] 到期， 编号： {}, 设备不存在， 忽略", deviceId);
             return;
         }
         if (device.isOnLine() && device.getSubscribeCycleForMobilePosition() > 0) {
+            log.info("[移动位置订阅] 到期， 编号： {}", deviceId);
             addMobilePositionSubscribe(device, transactionInfo);
         }
     }
 
     private void alarmSubscribeExpire(String deviceId, SipTransactionInfo transactionInfo) {
-        log.info("[报警订阅] 到期， 编号： {}", deviceId);
         Device device = getDeviceByDeviceId(deviceId);
         if (device == null) {
             log.info("[移报警订阅] 到期， 编号： {}, 设备不存在， 忽略", deviceId);
             return;
         }
         if (device.isOnLine() && device.getSubscribeCycleForAlarm() > 0) {
+            log.info("[报警订阅] 到期， 编号： {}", deviceId);
             addAlarmSubscribe(device, transactionInfo);
         }
     }
@@ -1160,16 +1161,21 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback) {
+    public <T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback) {
 
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            WVPResult<String> result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configType);
-            callback.run(result.getCode(), result.getMsg(), result.getData());
+            WVPResult<Object> result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configClass.getName());
+            if (result.getData() instanceof JSONObject) {
+                T obj = ((JSONObject) result.getData()).toJavaObject(configClass);
+                callback.run(result.getCode(), result.getMsg(), obj);
+            } else {
+                callback.run(result.getCode(), result.getMsg(), null);
+            }
             return;
         }
 
         try {
-            sipCommander.deviceConfigQuery(device, channelId, configType, callback);
+            sipCommander.deviceConfigQuery(device, channelId, configClass, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
             callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);

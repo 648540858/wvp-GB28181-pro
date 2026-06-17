@@ -351,9 +351,9 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public WVPResult<String> deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
+    public WVPResult<Object> deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("deviceId", device.getDeviceId());
         jsonObject.put("channelId", channelId);
         jsonObject.put("configType", configType);
         RedisRpcRequest request = buildRequest("device/deviceConfigQuery", jsonObject);

@@ -1,14 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dom4j.Element;
 
 /**
  * 基础配置
  */
 @Data
 @Schema(description = "基础配置")
-public class BasicParam {
+public class BasicParam implements DeviceConfigAware {
 
     @Schema(description = "设备ID")
     private String deviceId;
@@ -45,5 +47,21 @@ public class BasicParam {
         basicParam.setHeartBeatInterval(heartBeatInterval);
         basicParam.setHeartBeatCount(heartBeatCount);
         return basicParam;
+    }
+
+    @Override
+    public String configType() {
+        return "BasicParam";
+    }
+
+    @Override
+    public void fromXml(Element element) {
+        setName(XmlUtil.getText(element, "Name"));
+        setExpiration(XmlUtil.getText(element, "Expiration"));
+        setHeartBeatInterval(XmlUtil.getInteger(element, "HeartBeatInterval"));
+        setHeartBeatCount(XmlUtil.getInteger(element, "HeartBeatCount"));
+        setPositionCapability(XmlUtil.getInteger(element, "PositionCapability"));
+        setLongitude(XmlUtil.getDouble(element, "Longitude"));
+        setLatitude(XmlUtil.getDouble(element, "Latitude"));
     }
 }

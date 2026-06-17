@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -846,11 +847,13 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
         cmdXml.append("<SN>" + sn + "</SN>\r\n");
-        String channelId = basicParam.getChannelId();
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = device.getDeviceId();
-        }
-        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+//        String channelId = basicParam.getChannelId();
+//        if (ObjectUtils.isEmpty(channelId)) {
+//            channelId = device.getDeviceId();
+//        }
+        // 此处经过详细测试 对于这里使用通道ID还是设备ID，海康两者都支持 大华必须是设备ID，宇视都支持，但是不回复消息直接自己就注销重启，
+        // 所以这里取值 device.getDeviceId()
+        cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         cmdXml.append("<BasicParam>\r\n");
         if (!ObjectUtils.isEmpty(basicParam.getName())) {
             cmdXml.append("<Name>" + basicParam.getName() + "</Name>\r\n");
@@ -870,7 +873,7 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("</Control>\r\n");
 
 
-        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", device.getDeviceId(), 2000L, callback);
         messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
@@ -1073,12 +1076,12 @@ public class SIPCommander implements ISIPCommander {
     /**
      * 查询设备配置
      *
-     * @param device     视频设备
-     * @param channelId  通道编码（可选）
-     * @param configType 配置类型：
+     * @param device      视频设备
+     * @param channelId   通道编码（可选）
+     * @param configClass 配置类型
      */
     @Override
-    public void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
+    public <T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback) throws InvalidArgumentException, SipException, ParseException {
 
         String cmdType = "ConfigDownload";
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
@@ -1093,10 +1096,42 @@ public class SIPCommander implements ISIPCommander {
         } else {
             cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         }
+
+        T sample;
+        try {
+            sample = configClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            log.error("[命令发送失败] 实例化配置类: {}", e.getMessage());
+            if (callback != null) {
+                callback.run(ErrorCode.ERROR100.getCode(), "实例化失败: " + e.getMessage(), null);
+            }
+            return;
+        }
+        String configType = sample.configType();
         cmdXml.append("<ConfigType>" + configType + "</ConfigType>\r\n");
         cmdXml.append("</Query>\r\n");
 
-        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        ErrorCallback<Object> wrappedCallback = (code, msg, data) -> {
+            if (callback != null) {
+                if (code == ErrorCode.SUCCESS.getCode() && data instanceof Element) {
+                    Element responseElement = (Element) data;
+                    Element configElement = responseElement.element(configType);
+                    if (configElement != null) {
+                        try {
+                            T result = configClass.getDeclaredConstructor().newInstance();
+                            result.fromXml(configElement);
+                            callback.run(code, msg, result);
+                            return;
+                        } catch (Exception e) {
+                            log.error("[设备配置查询] 创建实例失败", e);
+                        }
+                    }
+                }
+                callback.run(code, msg, null);
+            }
+        };
+
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, wrappedCallback);
         messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));

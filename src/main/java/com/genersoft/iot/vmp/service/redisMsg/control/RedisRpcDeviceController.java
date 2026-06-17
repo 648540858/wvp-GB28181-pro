@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.BasicParam;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceConfigAware;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
@@ -121,7 +122,7 @@ public class RedisRpcDeviceController extends RpcController {
         JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
         String deviceId = paramJson.getString("deviceId");
         String channelId = paramJson.getString("channelId");
-        String configType = paramJson.getString("configType");
+        String className = paramJson.getString("configType");
 
         Device device = deviceService.getDeviceByDeviceId(deviceId);
 
@@ -131,12 +132,24 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        deviceService.deviceConfigQuery(device, channelId, configType, (code, msg, data) -> {
-            response.setStatusCode(code);
-            response.setBody(new WVPResult<>(code, msg, data));
-            // 手动发送结果
-            sendResponse(response);
-        });
+        try {
+            Class<?> rawClass = Class.forName(className);
+            if (!DeviceConfigAware.class.isAssignableFrom(rawClass)) {
+                response.setStatusCode(ErrorCode.ERROR400.getCode());
+                response.setBody("invalid config type: " + className);
+                return response;
+            }
+            Class<? extends DeviceConfigAware> configClass = rawClass.asSubclass(DeviceConfigAware.class);
+            deviceService.deviceConfigQuery(device, channelId, configClass, (code, msg, data) -> {
+                response.setStatusCode(code);
+                response.setBody(new WVPResult<>(code, msg, data));
+                sendResponse(response);
+            });
+        } catch (ClassNotFoundException e) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("unknown config type: " + className);
+            return response;
+        }
         return null;
     }
 

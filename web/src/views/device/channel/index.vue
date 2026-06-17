@@ -1,6 +1,6 @@
 <template>
   <div id="channelList" style="height: calc(100vh - 124px);">
-    <div v-if="!editId && !ptzConfigChannelDeviceId" style="height: 100%">
+    <div v-if="!editId && !ptzConfigChannelDeviceId && !cameraConfigDeviceId" style="height: 100%">
       <el-form :inline="true" size="mini">
         <el-form-item style="margin-right: 2rem">
           <el-page-header content="通道列表" @back="showDevice" />
@@ -193,6 +193,8 @@
                   云台配置</el-dropdown-item>
                 <el-dropdown-item command="audioTalk" :disabled="device == null || device.online === 0">
                   语音对讲</el-dropdown-item>
+                <el-dropdown-item command="cameraConfig" :disabled="device == null || device.online === 0" divided>
+                  相机配置</el-dropdown-item>
               </el-dropdown-menu>
 
             </el-dropdown>
@@ -214,6 +216,7 @@
     <devicePlayer ref="devicePlayer" />
     <channel-edit v-if="editId" :id="editId" :close-edit="closeEdit" />
     <ptzConfig v-if="ptzConfigChannelDeviceId" :device-id="ptzConfigDeviceId" :channel-device-id="ptzConfigChannelDeviceId" @close="closePtzConfig" />
+    <cameraConfig v-if="cameraConfigDeviceId" :device-id="deviceId" :channel-device-id="cameraConfigDeviceId" @close="cameraConfigDeviceId = null" />
     <audioTalk ref="audioTalk" />
 
   </div>
@@ -224,6 +227,7 @@ import devicePlayer from '../dialog/devicePlayer.vue'
 import audioTalk from '../dialog/audioTalk.vue'
 import Edit from './edit.vue'
 import ptzConfig from '@/views/device/channel/ptzConfig.vue'
+import cameraConfig from './cameraConfig.vue'
 
 export default {
   name: 'ChannelList',
@@ -231,7 +235,8 @@ export default {
     devicePlayer,
     audioTalk,
     ChannelEdit: Edit,
-    ptzConfig
+    ptzConfig,
+    cameraConfig
   },
   props: {
     defaultPage: {
@@ -270,6 +275,7 @@ export default {
       editId: null,
       ptzConfigDeviceId: null,
       ptzConfigChannelDeviceId: null,
+      cameraConfigDeviceId: null,
       loadSnap: {},
       ptzTypes: {
         0: '未知',
@@ -402,6 +408,8 @@ export default {
         this.ptzConfigChannelDeviceId = itemData.deviceId
       } else if (command === 'audioTalk') {
         this.$refs.audioTalk.openDialog(this.deviceId, itemData.deviceId)
+      } else if (command === 'cameraConfig') {
+        this.cameraConfigDeviceId = itemData.deviceId
       }
     },
     queryRecords: function(itemData) {

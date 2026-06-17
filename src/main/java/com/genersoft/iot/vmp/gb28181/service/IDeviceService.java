@@ -171,7 +171,7 @@ public interface IDeviceService {
 
     void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback);
 
-    void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback);
+    <T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback);
 
     void teleboot(Device device);
 

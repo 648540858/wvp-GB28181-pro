@@ -113,10 +113,19 @@ export function subscribeForAlarm(params) {
   })
 }
 
-export function queryBasicParam(deviceId) {
+export function queryBasicParam(params) {
   return request({
     method: 'get',
-    url: `/api/device/config/query/${deviceId}/BasicParam`
+    url: '/api/device/config/query/basicParam',
+    params: params
+  })
+}
+
+export function setBasicParam(params) {
+  return request({
+    method: 'get',
+    url: '/api/device/config/set/basicParam',
+    params
   })
 }
 

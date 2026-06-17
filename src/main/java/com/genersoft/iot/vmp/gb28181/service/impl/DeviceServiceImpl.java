@@ -1161,6 +1161,25 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    public void deviceVideoParamConfig(Device device, VideoParamOpt videoParamOpt, ErrorCallback<String> callback) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.deviceVideoParamConfig(device.getServerId(), device, videoParamOpt);
+            if (result.getCode() == ErrorCode.SUCCESS.getCode()) {
+                callback.run(result.getCode(), result.getMsg(), result.getData());
+            }
+            return;
+        }
+
+        try {
+            sipCommander.deviceVideoParamConfigCmd(device, videoParamOpt, callback);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 设备配置: {}", e.getMessage());
+            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
+        }
+    }
+
+    @Override
     public <T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback) {
 
         if (!userSetting.getServerId().equals(device.getServerId())) {

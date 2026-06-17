@@ -129,6 +129,14 @@ export function setBasicParam(params) {
   })
 }
 
+export function setVideoParamOpt(params) {
+  return request({
+    method: 'get',
+    url: '/api/device/config/set/videoParamOpt',
+    params
+  })
+}
+
 export function queryChannelOne(params) {
   const { deviceId, channelDeviceId } = params
   return request({

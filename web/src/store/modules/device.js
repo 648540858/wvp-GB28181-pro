@@ -16,6 +16,7 @@ import {
   resetGuard,
   setBasicParam,
   setGuard,
+  setVideoParamOpt,
   subscribeCatalog, subscribeForAlarm,
   subscribeMobilePosition,
   sync,
@@ -138,6 +139,16 @@ const actions = {
   setBasicParam({ commit }, params) {
     return new Promise((resolve, reject) => {
       setBasicParam(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  setVideoParamOpt({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      setVideoParamOpt(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

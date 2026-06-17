@@ -196,6 +196,11 @@ public interface ISIPCommander {
 	void deviceBasicConfigCmd(Device device, BasicParam basicParam, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
+	 * 设备配置命令：VideoParamOpt
+	 */
+	void deviceVideoParamConfigCmd(Device device, VideoParamOpt videoParamOpt, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
+
+	/**
 	 * 查询设备状态
 	 *
 	 * @param device 视频设备

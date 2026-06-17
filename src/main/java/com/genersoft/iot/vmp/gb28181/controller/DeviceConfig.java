@@ -48,6 +48,30 @@ public class DeviceConfig {
         return deferredResult;
     }
 
+    @GetMapping("/set/videoParamOpt")
+    @Operation(summary = "设置视频参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "videoParamOpt", description = "视频参数", required = true)
+    public DeferredResult<WVPResult<String>> setVideoParamOpt(VideoParamOpt videoParamOpt) {
+        if (log.isDebugEnabled()) {
+            log.debug("视频参数设置命令API调用");
+        }
+        Assert.notNull(videoParamOpt.getDeviceId(), "设备ID必须存在");
+
+        Device device = deviceService.getDeviceByDeviceId(videoParamOpt.getDeviceId());
+        Assert.notNull(device, "设备不存在");
+
+        DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>();
+        deviceService.deviceVideoParamConfig(device, videoParamOpt, (code, msg, data) -> {
+            deferredResult.setResult(new WVPResult<>(code, msg, data));
+        });
+
+        deferredResult.onTimeout(() -> {
+            log.warn("[设备配置] 超时, {}", device.getDeviceId());
+            deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
+        });
+        return deferredResult;
+    }
+
     @Operation(summary = "查询基本参数配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号")

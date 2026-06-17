@@ -171,6 +171,8 @@ public interface IDeviceService {
 
     void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback);
 
+    void deviceVideoParamConfig(Device device, VideoParamOpt videoParamOpt, ErrorCallback<String> callback);
+
     <T extends DeviceConfigAware> void deviceConfigQuery(Device device, String channelId, Class<T> configClass, ErrorCallback<T> callback);
 
     void teleboot(Device device);

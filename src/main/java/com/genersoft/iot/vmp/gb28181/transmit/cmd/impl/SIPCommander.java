@@ -883,6 +883,38 @@ public class SIPCommander implements ISIPCommander {
         });
     }
 
+    @Override
+    public void deviceVideoParamConfigCmd(Device device, VideoParamOpt videoParamOpt, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
+        String cmdType = "DeviceConfig";
+        StringBuffer cmdXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        cmdXml.append("<Control>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
+        cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        cmdXml.append("<VideoParamOpt>\r\n");
+        if (!ObjectUtils.isEmpty(videoParamOpt.getResolution())) {
+            cmdXml.append("<Resolution>" + videoParamOpt.getResolution() + "</Resolution>\r\n");
+        }
+        if (!ObjectUtils.isEmpty(videoParamOpt.getDownloadSpeed())) {
+            cmdXml.append("<DownloadSpeed>" + videoParamOpt.getDownloadSpeed() + "</DownloadSpeed>\r\n");
+        }
+        cmdXml.append("</VideoParamOpt>\r\n");
+        cmdXml.append("</Control>\r\n");
+
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", device.getDeviceId(), 2000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
+
+        Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
+    }
+
     /**
      * 查询设备状态
      *

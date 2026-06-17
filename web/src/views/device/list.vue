@@ -168,9 +168,6 @@
               <el-dropdown-item command="resetGuard" :disabled="!scope.row.onLine">
                 撤防
               </el-dropdown-item>
-              <el-dropdown-item command="syncBasicParam" :disabled="!scope.row.onLine">
-                基础配置同步
-              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -391,8 +388,6 @@ export default {
         this.resetGuard(itemData)
       } else if (command === 'delete') {
         this.deleteDevice(itemData)
-      } else if (command === 'syncBasicParam') {
-        this.syncBasicParam(itemData)
       }
     },
     setGuard: function(itemData) {
@@ -471,20 +466,6 @@ export default {
           message: error.message
         })
       })
-    },
-    syncBasicParam: function(data) {
-      this.$store.dispatch('device/queryBasicParam')
-        .then((data) => {
-          this.$message.success({
-            showClose: true,
-            message: `配置已同步，当前心跳间隔： ${data.BasicParam.HeartBeatInterval} 心跳间隔:${res.data.data.BasicParam.HeartBeatCount}`
-          })
-        }).catch((error) => {
-          this.$message.error({
-            showClose: true,
-            message: error.message
-          })
-        })
     },
     getKeepaliveTimeStatistics: function(deviceId) {
       this.$refs.timeStatistics.openDialog('心跳时间统计', 'device/getKeepaliveTimeStatistics', deviceId, 60)

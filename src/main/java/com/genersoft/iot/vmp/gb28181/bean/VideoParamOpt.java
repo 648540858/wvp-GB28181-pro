@@ -9,6 +9,9 @@ import org.dom4j.Element;
 @Schema(description = "视频参数范围")
 public class VideoParamOpt implements DeviceConfigAware {
 
+    @Schema(description = "设备ID")
+    private String deviceId;
+
     @Schema(description = "下载倍速范围，各可选参数以 '/' 分隔")
     private String downloadSpeed;
 

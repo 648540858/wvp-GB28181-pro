@@ -8,26 +8,10 @@
             <i class="iconfont icon-wxbzhuye" style="margin-right: 10px" />
             <span>基础属性</span>
           </el-menu-item>
-          <el-menu-item index="image">
-            <i class="iconfont icon-shishiyulan" style="margin-right: 10px" />
-            <span>图像属性</span>
-          </el-menu-item>
-          <el-menu-item index="encode">
-            <i class="iconfont icon-shipin" style="margin-right: 10px" />
-            <span>编码设置</span>
-          </el-menu-item>
-          <el-menu-item index="alarm">
-            <i class="iconfont icon-baojing" style="margin-right: 10px" />
-            <span>报警配置</span>
-          </el-menu-item>
         </el-menu>
       </div>
       <div class="config-content">
         <basicPropertyConfig v-if="activeTab === 'base'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
-        <imagePropertyConfig v-if="activeTab === 'image'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
-        <div v-if="activeTab === 'osd'" class="placeholder-tab">OSD配置（开发中）</div>
-        <div v-if="activeTab === 'encode'" class="placeholder-tab">编码设置（开发中）</div>
-        <div v-if="activeTab === 'alarm'" class="placeholder-tab">报警配置（开发中）</div>
       </div>
     </div>
   </div>
@@ -35,11 +19,10 @@
 
 <script>
 import basicPropertyConfig from './basicPropertyConfig.vue'
-import imagePropertyConfig from './imagePropertyConfig.vue'
 
 export default {
   name: 'CameraConfigPage',
-  components: { basicPropertyConfig, imagePropertyConfig },
+  components: { basicPropertyConfig },
   props: {
     deviceId: { type: String, default: null },
     channelDeviceId: { type: String, default: null }

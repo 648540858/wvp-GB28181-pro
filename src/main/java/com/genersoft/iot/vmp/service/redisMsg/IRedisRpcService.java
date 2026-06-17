@@ -55,6 +55,8 @@ public interface IRedisRpcService {
 
     WVPResult<String> deviceBasicConfig(String serverId, Device device, BasicParam basicParam);
 
+    WVPResult<String> deviceVideoParamConfig(String serverId, Device device, VideoParamOpt videoParamOpt);
+
     WVPResult<Object> deviceConfigQuery(String serverId, Device device, String channelId, String configType);
 
     void teleboot(String serverId, Device device);

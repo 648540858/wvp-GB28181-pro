@@ -351,6 +351,14 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
+    public WVPResult<String> deviceVideoParamConfig(String serverId, Device device, VideoParamOpt videoParamOpt) {
+        RedisRpcRequest request = buildRequest("device/deviceVideoParamConfig", JSONObject.toJSONString(videoParamOpt));
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
     public WVPResult<Object> deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deviceId", device.getDeviceId());

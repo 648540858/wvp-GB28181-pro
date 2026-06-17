@@ -116,6 +116,26 @@ public class RedisRpcDeviceController extends RpcController {
         return null;
     }
 
+    @RedisRpcMapping("deviceVideoParamConfig")
+    public RedisRpcResponse deviceVideoParamConfig(RedisRpcRequest request) {
+        VideoParamOpt videoParamOpt = JSONObject.parseObject(request.getParam().toString(), VideoParamOpt.class);
+
+        Device device = deviceService.getDeviceByDeviceId(videoParamOpt.getDeviceId());
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        deviceService.deviceVideoParamConfig(device, videoParamOpt, (code, msg, data) -> {
+                    response.setStatusCode(code);
+                    response.setBody(new WVPResult<>(code, msg, data));
+                    sendResponse(response);
+                });
+        return null;
+    }
+
     @RedisRpcMapping("deviceConfigQuery")
     public RedisRpcResponse deviceConfigQuery(RedisRpcRequest request) {
 

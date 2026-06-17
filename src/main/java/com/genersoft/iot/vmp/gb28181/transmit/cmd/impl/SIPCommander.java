@@ -1148,6 +1148,15 @@ public class SIPCommander implements ISIPCommander {
                 if (code == ErrorCode.SUCCESS.getCode() && data instanceof Element) {
                     Element responseElement = (Element) data;
                     Element configElement = responseElement.element(configType);
+                    if (configElement == null) {
+                        // 兼容部分宇视设备ElementName和configType不一致的情况
+                        for (Element child : responseElement.elements()) {
+                            if (child.element("Item") != null) {
+                                configElement = child;
+                                break;
+                            }
+                        }
+                    }
                     if (configElement != null) {
                         try {
                             T result = configClass.getDeclaredConstructor().newInstance();

@@ -119,7 +119,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                         }else { // 由于上面已经判断都为null则直接返回，所以这里device和parentPlatform必有一个不为null
                             messageHandler.handForPlatform(evt, parentPlatform, rootElement);
                         }
-                        responseAck(request, Response.OK);
+                        // 存在handler则由handler自行决定回复什么。
                     }else {
                         // 不支持的message
                         // 不存在则回复415

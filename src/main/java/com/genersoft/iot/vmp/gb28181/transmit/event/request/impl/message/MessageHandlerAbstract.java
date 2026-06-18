@@ -63,6 +63,11 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
             messageHandler.handForDevice(evt, device, element);
         }else {
             handMessageEvent(element, null);
+            try {
+                responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 回复200 OK: {}", e.getMessage());
+            }
         }
     }
 
@@ -72,6 +77,12 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
         IMessageHandler messageHandler = messageHandlerMap.get(cmd);
         if (messageHandler != null) {
             messageHandler.handForPlatform(evt, parentPlatform, element);
+        }else {
+            try {
+                responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 回复200 OK: {}", e.getMessage());
+            }
         }
     }
 

@@ -593,7 +593,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 playService.stopAudioBroadcast(device, deviceChannel);
             }
         } catch (SdpException e) {
-            log.error("[SDP解析异常]", e);
+            log.error("[语音通话] SDP解析异常", e);
+            try {
+                responseAck(request, Response.BAD_REQUEST);
+            } catch (SipException | InvalidArgumentException | ParseException exception) {
+                log.error("[命令发送失败] 来自设备的Invite请求非语音广播 FORBIDDEN: {}", exception.getMessage());
+            }
             playService.stopAudioBroadcast(device, deviceChannel);
         }
     }

@@ -46,7 +46,11 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-
+        try {
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            log.error("[命令发送失败] 回复200 OK: {}", e.getMessage());
+        }
     }
 
     @Override

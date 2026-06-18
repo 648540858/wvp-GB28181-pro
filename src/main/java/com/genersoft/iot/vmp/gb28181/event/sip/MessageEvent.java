@@ -22,6 +22,8 @@ public class MessageEvent<T> implements Delayed {
 
     private String result;
 
+    private boolean keepAlive = false;
+
     private T t;
 
     private ErrorCallback<T> callback;

@@ -87,7 +87,9 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
             }else {
                 subscribe.getCallback().run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), result);
             }
-            messageSubscribe.removeSubscribe(cmd + sn);
+            if (!subscribe.isKeepAlive()) {
+                messageSubscribe.removeSubscribe(cmd + sn);
+            }
         }
     }
 }

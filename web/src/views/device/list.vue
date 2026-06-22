@@ -132,7 +132,7 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="300" fixed="right">
+      <el-table-column label="操作" min-width="200" fixed="right">
         <template v-slot:default="scope">
           <el-button
             type="text"
@@ -154,22 +154,7 @@
           <el-divider direction="vertical" />
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical" />
-          <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
-            <el-button size="medium" type="text">
-              操作<i class="el-icon-arrow-down el-icon--right" />
-            </el-button>
-            <el-dropdown-menu>
-              <el-dropdown-item command="delete" style="color: #f56c6c">
-                删除
-              </el-dropdown-item>
-              <el-dropdown-item command="setGuard" :disabled="!scope.row.onLine">
-                布防
-              </el-dropdown-item>
-              <el-dropdown-item command="resetGuard" :disabled="!scope.row.onLine">
-                撤防
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
+          <el-button size="medium" type="text" style="color: #f56c6c" @click="deleteDevice(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -381,43 +366,7 @@ export default {
           this.$refs.configInfo.openDialog(data)
         })
     },
-    moreClick: function(command, itemData) {
-      if (command === 'setGuard') {
-        this.setGuard(itemData)
-      } else if (command === 'resetGuard') {
-        this.resetGuard(itemData)
-      } else if (command === 'delete') {
-        this.deleteDevice(itemData)
-      }
-    },
-    setGuard: function(itemData) {
-      this.$store.dispatch('device/setGuard', itemData.deviceId)
-        .then((data) => {
-          this.$message.success({
-            showClose: true,
-            message: '布防成功'
-          })
-        }).catch((error) => {
-          this.$message.error({
-            showClose: true,
-            message: error.message
-          })
-        })
-    },
-    resetGuard: function(itemData) {
-      this.$store.dispatch('device/resetGuard', itemData.deviceId)
-        .then((data) => {
-          this.$message.success({
-            showClose: true,
-            message: '撤防成功'
-          })
-        }).catch((error) => {
-          this.$message.error({
-            showClose: true,
-            message: error.message
-          })
-        })
-    },
+
     subscribeForCatalog: function(data, value) {
       this.$store.dispatch('device/subscribeCatalog', {
         id: data,

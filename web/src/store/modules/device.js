@@ -13,13 +13,14 @@ import {
   queryDeviceSyncStatus,
   queryDeviceTree,
   queryHasStreamChannels,
+  resetAlarm,
   resetGuard,
   setBasicParam,
   setGuard,
   setVideoParamOpt,
   subscribeCatalog, subscribeForAlarm,
   subscribeMobilePosition,
-  sync,
+  sync, teleboot,
   update,
   updateChannelStreamIdentification,
   updateDeviceTransport
@@ -81,6 +82,16 @@ const actions = {
       resetGuard(deviceId).then(response => {
         const { data } = response
         resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  resetAlarm({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      resetAlarm(data).then(response => {
+        const { data: result } = response
+        resolve(result)
       }).catch(error => {
         reject(error)
       })
@@ -299,6 +310,16 @@ const actions = {
   getRegisterTimeStatistics({ commit }, params) {
     return new Promise((resolve, reject) => {
       getRegisterTimeStatistics(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  teleboot({ commit }, deviceId) {
+    return new Promise((resolve, reject) => {
+      teleboot(deviceId).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

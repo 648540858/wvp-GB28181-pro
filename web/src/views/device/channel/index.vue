@@ -181,20 +181,16 @@
                 更多<i class="el-icon-arrow-down el-icon--right" />
               </el-button>
               <el-dropdown-menu>
-                <el-dropdown-item command="records" :disabled="device == null || device.online === 0">
-                  设备录像</el-dropdown-item>
-                <el-dropdown-item command="cloudRecords" :disabled="device == null || device.online === 0">
-                  云端录像</el-dropdown-item>
-                <el-dropdown-item command="record" :disabled="device == null || device.online === 0">
-                  设备录像控制-开始</el-dropdown-item>
-                <el-dropdown-item command="stopRecord" :disabled="device == null || device.online === 0">
-                  设备录像控制-停止</el-dropdown-item>
-                <el-dropdown-item command="ptzConfig" :disabled="device == null || device.online === 0">
-                  云台配置</el-dropdown-item>
                 <el-dropdown-item command="audioTalk" :disabled="device == null || device.online === 0">
                   语音对讲</el-dropdown-item>
-                <el-dropdown-item command="cameraConfig" :disabled="device == null || device.online === 0" divided>
+                <el-dropdown-item command="records" :disabled="device == null || device.online === 0">
+                  设备录像</el-dropdown-item>
+                <el-dropdown-item command="ptzConfig" :disabled="device == null || device.online === 0">
+                  云台配置</el-dropdown-item>
+                <el-dropdown-item command="cameraConfig" :disabled="device == null || device.online === 0">
                   相机配置</el-dropdown-item>
+                <el-dropdown-item command="cloudRecords" :disabled="device == null || device.online === 0">
+                  云端录像</el-dropdown-item>
               </el-dropdown-menu>
 
             </el-dropdown>
@@ -398,10 +394,6 @@ export default {
         this.queryRecords(itemData)
       } else if (command === 'cloudRecords') {
         this.queryCloudRecords(itemData)
-      } else if (command === 'record') {
-        this.startRecord(itemData)
-      } else if (command === 'stopRecord') {
-        this.stopRecord(itemData)
       } else if (command === 'ptzConfig') {
         console.log(itemData.channelId)
         this.ptzConfigDeviceId = this.deviceId
@@ -423,40 +415,6 @@ export default {
       const channelId = itemData.deviceId
 
       this.$router.push(`/cloudRecord/detail/rtp/${deviceId}_${channelId}`)
-    },
-    startRecord: function(itemData) {
-      this.$store.dispatch('device/deviceRecord', {
-        deviceId: this.deviceId,
-        channelId: itemData.deviceId,
-        recordCmdStr: 'Record'
-      }).then(data => {
-        this.$message.success({
-          showClose: true,
-          message: '开始录像成功'
-        })
-      }).catch((error) => {
-        this.$message.error({
-          showClose: true,
-          message: error.message
-        })
-      })
-    },
-    stopRecord: function(itemData) {
-      this.$store.dispatch('device/deviceRecord', {
-        deviceId: this.deviceId,
-        channelId: itemData.deviceId,
-        recordCmdStr: 'StopRecord'
-      }).then(data => {
-        this.$message.success({
-          showClose: true,
-          message: '停止录像成功'
-        })
-      }).catch((error) => {
-        this.$message.error({
-          showClose: true,
-          message: error.message
-        })
-      })
     },
     stopDevicePush: function(itemData) {
       this.$store.dispatch('play/stop', {

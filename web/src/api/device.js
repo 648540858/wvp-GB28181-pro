@@ -69,6 +69,14 @@ export function resetGuard(deviceId) {
   })
 }
 
+export function resetAlarm(data) {
+  return request({
+    method: 'get',
+    url: '/api/device/control/reset_alarm',
+    params: data
+  })
+}
+
 export function homePosition(params) {
   return request({
     method: 'get',
@@ -313,6 +321,13 @@ export function dragZoomOut(params) {
     method: 'get',
     url: '/api/device/control/drag_zoom/zoom_out',
     params
+  })
+}
+
+export function teleboot(deviceId) {
+  return request({
+    method: 'get',
+    url: `/api/device/control/teleboot/${deviceId}`
   })
 }
 

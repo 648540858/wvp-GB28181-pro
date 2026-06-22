@@ -8,10 +8,25 @@
             <i class="iconfont icon-wxbzhuye" style="margin-right: 10px" />
             <span>基础属性</span>
           </el-menu-item>
+          <el-menu-item index="alarm">
+            <i class="iconfont icon-baojing" style="margin-right: 10px" />
+            <span>报警配置</span>
+          </el-menu-item>
+          <el-menu-item index="recordControl">
+            <i class="iconfont icon-record1" style="margin-right: 10px" />
+            <span>录像控制</span>
+          </el-menu-item>
+          <el-menu-item index="upgrade">
+            <i class="iconfont icon-shangchuan" style="margin-right: 10px" />
+            <span>设备运维</span>
+          </el-menu-item>
         </el-menu>
       </div>
       <div class="config-content">
         <basicPropertyConfig v-if="activeTab === 'base'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
+        <alarmConfig v-if="activeTab === 'alarm'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
+        <upgradeConfig v-if="activeTab === 'upgrade'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
+        <recordControlConfig v-if="activeTab === 'recordControl'" :device-id="deviceId" :channel-device-id="channelDeviceId" />
       </div>
     </div>
   </div>
@@ -19,10 +34,13 @@
 
 <script>
 import basicPropertyConfig from './basicPropertyConfig.vue'
+import alarmConfig from './alarmConfig.vue'
+import upgradeConfig from './upgradeConfig.vue'
+import recordControlConfig from './recordControlConfig.vue'
 
 export default {
   name: 'CameraConfigPage',
-  components: { basicPropertyConfig },
+  components: { basicPropertyConfig, alarmConfig, upgradeConfig, recordControlConfig },
   props: {
     deviceId: { type: String, default: null },
     channelDeviceId: { type: String, default: null }

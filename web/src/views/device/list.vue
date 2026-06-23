@@ -110,7 +110,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="统计" min-width="160">
+      <el-table-column label="统计" min-width="140">
         <template v-slot:default="scope">
           <el-button
             type="text"
@@ -132,7 +132,7 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="200" fixed="right">
+      <el-table-column label="操作" min-width="240" fixed="right">
         <template v-slot:default="scope">
           <el-button
             type="text"

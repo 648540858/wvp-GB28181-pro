@@ -134,7 +134,7 @@ public class DeviceControl {
 		deviceService.iFrame(device, channelId);
 	}
 
-	@Operation(summary = "看守位控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Operation(summary = "看守位设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "enabled", description = "是否开启看守位", required = true)
@@ -145,7 +145,7 @@ public class DeviceControl {
 												  @RequestParam(required = false) Integer resetTime,
 												  @RequestParam(required = false) Integer presetIndex) {
         if (log.isDebugEnabled()) {
-			log.debug("看守位控制API调用");
+			log.debug("看守位设置API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
@@ -154,7 +154,7 @@ public class DeviceControl {
 			result.setResult(new WVPResult<>(code, msg, data));
 		});
 		result.onTimeout(() -> {
-			log.warn("[看守位控制] 操作超时, 设备未返回应答指令, {}", deviceId);
+			log.warn("[看守位设置] 操作超时, 设备未返回应答指令, {}", deviceId);
 			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
 		return result;

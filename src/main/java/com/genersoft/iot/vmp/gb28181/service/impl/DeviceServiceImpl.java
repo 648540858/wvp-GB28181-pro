@@ -1294,7 +1294,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            log.error("[命令发送失败] 看守位控制: {}", e.getMessage());
+            log.error("[命令发送失败] 看守位设置: {}", e.getMessage());
             callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }

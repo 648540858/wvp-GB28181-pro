@@ -51,7 +51,7 @@ public class DefaultProperties {
         // 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
         properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", String.valueOf(sipCacheServerConnections));
 
-        properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", "gov.nist.javax.sip.stack.NioMessageProcessorFactory");
+        properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", "com.genersoft.iot.vmp.gb28181.conf.CustomMessageProcessorFactory");
 
         /**
          * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE

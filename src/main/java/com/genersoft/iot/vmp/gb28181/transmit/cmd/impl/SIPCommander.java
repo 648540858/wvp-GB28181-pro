@@ -778,7 +778,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     /**
-     * 看守位控制命令
+     * 看守位设置
      *
      * @param device      视频设备
      * @param channelId      通道id，非通道则是设备本身

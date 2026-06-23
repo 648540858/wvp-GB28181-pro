@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -596,6 +597,42 @@ public class ChannelFrontEndController {
             result.setResult(wvpResult);
         };
         channelControlService.auxiliary(channel, controlCode, callback);
+        return result;
+    }
+
+    @Operation(summary = "看守位设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelId", description = "通道ID", required = true)
+    @Parameter(name = "enabled", description = "是否开启看守位", required = true)
+    @Parameter(name = "resetTime", description = "自动归位时间间隔（秒）")
+    @Parameter(name = "presetIndex", description = "调用预置位编号")
+    @GetMapping("/home_position")
+    public DeferredResult<WVPResult<String>> homePosition(Integer channelId, Boolean enabled,
+                                                           @RequestParam(required = false) Integer resetTime,
+                                                           @RequestParam(required = false) Integer presetIndex){
+
+        if (log.isDebugEnabled()) {
+            log.debug("[通用通道]看守位设置 API调用，channelId：{} ，enabled：{} ，resetTime：{} ，presetIndex：{}", channelId, enabled, resetTime, presetIndex);
+        }
+
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+
+        result.onTimeout(()->{
+            WVPResult<String> wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "请求超时");
+            result.setResult(wvpResult);
+        });
+
+        ErrorCallback<String> callback = (code, msg, data) -> {
+            WVPResult<String> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            wvpResult.setData(data);
+            result.setResult(wvpResult);
+        };
+
+        channelControlService.homePosition(channel, enabled, resetTime, presetIndex, callback);
         return result;
     }
 

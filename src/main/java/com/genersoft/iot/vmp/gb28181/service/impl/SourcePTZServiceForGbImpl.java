@@ -350,6 +350,11 @@ public class SourcePTZServiceForGbImpl implements ISourcePTZService {
     }
 
     @Override
+    public void homePosition(CommonGBChannel channel, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) {
+        ptzService.homePosition(channel, enabled, resetTime, presetIndex, callback);
+    }
+
+    @Override
     public void dragZoom(CommonGBChannel channel, FrontEndControlCodeForDragZoom controlCode, ErrorCallback<String> callback) {
         if (controlCode.getCode() == 1) {
             ptzService.dragZoomIn(channel, controlCode.getLength(), controlCode.getWidth(), controlCode.getMidPointX(),

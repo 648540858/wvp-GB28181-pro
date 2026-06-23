@@ -691,6 +691,14 @@ export function drawThin(data) {
     data: data
   })
 }
+export function homePosition(params) {
+  return request({
+    method: 'get',
+    url: '/api/common/channel/front-end/home_position',
+    params
+  })
+}
+
 export function test() {
   return request({
     method: 'get',

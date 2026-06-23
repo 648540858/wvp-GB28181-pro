@@ -157,6 +157,11 @@ public class SourcePTZServiceForJTImpl implements ISourcePTZService {
     }
 
     @Override
+    public void homePosition(CommonGBChannel channel, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) {
+        callback.run(ErrorCode.ERROR486.getCode(), ErrorCode.ERROR486.getMsg(), null);
+    }
+
+    @Override
     public void dragZoom(CommonGBChannel channel, FrontEndControlCodeForDragZoom frontEndControlCode, ErrorCallback<String> callback) {
         callback.run(ErrorCode.ERROR486.getCode(), ErrorCode.ERROR486.getMsg(), null);
     }

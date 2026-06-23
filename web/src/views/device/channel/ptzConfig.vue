@@ -5,23 +5,23 @@
       <div class="config-sidebar">
         <el-menu :default-active="activeTab" @select="handleMenuSelect">
           <el-menu-item index="preset">
-            <i class="el-icon-map-location" style="margin-right: 6px" />
+            <i class="iconfont icon-yuzhidian" style="margin-right: 8px" />
             <span>预置点</span>
           </el-menu-item>
           <el-menu-item index="cruise">
-            <i class="el-icon-s-order" style="margin-right: 6px" />
+            <i class="iconfont icon-xunhuan" style="margin-right: 8px" />
             <span>巡航组</span>
           </el-menu-item>
           <el-menu-item index="scan">
-            <i class="iconfont icon-slider-right" style="margin-right: 6px" />
+            <i class="iconfont icon-slider-right" style="margin-right: 8px" />
             <span>线性扫描</span>
           </el-menu-item>
           <el-menu-item index="guard">
-            <i class="el-icon-s-home" style="margin-right: 6px" />
+            <i class="iconfont icon-kanshouwei" style="margin-right: 8px" />
             <span>看守位</span>
           </el-menu-item>
           <el-menu-item index="switch">
-            <i class="el-icon-s-tools" style="margin-right: 6px" />
+            <i class="iconfont icon-yushua" style="margin-right: 8px" />
             <span>辅助开关</span>
           </el-menu-item>
         </el-menu>

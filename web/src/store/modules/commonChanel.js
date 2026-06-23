@@ -50,7 +50,8 @@ import {
   resumePlayback,
   seekPlayback, speedPlayback, getAllForMap, test, saveLevel, resetLevel, clearThin, thinProgress, drawThin, saveThin,
   dragZoomIn, dragZoomOut,
-  talkStart, talkStop, broadcastStart, broadcastStop
+  talkStart, talkStop, broadcastStart, broadcastStop,
+  homePosition
 } from '@/api/commonChannel'
 
 const actions = {
@@ -687,6 +688,17 @@ const actions = {
   drawThin({ commit }, param) {
     return new Promise((resolve, reject) => {
       drawThin(param).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  homePosition({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      homePosition(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

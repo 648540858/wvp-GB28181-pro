@@ -120,6 +120,23 @@ public class PTZServiceImpl implements IPTZService {
     }
 
     @Override
+    public void homePosition(CommonGBChannel channel, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) {
+        if (channel.getDataType() != ChannelDataType.GB28181) {
+            log.warn("[INFO 消息] 只有国标通道支持看守位，通道ID：{}", channel.getGbId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持");
+        }
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备");
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道");
+        }
+        deviceService.homePosition(device, deviceChannel.getDeviceId(), enabled, resetTime, presetIndex, callback);
+    }
+
+    @Override
     public void queryPresetList(CommonGBChannel channel, ErrorCallback<List<Preset>> callback) {
         if (channel.getDataType() != ChannelDataType.GB28181) {
             // 只有国标通道的支持云台控制

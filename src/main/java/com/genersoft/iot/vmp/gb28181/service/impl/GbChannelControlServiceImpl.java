@@ -138,4 +138,16 @@ public class GbChannelControlServiceImpl implements IGbChannelControlService {
         }
         sourcePTZService.dragZoom(channel, frontEndControlCode, callback);
     }
+
+    @Override
+    public void homePosition(CommonGBChannel channel, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) {
+        log.info("[通用通道] 看守位设置， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
+        Integer dataType = channel.getDataType();
+        ISourcePTZService sourcePTZService = sourcePTZServiceMap.get(ChannelDataType.PTZ_SERVICE + dataType);
+        if (sourcePTZService == null) {
+            log.error("[通用通道] 类型： {} 不支持看守位设置", dataType);
+            throw new PlayException(Response.BUSY_HERE, "channel not support");
+        }
+        sourcePTZService.homePosition(channel, enabled, resetTime, presetIndex, callback);
+    }
 }

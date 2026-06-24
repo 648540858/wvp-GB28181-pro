@@ -132,7 +132,7 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="240" fixed="right">
+      <el-table-column label="操作" min-width="260" fixed="right">
         <template v-slot:default="scope">
           <el-button
             type="text"

@@ -21,6 +21,7 @@
       border
       stripe
       max-height="100%"
+      height="100%"
       style="flex: 1"
     >
       <el-table-column prop="presetId" label="序号" align="center" />

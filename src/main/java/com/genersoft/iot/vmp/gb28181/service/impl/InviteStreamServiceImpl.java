@@ -52,11 +52,27 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
-            if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                removeInviteInfo(inviteInfo);
-                Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                if (device != null) {
-                    deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());
+            if (inviteInfo != null) {
+                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                    log.info("[流离开] 下载会话延迟清理，等待on_record_mp4处理完成, stream={}", event.getStream());
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(5000);
+                            InviteInfo inviteInfoDelay = getInviteInfoByStream(null, event.getStream());
+                            if (inviteInfoDelay != null && inviteInfoDelay.getType() == InviteSessionType.DOWNLOAD) {
+                                removeInviteInfo(inviteInfoDelay);
+                                log.info("[流离开] 下载会话延迟清理完成, stream={}", event.getStream());
+                            }
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
+                } else if (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK) {
+                    removeInviteInfo(inviteInfo);
+                    Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
+                    if (device != null) {
+                        deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());
+                    }
                 }
             }
         }

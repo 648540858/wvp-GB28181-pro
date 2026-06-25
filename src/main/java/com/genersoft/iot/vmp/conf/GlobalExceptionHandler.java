@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public WVPResult<String> exceptionHandler(MaxUploadSizeExceededException e) {
-        return WVPResult.fail(ErrorCode.ERROR403);
+        return WVPResult.fail(ErrorCode.ERROR403.getCode(), "文件过大");
     }
 
     /**

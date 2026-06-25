@@ -11,6 +11,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -37,8 +38,19 @@ public class GlobalExceptionHandler {
      * @param e 异常
      * @return 统一返回结果
      */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public WVPResult<String> exceptionHandler(MaxUploadSizeExceededException e) {
+        return WVPResult.fail(ErrorCode.ERROR403);
+    }
+
+    /**
+     * 默认异常处理
+     * @param e 异常
+     * @return 统一返回结果
+     */
     @ExceptionHandler(NoResourceFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public WVPResult<String> exceptionHandler(NoResourceFoundException e) {
         return WVPResult.fail(ErrorCode.ERROR404);
     }

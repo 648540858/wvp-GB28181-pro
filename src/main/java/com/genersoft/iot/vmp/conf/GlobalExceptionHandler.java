@@ -11,6 +11,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理
@@ -29,6 +30,17 @@ public class GlobalExceptionHandler {
     public WVPResult<String> exceptionHandler(Exception e) {
         log.error("[全局异常]： ", e);
         return WVPResult.fail(ErrorCode.ERROR500.getCode(), e.getMessage());
+    }
+
+    /**
+     * 默认异常处理
+     * @param e 异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public WVPResult<String> exceptionHandler(NoResourceFoundException e) {
+        return WVPResult.fail(ErrorCode.ERROR404);
     }
 
     /**

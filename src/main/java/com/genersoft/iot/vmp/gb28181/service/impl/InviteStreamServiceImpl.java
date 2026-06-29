@@ -53,10 +53,15 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                removeInviteInfo(inviteInfo);
-                Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                if (device != null) {
-                    deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());
+                try {
+                    removeInviteInfo(inviteInfo);
+                    Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
+                    if (device != null) {
+                        deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());
+                    }
+                } catch (Exception e) {
+                    log.error("[流离开] 清理Invite异常: deviceId={}, channelId={}, stream={}",
+                            inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream(), e);
                 }
             }
         }
@@ -163,10 +168,14 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         ScanOptions options = ScanOptions.scanOptions().match(keyPattern).count(20).build();
         try (Cursor<Map.Entry<Object, Object>> cursor = redisTemplate.opsForHash().scan(key, options)) {
             if (cursor.hasNext()) {
-                InviteInfo inviteInfo = (InviteInfo) cursor.next().getValue();
+                Map.Entry<Object, Object> entry = cursor.next();
                 cursor.close();
-                return inviteInfo;
-
+                if (entry.getValue() instanceof InviteInfo) {
+                    return (InviteInfo) entry.getValue();
+                } else {
+                    log.warn("[Redis-InviteInfo] 发现脏数据并清理: key={}, value={}", entry.getKey(), entry.getValue());
+                    redisTemplate.opsForHash().delete(key, entry.getKey());
+                }
             }
         } catch (Exception e) {
             log.error("[Redis-InviteInfo] 查询异常: ", e);
@@ -202,7 +211,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void removeInviteInfo(InviteSessionType type, Integer channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX;
         if (type == null && channelId == null && stream == null) {
-            redisTemplate.opsForHash().delete(key);
+            redisTemplate.delete(key);
             return;
         }
         InviteInfo inviteInfo = getInviteInfo(type, channelId, stream);
@@ -339,17 +348,36 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         }
         List<Object> values = redisTemplate.opsForHash().values(key);
         for (Object value : values) {
-            InviteInfo inviteInfo = (InviteInfo)value;
-            if (inviteInfo.getStreamInfo() != null) {
-                continue;
+            try {
+                InviteInfo inviteInfo = (InviteInfo)value;
+                if (inviteInfo.getStreamInfo() != null) {
+                    continue;
+                }
+                if (inviteInfo.getCreateTime() == null || inviteInfo.getExpirationTime() == null) {
+                    removeInviteInfo(inviteInfo);
+                    continue;
+                }
+                long time = inviteInfo.getCreateTime() + inviteInfo.getExpirationTime();
+                if (System.currentTimeMillis() > time) {
+                    removeInviteInfo(inviteInfo);
+                }
+            } catch (Exception e) {
+                log.error("[定时清理Invite] 处理异常，尝试删除该数据: {}", value, e);
+                removeInviteInfoByValue(value);
             }
-            if (inviteInfo.getCreateTime() == null || inviteInfo.getExpirationTime() == 0) {
-                removeInviteInfo(inviteInfo);
-            }
-            long time = inviteInfo.getCreateTime() + inviteInfo.getExpirationTime();
-            if (System.currentTimeMillis() > time) {
-                removeInviteInfo(inviteInfo);
-            }
+        }
+    }
+
+    private void removeInviteInfoByValue(Object value) {
+        if (value instanceof InviteInfo) {
+            removeInviteInfo((InviteInfo) value);
+        } else {
+            String key = VideoManagerConstants.INVITE_PREFIX;
+            redisTemplate.opsForHash().entries(key).forEach((k, v) -> {
+                if (v.equals(value)) {
+                    redisTemplate.opsForHash().delete(key, k);
+                }
+            });
         }
     }
 }

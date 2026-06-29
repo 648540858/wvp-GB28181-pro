@@ -654,6 +654,7 @@ public class PlatformServiceImpl implements IPlatformService {
             if (errorEvent != null) {
                 errorEvent.response(eventResult);
             }
+            inviteStreamService.removeInviteInfo(inviteInfo);
         });
     }
 
@@ -714,6 +715,7 @@ public class PlatformServiceImpl implements IPlatformService {
                             inviteStreamService.call(inviteSessionType, channel.getGbId(), null,
                                     InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                                     "下级自定义了ssrc,重新设置收流信息失败", null);
+                            inviteStreamService.removeInviteInfo(inviteInfo);
                         }
                     }else {
                         ssrcInfo.setSsrc(ssrcInResponse);

@@ -392,6 +392,7 @@ public class PlayServiceImpl implements IPlayService {
                     inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
                             InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
                             InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                    inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                     return;
                 }
                 if (callback != null) {
@@ -604,7 +605,8 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     private void tcpActiveHandler(Device device, DeviceChannel channel, String contentString,
-                                  MediaServer mediaServerItem, SSRCInfo ssrcInfo, ErrorCallback<StreamInfo> callback){
+                                  MediaServer mediaServerItem, SSRCInfo ssrcInfo, ErrorCallback<StreamInfo> callback,
+                                  InviteSessionType inviteSessionType, InviteInfo inviteInfo){
         if (!device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
             return;
         }
@@ -638,9 +640,10 @@ public class PlayServiceImpl implements IPlayService {
                 sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
                 callback.run(InviteErrorCode.ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR.getCode(),
                         InviteErrorCode.ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR.getMsg(), null);
-                inviteStreamService.call(InviteSessionType.BROADCAST, channel.getId(), null,
+                inviteStreamService.call(inviteSessionType, channel.getId(), null,
                         InviteErrorCode.ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR.getCode(),
                         InviteErrorCode.ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR.getMsg(), null);
+                inviteStreamService.removeInviteInfo(inviteInfo);
             }
         } catch (SdpException e) {
             log.error("[TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channel.getDeviceId(), e);
@@ -650,9 +653,10 @@ public class PlayServiceImpl implements IPlayService {
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
-            inviteStreamService.call(InviteSessionType.BROADCAST, channel.getId(), null,
+            inviteStreamService.call(inviteSessionType, channel.getId(), null,
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+            inviteStreamService.removeInviteInfo(inviteInfo);
         }
     }
 
@@ -848,7 +852,7 @@ public class PlayServiceImpl implements IPlayService {
             if (mediaServerItem.isRtpEnable()) {
                 // 多端口
                 if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
-                    tcpActiveHandler(device, channel, contentString, mediaServerItem, ssrcInfo, callback);
+                    tcpActiveHandler(device, channel, contentString, mediaServerItem, ssrcInfo, callback, inviteSessionType, inviteInfo);
                 }
             }else {
                 // 单端口
@@ -887,6 +891,7 @@ public class PlayServiceImpl implements IPlayService {
                         inviteStreamService.call(inviteSessionType, channel.getId(), null,
                                 InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                                 "下级自定义了ssrc,重新设置收流信息失败", null);
+                        inviteStreamService.removeInviteInfo(inviteInfo);
 
                     }else {
                         ssrcInfo.setSsrc(ssrcInResponse);
@@ -894,7 +899,7 @@ public class PlayServiceImpl implements IPlayService {
                         inviteInfo.setStream(ssrcInfo.getStream());
                         if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
                             if (mediaServerItem.isRtpEnable()) {
-                                tcpActiveHandler(device, channel, contentString, mediaServerItem,  ssrcInfo, callback);
+                                tcpActiveHandler(device, channel, contentString, mediaServerItem,  ssrcInfo, callback, inviteSessionType, inviteInfo);
                             }else {
                                 log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
                             }
@@ -907,7 +912,7 @@ public class PlayServiceImpl implements IPlayService {
                     inviteInfo.setStream(ssrcInfo.getStream());
                     if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
                         if (mediaServerItem.isRtpEnable()) {
-                            tcpActiveHandler(device, channel, contentString, mediaServerItem,  ssrcInfo, callback);
+                            tcpActiveHandler(device, channel, contentString, mediaServerItem,  ssrcInfo, callback, inviteSessionType, inviteInfo);
                         }else {
                             log.warn("[Invite 200OK] 单端口收流模式不支持tcp主动模式收流");
                         }

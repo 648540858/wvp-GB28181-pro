@@ -249,12 +249,11 @@ public class ApiStreamController {
         try {
             cmder.streamByeCmd(device, code, MediaStreamUtil.RTP_APP, inviteInfo.getStream(), null, null);
         } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-            JSONObject result = new JSONObject();
-            result.put("error","发送BYE失败：" + e.getMessage());
-            return result;
+            log.error("[停止点播] 发送BYE失败: {}", e.getMessage());
+        } finally {
+            inviteStreamService.removeInviteInfo(inviteInfo);
+            deviceChannelService.stopPlay(inviteInfo.getChannelId());
         }
-        inviteStreamService.removeInviteInfo(inviteInfo);
-        deviceChannelService.stopPlay(inviteInfo.getChannelId());
         return null;
     }
 

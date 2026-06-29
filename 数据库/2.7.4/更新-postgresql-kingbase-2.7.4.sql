@@ -41,7 +41,17 @@ ALTER table wvp_device_channel ADD COLUMN IF NOT EXISTS map_level integer defaul
 ALTER table wvp_common_group ADD COLUMN IF NOT EXISTS alias varchar(255) default null;
 ALTER table wvp_stream_proxy DROP COLUMN IF EXISTS enable_remove_none_reader;
 
-DROP INDEX IF EXISTS uk_media_server_unique_ip_http_port;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'uk_media_server_unique_ip_http_port'
+      AND connamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+  ) THEN
+ALTER TABLE wvp_media_server DROP CONSTRAINT uk_media_server_unique_ip_http_port;
+END IF;
+END;
+$$;
 
 ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
 ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;

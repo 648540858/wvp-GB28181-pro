@@ -230,7 +230,7 @@ export default {
     },
     startWebrtcPush(pushStream) {
       if (!pushStream) return
-      let url = pushStream.rtc || pushStream.rtcs
+      let url = location.protocol === 'https:' ? pushStream.rtcs : (pushStream.rtc || pushStream.rtcs)
       if (!url) {
         console.warn('[ChAudioTalk] 未找到RTC推流地址')
         return

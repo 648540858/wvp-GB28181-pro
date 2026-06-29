@@ -156,7 +156,8 @@ public class ZLMMediaServerStatusManager {
         }
         if (!offlineZlmsecondaryMap.isEmpty()) {
             for (MediaServer mediaServerItem : offlineZlmsecondaryMap.values()) {
-                if (offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
+                Long lastTryTime = offlineZlmTimeMap.get(mediaServerItem.getId());
+                if (lastTryTime != null && lastTryTime < System.currentTimeMillis() - 30*60*1000) {
                     continue;
                 }
                 log.info("[ZLM-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());

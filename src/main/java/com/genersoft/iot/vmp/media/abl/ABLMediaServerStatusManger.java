@@ -127,7 +127,8 @@ public class ABLMediaServerStatusManger {
         }
         if (!offlineABLPrimaryMap.isEmpty()) {
             for (MediaServer mediaServerItem : offlineABLPrimaryMap.values()) {
-                if (offlineAblTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
+                Long lastTryTime = offlineAblTimeMap.get(mediaServerItem.getId());
+                if (lastTryTime != null && lastTryTime < System.currentTimeMillis() - 30*60*1000) {
                     offlineAblsecondaryMap.put(mediaServerItem.getId(), mediaServerItem);
                     offlineABLPrimaryMap.remove(mediaServerItem.getId());
                     continue;
@@ -152,7 +153,8 @@ public class ABLMediaServerStatusManger {
         }
         if (!offlineAblsecondaryMap.isEmpty()) {
             for (MediaServer mediaServerItem : offlineAblsecondaryMap.values()) {
-                if (offlineAblTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
+                Long lastTryTime = offlineAblTimeMap.get(mediaServerItem.getId());
+                if (lastTryTime != null && lastTryTime < System.currentTimeMillis() - 30*60*1000) {
                     continue;
                 }
                 log.info("[ABL-尝试连接] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());

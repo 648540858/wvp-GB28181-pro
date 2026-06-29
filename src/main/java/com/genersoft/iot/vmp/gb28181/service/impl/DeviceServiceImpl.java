@@ -165,10 +165,10 @@ public class DeviceServiceImpl implements IDeviceService {
     public void dbStatusCheck(){
         // 处理设备状态
         Set<String> allDeviceIds = deviceStatusManager.getAll();
-        if (!allDeviceIds.isEmpty()) {
+        if (allDeviceIds != null && !allDeviceIds.isEmpty()) {
             // 除了记录的设备以外， 其他设备全部离线
             List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
-            if (!onlineDevice.isEmpty()) {
+            if (onlineDevice != null && !onlineDevice.isEmpty()) {
                 List<Device> offlineDevices = new ArrayList<>();
                 for (Device device : onlineDevice) {
                     if (!allDeviceIds.contains(device.getDeviceId())) {
@@ -187,13 +187,15 @@ public class DeviceServiceImpl implements IDeviceService {
         }else {
             // 所有设备全部离线
             List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
-            for (Device device : onlineDevice) {
-                // 此设备需要离线
-                device.setOnLine(false);
-                // 清理离线设备的相关缓存
-                cleanOfflineDevice(device);
+            if (onlineDevice != null) {
+                for (Device device : onlineDevice) {
+                    // 此设备需要离线
+                    device.setOnLine(false);
+                    // 清理离线设备的相关缓存
+                    cleanOfflineDevice(device);
+                }
+                offlineByIds(onlineDevice);
             }
-            offlineByIds(onlineDevice);
         }
 
         // 处理订阅任务
@@ -478,7 +480,7 @@ public class DeviceServiceImpl implements IDeviceService {
     public void lostCheckForSubscribe(){
         // 获取所有设备
         List<Device> deviceList = redisCatchStorage.getAllDevices();
-        if (deviceList.isEmpty()) {
+        if (deviceList == null || deviceList.isEmpty()) {
             return;
         }
         for (Device device : deviceList) {

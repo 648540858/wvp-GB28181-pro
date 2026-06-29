@@ -250,15 +250,19 @@ public class CatalogDataManager{
         // 初次等待的时间长度，兼容部分下级平台发送初次数据很慢的情况
         Instant instantBefore2M = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(2));
         for (String dataKey : keys) {
-            CatalogData catalogData = dataMap.get(dataKey);
-            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
-                if ( catalogData.getTime().isBefore(instantBefore2M)) {
-                    String errorMsg = "同步失败，等待回复超时";
-                    catalogData.setErrorMsg(errorMsg);
-                    catalogData.setStatus(CatalogData.CatalogDataStatus.end);
-                    syncingDevices.remove(catalogData.getDevice().getDeviceId());
+            try {
+                CatalogData catalogData = dataMap.get(dataKey);
+                if (catalogData == null || catalogData.getStatus() == null) {
+                    continue;
                 }
-            }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
+                    if ( catalogData.getTime().isBefore(instantBefore2M)) {
+                        String errorMsg = "同步失败，等待回复超时";
+                        catalogData.setErrorMsg(errorMsg);
+                        catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+                        syncingDevices.remove(catalogData.getDevice().getDeviceId());
+                    }
+                }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                 boolean complete = catalogData.isComplete();
                 boolean timeout = catalogData.getTime().isBefore(instantBefore5S);
                 if (complete || timeout) {
@@ -302,6 +306,9 @@ public class CatalogDataManager{
                     syncingDevices.remove(deviceId);
                     deleteRedisKeys(catalogData);
                 }
+            }
+            } catch (Exception e) {
+                log.error("[定时清理Catalog] 处理异常: dataKey={}", dataKey, e);
             }
         }
     }

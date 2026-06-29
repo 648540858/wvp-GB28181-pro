@@ -73,13 +73,17 @@ public class CommonSessionManager {
     public void execute(){
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MINUTE, -1);
-        for (String session : callbackMap.keySet()) {
-            if (callbackMap.get(session).createTime < cal.getTimeInMillis()) {
+        for (Map.Entry<String, CommonSession> entry : callbackMap.entrySet()) {
+            CommonSession session = entry.getValue();
+            if (session == null) {
+                continue;
+            }
+            if (session.createTime < cal.getTimeInMillis()) {
                 // 超时
-                if (callbackMap.get(session).timeoutCallback != null) {
-                    callbackMap.get(session).timeoutCallback.run("timeout");
+                if (session.timeoutCallback != null) {
+                    session.timeoutCallback.run("timeout");
                 }
-                callbackMap.remove(session);
+                callbackMap.remove(entry.getKey());
             }
         }
     }

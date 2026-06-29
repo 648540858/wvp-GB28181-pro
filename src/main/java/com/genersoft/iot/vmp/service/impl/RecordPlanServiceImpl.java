@@ -84,7 +84,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         // 查询现在需要录像的通道Id
         List<Integer> startChannelIdList = queryCurrentChannelRecord();
 
-        if (startChannelIdList.isEmpty()) {
+        if (startChannelIdList == null || startChannelIdList.isEmpty()) {
             // 当前没有录像任务, 如果存在旧的正在录像的就移除
             if(!recordStreamMap.isEmpty()) {
                 Set<Integer> recordStreamSet = new HashSet<>(recordStreamMap.keySet());

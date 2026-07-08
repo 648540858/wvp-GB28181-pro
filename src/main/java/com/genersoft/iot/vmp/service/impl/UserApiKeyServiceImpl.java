@@ -33,9 +33,9 @@ public class UserApiKeyServiceImpl implements IUserApiKeyService {
     }
 
     @Override
-    public PageInfo<UserApiKey> getUserApiKeys(int page, int count) {
+    public PageInfo<UserApiKey> getUserApiKeys(int page, int count, Integer userId) {
         PageHelper.startPage(page, count);
-        List<UserApiKey> userApiKeys = userApiKeyMapper.getUserApiKeys();
+        List<UserApiKey> userApiKeys = userApiKeyMapper.getUserApiKeys(userId);
         return new PageInfo<>(userApiKeys);
     }
 

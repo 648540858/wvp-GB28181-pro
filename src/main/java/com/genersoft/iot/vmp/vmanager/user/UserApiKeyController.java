@@ -112,8 +112,8 @@ public class UserApiKeyController {
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Transactional
-    public PageInfo<UserApiKey> userApiKeys(@RequestParam(required = true) int page, @RequestParam(required = true) int count) {
-        return userApiKeyService.getUserApiKeys(page, count);
+    public PageInfo<UserApiKey> userApiKeys(@RequestParam(required = true) int page, @RequestParam(required = true) int count, @RequestParam(required = false) Integer userId) {
+        return userApiKeyService.getUserApiKeys(page, count, userId);
     }
 
     @PostMapping("/enable")

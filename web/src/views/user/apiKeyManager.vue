@@ -151,7 +151,8 @@ export default {
       this.getUserApiKeyListLoading = true
       this.$store.dispatch('userApiKeys/queryList', {
         page: this.currentPage,
-        count: this.count
+        count: this.count,
+        userId: this.userId
       })
         .then(data => {
           this.total = data.total

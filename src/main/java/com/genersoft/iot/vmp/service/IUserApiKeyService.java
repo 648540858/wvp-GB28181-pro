@@ -8,7 +8,7 @@ public interface IUserApiKeyService {
 
     boolean isApiKeyExists(String apiKey);
 
-    PageInfo<UserApiKey> getUserApiKeys(int page, int count);
+    PageInfo<UserApiKey> getUserApiKeys(int page, int count, Integer userId);
 
     int enable(Integer id);
 

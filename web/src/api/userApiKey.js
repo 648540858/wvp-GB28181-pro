@@ -13,13 +13,14 @@ export function remark(params) {
 }
 
 export function queryList(params) {
-  const { page, count } = params
+  const { page, count, userId } = params
   return request({
     method: 'get',
     url: `/api/userApiKey/userApiKeys`,
     params: {
       page: page,
-      count: count
+      count: count,
+      userId: userId
     }
   })
 }

@@ -89,6 +89,12 @@ public abstract class SIPRequestProcessorParent {
 
 
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
+		// 全局防御：校验SIP状态码合法性，防止非法状态码传入JAIN-SIP导致IllegalArgumentException
+		if (statusCode < 100 || statusCode > 699) {
+			log.error("[SIP响应] 非法状态码: {}，已替换为500 Server Internal Error。原始消息: {}", statusCode, msg);
+			statusCode = Response.SERVER_INTERNAL_ERROR; // 500
+		}
+
 		if (sipRequest.getToHeader().getTag() == null) {
 			sipRequest.getToHeader().setTag(SipUtils.getNewTag());
 		}

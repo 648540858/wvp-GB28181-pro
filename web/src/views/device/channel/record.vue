@@ -61,34 +61,14 @@
             <div class="el-icon-loading" />
             <div style="width: 100%; line-height: 2rem">正在加载</div>
           </div>
-          <jessibucaPlayer
-            v-if="activePlayer === 'jessibuca'"
+          <playerTabs
             ref="recordVideoPlayer"
-            :has-audio="true"
-            :height="'calc(100vh - 90px)'"
             :show-button="false"
-            autoplay
+            :show-tab="false"
+            :has-audio="hasAudio"
             @playStatusChange="playingChange"
             @playTimeChange="showPlayTimeChange"
-          />
-          <rtcPlayer
-            v-if="activePlayer === 'webRTC'"
-            ref="recordVideoPlayer"
-            :has-audio="true"
-            :show-controls="false"
-            style="height: calc(100vh - 220px)"
-            autoplay
-            @playStatusChange="playingChange"
-            @playTimeChange="showPlayTimeChange"
-          />
-          <h265web
-            v-if="activePlayer === 'h265web'"
-            ref="recordVideoPlayer"
-            :height="'calc(100vh - 220px)'"
-            :show-button="false"
-            :has-audio="true"
-            @playStatusChange="playingChange"
-            @playTimeChange="showPlayTimeChange"
+            @player-changed="onPlayerChanged"
           />
         </div>
         <div :class="{
@@ -207,18 +187,18 @@
             </div>
             <div style="text-align: right;">
               <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
-                <el-dropdown @command="changePlayer" placement="top">
+                <div class="record-play-control-item record-play-control-player">
+                <el-dropdown @command="changePlayerType" placement="top" :popper-append-to-body="false">
                   <a
                     target="_blank"
                     class="record-play-control-item record-play-control-speed"
-                    title="切换播放器"
+                    title="选择播放器"
                   >{{ playerLabel }}</a>
                   <el-dropdown-menu slot="dropdown" :append-to-body="false">
-                    <el-dropdown-item command="jessibuca">Jessibuca</el-dropdown-item>
-                    <el-dropdown-item command="webRTC">WebRTC</el-dropdown-item>
-                    <el-dropdown-item command="h265web">H265Web</el-dropdown-item>
+                    <el-dropdown-item v-for="p in playerList" :key="p.key" :command="p.key">{{ p.label }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
+              </div>
                 <a
                   v-if="!isFullScreen"
                   target="_blank"
@@ -246,9 +226,7 @@
 
 <script>
 
-import h265web from '../../common/h265web.vue'
-import jessibucaPlayer from '../../common/jessibuca.vue'
-import rtcPlayer from '../../common/rtcPlayer.vue'
+import playerTabs from '../../common/playerTabs.vue'
 import VideoTimeline from '../../common/VideoTimeLine/index.vue'
 import recordDownload from '../../dialog/recordDownload.vue'
 import ChooseTimeRange from '../../dialog/chooseTimeRange.vue'
@@ -258,7 +236,7 @@ import screenfull from 'screenfull'
 export default {
   name: 'DeviceRecord',
   components: {
-    h265web, jessibucaPlayer, rtcPlayer, VideoTimeline, recordDownload, ChooseTimeRange
+    playerTabs, VideoTimeline, recordDownload, ChooseTimeRange
   },
   data() {
     return {
@@ -292,12 +270,9 @@ export default {
       timelineControl: false,
       showOtherSpeed: true,
       timeSegments: [],
-      activePlayer: 'jessibuca',
-      playerUrls: {
-        jessibuca: ['ws_flv', 'wss_flv'],
-        webRTC: ['rtc', 'rtcs'],
-        h265web: ['ws_flv', 'wss_flv']
-      },
+      hasAudio: true,
+      playerList: [],
+      playerLabel: 'Jessibuca',
       pickerOptions: {
         cellClassName: (date) => {
           // 通过显示一个点标识这一天有录像
@@ -313,10 +288,6 @@ export default {
     }
   },
   computed: {
-    playerLabel() {
-      const labels = { jessibuca: 'Jessibuca', webRTC: 'WebRTC', h265web: 'H265Web' }
-      return labels[this.activePlayer] || 'Jessibuca'
-    },
     boxStyle() {
       if (this.showSidebar) {
         return {
@@ -345,22 +316,32 @@ export default {
     this.dateChange()
     this.getDownloadSpeedArray()
     window.addEventListener('beforeunload', this.stopPlayRecord)
+    this.$nextTick(() => {
+      this.updatePlayerList()
+    })
   },
   destroyed() {
     this.$destroy('recordVideoPlayer')
     window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {
-    changePlayer(player) {
-      if (this.activePlayer === player) return
-      this.activePlayer = player
-      if (this.streamInfo) {
-        this.videoUrl = this.getUrlByStreamInfo()
-        this.$nextTick(() => {
-          if (this.$refs.recordVideoPlayer) {
-            this.$refs.recordVideoPlayer.play(this.videoUrl)
-          }
-        })
+    updatePlayerList() {
+      if (this.$refs.recordVideoPlayer) {
+        this.playerList = this.$refs.recordVideoPlayer.getPlayerList()
+        const active = this.$refs.recordVideoPlayer.getActivePlayer()
+        const p = this.playerList.find(item => item.key === active)
+        this.playerLabel = p ? p.label : 'Jessibuca'
+      }
+    },
+    onPlayerChanged(key) {
+      const p = this.playerList.find(item => item.key === key)
+      this.playerLabel = p ? p.label : 'Jessibuca'
+    },
+    changePlayerType(playerType) {
+      if (this.$refs.recordVideoPlayer) {
+        this.$refs.recordVideoPlayer.switchPlayer(playerType)
+        const p = this.playerList.find(item => item.key === playerType)
+        this.playerLabel = p ? p.label : 'Jessibuca'
       }
     },
     sidebarControl() {
@@ -434,27 +415,29 @@ export default {
       this.$refs.recordVideoPlayer.pause()
     },
     play() {
-      if (this.$refs.recordVideoPlayer.loaded) {
-        this.$refs.recordVideoPlayer.unPause()
+      const activePlayer = this.$refs.recordVideoPlayer ? this.$refs.recordVideoPlayer.getActivePlayer() : null
+      const playerRef = activePlayer && this.$refs.recordVideoPlayer.$refs[activePlayer]
+      if (playerRef && playerRef.loaded) {
+        playerRef.unPause()
       } else {
         this.playRecord(this.showTimeValue, this.endTime)
       }
     },
     fullScreen() {
-      // 全屏
       if (this.isFullScreen) {
         screenfull.exit()
         this.isFullScreen = false
         return
       }
-      const playerWidth = this.$refs.recordVideoPlayer.playerWidth
-      const playerHeight = this.$refs.recordVideoPlayer.playerHeight
+      const playerWrapper = this.$refs.recordVideoPlayer ? this.$refs.recordVideoPlayer.$refs.playerWrapper : null
+      const playerWidth = playerWrapper ? playerWrapper.clientWidth : 0
+      const playerHeight = playerWrapper ? playerWrapper.clientHeight : 0
       screenfull.request(document.getElementById('playerBox'))
-      screenfull.on('change', (event) => {
-        this.isFullScreen = screenfull.isFullscreen
-        if (this.$refs.recordVideoPlayer && this.$refs.recordVideoPlayer.resize) {
+      screenfull.on('change', () => {
+        if (this.$refs.recordVideoPlayer) {
           this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
         }
+        this.isFullScreen = screenfull.isFullscreen
       })
       this.isFullScreen = true
     },
@@ -504,10 +487,12 @@ export default {
     stopPlayRecord(callback) {
       console.log('停止录像回放')
       if (this.streamInfo !== null) {
-        this.$refs['recordVideoPlayer'].pause()
+        if (this.$refs.recordVideoPlayer) {
+          this.$refs.recordVideoPlayer.pause()
+        }
         this.videoUrl = ''
         this.$store.dispatch('playback/stop', [this.deviceId, this.channelId, this.streamInfo.stream])
-          .then((data) => {
+          .then(() => {
             this.streamInfo = null
             if (callback) callback()
           })
@@ -531,24 +516,14 @@ export default {
         this.$store.dispatch('playback/play', [this.deviceId, this.channelId, startTime, endTime])
           .then(data => {
             this.streamInfo = data
-            this.videoUrl = this.getUrlByStreamInfo()
             this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
             this.$nextTick(() => {
               if (this.$refs.recordVideoPlayer) {
-                this.$refs.recordVideoPlayer.play(this.videoUrl)
+                this.$refs.recordVideoPlayer.setStreamInfo(data)
               }
             })
           })
       }
-    },
-    getUrlByStreamInfo() {
-      const keys = this.playerUrls[this.activePlayer]
-      if (location.protocol === 'https:') {
-        this.videoUrl = this.streamInfo[keys[1]]
-      } else {
-        this.videoUrl = this.streamInfo[keys[0]]
-      }
-      return this.videoUrl
     },
     downloadFile(row) {
       if (!row) {
@@ -706,8 +681,16 @@ export default {
   width: 100%; aspect-ratio: 16 / 9;
   background-color: #000000;
   height: calc(100vh - 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .play-box-fullscreen {
   height: 100vh !important;
+}
+.record-play-control-player {
+  width: fit-content;
+  height: 32px;
+  display: inline-block;
 }
 </style>

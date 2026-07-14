@@ -92,7 +92,7 @@ export default {
     onSubmit: function() {
       this.$store.dispatch('user/changePassword', {
         oldPassword: crypto.createHash('md5').update(this.oldPassword, 'utf8').digest('hex'),
-        password: this.newPassword
+        password: crypto.createHash('md5').update(this.newPassword, 'utf8').digest('hex')
       })
         .then((data) => {
           this.$message({

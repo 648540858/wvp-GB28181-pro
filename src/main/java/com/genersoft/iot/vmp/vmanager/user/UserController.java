@@ -58,7 +58,7 @@ public class UserController {
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
         } catch (AuthenticationException e) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
         }
         if (user == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
@@ -76,7 +76,7 @@ public class UserController {
     @Operation(summary = "修改密码", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "oldpassword", description = "旧密码（已md5加密的密码）", required = true)
-    @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
+    @Parameter(name = "password", description = "新密码（已md5加密的密码）", required = true)
     public void changePassword(@RequestParam String oldPassword, @RequestParam String password){
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();
@@ -91,7 +91,7 @@ public class UserController {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
             //int userId = SecurityUtils.getUserId();
-            boolean result = userService.changePassword(user.getId(), DigestUtils.md5DigestAsHex(password.getBytes()));
+            boolean result = userService.changePassword(user.getId(), password);
             if (!result) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
@@ -197,7 +197,7 @@ public class UserController {
     @Operation(summary = "管理员修改普通用户密码", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "adminId", description = "管理员id", required = true)
     @Parameter(name = "userId", description = "用户id", required = true)
-    @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
+    @Parameter(name = "password", description = "新密码（已md5加密的密码）", required = true)
     public void changePasswordForAdmin(@RequestParam int userId, @RequestParam String password) {
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();
@@ -206,7 +206,7 @@ public class UserController {
         }
         Role role = userInfo.getRole();
         if (role != null && role.getId() == 1) {
-            boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));
+            boolean result = userService.changePassword(userId, password);
             if (!result) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }

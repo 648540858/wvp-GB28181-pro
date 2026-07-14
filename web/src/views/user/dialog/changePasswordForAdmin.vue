@@ -34,6 +34,7 @@
 <script>
 
 import elDragDialog from '@/directive/el-drag-dialog'
+import crypto from 'crypto'
 
 export default {
   name: 'ChangePasswordForAdmin',
@@ -89,7 +90,7 @@ export default {
     },
     onSubmit: function() {
       this.$store.dispatch('user/changePasswordForAdmin', {
-        password: this.newPassword,
+        password: crypto.createHash('md5').update(this.newPassword, 'utf8').digest('hex'),
         userId: this.form.id
       })
         .then(data => {

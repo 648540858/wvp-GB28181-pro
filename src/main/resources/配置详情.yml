@@ -275,6 +275,14 @@ user-settings:
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     allowed-alarm-type:
       - IntrusionDetection
+    # 设备注册时间列表最大保留条数，默认100，设置为0则不限制
+    device-register-time-max-count: 100
+    # 设备注册时间列表过期时间（小时），默认3，设置为0则永不过期
+    device-register-time-ttl-hours: 3
+    # 设备心跳时间列表最大保留条数，默认100，设置为0则不限制
+    device-keepalive-time-max-count: 100
+    # 设备心跳时间列表过期时间（小时），默认1，设置为0则永不过期
+    device-keepalive-time-ttl-hours: 1
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

@@ -256,4 +256,24 @@ public class UserSetting {
      */
     private int alarmKeepDays = 7;
 
+    /**
+     * 设备注册时间列表最大保留条数，默认100
+     */
+    private int deviceRegisterTimeMaxCount = 100;
+
+    /**
+     * 设备注册时间列表过期时间（小时），默认3，设置为0则永不过期
+     */
+    private int deviceRegisterTimeTtlHours = 3;
+
+    /**
+     * 设备心跳时间列表最大保留条数，默认100
+     */
+    private int deviceKeepaliveTimeMaxCount = 100;
+
+    /**
+     * 设备心跳时间列表过期时间（小时），默认1，设置为0则永不过期
+     */
+    private int deviceKeepaliveTimeTtlHours = 1;
+
 }

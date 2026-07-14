@@ -161,6 +161,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), okResponse);
             device.setRegisterTimeStamp(System.currentTimeMillis());
             deviceService.online(device);
+            redisCatchStorage.updateDeviceRegisterTimeStamp(List.of(device));
             return;
         }
 
@@ -247,6 +248,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             Response response = getRegisterOkResponse(request);
             sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
             deviceService.offline(device);
+            device.setRegisterTimeStamp(System.currentTimeMillis());
+            redisCatchStorage.updateDeviceRegisterTimeStamp(List.of(device));
             log.info("[注销成功] deviceId: {}->{}", deviceId, requestAddress);
             return;
         }
@@ -281,6 +284,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
         if (device != null) {
             deviceService.offline(device);
+            device.setRegisterTimeStamp(System.currentTimeMillis());
             redisCatchStorage.updateDeviceRegisterTimeStamp(List.of(device));
         }
 

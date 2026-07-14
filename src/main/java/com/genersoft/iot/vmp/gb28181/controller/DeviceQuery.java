@@ -138,6 +138,7 @@ public class DeviceQuery {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(device, "设备不存在");
 		if (device.getTransport() == null) {
 			WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -223,6 +224,7 @@ public class DeviceQuery {
 				|| streamMode.equalsIgnoreCase("TCP-ACTIVE")
 				|| streamMode.equalsIgnoreCase("TCP-PASSIVE"), "数据流传输模式, 取值：UDP/TCP-ACTIVE/TCP-PASSIVE");
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(device, "设备不存在");
 		device.setStreamMode(streamMode.toUpperCase());
 		deviceService.updateCustomDevice(device);
 	}

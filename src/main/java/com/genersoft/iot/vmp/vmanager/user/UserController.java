@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -57,7 +58,7 @@ public class UserController {
         LoginUser user;
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
-        } catch (AuthenticationException e) {
+        } catch (AuthenticationException | BadCredentialsException e) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
         }
         if (user == null) {

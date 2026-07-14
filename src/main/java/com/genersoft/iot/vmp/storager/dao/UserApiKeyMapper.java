@@ -22,7 +22,7 @@ public interface UserApiKeyMapper {
             "<if test=\"app != null\">, app = #{app}</if>" +
             "<if test=\"apiKey != null\">, api_key = #{apiKey}</if>" +
             "<if test=\"expiredAt != null\">, expired_at = #{expiredAt}</if>" +
-            "<if test=\"remark != null\">, username = #{remark}</if>" +
+            "<if test=\"remark != null\">, remark = #{remark}</if>" +
             "<if test=\"enable != null\">, enable = #{enable}</if>" +
             "WHERE id = #{id}" +
             " </script>"})

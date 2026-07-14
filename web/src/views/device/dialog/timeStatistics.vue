@@ -21,7 +21,7 @@
           </div>
           <el-form :inline="true" size="mini">
             <el-form-item label="数量">
-              <el-input-number v-model="count" :min="1" :max="500" @change="fetchData" />
+              <el-input-number v-model="count" :min="1" @change="fetchData" />
             </el-form-item>
           </el-form>
         </el-row>

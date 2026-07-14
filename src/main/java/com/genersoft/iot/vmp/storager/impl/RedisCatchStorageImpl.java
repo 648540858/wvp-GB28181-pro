@@ -145,12 +145,24 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void removeDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.opsForHash().delete(key, deviceId);
+        // 同时删除注册时间和心跳时间缓存列表
+        longRedisTemplate.delete(VideoManagerConstants.DEVICE_REGISTER_PREFIX + deviceId);
+        longRedisTemplate.delete(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + deviceId);
     }
 
     @Override
     public void removeAllDevice() {
         String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.delete(key);
+        // 同时删除所有注册时间和心跳时间缓存列表
+        Set<String> registerKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_REGISTER_PREFIX + "*");
+        if (registerKeys != null && !registerKeys.isEmpty()) {
+            stringRedisTemplate.delete(registerKeys);
+        }
+        Set<String> keepaliveKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + "*");
+        if (keepaliveKeys != null && !keepaliveKeys.isEmpty()) {
+            stringRedisTemplate.delete(keepaliveKeys);
+        }
     }
 
     @Override
@@ -553,14 +565,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             public Boolean execute(@NonNull RedisOperations operations) {
                 // 1. 批量添加心跳数据到列表尾部
                 for (Device device : deviceList) {
-                    Duration duration = Duration.ofHours(1);
+                    Long timestamp = device.getKeepaliveTimeStamp();
+                    if (timestamp == null) {
+                        continue;
+                    }
                     String key = VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId();
-                    operations.opsForList().rightPush(key, device.getKeepaliveTimeStamp());
-                    // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim(key, -100, -1);
-
-                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
-                    operations.expire(key, duration);
+                    operations.opsForList().rightPush(key, timestamp);
+                    // 2. 截取列表，只保留最新 N 条
+                    if (userSetting.getDeviceKeepaliveTimeMaxCount() > 0) {
+                        operations.opsForList().trim(key, -userSetting.getDeviceKeepaliveTimeMaxCount(), -1);
+                    }
+                    // 3. 设置过期时间，ttlHours <= 0 则跳过
+                    if (userSetting.getDeviceKeepaliveTimeTtlHours() > 0) {
+                        operations.expire(key, Duration.ofHours(userSetting.getDeviceKeepaliveTimeTtlHours()));
+                    }
                 }
                 return true;
             }
@@ -592,17 +610,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             @Override
             // 注意：这里直接写死 String, String 覆盖接口的 K, V
             public Boolean execute(@NonNull RedisOperations operations) {
-                // 1. 批量添加心跳数据到列表尾部
+                // 1. 批量添加注册数据到列表尾部
                 for (Device device : deviceList) {
-                    Duration duration = Duration.ofHours(3);
+                    Long timestamp = device.getRegisterTimeStamp();
+                    if (timestamp == null) {
+                        continue;
+                    }
                     String key = VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId();
-                    operations.opsForList().rightPush(key, device.getRegisterTimeStamp());
-                    // 2. 截取列表，只保留最新 100 条
-                    operations.opsForList().trim(key, -100, -1);
-
-                    // 为整个列表 Key 设置过期时间（核心：覆盖式设置，每次更新心跳都重置过期时间）
-                    operations.expire(key, duration);
-
+                    operations.opsForList().rightPush(key, timestamp);
+                    // 2. 截取列表，只保留最新 N 条
+                    if (userSetting.getDeviceRegisterTimeMaxCount() > 0) {
+                        operations.opsForList().trim(key, -userSetting.getDeviceRegisterTimeMaxCount(), -1);
+                    }
+                    // 3. 设置过期时间，ttlHours <= 0 则跳过
+                    if (userSetting.getDeviceRegisterTimeTtlHours() > 0) {
+                        operations.expire(key, Duration.ofHours(userSetting.getDeviceRegisterTimeTtlHours()));
+                    }
                 }
                 return true;
             }

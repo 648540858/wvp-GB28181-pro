@@ -111,4 +111,12 @@ user-settings:
   stream-on-demand: true
   # 是否返回Date属性，true：不返回，避免摄像头通过该参数自动校时，false：返回，摄像头可能会根据该时间校时
   disable-date-header: false
+  # 设备注册时间列表最大保留条数，默认100，设置为0则不限制
+  device-register-time-max-count: 100
+  # 设备注册时间列表过期时间（小时），默认3，设置为0则永不过期
+  device-register-time-ttl-hours: 3
+  # 设备心跳时间列表最大保留条数，默认100，设置为0则不限制
+  device-keepalive-time-max-count: 100
+  # 设备心跳时间列表过期时间（小时），默认1，设置为0则永不过期
+  device-keepalive-time-ttl-hours: 1
 

@@ -108,7 +108,7 @@ public class UserApiKeyController {
      * @return 分页ApiKey列表
      */
     @GetMapping("/userApiKeys")
-    @Operation(summary = "分页查询用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "分页查询用户ApiKey", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Transactional

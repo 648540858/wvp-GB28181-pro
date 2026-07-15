@@ -50,7 +50,6 @@ public class UserController {
     @PostMapping("/login")
     @Operation(summary = "登录", description = "登录成功后返回AccessToken， 可以从返回值获取到也可以从响应头中获取到，" +
             "后续的请求需要添加请求头 'access-token'或者放在参数里")
-
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
     public LoginUser login(HttpServletRequest request, HttpServletResponse response, @RequestParam String username, @RequestParam String password){
@@ -154,9 +153,8 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "查询用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "查询全部用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<User> all(){
-        // 获取当前登录用户id
         return userService.getAllUsers();
     }
 
@@ -214,7 +212,7 @@ public class UserController {
     }
 
     @PostMapping("/userInfo")
-    @Operation(summary = "管理员修改普通用户密码")
+    @Operation(summary = "查询当前登录用户信息")
     public LoginUser getUserInfo() {
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();

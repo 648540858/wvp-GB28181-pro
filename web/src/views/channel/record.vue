@@ -49,8 +49,8 @@
           </div>
         </div>
       </div>
-      <div id="playerBox">
-        <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
+      <div id="playerBox" :style="playBoxStyle">
+        <div class="play-box">
           <div
             v-if="playLoading"
             style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;"
@@ -58,13 +58,14 @@
             <div class="el-icon-loading" />
             <div style="width: 100%; line-height: 2rem">正在加载</div>
           </div>
-          <h265web
+          <playerTabs
             ref="recordVideoPlayer"
-            :height="'calc(100vh - 250px)'"
             :show-button="false"
-            :has-audio="true"
+            :show-tab="false"
+            :has-audio="hasAudio"
             @playStatusChange="playingChange"
             @playTimeChange="showPlayTimeChange"
+            @player-changed="onPlayerChanged"
           />
         </div>
         <div class="player-option-box">
@@ -180,6 +181,18 @@
           </div>
           <div style="text-align: right;">
             <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+              <div class="record-play-control-item record-play-control-player">
+                <el-dropdown @command="changePlayerType" :popper-append-to-body="false">
+                  <a
+                    target="_blank"
+                    class="record-play-control-item record-play-control-speed"
+                    title="选择播放器"
+                  >{{ playerLabel }}</a>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item v-for="p in playerList" :key="p.key" :command="p.key">{{ p.label }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </div>
               <a
                 v-if="!isFullScreen"
                 target="_blank"
@@ -206,7 +219,7 @@
 
 <script>
 
-import h265web from '../common/h265web.vue'
+import playerTabs from '../common/playerTabs.vue'
 import VideoTimeline from '../common/VideoTimeLine/index.vue'
 import recordDownload from '../dialog/recordDownload.vue'
 import ChooseTimeRange from '../dialog/chooseTimeRange.vue'
@@ -216,7 +229,7 @@ import screenfull from 'screenfull'
 export default {
   name: 'CommonRecord',
   components: {
-    h265web, VideoTimeline, recordDownload, ChooseTimeRange
+    playerTabs, VideoTimeline, recordDownload, ChooseTimeRange
   },
   data() {
     return {
@@ -249,6 +262,9 @@ export default {
       timelineControl: false,
       showOtherSpeed: true,
       timeSegments: [],
+      hasAudio: true,
+      playerList: [],
+      playerLabel: 'Jessibuca',
       pickerOptions: {
         cellClassName: (date) => {
           // 通过显示一个点标识这一天有录像
@@ -264,6 +280,11 @@ export default {
     }
   },
   computed: {
+    playBoxStyle() {
+      return {
+        height: this.isFullScreen ? 'calc(100vh - 61px)' : 'calc(100vh - 164px)'
+      }
+    },
     boxStyle() {
       if (this.showSidebar) {
         return {
@@ -291,12 +312,34 @@ export default {
     this.chooseDate = moment().format('YYYY-MM-DD')
     this.dateChange()
     window.addEventListener('beforeunload', this.stopPlayRecord)
+    this.$nextTick(() => {
+      this.updatePlayerList()
+    })
   },
   destroyed() {
     this.$destroy('recordVideoPlayer')
     window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {
+    updatePlayerList() {
+      if (this.$refs.recordVideoPlayer) {
+        this.playerList = this.$refs.recordVideoPlayer.getPlayerList()
+        const active = this.$refs.recordVideoPlayer.getActivePlayer()
+        const p = this.playerList.find(item => item.key === active)
+        this.playerLabel = p ? p.label : 'Jessibuca'
+      }
+    },
+    onPlayerChanged(key) {
+      const p = this.playerList.find(item => item.key === key)
+      this.playerLabel = p ? p.label : 'Jessibuca'
+    },
+    changePlayerType(playerType) {
+      if (this.$refs.recordVideoPlayer) {
+        this.$refs.recordVideoPlayer.switchPlayer(playerType)
+        const p = this.playerList.find(item => item.key === playerType)
+        this.playerLabel = p ? p.label : 'Jessibuca'
+      }
+    },
     sidebarControl() {
       this.showSidebar = !this.showSidebar
     },
@@ -371,24 +414,28 @@ export default {
       this.$refs.recordVideoPlayer.pause()
     },
     play() {
-      if (this.$refs.recordVideoPlayer.loaded) {
-        this.$refs.recordVideoPlayer.unPause()
+      const activePlayer = this.$refs.recordVideoPlayer ? this.$refs.recordVideoPlayer.getActivePlayer() : null
+      const playerRef = activePlayer && this.$refs.recordVideoPlayer.$refs[activePlayer]
+      if (playerRef && playerRef.loaded) {
+        playerRef.unPause()
       } else {
         this.playRecord(this.showTimeValue, this.endTime)
       }
     },
     fullScreen() {
-      // 全屏
       if (this.isFullScreen) {
         screenfull.exit()
         this.isFullScreen = false
         return
       }
-      const playerWidth = this.$refs.recordVideoPlayer.playerWidth
-      const playerHeight = this.$refs.recordVideoPlayer.playerHeight
+      const playerWrapper = this.$refs.recordVideoPlayer ? this.$refs.recordVideoPlayer.$refs.playerWrapper : null
+      const playerWidth = playerWrapper ? playerWrapper.clientWidth : 0
+      const playerHeight = playerWrapper ? playerWrapper.clientHeight : 0
       screenfull.request(document.getElementById('playerBox'))
-      screenfull.on('change', (event) => {
-        this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
+      screenfull.on('change', () => {
+        if (this.$refs.recordVideoPlayer) {
+          this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
+        }
         this.isFullScreen = screenfull.isFullscreen
       })
       this.isFullScreen = true
@@ -426,14 +473,16 @@ export default {
     stopPlayRecord(callback) {
       console.log('停止录像回放')
       if (this.streamInfo !== null) {
-        this.$refs['recordVideoPlayer'].pause()
+        if (this.$refs.recordVideoPlayer) {
+          this.$refs.recordVideoPlayer.pause()
+        }
         this.videoUrl = ''
         this.$store.dispatch('commonChanel/stopPlayback',
           {
             channelId: this.channelId,
             stream: this.streamInfo.stream
           })
-          .then((data) => {
+          .then(() => {
             this.streamInfo = null
             if (callback) callback()
           })
@@ -462,23 +511,14 @@ export default {
           })
           .then(data => {
             this.streamInfo = data
-            this.videoUrl = this.getUrlByStreamInfo()
             this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
             this.$nextTick(() => {
               if (this.$refs.recordVideoPlayer) {
-                this.$refs.recordVideoPlayer.play(this.videoUrl)
+                this.$refs.recordVideoPlayer.setStreamInfo(data)
               }
             })
           })
       }
-    },
-    getUrlByStreamInfo() {
-      if (location.protocol === 'https:') {
-        this.videoUrl = this.streamInfo['wss_flv']
-      } else {
-        this.videoUrl = this.streamInfo['ws_flv']
-      }
-      return this.videoUrl
     },
     downloadFile(row) {
       if (!row) {
@@ -622,5 +662,19 @@ export default {
   left: calc(50% - 85px);
   top: -72px;
   text-shadow: 1px 0 #5f6b7c, -1px 0 #5f6b7c, 0 1px #5f6b7c, 0 -1px #5f6b7c, 1.1px 1.1px #5f6b7c, 1.1px -1.1px #5f6b7c, -1.1px 1.1px #5f6b7c, -1.1px -1.1px #5f6b7c;
+}
+.play-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #000000;
+  height: calc(100vh - 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.record-play-control-player {
+  width: fit-content;
+  height: 32px;
+  display: inline-block;
 }
 </style>

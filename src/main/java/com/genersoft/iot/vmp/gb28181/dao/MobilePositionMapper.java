@@ -20,7 +20,7 @@ public interface MobilePositionMapper {
     " WHERE channel_id = #{channelId}" +
     "<if test=\"startTime != null\"> AND timestamp&gt;=#{startTime}</if>" +
     "<if test=\"endTime != null\"> AND timestamp&lt;=#{endTime}</if>" +
-    " ORDER BY time ASC" +
+    " ORDER BY timestamp ASC" +
     " </script>"})
     List<MobilePosition> queryPositionByDeviceIdAndTime(@Param("channelId") Integer channelId, @Param("startTime") Long startTime, @Param("endTime") Long endTime);
 

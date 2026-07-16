@@ -6,7 +6,6 @@ const serverIdKey = 'wvp_server_id'
 const expires = 30
 
 export function getToken() {
-  console.log('Getting token...')
   return Cookies.get(TokenKey)
 }
 

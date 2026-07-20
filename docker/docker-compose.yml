@@ -1,4 +1,3 @@
-version: '3'
 services:
   polaris-redis:
     image: redis:latest  # 使用官方Redis镜像
@@ -59,25 +58,30 @@ services:
     networks:
       - media-net
     ports:
-     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
-     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
-      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
-      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/udp"   # [收流]RTMP  
-     #- "41935:41935/tcp"   # [收流]RTMPS 无效
-      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/tcp"     # [收流]RTSP  
-      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/udp"     # [收流]RTSP  
-     #- "45540:45540/tcp"   # [收流]RTSPS 无效
-      - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
-      - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   
+      - "${MediaHttp:-80}:${MediaHttp:-80}/tcp"      # [播流]HTTP
+      - "${MediaHttps:-443}:${MediaHttps:-443}/tcp"  # [播流]HTTPS
+      - "${MediaRtmp:-10001}:${MediaRtmp:-10001}/tcp"  # [收流]RTMP
+      - "${MediaRtmp:-10001}:${MediaRtmp:-10001}/udp"  # [收流]RTMP
+      - "${MediaRtsp:-10002}:${MediaRtsp:-10002}/tcp"  # [收流]RTSP
+      - "${MediaRtsp:-10002}:${MediaRtsp:-10002}/udp"  # [收流]RTSP
+      - "${MediaRtp:-10003}:${MediaRtp:-10003}/tcp"    # [收流]RTP
+      - "${MediaRtp:-10003}:${MediaRtp:-10003}/udp"    # [收流]RTP
+      - "${MediaRtc:-8000}:${MediaRtc:-8000}/tcp"      # [WebRTC]TCP
+      - "${MediaRtc:-8000}:${MediaRtc:-8000}/udp"      # [WebRTC]UDP
     volumes:
       - ./volumes/video:/opt/media/bin/www/record/
-      - ./logs/media:/opt/media/log/
+      - ./logs/media:/opt/media/bin/log/
       - ./media/config.ini:/conf/config.ini
-    command: [
-        'MediaServer',
-        '-c', '/conf/config.ini',
-        '-l', '0'
-    ]
+      - ./media/entrypoint.sh:/entrypoint.sh
+    environment:
+      MediaHttp: ${MediaHttp:-80}
+      MediaHttps: ${MediaHttps:-443}
+      MediaRtmp: ${MediaRtmp:-10001}
+      MediaRtsp: ${MediaRtsp:-10002}
+      MediaRtp: ${MediaRtp:-10003}
+      MediaRtc: ${MediaRtc:-8000}
+      SDP_IP: ${SDP_IP}
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
 
   polaris-wvp:
     # 显式指定构建上下文和Dockerfile路径
@@ -88,7 +92,7 @@ services:
     networks:
       - media-net
     ports:
-      - "18978:18978"
+      - "${WebHttp:-8080}:8080"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
     depends_on:
@@ -99,6 +103,7 @@ services:
       - ./wvp/config:/opt/wvp/config
       - ./wvp/wvp/:/opt/ylcx/wvp/
       - ./logs/wvp:/opt/wvp/logs/
+      - ./logs/nginx:/var/log/nginx
     environment:
       TZ: "Asia/Shanghai"
       # docker env
@@ -112,11 +117,12 @@ services:
       ZLM_HOST: polaris-media
       ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
 
-      MediaHttp: ${WebHttp:-8080}
-      #MediaHttps: ${WebHttps:-8081}
-      MediaRtmp: ${MediaRtmp:-10935}
-      MediaRtsp: ${MediaRtsp:-5540}
-      MediaRtp: ${MediaRtp:-10000}
+      MediaHttp: ${MediaHttp:-80}
+      MediaHttps: ${MediaHttps:-443}
+      MediaRtmp: ${MediaRtmp:-10001}
+      MediaRtsp: ${MediaRtsp:-10002}
+      MediaRtp: ${MediaRtp:-10003}
+      MediaRtc: ${MediaRtc:-8000}
 
       REDIS_HOST: polaris-redis
       REDIS_PORT: 6379
@@ -134,24 +140,6 @@ services:
 
       RecordSip: ${RecordSip}
       RecordPushLive: ${RecordPushLive}
-
-  polaris-nginx:
-    # 显式指定构建上下文和Dockerfile路径
-    build:
-      context: ..  # 构建上下文的根路径
-      dockerfile: ./docker/nginx/Dockerfile  # 相对于上下文路径的Dockerfile位置
-    ports:
-      - "${WebHttp:-8080}:8080"
-    depends_on:
-      - polaris-wvp
-    volumes:
-      - ./nginx/templates/:/etc/nginx/templates
-      - ./logs/nginx:/var/log/nginx
-    environment:
-      # 流链接的IP
-      Stream_IP: ${Stream_IP}
-    networks:
-      - media-net
       
 networks:
   media-net:

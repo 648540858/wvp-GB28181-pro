@@ -57,7 +57,7 @@
    ![_media/img_19.png](_media/img_19.png)
 2. 拼接推流地址
    得到的rtsp地址就是: rtsp://{流IP}:{RTSP PORT}/{app}/{stream}
-   得到的rtmp地址就是: rtsp://{流IP}:{RTMP PORT}/{app}/{stream}
+   得到的rtmp地址就是: rtmp://{流IP}:{RTMP PORT}/{app}/{stream}
    其中流IP是设备可以连接到zlm的IP,端口是对应协议的端口号, app和stream自己定义就可以.
 3. 增加推流鉴权信息
    wvp默认开启推流鉴权,拼接好的地址是不能直接推送的,会被返回鉴权失败,参考[推流规则](_content/ability/push?id=推流规则)

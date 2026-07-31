@@ -5,9 +5,9 @@
 ![云端录像](_media/img_26.png)
 云端录像是对录制在zlm服务下的录像文件的管理，录像的文件路径默认在ZLM/www/record下。
 
-- 国标设备是否录像: 可以再WVP的配置中user-settings.record-sip设置为true那么每次点播以及录像回放都会录像;
-- 推流设备是否录像: 可以再WVP的配置中user-settings.record-push-live设置为true;
-- 拉流代理的是否录像: 在添加和编辑拉流代理时可以指定, 每次点播都会进行录像
+- 国标设备是否录像: 可以在WVP的配置中user-settings.record-sip设置为true那么每次点播以及录像回放都会录像;
+- 推流设备是否录像: 可以在WVP的配置中user-settings.record-push-live设置为true;
+- 拉流代理是否录像: 在添加和编辑拉流代理时可以指定, 每次点播都会进行录像
 - 录像文件存储路径配置: 可以修改media.record-path来修改录像路径,但是如果有旧的录像文件,请不要迁移,因为数据库记录了每一个录像的绝对路径,一旦修改会造成找到文件,无法定时移除以及播放
 - 录像保存时间: 可以修改media.record-day来修改录像保存时间,单位是天;
 

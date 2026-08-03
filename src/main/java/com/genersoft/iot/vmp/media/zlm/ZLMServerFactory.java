@@ -44,7 +44,7 @@ public class ZLMServerFactory {
                     ZLMResult<?> zlmResult = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (zlmResult != null ) {
                         if (zlmResult.getCode() == 0) {
-                            return createRTPServer(mediaServerItem, streamId, app, ssrc, port,onlyAuto, reUsePort,disableAudio, tcpMode);
+                            return createRTPServer(mediaServerItem, app, streamId, ssrc, port, onlyAuto, disableAudio, reUsePort, tcpMode);
                         }else {
                             log.warn("[开启rtpServer], 重启RtpServer错误");
                         }

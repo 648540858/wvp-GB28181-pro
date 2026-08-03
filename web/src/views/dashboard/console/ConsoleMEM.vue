@@ -6,7 +6,7 @@
 
 <script>
 
-import veLine from 'v-charts/lib/line'
+import veLine from '@/components/VChartCompat/line'
 import moment from 'moment/moment'
 
 export default {
@@ -95,7 +95,7 @@ export default {
       }, 100)
     })
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function(data) {

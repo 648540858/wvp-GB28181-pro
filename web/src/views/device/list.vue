@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="height: calc(100vh - 124px);">
+  <div style="height: var(--wvp-page-content-height);">
     <el-form :inline="true" size="mini">
       <el-form-item label="搜索">
         <el-input
@@ -143,7 +143,6 @@
             @mouseover="getTooltipContent(scope.row.deviceId)"
           >刷新
           </el-button>
-          <el-divider direction="vertical" />
           <el-button
             type="text"
             size="medium"
@@ -151,9 +150,7 @@
             @click="showChannelList(scope.row)"
           >通道
           </el-button>
-          <el-divider direction="vertical" />
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
-          <el-divider direction="vertical" />
           <el-button size="medium" type="text" style="color: #f56c6c" @click="deleteDevice(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -180,7 +177,6 @@ import deviceEdit from './edit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 import configInfo from '../dialog/configInfo.vue'
 import timeStatistics from './dialog/timeStatistics.vue'
-import Vue from 'vue'
 
 export default {
   name: 'App',
@@ -206,9 +202,6 @@ export default {
     }
   },
   computed: {
-    Vue() {
-      return Vue
-    },
     myServerId() {
       return this.$store.getters.serverId
     }
@@ -217,9 +210,7 @@ export default {
     this.initData()
     this.updateLooper = setInterval(this.getDeviceList, 10000)
   },
-  destroyed() {
-    this.$destroy('videojs')
-    clearTimeout(this.updateLooper)
+  unmounted() {    clearTimeout(this.updateLooper)
   },
   methods: {
     initData: function() {

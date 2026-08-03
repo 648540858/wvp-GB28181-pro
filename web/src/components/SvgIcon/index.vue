@@ -1,6 +1,6 @@
 <template>
-  <div v-if="isExternal" :style="styleExternalIcon" class="svg-external-icon svg-icon" v-on="$listeners" />
-  <svg v-else :class="svgClass" aria-hidden="true" v-on="$listeners">
+  <div v-if="isExternal" v-bind="$attrs" :style="styleExternalIcon" class="svg-external-icon svg-icon" />
+  <svg v-else v-bind="$attrs" :class="svgClass" aria-hidden="true">
     <use :xlink:href="iconName" />
   </svg>
 </template>
@@ -11,6 +11,7 @@ import { isExternal } from '@/utils/validate'
 
 export default {
   name: 'SvgIcon',
+  inheritAttrs: false,
   props: {
     iconClass: {
       type: String,

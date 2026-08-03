@@ -1,12 +1,13 @@
 <template>
   <div :class="classObj" class="app-wrapper">
+    <a class="skip-link" href="#main-content">跳转到主要内容</a>
     <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
     <sidebar class="sidebar-container" />
     <div class="main-container">
       <div :class="{'fixed-header':fixedHeader}">
         <navbar />
+        <tags-view />
       </div>
-      <tags-View />
       <app-main />
     </div>
   </div>
@@ -53,8 +54,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  @import "~@/styles/mixin.scss";
-  @import "~@/styles/variables.scss";
+  @use "@/styles/mixin" as *;
+  @use "@/styles/variables" as *;
 
   .app-wrapper {
     @include clearfix;
@@ -66,9 +67,26 @@ export default {
       top: 0;
     }
   }
+
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 4000;
+    padding: 8px 12px;
+    color: #fff;
+    background: var(--wvp-primary-active);
+    border-radius: var(--wvp-radius-md);
+    transform: translateY(-160%);
+    transition: transform var(--wvp-transition);
+
+    &:focus {
+      transform: translateY(0);
+    }
+  }
+
   .drawer-bg {
-    background: #000;
-    opacity: 0.3;
+    background: rgba(15, 23, 42, 0.48);
     width: 100%;
     top: 0;
     height: 100%;
@@ -80,13 +98,15 @@ export default {
     position: fixed;
     top: 0;
     right: 0;
-    z-index: 9;
+    z-index: 1000;
     width: calc(100% - #{$sideBarWidth});
-    transition: width 0.28s;
+    transition: width var(--wvp-transition);
+    background: var(--wvp-surface);
+    border-bottom: 1px solid var(--wvp-border-light);
   }
 
   .hideSidebar .fixed-header {
-    width: calc(100% - 54px)
+    width: calc(100% - #{$sideBarCollapsedWidth});
   }
 
   .mobile .fixed-header {

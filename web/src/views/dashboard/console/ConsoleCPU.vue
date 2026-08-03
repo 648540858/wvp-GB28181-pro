@@ -7,7 +7,7 @@
 <script>
 
 import moment from 'moment/moment'
-import veLine from 'v-charts/lib/line'
+import veLine from '@/components/VChartCompat/line'
 
 export default {
   name: 'ConsoleCPU',
@@ -99,7 +99,7 @@ export default {
       }, 100)
     })
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function(data) {

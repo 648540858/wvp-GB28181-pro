@@ -13,7 +13,7 @@
           label="分辨率"
         >{{ info.width }}x{{ info.height }}
         </el-descriptions-item>
-        <el-descriptions-item label="FPS">{{ info.fps }}</el-descriptions-item>
+        <el-descriptions-item label="帧率（FPS）">{{ info.fps }}</el-descriptions-item>
         <el-descriptions-item label="丢包率">{{ info.loss }}</el-descriptions-item>
       </el-descriptions>
       <el-descriptions v-if="info.audioCodec" size="mini" :column="2" title="音频信息">
@@ -92,5 +92,5 @@ export default {
 </script>
 <style>
 #mediaInfo { position: relative; }
-#mediaInfo >>> .el-descriptions__title { font-size: 14px; color: #606266; font-weight: 600; }
+#mediaInfo .el-descriptions__title { font-size: 14px; color: #606266; font-weight: 600; }
 </style>

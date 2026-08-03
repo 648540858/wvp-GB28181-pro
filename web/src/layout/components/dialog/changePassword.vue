@@ -5,7 +5,7 @@
       width="40%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import crypto from 'crypto'
+import SparkMD5 from 'spark-md5'
 export default {
   name: 'ChangePassword',
   props: {},
@@ -91,7 +91,7 @@ export default {
     },
     onSubmit: function() {
       this.$store.dispatch('user/changePassword', {
-        oldPassword: crypto.createHash('md5').update(this.oldPassword, 'utf8').digest('hex'),
+        oldPassword: SparkMD5.hash(this.oldPassword),
         password: this.newPassword
       })
         .then((data) => {

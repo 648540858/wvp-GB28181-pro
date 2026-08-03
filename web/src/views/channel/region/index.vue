@@ -1,5 +1,5 @@
 <template>
-  <div id="region" class="app-container" style="height: calc(100vh - 118px);display: grid; grid-template-columns: 400px auto">
+  <div id="region" class="app-container" style="height: var(--wvp-page-content-height); display: grid; grid-template-columns: 400px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr)">
     <RegionTree
       ref="regionTree"
       :show-header="true"
@@ -9,8 +9,8 @@
       :enable-add-channel="true"
       :add-channel-to-civil-code="addChannelToCivilCode"
     />
-    <div style="padding: 0 20px">
-      <el-form :inline="true" size="mini">
+    <div style="height: 100%; min-width: 0; min-height: 0; overflow: hidden; padding: 0 20px">
+      <el-form ref="queryForm" :inline="true" size="mini">
         <el-form-item>
           <el-breadcrumb v-if="regionParents.length > 0" separator="/" style="display: ruby">
             <el-breadcrumb-item v-for="key in regionParents" :key="key">{{ key }}</el-breadcrumb-item>
@@ -106,6 +106,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
+        ref="pagination"
         style="text-align: right"
         :current-page="currentPage"
         :page-size="count"
@@ -136,7 +137,7 @@ export default {
   data() {
     return {
       channelList: [],
-      tableHeight: 'calc(100vh - 190px)',
+      tableHeight: 'calc(var(--wvp-page-content-height) - 64px)',
       searchStr: '',
       channelType: '',
       online: '',
@@ -154,11 +155,35 @@ export default {
 
   created() {
     this.initData()
-    this.tableHeight = `calc(100vh - ${this.$refs.queryForm.offsetHeight}px)`
   },
-  destroyed() {
+  mounted() {
+    this.updateTableHeight()
+    window.addEventListener('resize', this.updateTableHeight)
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.updateTableHeight)
   },
   methods: {
+    updateTableHeight() {
+      this.$nextTick(() => {
+        const page = this.$el
+        const queryForm = this.$refs.queryForm?.$el || this.$refs.queryForm
+        const pagination = this.$refs.pagination?.$el || this.$refs.pagination
+        const table = this.$refs.channelListTable?.$el || this.$refs.channelListTable
+        if (!page || !queryForm || !pagination || page.clientHeight <= 0) return
+
+        const numberValue = value => Number.parseFloat(value) || 0
+        const outerHeight = element => {
+          const style = window.getComputedStyle(element)
+          return element.offsetHeight + numberValue(style.marginTop) + numberValue(style.marginBottom)
+        }
+        const pageStyle = window.getComputedStyle(page)
+        const pageContentHeight = page.clientHeight - numberValue(pageStyle.paddingTop) - numberValue(pageStyle.paddingBottom)
+        const tableHeaderHeight = table?.querySelector('.ant-table-thead')?.offsetHeight || 48
+        const availableHeight = pageContentHeight - outerHeight(queryForm) - outerHeight(pagination) - tableHeaderHeight
+        this.tableHeight = Math.max(120, Math.floor(availableHeight))
+      })
+    },
     initData: function() {
       this.getChannelList()
     },
@@ -184,7 +209,7 @@ export default {
           this.channelList = data.list
           // 防止出现表格错位
           this.$nextTick(() => {
-            this.$refs.channelListTable.doLayout()
+            this.$refs.channelListTable?.doLayout()
           })
         })
     },

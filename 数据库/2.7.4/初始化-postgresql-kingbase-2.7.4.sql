@@ -937,4 +937,16 @@ COMMENT ON COLUMN wvp_alarm.latitude IS '报警附带的纬度';
 COMMENT ON COLUMN wvp_alarm.alarm_type IS '报警类别';
 COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
 
+-- 运行时安全配置
+drop table IF EXISTS wvp_security_config;
+create table IF NOT EXISTS wvp_security_config (
+    server_id   character varying(64) primary key,
+    config_json text not null,
+    update_time character varying(50) not null
+);
+COMMENT ON TABLE wvp_security_config IS '运行时安全配置';
+COMMENT ON COLUMN wvp_security_config.server_id IS '服务节点ID';
+COMMENT ON COLUMN wvp_security_config.config_json IS '安全配置JSON';
+COMMENT ON COLUMN wvp_security_config.update_time IS '更新时间';
+
 

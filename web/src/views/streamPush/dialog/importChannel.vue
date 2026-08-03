@@ -7,7 +7,7 @@
       top="2rem"
       :append-to-body="true"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
@@ -21,7 +21,7 @@
           :on-success="successHook"
           :on-error="errorHook"
         >
-          <i class="el-icon-upload" />
+          <ant-icon name="el-icon-upload" class="el-icon-upload"  />
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div slot="tip" class="el-upload__tip">只能上传 csv / xls / xlsx 文件</div>
         </el-upload>

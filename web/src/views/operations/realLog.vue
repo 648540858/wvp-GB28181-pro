@@ -1,7 +1,7 @@
 <template>
   <div id="log" class="app-container">
-    <div style="height: calc(100vh - 124px);">
-      <showLog ref="recordVideoPlayer" :remote-url="removeUrl" />
+    <div style="height: var(--wvp-page-content-height);">
+      <showLog ref="recordVideoPlayer" :remote-url="remoteUrl" />
     </div>
   </div>
 </template>
@@ -15,25 +15,20 @@ export default {
   components: { showLog },
   data() {
     return {
-      loading: false,
-      removeUrl: this.getURl(),
-      winHeight: window.innerHeight - 220
+      remoteUrl: this.getUrl()
     }
   },
-  created() {
-    console.log('removeUrl11 == ' + this.removeUrl)
-  },
   methods: {
-    getURl: function() {
-      if (process.env.NODE_ENV !== 'development') {
-        if (location.protocol === 'https:') {
-          return `wss://${window.location.host}/channel/log`
-        } else {
-          return `ws://${window.location.host}/channel/log`
-        }
-      } else {
-        return `ws://${window.location.host}${process.env.VUE_APP_BASE_API}/channel/log`
-      }
+    getUrl: function() {
+      const baseUrl = process.env.NODE_ENV === 'development'
+        ? process.env.VUE_APP_BASE_API
+        : (window.baseUrl || '')
+      const target = new URL(baseUrl || '/', window.location.origin)
+      target.protocol = target.protocol === 'https:' ? 'wss:' : 'ws:'
+      target.pathname = `${target.pathname.replace(/\/$/, '')}/channel/log`
+      target.search = ''
+      target.hash = ''
+      return target.toString()
     }
   }
 }

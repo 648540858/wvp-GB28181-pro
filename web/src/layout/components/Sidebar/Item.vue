@@ -1,7 +1,14 @@
+<template>
+  <span>
+    <ant-icon v-if="icon && icon.includes('el-icon')" :name="icon" :class="[icon, 'sub-el-icon']" />
+    <svg-icon v-else-if="icon" :icon-class="icon" />
+    <span v-if="title">{{ title }}</span>
+  </span>
+</template>
+
 <script>
 export default {
   name: 'MenuItem',
-  functional: true,
   props: {
     icon: {
       type: String,
@@ -11,23 +18,6 @@ export default {
       type: String,
       default: ''
     }
-  },
-  render(h, context) {
-    const { icon, title } = context.props
-    const vnodes = []
-
-    if (icon) {
-      if (icon.includes('el-icon')) {
-        vnodes.push(<i class={[icon, 'sub-el-icon']} />)
-      } else {
-        vnodes.push(<svg-icon icon-class={icon}/>)
-      }
-    }
-
-    if (title) {
-      vnodes.push(<span slot='title'>{(title)}</span>)
-    }
-    return vnodes
   }
 }
 </script>

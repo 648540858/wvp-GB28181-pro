@@ -7,7 +7,7 @@
       top="5vh"
       width="70vw"
       :close-on-click-modal="false"
-      :visible.sync="showVideoDialog"
+      v-model:visible="showVideoDialog"
       @close="close()"
     >
       <div class="push-player-body">
@@ -75,19 +75,42 @@ export default {
       }
     },
     play: function(streamInfo, hasAudio) {
-      this.streamInfo = streamInfo
+      this.streamInfo = this.useCurrentUrlHost(streamInfo)
       this.hasAudio = hasAudio
       this.isLoging = false
-      this.streamId = streamInfo.stream
-      this.app = streamInfo.app
-      this.mediaServerId = streamInfo.mediaServerId
+      this.streamId = this.streamInfo.stream
+      this.app = this.streamInfo.app
+      this.mediaServerId = this.streamInfo.mediaServerId
       this.showVideoDialog = true
       this.$nextTick(() => {
         if (this.$refs.playerTabs) {
-          this.$refs.playerTabs.setStreamInfo(streamInfo.transcodeStream || streamInfo)
+          this.$refs.playerTabs.setStreamInfo(this.streamInfo.transcodeStream || this.streamInfo)
         }
         this.$refs.mediaInfo && this.$refs.mediaInfo.startTask()
       })
+    },
+    useCurrentUrlHost: function(streamInfo) {
+      if (!streamInfo) return streamInfo
+      const hostname = window.location.hostname
+      const urlHost = hostname.includes(':') && !hostname.startsWith('[') ? `[${hostname}]` : hostname
+      const urlFields = [
+        'flv', 'https_flv', 'ws_flv', 'wss_flv', 'fmp4', 'https_fmp4', 'ws_fmp4', 'wss_fmp4',
+        'hls', 'https_hls', 'ws_hls', 'wss_hls', 'ts', 'https_ts', 'ws_ts', 'wss_ts',
+        'rtc', 'rtcs', 'rtmp', 'rtmps', 'rtsp', 'rtsps'
+      ]
+      const result = { ...streamInfo, ip: hostname }
+      urlFields.forEach(field => {
+        if (result[field]) {
+          result[field] = result[field].replace(
+            /^([a-z][a-z0-9+.-]*:\/\/)(?:\[[^\]]+\]|[^/:]+)(?=:\d+\/|\/)/i,
+            `$1${urlHost}`
+          )
+        }
+      })
+      if (result.transcodeStream) {
+        result.transcodeStream = this.useCurrentUrlHost(result.transcodeStream)
+      }
+      return result
     },
     playerChanged: function(playerUrlInfo) {
       this.playerUrlInfo = playerUrlInfo

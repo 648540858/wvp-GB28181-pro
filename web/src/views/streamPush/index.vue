@@ -1,6 +1,6 @@
 <template>
   <div id="pushList" class="app-container">
-    <div v-if="!streamPush" style="height: calc(100vh - 124px);">
+    <div v-if="!streamPush" style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -118,9 +118,7 @@
           <template v-slot:default="scope">
             <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" type="text" @click="playPush(scope.row)">播放
             </el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deletePush(scope.row.id)">删除</el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-position" type="text" @click="edit(scope.row)">
               编辑
             </el-button>
@@ -186,7 +184,7 @@ export default {
     this.initData()
     this.updateLooper = setInterval(this.getPushList, 2000)
   },
-  destroyed() {
+  unmounted() {
     clearTimeout(this.updateLooper)
   },
   computed: {
@@ -228,10 +226,10 @@ export default {
           this.total = data.total
           this.pushList = data.list
           this.pushList.forEach(e => {
-            this.$set(e, 'location', '')
-            this.$set(e, 'playLoading', false)
+            e.location = ''
+            e.playLoading = false
             if (e.gbLongitude && e.gbLatitude) {
-              this.$set(e, 'location', e.gbLongitude + ',' + e.gbLatitude)
+              e.location = e.gbLongitude + ',' + e.gbLatitude
             }
           })
         })

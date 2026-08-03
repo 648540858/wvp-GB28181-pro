@@ -1,16 +1,18 @@
 <template>
-  <div id="addUser" v-loading="getDeviceListLoading">
+  <div id="addUser">
     <el-dialog
       v-el-drag-dialog
       title="添加国标设备通道"
       width="60%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       append-to-body
       @close="close()"
-    ><el-form :inline="true" size="mini">
+    >
+      <div class="device-select-dialog-content" v-loading="getDeviceListLoading">
+      <el-form :inline="true" size="mini">
        <el-form-item label="搜索">
          <el-input
            v-model="searchStr"
@@ -75,6 +77,7 @@
         @size-change="handleSizeChange"
         @current-change="currentChange"
       />
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -106,9 +109,6 @@ export default {
     }
   },
   computed: {},
-  mounted() {
-    this.initData()
-  },
   methods: {
     initData: function() {
       this.getDeviceList()
@@ -142,6 +142,7 @@ export default {
     openDialog: function(callback) {
       this.listChangeCallback = callback
       this.showDialog = true
+      this.initData()
     },
     onSubmit: function() {
       if (this.listChangeCallback) {

@@ -45,7 +45,7 @@ export default {
 .upgrade-form {
   padding: 16px 0;
 }
-.upgrade-form >>> .upgrade-input {
+.upgrade-form :deep(.upgrade-input) {
   width: 360px;
 }
 .upload-row {

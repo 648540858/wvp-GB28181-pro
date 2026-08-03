@@ -6,7 +6,7 @@
 
 <script>
 
-import veBar from 'v-charts/lib/bar'
+import veBar from '@/components/VChartCompat/bar'
 
 export default {
   name: 'ConsoleNet',
@@ -72,7 +72,7 @@ export default {
       }, 100)
     })
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function(data) {

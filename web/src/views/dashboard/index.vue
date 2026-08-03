@@ -1,29 +1,29 @@
 <template>
-  <div id="app" class="app-container" style="height: calc(100vh - 118px); background-color: rgba(242,242,242,0.50)">
-    <el-row style="width: 100%;height: 100%;">
+  <div id="dashboardPage" class="app-container dashboard-page">
+    <el-row :gutter="[16, 16]" class="dashboard-grid">
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="ThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
             <consoleCPU ref="consoleCPU" />
           </div>
         </div>
       </el-col>
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="WorkThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
             <consoleResource ref="consoleResource" />
           </div>
         </div>
       </el-col>
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="WorkThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
             <consoleNet ref="consoleNet" />
           </div>
         </div>
       </el-col>
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="WorkThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
 
             <consoleMem ref="consoleMem" />
@@ -31,14 +31,14 @@
         </div>
       </el-col>
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="WorkThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
             <consoleNodeLoad ref="consoleNodeLoad" />
           </div>
         </div>
       </el-col>
       <el-col :xl="{ span: 8 }" :lg="{ span: 8 }" :md="{ span: 12 }" :sm="{ span: 12 }" :xs="{ span: 24 }">
-        <div id="WorkThreadsLoad" class="control-cell">
+        <div class="control-cell">
           <div style="width:100%; height:100%; ">
             <consoleDisk ref="consoleDisk" />
           </div>
@@ -77,7 +77,7 @@ export default {
     this.getResourceInfo()
     this.loopForSystemInfo()
   },
-  destroyed() {
+  unmounted() {
     window.clearImmediate(this.timer)
   },
   methods: {
@@ -121,14 +121,32 @@ export default {
 }
 </script>
 
-<style>
-#app {
-  height: 100%;
+<style scoped>
+.dashboard-page {
+  min-height: calc(100dvh - var(--wvp-shell-height));
 }
+
+.dashboard-grid {
+  width: 100%;
+}
+
 .control-cell {
-  padding-top: 10px;
-  padding-left: 5px;
-  padding-right: 10px;
   height: 360px;
+}
+
+.control-cell > div {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--wvp-surface);
+  border: 1px solid var(--wvp-border-light);
+  border-radius: var(--wvp-radius-lg);
+  box-shadow: var(--wvp-shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .control-cell {
+    height: 320px;
+  }
 }
 </style>

@@ -253,8 +253,8 @@ user-settings:
     # 0： 国标标准实现，设备离线后不回复心跳，直到设备重新注册上线，
     # 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
     gb-device-online: 0
-    # 登录超时时间(分钟)，
-    login-timeout: 30
+    # 登录超时时间，单位分钟，0为不超时，范围0-999
+    login-timeout: 120
     # jwk文件路径，若不指定则使用resources目录下的jwk.json
     jwk-file: classpath:jwk.json
     # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级

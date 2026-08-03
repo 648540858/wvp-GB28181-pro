@@ -20,7 +20,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.UUID;
@@ -83,6 +82,10 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (streamProxy.getMediaServerId() != null) {
             StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(streamProxy.getApp(), streamProxy.getStream(), streamProxy.getMediaServerId(), null, false);
             if (streamInfo != null) {
+                if (!Boolean.TRUE.equals(streamProxy.getPulling())) {
+                    streamProxy.setPulling(true);
+                    streamProxyMapper.updateStream(streamProxy);
+                }
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
                 return;
             }
@@ -133,7 +136,8 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
+        if (!ObjectUtils.isEmpty(streamProxy.getServerId())
+                && !userSetting.getServerId().equals(streamProxy.getServerId())) {
             redisRpcPlayService.stopProxy(streamProxy.getServerId(), streamProxy.getId());
             return;
         }
@@ -144,10 +148,14 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     public void stopProxy(StreamProxy streamProxy){
 
         String mediaServerId = streamProxy.getMediaServerId();
-        Assert.notNull(mediaServerId, "代理节点不存在");
-
-        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServer = ObjectUtils.isEmpty(mediaServerId)
+                ? mediaServerService.getMediaServerByAppAndStream(streamProxy.getApp(), streamProxy.getStream())
+                : mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
+            if (ObjectUtils.isEmpty(mediaServerId)) {
+                streamProxyMapper.removeStream(streamProxy.getId());
+                return;
+            }
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在");
         }
         if (ObjectUtils.isEmpty(streamProxy.getStreamKey())) {

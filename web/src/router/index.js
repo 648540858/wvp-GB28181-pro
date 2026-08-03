@@ -1,7 +1,4 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-
-Vue.use(Router)
+import { createRouter as createVueRouter, createWebHashHistory } from 'vue-router'
 
 /* Layout */
 import Layout from '@/layout'
@@ -58,7 +55,6 @@ export const constantRoutes = [
   {
     path: '/live',
     component: Layout,
-    redirect: '/live',
     children: [{
       path: '',
       name: 'Live',
@@ -69,26 +65,25 @@ export const constantRoutes = [
   {
     path: '/channel',
     component: Layout,
-    redirect: '/channel',
     onlyIndex: 0,
     children: [{
-      path: '/channel',
+      path: '',
       name: 'Channel',
       component: () => import('@/views/channel/index'),
       meta: { title: '通道列表', icon: 'channelManger' }
     },
     {
-      path: '/channel/record/:channelId',
+      path: 'record/:channelId',
       name: 'CommonRecord',
+      hidden: true,
       component: () => import('@/views/channel/record'),
-      meta: { title: '设备录像' }
+      meta: { title: '设备录像', activeMenu: '/channel' }
     }
     ]
   },
   {
     path: '/map',
     component: Layout,
-    redirect: '/map',
     children: [{
       path: '',
       name: 'Map',
@@ -103,42 +98,46 @@ export const constantRoutes = [
     meta: { title: '设备接入', icon: 'devices' },
     children: [
       {
-        path: '/device',
+        path: '',
         name: 'Device',
         component: () => import('@/views/device/index'),
-        meta: { title: '国标设备', icon: 'device' }
+        meta: { title: '国标设备', icon: 'device', activeMenu: '/device' }
       },
       {
         hidden: true,
-        path: '/device/record/:deviceId/:channelDeviceId',
+        path: 'record/:deviceId/:channelDeviceId',
         name: 'DeviceRecord',
         component: () => import('@/views/device/channel/record'),
-        meta: { title: '国标录像' }
+        meta: { title: '国标录像', activeMenu: '/device' }
       },
       {
-        path: '/jtDevice',
+        path: 'jtDevice',
+        alias: '/jtDevice',
         name: 'JTDevice',
         component: () => import('@/views/jtDevice/index'),
-        meta: { title: '部标设备', icon: 'jtDevice' }
+        meta: { title: '部标设备', icon: 'jtDevice', activeMenu: '/device/jtDevice' }
       },
       {
         hidden: true,
-        path: '/jtDevice/record/:phoneNumber/:channelId',
+        path: 'jtDevice/record/:phoneNumber/:channelId',
+        alias: '/jtDevice/record/:phoneNumber/:channelId',
         name: 'JTDeviceRecord',
         component: () => import('@/views/jtDevice/channel/record'),
-        meta: { title: '部标录像' }
+        meta: { title: '部标录像', activeMenu: '/device/jtDevice' }
       },
       {
-        path: '/push',
+        path: 'push',
+        alias: '/push',
         name: 'PushList',
         component: () => import('@/views/streamPush/index'),
-        meta: { title: '推流列表', icon: 'streamPush' }
+        meta: { title: '推流列表', icon: 'streamPush', activeMenu: '/device/push' }
       },
       {
-        path: '/proxy',
+        path: 'proxy',
+        alias: '/proxy',
         name: 'Proxy',
         component: () => import('@/views/streamProxy/index'),
-        meta: { title: '拉流代理', icon: 'streamProxy' }
+        meta: { title: '拉流代理', icon: 'streamProxy', activeMenu: '/device/proxy' }
       }
     ]
   },
@@ -166,7 +165,6 @@ export const constantRoutes = [
   {
     path: '/alarm',
     component: Layout,
-    redirect: '/alarm',
     children: [
       {
         path: '',
@@ -179,7 +177,6 @@ export const constantRoutes = [
   {
     path: '/recordPlan',
     component: Layout,
-    redirect: '/recordPlan',
     children: [
       {
         path: '',
@@ -192,27 +189,26 @@ export const constantRoutes = [
   {
     path: '/cloudRecord',
     component: Layout,
-    redirect: '/cloudRecord',
     onlyIndex: 0,
     children: [
       {
-        path: '/cloudRecord',
+        path: '',
         name: 'CloudRecord',
         component: () => import('@/views/cloudRecord/index'),
         meta: { title: '云端录像', icon: 'cloudRecord' }
       },
       {
-        path: '/cloudRecord/detail/:app/:stream',
+        path: 'detail/:app/:stream',
         name: 'CloudRecordDetail',
+        hidden: true,
         component: () => import('@/views/cloudRecord/detail'),
-        meta: { title: '云端录像详情' }
+        meta: { title: '云端录像详情', activeMenu: '/cloudRecord' }
       }
     ]
   },
   {
     path: '/mediaServer',
     component: Layout,
-    redirect: '/mediaServer',
     children: [
       {
         path: '',
@@ -225,7 +221,6 @@ export const constantRoutes = [
   {
     path: '/platform',
     component: Layout,
-    redirect: '/platform',
     children: [
       {
         path: '',
@@ -238,7 +233,6 @@ export const constantRoutes = [
   {
     path: '/user',
     component: Layout,
-    redirect: '/user',
     children: [
       {
         path: '',
@@ -268,19 +262,25 @@ export const constantRoutes = [
     redirect: '/operations/systemInfo',
     children: [
       {
-        path: '/operations/systemInfo',
+        path: 'systemInfo',
         name: 'OperationsSystemInfo',
         component: () => import('@/views/operations/systemInfo'),
         meta: { title: '平台信息', icon: 'systemInfo' }
       },
       {
-        path: '/operations/historyLog',
+        path: 'securityConfig',
+        name: 'OperationsSecurityConfig',
+        component: () => import('@/views/operations/securityConfig'),
+        meta: { title: '安全配置', icon: 'password' }
+      },
+      {
+        path: 'historyLog',
         name: 'OperationsHistoryLog',
         component: () => import('@/views/operations/historyLog'),
         meta: { title: '历史日志', icon: 'historyLog' }
       },
       {
-        path: '/operations/realLog',
+        path: 'realLog',
         name: 'OperationsRealLog',
         component: () => import('@/views/operations/realLog'),
         meta: { title: '实时日志', icon: 'realLog' }
@@ -294,12 +294,12 @@ export const constantRoutes = [
     component: () => import('@/views/common/share.vue')
   },
   // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+  { path: '/:pathMatch(.*)*', redirect: '/404', hidden: true }
 ]
 
-const createRouter = () => new Router({
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
+const createRouter = () => createVueRouter({
+  history: createWebHashHistory(),
+  scrollBehavior: () => ({ top: 0 }),
   routes: constantRoutes
 })
 
@@ -307,8 +307,7 @@ const router = createRouter()
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
-  const newRouter = createRouter()
-  router.matcher = newRouter.matcher // reset router
+  // All routes are currently static. Keep the public API used by the user store.
 }
 
 export default router

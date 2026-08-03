@@ -3,14 +3,14 @@
     <el-dialog
       v-if="showDialog"
       v-el-drag-dialog
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       title="国标收流列表"
       width="70%"
       top="5rem"
       append-to-body
       :close-on-click-modal="false"
     >
-      <el-form :inline="true" size="mini" @submit.native.prevent>
+      <el-form :inline="true" size="mini" @submit.prevent>
         <el-form-item label="搜索">
           <el-input
             v-model="query"
@@ -119,7 +119,7 @@ export default {
     sendDevicePush: function (row) {
       const deviceId = row.parentDeviceId
       const channelId = row.deviceId
-      this.$set(row, "playing", true)
+      row.playing = true
       this.$store.dispatch("play/play", [deviceId, channelId])
         .then((data) => {
           this.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
@@ -128,7 +128,7 @@ export default {
           })
         })
         .finally(() => {
-          this.$set(row, "playing", false)
+          row.playing = false
         })
     },
     stopDevicePush: function (row) {

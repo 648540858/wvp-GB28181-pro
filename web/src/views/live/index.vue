@@ -1,13 +1,13 @@
 <template>
   <div id="live" class="live-container">
-    <div v-loading="loading" class="live-content" :class="{ 'sidebar-collapsed': !sidebarVisible }" element-loading-text="拼命加载中">
+    <div v-loading="loading" class="live-content" :class="{ 'sidebar-collapsed': !sidebarVisible }" element-loading-text="加载中">
       <div class="device-tree-container-box" :class="{ 'device-tree-hidden': !sidebarVisible }">
         <DeviceTree @clickEvent="clickEvent" :context-menu-event="contextMenuEvent" />
       </div>
       <div class="video-container">
         <div class="control-bar">
           <div class="split-controls">
-            <i :class="['btn', 'sidebar-toggle', sidebarVisible ? 'el-icon-s-fold' : 'el-icon-s-unfold']" title="切换侧边栏" @click="toggleSidebar" />
+            <ant-icon :name="sidebarVisible ? 'el-icon-s-fold' : 'el-icon-s-unfold'" :class="['btn', 'sidebar-toggle', sidebarVisible ? 'el-icon-s-fold' : 'el-icon-s-unfold']" title="切换侧边栏" @click="toggleSidebar" />
             <span class="divider" />
             分屏:
             <i class="iconfont icon-a-mti-1fenpingshi btn" :class="{active:spiltIndex === 0}" @click="spiltIndex=0" />
@@ -18,13 +18,13 @@
           <div class="global-player-control">
             播放器:
             <el-select v-model="globalPlayer" size="mini" style="width: 120px">
-              <el-option label="Jessibuca" value="jessibuca" />
-              <el-option label="WebRTC" value="webRTC" />
-              <el-option label="H265web" value="h265web" />
+              <el-option label="Jessibuca播放器" value="jessibuca" />
+              <el-option label="WebRTC播放器" value="webRTC" />
+              <el-option label="H265Web播放器" value="h265web" />
             </el-select>
           </div>
           <div class="fullscreen-control">
-            <i class="el-icon-full-screen btn" @click="fullScreen()" />
+            <ant-icon name="el-icon-full-screen" class="el-icon-full-screen btn" @click="fullScreen()"  />
             <i class="iconfont icon-PTZ btn" title="云台控制" @click="togglePtzPanel" />
           </div>
         </div>
@@ -55,7 +55,7 @@
       <div class="ptz-panel" v-show="ptzVisible">
         <div class="ptz-panel-header">
           <span>云台控制</span>
-          <i class="el-icon-close" @click="ptzVisible = false" />
+          <ant-icon name="el-icon-close" class="el-icon-close" @click="ptzVisible = false"  />
         </div>
         <div class="ptz-panel-body">
           <template v-if="currentChannelId">
@@ -192,7 +192,7 @@ export default {
   created() {
     this.checkPlayByParam()
   },
-  destroyed() {
+  unmounted() {
     clearTimeout(this.updateLooper)
     // Remove event listener when component is destroyed
     window.removeEventListener('resize', this.handleResize)
@@ -262,21 +262,21 @@ export default {
     sendDevicePush: function(channelId) {
       this.save(channelId)
       const idxTmp = this.playerIdx
-      this.$set(this.streamInfo, idxTmp, null)
-      this.$set(this.videoTip, idxTmp, '正在拉流...')
+      this.streamInfo[idxTmp] = null
+      this.videoTip[idxTmp] = '正在拉流...'
       this.$store.dispatch('commonChanel/playChannel', channelId)
         .then(data => {
           this.setPlayStream(data.transcodeStream || data, idxTmp)
         })
         .catch(err => {
-          this.$set(this.videoTip, idxTmp, '播放失败: ' + err)
+          this.videoTip[idxTmp] = '播放失败: ' + err
         })
         .finally(() => {
           this.loading = false
         })
     },
     setPlayStream(streamInfo, idx) {
-      this.$set(this.streamInfo, idx, streamInfo)
+      this.streamInfo[idx] = streamInfo
       this.$nextTick(() => {
         const refName = 'playerTabs' + (idx + 1)
         const ref = this.$refs[refName]
@@ -318,7 +318,7 @@ export default {
 </script>
 <style>
 .live-container {
-  height: calc(100vh - 124px);
+  height: calc(100dvh - var(--wvp-shell-height));
   width: 100%;
 }
 

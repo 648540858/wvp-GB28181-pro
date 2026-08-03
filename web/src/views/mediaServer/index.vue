@@ -1,5 +1,5 @@
 <template>
-  <div id="mediaServerManger" class="app-container" style="height: calc(100vh - 124px);">
+  <div id="mediaServerManger" class="app-container" style="height: var(--wvp-page-content-height);">
     <el-form :inline="true" size="mini" style="margin-bottom: 1rem">
       <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加节点</el-button>
     </el-form>
@@ -53,7 +53,7 @@ export default {
   mounted() {
     this.initData()
   },
-  destroyed() {},
+  unmounted() {},
   methods: {
     initData: function() {
       this.getServerList()

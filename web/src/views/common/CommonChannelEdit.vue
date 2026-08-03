@@ -1,7 +1,10 @@
 <template>
-  <div id="CommonChannelEdit" v-loading="loading" style="width: 100%; height: calc(-218px + 100vh); overflow: auto;">
-    <el-form ref="channelForm" :model="form" :rules="rules" status-icon label-width="160px" class="channel-form" size="medium">
-      <div class="form-box">
+  <div id="CommonChannelEdit" v-loading="loading" class="common-channel-edit">
+    <el-form ref="channelForm" :model="form" :rules="rules" status-icon label-width="132px" class="common-channel-form" size="medium">
+      <section class="channel-form-section">
+        <div class="channel-section-heading">
+          <h2>基础标识</h2>
+        </div>
         <el-form-item label="名称" prop="gbName">
           <el-input v-model="form.gbName" placeholder="请输入通道名称" />
         </el-form-item>
@@ -23,7 +26,7 @@
             :fetch-suggestions="queryModel"
             placeholder="请输入内容"
           >
-            <template slot-scope="{ item }">
+            <template #default="{ item }">
               <span class="addr">{{ item.name }}（{{ item.alias }}）</span>
             </template>
           </el-autocomplete>
@@ -99,8 +102,11 @@
             <el-option label="会议设备（非标）" :value="98" />
           </el-select>
         </el-form-item>
-      </div>
-      <div>
+      </section>
+      <section class="channel-form-section">
+        <div class="channel-section-heading">
+          <h2>联网与安全</h2>
+        </div>
         <el-form-item label="业务分组编号">
           <el-input v-model="form.gbBusinessGroupId" placeholder="请输入业务分组编号" @change="getPaths"/>
         </el-form-item>
@@ -157,8 +163,11 @@
         <el-form-item label="设备口令">
           <el-input v-model="form.gbPassword" placeholder="请输入设备口令" />
         </el-form-item>
-      </div>
-      <div>
+      </section>
+      <section class="channel-form-section">
+        <div class="channel-section-heading">
+          <h2>能力与属性</h2>
+        </div>
         <el-form-item label="设备归属">
           <el-input v-model="form.gbOwner" placeholder="请输入设备归属" />
         </el-form-item>
@@ -233,11 +242,12 @@
         <el-form-item >
           <el-checkbox v-model="form.enableBroadcastForBool" >语音对讲(非标属性)</el-checkbox>
         </el-form-item>
-        <div style="text-align: right">
-          <el-button type="primary" @click="onSubmit" >保存</el-button>
-          <el-button v-if="showCancel" @click="cancelSubmit" >取消</el-button>
-          <el-button v-if="form.dataType === 1" @click="showReset">重置</el-button>
-        </div>
+      </section>
+
+      <div class="channel-form-actions">
+        <el-button v-if="form.dataType === 1" @click="showReset">重置</el-button>
+        <el-button v-if="showCancel" @click="cancelSubmit" >取消</el-button>
+        <el-button type="primary" @click="onSubmit" >保存</el-button>
       </div>
 
     </el-form>
@@ -254,6 +264,8 @@ import ChooseCivilCode from '../dialog/chooseCivilCode.vue'
 import ChooseGroup from '../dialog/chooseGroup.vue'
 import diff from '../../utils/diff'
 import ResetChannel from './../dialog/resetChannel.vue'
+
+const cloneForm = value => JSON.parse(JSON.stringify(value || {}))
 
 export default {
   name: 'CommonChannelEdit',
@@ -278,6 +290,7 @@ export default {
       modelList: [],
       parentPath: [],
       regionPath: [],
+      originalForm: {},
       form: {}
     }
   },
@@ -293,10 +306,12 @@ export default {
     if (this.id) {
       this.getCommonChannel(this.id)
     } else {
-      if (!this.dataForm.gbDeviceId) {
-        this.dataForm.gbDeviceId = ''
+      const form = cloneForm(this.dataForm)
+      if (!form.gbDeviceId) {
+        form.gbDeviceId = ''
       }
-      this.form = window.structuredClone(this.dataForm)
+      this.originalForm = cloneForm(form)
+      this.form = form
       this.getPaths()
     }
   },
@@ -318,11 +333,11 @@ export default {
           }
           this.form.enableBroadcast = this.form.enableBroadcastForBool ? 1 : 0
           // 判断哪些字段变化
-          let diffData = diff(this.dataForm, this.form)
+          let diffData = diff(this.originalForm, this.form)
           diffData['gbId'] = this.form.gbId
 
           console.log(diffData)
-          console.log(this.dataForm)
+          console.log(this.originalForm)
           console.log(this.form)
 
           if (this.form.gbId) {
@@ -406,12 +421,13 @@ export default {
       this.loading = true
       this.$store.dispatch('commonChanel/queryOne', id)
         .then(data => {
-          if (data.gbDownloadSpeed) {
-            data.gbDownloadSpeedArray = data.gbDownloadSpeed.split('/')
+          const form = cloneForm(data)
+          if (form.gbDownloadSpeed) {
+            form.gbDownloadSpeedArray = form.gbDownloadSpeed.split('/')
           }
-          this.dataForm = window.structuredClone(data)
-          this.form = data
-          this.$set(this.form, 'enableBroadcastForBool', this.form.enableBroadcast === 1)
+          form.enableBroadcastForBool = form.enableBroadcast === 1
+          this.originalForm = cloneForm(form)
+          this.form = form
           this.getPaths()
           this.getRegionPaths()
         })
@@ -484,12 +500,109 @@ export default {
   }
 }
 </script>
-<style>
-.channel-form {
+<style scoped>
+.common-channel-edit {
+  width: 100%;
+  min-height: calc(100vh - 232px);
+  position: relative;
+  overflow: visible;
+  background: var(--wvp-surface);
+  container-type: inline-size;
+}
+
+.common-channel-form {
   display: grid;
-  background-color: #FFFFFF;
-  padding: 1rem 2rem 0 2rem;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 28px;
+  padding: 24px 28px 0;
+  background: var(--wvp-surface);
+}
+
+.channel-form-section {
+  min-width: 0;
+}
+
+.channel-section-heading {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--wvp-border-light);
+}
+
+.channel-section-heading h2 {
+  margin: 0;
+  color: var(--wvp-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0;
+}
+
+.common-channel-form :deep(.ant-form-item) {
+  margin-bottom: 18px;
+}
+
+.common-channel-form :deep(.ant-form-item-control),
+.common-channel-form :deep(.ant-select),
+.common-channel-form :deep(.ant-picker),
+.common-channel-form :deep(.ant-input-number) {
+  min-width: 0;
+  width: 100%;
+}
+
+.channel-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--wvp-border-light);
+}
+
+.channel-form-actions :deep(.ant-btn) {
+  min-width: 80px;
+}
+
+@container (max-width: 1120px) {
+  .common-channel-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 720px) {
+  .common-channel-edit {
+    min-height: auto;
+  }
+
+  .common-channel-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .common-channel-form :deep(.ant-form-item) {
+    display: block;
+  }
+
+  .common-channel-form :deep(.ant-form-item-label) {
+    width: 100% !important;
+    padding: 0 0 6px;
+    text-align: left;
+  }
+
+  .common-channel-form :deep(.ant-form-item-control) {
+    max-width: 100%;
+  }
+
+  .common-channel-form :deep(.ant-input),
+  .common-channel-form :deep(.ant-select-selector),
+  .common-channel-form :deep(.ant-picker),
+  .common-channel-form :deep(.ant-input-number) {
+    min-height: 44px;
+  }
+
+  .channel-form-actions :deep(.ant-btn) {
+    min-height: 44px;
+  }
 }
 </style>

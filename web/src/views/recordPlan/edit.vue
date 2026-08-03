@@ -6,7 +6,7 @@
       width="900px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >

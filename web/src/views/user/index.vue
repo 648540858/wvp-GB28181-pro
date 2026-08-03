@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+  <div class="app-container">
+    <div style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addUser">
@@ -20,16 +20,13 @@
         header-row-class-name="table-header"
       >
         <el-table-column prop="username" label="用户名" min-width="160" />
-        <el-table-column prop="pushKey" label="pushkey" min-width="160" />
+        <el-table-column prop="pushKey" label="推流密钥" min-width="160" />
         <el-table-column prop="role.name" label="类型" min-width="160" />
         <el-table-column label="操作" min-width="450" fixed="right">
           <template v-slot:default="scope">
             <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">修改密码</el-button>
-            <el-divider direction="vertical" />
-            <el-button size="medium" icon="el-icon-edit" type="text" @click="changePushKey(scope.row)">修改pushkey</el-button>
-            <el-divider direction="vertical" />
-            <el-button size="medium" icon="el-icon-edit" type="text" @click="showUserApiKeyManager(scope.row)">管理ApiKey</el-button>
-            <el-divider direction="vertical" />
+            <el-button size="medium" icon="el-icon-edit" type="text" @click="changePushKey(scope.row)">修改推流密钥</el-button>
+            <el-button size="medium" icon="el-icon-edit" type="text" @click="showUserApiKeyManager(scope.row)">管理API密钥</el-button>
             <el-button
               size="medium"
               icon="el-icon-delete"
@@ -88,7 +85,7 @@ export default {
   mounted() {
     this.initData()
   },
-  destroyed() {},
+  unmounted() {},
   methods: {
     initData: function() {
       this.getUserList()
@@ -161,7 +158,7 @@ export default {
         this.$refs.changePushKey.close()
         this.$message({
           showClose: true,
-          message: 'pushKey修改成功',
+          message: '推流密钥修改成功',
           type: 'success'
         })
         setTimeout(this.getUserList, 200)

@@ -144,17 +144,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxyInDb != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "APP+STREAM已经存在");
         }
-        if (streamProxy.getGbDeviceId() != null) {
-            gbChannelService.add(streamProxy.buildCommonGBChannel());
-        }
         streamProxy.setCreateTime(DateUtil.getNow());
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.add(streamProxy);
         streamProxy.setDataType(ChannelDataType.STREAM_PROXY);
         streamProxy.setDataDeviceId(streamProxy.getId());
+        if (streamProxy.getGbDeviceId() != null) {
+            gbChannelService.add(streamProxy.buildCommonGBChannel());
+        }
     }
 
     @Override
+    @Transactional
     public void delete(int id) {
         StreamProxy streamProxy = getStreamProxy(id);
         if (streamProxy == null) {
@@ -165,9 +166,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     private void delete(StreamProxy streamProxy) {
         Assert.notNull(streamProxy, "代理不可为NULL");
-        if (streamProxy.getPulling() != null && streamProxy.getPulling()) {
-            playService.stopProxy(streamProxy);
-        }
+        playService.stop(streamProxy.getId());
         if (streamProxy.getGbId() > 0) {
             gbChannelService.delete(streamProxy.getGbId());
         }
@@ -208,13 +207,23 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling, String mediaServerId) {
         PageHelper.startPage(page, count);
-        if (query != null) {
-            query = query.replaceAll("/", "//")
-                    .replaceAll("%", "/%")
-                    .replaceAll("_", "/_");
-        }
+        query = escapeQuery(query);
         List<StreamProxy> all = streamProxyMapper.selectAll(query, pulling, mediaServerId);
         return new PageInfo<>(all);
+    }
+
+    @Override
+    public List<StreamProxy> getAllForExport(String query, Boolean pulling, String mediaServerId) {
+        return streamProxyMapper.selectAll(escapeQuery(query), pulling, mediaServerId);
+    }
+
+    private String escapeQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+        return query.replaceAll("/", "//")
+                .replaceAll("%", "/%")
+                .replaceAll("_", "/_");
     }
 
 

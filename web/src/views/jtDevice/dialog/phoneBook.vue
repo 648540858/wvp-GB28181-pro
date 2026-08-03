@@ -3,14 +3,14 @@
     <el-dialog
       v-el-drag-dialog
       title="设置电话本"
-      width="=80%"
+      width="1040px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
-      <el-form :inline="true" size="mini" @submit.native.prevent>
+      <el-form :inline="true" size="mini" @submit.prevent>
         <el-form-item>
           <el-button-group>
             <el-button v-if="!showUpload" icon="el-icon-upload2" size="mini" type="primary" @click="uploadData" :disabled="phoneBookList.length === 0">导入数据</el-button>
@@ -67,7 +67,7 @@
         :auto-upload="false"
         :show-file-list="false"
         :on-change="loadFiled">
-        <i class="el-icon-upload"></i>
+        <ant-icon name="el-icon-upload" class="el-icon-upload" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <div class="el-upload__tip" slot="tip">只能上传xls/xlsx文件</div>
       </el-upload>
@@ -213,7 +213,7 @@ export default {
 </script>
 
 <style scoped>
->>> .el-upload {
+:deep(.el-upload) {
   width: 100% !important;
 }
 </style>

@@ -1,16 +1,17 @@
 <template>
-  <div id="gbChannelSelect" v-loading="getChannelListLoading">
+  <div id="gbChannelSelect">
     <el-dialog
       v-el-drag-dialog
       title="异常挂载通道"
       width="60%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       append-to-body
       @close="close()"
     >
+      <div class="unusual-channel-dialog-content" v-loading="getChannelListLoading">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -107,7 +108,7 @@
       </el-table>
       <div style="display: grid; grid-template-columns: 1fr 1fr">
         <div style="text-align: left; line-height: 32px">
-          <i class="el-icon-info" /> 清除后通道可正常添加到分组节点。
+          <ant-icon name="el-icon-info" class="el-icon-info"  /> 清除后通道可正常添加到分组节点。
         </div>
         <el-pagination
           style="text-align: right"
@@ -120,7 +121,7 @@
           @current-change="currentChange"
         />
       </div>
-
+      </div>
     </el-dialog>
   </div>
 </template>

@@ -248,6 +248,13 @@ DELIMITER ;
 call wvp_20260521();
 DROP PROCEDURE wvp_20260521;
 
+-- 运行时安全配置
+create table IF NOT EXISTS wvp_security_config (
+    server_id   character varying(64) primary key COMMENT '服务节点ID',
+    config_json text not null COMMENT '安全配置JSON',
+    update_time character varying(50) not null COMMENT '更新时间'
+);
+
 
 
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { MessageBox, Message } from 'element-ui'
+import { MessageBoxConfirm, Message } from '@/components/antCompat'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
+import { getToken, setToken } from '@/utils/auth'
 
 let showLoginConfirm = false
 
@@ -39,8 +39,13 @@ service.interceptors.response.use(
    * Determine the request status by custom code
    * Here is just an example
    * You can also judge the status by HTTP Status Code
-   */
+  */
   response => {
+    const renewedToken = response.headers && response.headers['access-token']
+    if (renewedToken) {
+      store.commit('user/SET_TOKEN', renewedToken)
+      setToken(renewedToken)
+    }
     if (response.config.url.indexOf('/api/user/logout') >= 0) {
       return
     }
@@ -53,11 +58,15 @@ service.interceptors.response.use(
   },
   error => {
     console.log(error) // for debug
-    if (error.response.status === 401) {
-      if (!showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
+    const response = error.response
+    const requestUrl = error.config && error.config.url ? error.config.url : ''
+    const isLoginRequest = requestUrl.indexOf('/api/user/login') >= 0
+
+    if (response && response.status === 401) {
+      if (!isLoginRequest && !showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
         // to re-login
         showLoginConfirm = true
-        MessageBox.confirm('登录已经到期， 是否重新登录', '登录确认', {
+        MessageBoxConfirm('登录已经到期， 是否重新登录', '登录确认', {
           confirmButtonText: '重新登录',
           cancelButtonText: '取消',
           type: 'warning'
@@ -75,24 +84,21 @@ service.interceptors.response.use(
 
         })
       }
-    }else {
-      if (!store.getters.showConfirmBoxForLoginLose) {
-        return
-      }
-      let data = error.response.data
+    } else if (!isLoginRequest && store.getters.showConfirmBoxForLoginLose) {
+      const data = response && response.data
       if (data && data.msg) {
         Message.error({
           message: data.msg,
           showClose: true
         })
-      }else {
+      } else {
         Message.error({
-          message: error.message,
+          message: error.message || '请求失败，请稍后重试',
           showClose: true
         })
       }
     }
-    // return Promise.reject(error)
+    return Promise.reject(error)
   }
 )
 

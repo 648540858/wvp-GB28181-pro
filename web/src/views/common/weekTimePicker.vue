@@ -378,7 +378,7 @@ export default {
     weekDataCheckBoxForAll: function(index) {
       for (let i = 0; i < this.weekDataCheckBox.length; i++) {
         if (i !== index) {
-          this.$set(this.weekDataCheckBox, i, true)
+          this.weekDataCheckBox[i] = true
         }
       }
     },
@@ -386,7 +386,7 @@ export default {
       const dataValue = this.weekData[index].data
       for (let i = 0; i < this.weekDataCheckBox.length; i++) {
         if (this.weekDataCheckBox[i]) {
-          this.$set(this.weekData[i], 'data', JSON.parse(JSON.stringify(dataValue)))
+          this.weekData[i].data = JSON.parse(JSON.stringify(dataValue))
         }
       }
 

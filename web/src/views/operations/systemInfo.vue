@@ -2,7 +2,7 @@
   <div id="operationsForSystemInfo" class="app-container" style="margin: 100px 200px">
     <el-descriptions v-for="(value, key) in systemInfoList" :key="key" :title="key" :column="2" :loading="loading" style="margin-bottom: 30px">
       <el-descriptions-item v-for="(childValue, childKey) in value" :key="childKey">
-        <template slot="label">
+        <template #label>
           <span>{{ childKey }}</span>
         </template>
         <span v-if="!childValue.startsWith('http')">{{ childValue }}</span>

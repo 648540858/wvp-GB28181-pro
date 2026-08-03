@@ -3,10 +3,10 @@
     <el-dialog
       v-el-drag-dialog
       title="位置信息"
-      width="=80%"
+      width="1040px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       :append-to-body="true"
       @close="close()"
@@ -20,7 +20,7 @@
           <el-descriptions-item label="方向">{{ positionData.direction }}</el-descriptions-item>
           <el-descriptions-item label="时间">{{ positionData.time }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="报警标志" :column="3" v-if="positionData.alarmSign" style="margin-bottom: 1rem;">
+        <el-descriptions title="报警标志" :column="3" v-if="positionData && positionData.alarmSign" style="margin-bottom: 1rem;">
           <el-descriptions-item label="紧急报警">{{ positionData.alarmSign.urgent?'是': '否' }}</el-descriptions-item>
           <el-descriptions-item label="超速报警">{{ positionData.alarmSign.alarmSpeeding?'是': '否' }}</el-descriptions-item>
           <el-descriptions-item label="疲劳驾警报警">{{ positionData.alarmSign.alarmTired?'是': '否' }}</el-descriptions-item>
@@ -53,8 +53,8 @@
           <el-descriptions-item label="碰撞侧翻报警">{{ positionData.alarmSign.alarmRollover?'是': '否' }}</el-descriptions-item>
           <el-descriptions-item label="侧翻预警">{{ positionData.alarmSign.warningRollover?'是': '否' }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="状态" :column="3" v-if="positionData.status" style="margin-bottom: 1rem;">
-          <el-descriptions-item label="ACC">{{ positionData.status.acc?'开': '关' }}</el-descriptions-item>
+        <el-descriptions title="状态" :column="3" v-if="positionData && positionData.status" style="margin-bottom: 1rem;">
+          <el-descriptions-item label="ACC状态">{{ positionData.status.acc?'开': '关' }}</el-descriptions-item>
           <el-descriptions-item label="定位">{{ positionData.status.positioning?'已定位': '未定位' }}</el-descriptions-item>
           <el-descriptions-item label="北纬/南纬">{{ positionData.status.southLatitude?'南纬': '北纬' }}</el-descriptions-item>
           <el-descriptions-item label="东经/西经">{{ positionData.status.wesLongitude?'西经': '东经' }}</el-descriptions-item>
@@ -77,7 +77,7 @@
           <el-descriptions-item label="GaLiLeo卫星定位">{{ positionData.status.gaLiLeo?'使用': '未使用' }}</el-descriptions-item>
           <el-descriptions-item label="行驶状态">{{ positionData.status.driving?'行使': '停止' }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="视频报警" :column="2" v-if="positionData.videoAlarm" style="margin-bottom: 1rem;">
+        <el-descriptions title="视频报警" :column="2" v-if="positionData && positionData.videoAlarm" style="margin-bottom: 1rem;">
           <el-descriptions-item label="视频信号丢失报警的通道">{{ positionData.videoAlarm.videoLossChannels?positionData.videoAlarm.videoLossChannels.join(','): '无' }}</el-descriptions-item>
           <el-descriptions-item label="视频信号遮挡报警的通道">{{ positionData.videoAlarm.videoOcclusionChannels?positionData.videoAlarm.videoOcclusionChannels.join(','): '无' }}</el-descriptions-item>
           <el-descriptions-item label="存储器故障报警状态">{{ positionData.videoAlarm.storageFaultAlarm?positionData.videoAlarm.storageFaultAlarm.join(','): '无' }}</el-descriptions-item>

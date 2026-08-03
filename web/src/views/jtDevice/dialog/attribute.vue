@@ -3,10 +3,10 @@
     <el-dialog
       v-el-drag-dialog
       title="终端属性"
-      width="=80%"
+      width="960px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
@@ -19,7 +19,7 @@
           <el-descriptions-item label="硬件版本号">{{ attributeData.hardwareVersion }}</el-descriptions-item>
           <el-descriptions-item label="固件版本号">{{ attributeData.firmwareVersion }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="终端类型" :column="2" v-if="attributeData.type" style="margin-bottom: 1rem;">
+        <el-descriptions title="终端类型" :column="2" v-if="attributeData && attributeData.type" style="margin-bottom: 1rem;">
           <el-descriptions-item label="客运车辆">{{ attributeData.type.passengerVehicles }}</el-descriptions-item>
           <el-descriptions-item label="危险品车辆">{{ attributeData.type.dangerousGoodsVehicles }}</el-descriptions-item>
           <el-descriptions-item label="普通货运车辆">{{ attributeData.type.freightVehicles }}</el-descriptions-item>
@@ -28,13 +28,13 @@
           <el-descriptions-item label="类型">{{ attributeData.type.splittingMachine?'分体机': '一体机' }}</el-descriptions-item>
           <el-descriptions-item label="适用挂车">{{ attributeData.type.trailer?'是': '否' }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="GNSS模块" :column="2" v-if="attributeData.gnssAttribute" style="margin-bottom: 1rem;">
+        <el-descriptions title="GNSS模块" :column="2" v-if="attributeData && attributeData.gnssAttribute" style="margin-bottom: 1rem;">
           <el-descriptions-item label="GPS卫星">{{ attributeData.gnssAttribute.gps?'支持': '不支持' }}</el-descriptions-item>
           <el-descriptions-item label="北斗卫星">{{ attributeData.gnssAttribute.beidou?'支持': '不支持' }}</el-descriptions-item>
           <el-descriptions-item label="GLONASS卫星">{{ attributeData.gnssAttribute.glonass?'支持': '不支持' }}</el-descriptions-item>
           <el-descriptions-item label="Galileo卫星">{{ attributeData.gnssAttribute.gaLiLeo?'支持': '不支持' }}</el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="通信模块" :column="2" v-if="attributeData.communicationModuleAttribute" style="margin-bottom: 1rem;">
+        <el-descriptions title="通信模块" :column="2" v-if="attributeData && attributeData.communicationModuleAttribute" style="margin-bottom: 1rem;">
           <el-descriptions-item label="GPRS通信">{{ attributeData.communicationModuleAttribute.gprs?'支持': '不支持' }}</el-descriptions-item>
           <el-descriptions-item label="CDMA通信">{{ attributeData.communicationModuleAttribute.cdma?'支持': '不支持' }}</el-descriptions-item>
           <el-descriptions-item label="TD-SCDMA通信">{{ attributeData.communicationModuleAttribute.tdScdma?'支持': '不支持' }}</el-descriptions-item>

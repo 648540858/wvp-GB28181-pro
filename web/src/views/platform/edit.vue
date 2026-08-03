@@ -3,27 +3,27 @@
     <div id="shared" style="text-align: right; margin-top: 1rem; background-color: #FFFFFF; padding-top: 2rem;">
       <el-row :gutter="24">
         <el-col :span="11">
-          <el-form ref="platform1" :rules="rules" :model="value" size="medium" label-width="160px">
+          <el-form ref="platform1" :rules="rules" :model="form" size="medium" label-width="160px">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="value.name" />
+              <el-input v-model="form.name" />
             </el-form-item>
             <el-form-item label="SIP服务国标编码" prop="serverGBId">
-              <el-input v-model="value.serverGBId" clearable @input="serverGBIdChange" />
+              <el-input v-model="form.serverGBId" clearable @input="serverGBIdChange" />
             </el-form-item>
             <el-form-item label="SIP服务国标域" prop="serverGBDomain">
-              <el-input v-model="value.serverGBDomain" clearable />
+              <el-input v-model="form.serverGBDomain" clearable />
             </el-form-item>
             <el-form-item label="SIP服务IP" prop="serverIp">
-              <el-input v-model="value.serverIp" clearable />
+              <el-input v-model="form.serverIp" clearable />
             </el-form-item>
             <el-form-item label="SIP服务端口" prop="serverPort">
-              <el-input v-model="value.serverPort" clearable type="number" />
+              <el-input v-model="form.serverPort" clearable type="number" />
             </el-form-item>
             <el-form-item label="设备国标编号" prop="deviceGBId">
-              <el-input v-model="value.deviceGBId" clearable @input="deviceGBIdChange" />
+              <el-input v-model="form.deviceGBId" clearable @input="deviceGBIdChange" />
             </el-form-item>
             <el-form-item label="本地IP" prop="deviceIp">
-              <el-select v-model="value.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
+              <el-select v-model="form.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
                 <el-option
                   v-for="ip in deviceIps"
                   :key="ip"
@@ -33,31 +33,31 @@
               </el-select>
             </el-form-item>
             <el-form-item label="本地端口" prop="devicePort">
-              <el-input v-model="value.devicePort" :disabled="true" type="number" />
+              <el-input v-model="form.devicePort" :disabled="true" type="number" />
             </el-form-item>
 
             <el-form-item label="SIP认证用户名" prop="username">
-              <el-input v-model="value.username" />
+              <el-input v-model="form.username" />
             </el-form-item>
             <el-form-item label="SIP认证密码" prop="password">
-              <el-input v-model="value.password" />
+              <el-input v-model="form.password" />
             </el-form-item>
             <el-form-item label="注册周期(秒)" prop="expires">
-              <el-input v-model="value.expires" />
+              <el-input v-model="form.expires" />
             </el-form-item>
             <el-form-item label="心跳周期(秒)" prop="keepTimeout">
-              <el-input v-model="value.keepTimeout" />
+              <el-input v-model="form.keepTimeout" />
             </el-form-item>
           </el-form>
         </el-col>
         <el-col :span="12">
-          <el-form ref="platform2" :rules="rules" :model="value" size="medium" label-width="160px">
+          <el-form ref="platform2" :rules="rules" :model="form" size="medium" label-width="160px">
             <el-form-item label="SDP发流IP" prop="sendStreamIp">
-              <el-input v-model="value.sendStreamIp" />
+              <el-input v-model="form.sendStreamIp" />
             </el-form-item>
             <el-form-item label="信令传输" prop="transport">
               <el-select
-                v-model="value.transport"
+                v-model="form.transport"
                 style="width: 100%"
                 placeholder="请选择信令传输方式"
               >
@@ -66,14 +66,14 @@
               </el-select>
             </el-form-item>
             <el-form-item label="保密属性">
-              <el-select v-model="value.secrecy" style="width: 100%" placeholder="请选择保密属性">
+              <el-select v-model="form.secrecy" style="width: 100%" placeholder="请选择保密属性">
                 <el-option label="不涉密" :value="0" />
                 <el-option label="涉密" :value="1" />
               </el-select>
             </el-form-item>
             <el-form-item label="目录分组" prop="catalogGroup">
               <el-select
-                v-model="value.catalogGroup"
+                v-model="form.catalogGroup"
                 style="width: 100%"
                 placeholder="请选择目录分组"
               >
@@ -85,7 +85,7 @@
             </el-form-item>
             <el-form-item label="字符集" prop="characterSet">
               <el-select
-                v-model="value.characterSet"
+                v-model="form.characterSet"
                 style="width: 100%"
                 placeholder="请选择字符集"
               >
@@ -94,38 +94,38 @@
               </el-select>
             </el-form-item>
             <el-form-item label="行政区划" prop="civilCode">
-              <el-input v-model="value.civilCode" clearable />
+              <el-input v-model="form.civilCode" clearable />
             </el-form-item>
             <el-form-item label="平台厂商" prop="manufacturer">
-              <el-input v-model="value.manufacturer" clearable />
+              <el-input v-model="form.manufacturer" clearable />
             </el-form-item>
             <el-form-item label="平台型号" prop="model">
-              <el-input v-model="value.model" clearable />
+              <el-input v-model="form.model" clearable />
             </el-form-item>
             <el-form-item label="平台安装地址" prop="address">
-              <el-input v-model="value.address" clearable />
+              <el-input v-model="form.address" clearable />
             </el-form-item>
             <el-form-item label="其他选项">
               <div style="text-align: left">
-                <el-checkbox v-model="value.enable" label="启用" @change="checkExpires" />
-                <!--                <el-checkbox label="云台控制" v-model="value.ptz"></el-checkbox>-->
-                <el-checkbox v-model="value.rtcp" label="RTCP保活" @change="rtcpCheckBoxChange" />
-                <el-checkbox v-model="value.asMessageChannel" label="消息通道" />
-                <el-checkbox v-model="value.autoPushChannel" label="主动推送通道" />
+                <el-checkbox v-model="form.enable" label="启用" @change="checkExpires" />
+                <!--                <el-checkbox label="云台控制" v-model="form.ptz"></el-checkbox>-->
+                <el-checkbox v-model="form.rtcp" label="RTCP保活" @change="rtcpCheckBoxChange" />
+                <el-checkbox v-model="form.asMessageChannel" label="消息通道" />
+                <el-checkbox v-model="form.autoPushChannel" label="主动推送通道" />
                 <el-checkbox
-                  v-model="value.catalogWithPlatform"
+                  v-model="form.catalogWithPlatform"
                   label="推送平台信息"
                   :true-label="1"
                   :false-label="0"
                 />
                 <el-checkbox
-                  v-model="value.catalogWithGroup"
+                  v-model="form.catalogWithGroup"
                   label="推送分组信息"
                   :true-label="1"
                   :false-label="0"
                 />
                 <el-checkbox
-                  v-model="value.catalogWithRegion"
+                  v-model="form.catalogWithRegion"
                   label="推送行政区划"
                   :true-label="1"
                   :false-label="0"
@@ -148,7 +148,7 @@
 export default {
   name: 'PlatformEdit',
   components: {},
-  props: ['value', 'closeEdit', 'deviceIps'],
+  props: ['platform', 'closeEdit', 'deviceIps'],
   data() {
     var deviceGBIdRules = async(rule, value, callback) => {
       console.log(value)
@@ -165,6 +165,7 @@ export default {
     }
     return {
       listChangeCallback: null,
+      form: { ...(this.platform || {}) },
       showDialog: false,
       isLoging: false,
       onSubmit_text: '保存',
@@ -193,8 +194,8 @@ export default {
     }
   },
   watch: {
-    value(newValue, oldValue) {
-      this.streamProxy = newValue
+    platform(value) {
+      this.form = { ...(value || {}) }
     }
   },
   created() {
@@ -203,8 +204,8 @@ export default {
   methods: {
     onSubmit: function() {
       this.saveLoading = true
-      if (this.value.id) {
-        this.$store.dispatch('platform/update', this.value)
+      if (this.form.id) {
+        this.$store.dispatch('platform/update', this.form)
           .then(data => {
             this.$message({
               showClose: true,
@@ -222,7 +223,7 @@ export default {
             this.saveLoading = false
           })
       } else {
-        this.$store.dispatch('platform/add', this.value)
+        this.$store.dispatch('platform/add', this.form)
           .then(data => {
             this.$message({
               showClose: true,
@@ -242,16 +243,16 @@ export default {
       }
     },
     serverGBIdChange: function() {
-      if (this.value.serverGBId.length > 10) {
-        this.value.serverGBDomain = this.value.serverGBId.substr(0, 10)
+      if ((this.form.serverGBId || '').length > 10) {
+        this.form.serverGBDomain = this.form.serverGBId.substr(0, 10)
       }
     },
     deviceGBIdChange: function() {
-      this.value.username = this.value.deviceGBId
+      this.form.username = this.form.deviceGBId
     },
     checkExpires: function() {
-      if (this.value.enable && this.value.expires === '0') {
-        this.value.expires = '3600'
+      if (this.form.enable && this.form.expires === '0') {
+        this.form.expires = '3600'
       }
     },
     rtcpCheckBoxChange: function(result) {

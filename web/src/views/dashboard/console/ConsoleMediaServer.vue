@@ -6,7 +6,7 @@
 
 <script>
 
-import veHistogram from 'v-charts/lib/histogram'
+import veHistogram from '@/components/VChartCompat/histogram'
 import moment from 'moment/moment'
 
 export default {
@@ -75,7 +75,7 @@ export default {
       }, 100)
     })
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function(data) {

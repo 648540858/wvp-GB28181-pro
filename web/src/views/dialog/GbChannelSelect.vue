@@ -1,16 +1,17 @@
 <template>
-  <div id="gbChannelSelect" v-loading="getChannelListLoading">
+  <div id="gbChannelSelect">
     <el-dialog
       v-el-drag-dialog
       title="添加国标通道"
       width="60%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       append-to-body
       @close="close()"
     >
+      <div class="channel-select-dialog-content" v-loading="getChannelListLoading">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -92,7 +93,7 @@
       </el-table>
       <div style="display: grid; grid-template-columns: 1fr 1fr">
         <div style="text-align: left; line-height: 32px">
-          <i class="el-icon-info" /> 未找到通道，可在国标设备/通道中选择编辑按钮， 选择{{ dataType === 'civilCode'?'行政区划':'父节点编码' }}
+          <ant-icon name="el-icon-info" class="el-icon-info"  /> 未找到通道，可在国标设备/通道中选择编辑按钮， 选择{{ dataType === 'civilCode'?'行政区划':'父节点编码' }}
         </div>
         <el-pagination
           style="text-align: right"
@@ -105,7 +106,7 @@
           @current-change="currentChange"
         />
       </div>
-
+      </div>
     </el-dialog>
   </div>
 </template>

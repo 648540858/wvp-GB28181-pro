@@ -7,7 +7,7 @@
       top="5vh"
       width="70vw"
       :close-on-click-modal="false"
-      :visible.sync="showVideoDialog"
+      v-model:visible="showVideoDialog"
       @close="close()"
     >
       <div class="push-player-body">

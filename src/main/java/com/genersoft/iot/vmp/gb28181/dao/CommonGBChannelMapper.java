@@ -25,6 +25,9 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryByDeviceId")
     List<CommonGBChannel> queryByDeviceId(@Param("gbDeviceId") String gbDeviceId);
 
+    @Select("SELECT gb_device_id FROM wvp_device_channel WHERE gb_device_id IS NOT NULL AND gb_device_id <> ''")
+    List<String> queryAllGbDeviceIds();
+
     @Insert(" <script>" +
             "INSERT INTO wvp_device_channel (" +
             "gb_device_id," +

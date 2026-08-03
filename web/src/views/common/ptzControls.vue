@@ -18,16 +18,16 @@
           <div class="ptz-func-row" v-if="homePosition && hasGuard">
             <div class="ptz-func-row">
               <div class="ptz-func-btn" title="看守位" @click.prevent="$emit('ptz-guard')">
-                <i class="el-icon-s-home" /><span>看守位</span>
+                <ant-icon name="el-icon-s-home" class="el-icon-s-home"  /><span>看守位</span>
               </div>
             </div>
           </div>
           <div v-if="hasPtzDirection" class="ptz-func-row">
             <div class="ptz-func-btn" title="变倍+" @mousedown.prevent="handlePtzMove('zoomin')" @mouseup.prevent="handlePtzStop()">
-              <i class="el-icon-zoom-in" /><span>变倍+</span>
+              <ant-icon name="el-icon-zoom-in" class="el-icon-zoom-in"  /><span>变倍+</span>
             </div>
             <div class="ptz-func-btn" title="变倍-" @mousedown.prevent="handlePtzMove('zoomout')" @mouseup.prevent="handlePtzStop()">
-              <i class="el-icon-zoom-out" /><span>变倍-</span>
+              <ant-icon name="el-icon-zoom-out" class="el-icon-zoom-out"  /><span>变倍-</span>
             </div>
           </div>
           <div v-if="hasFocus" class="ptz-func-row">
@@ -72,17 +72,18 @@
 <script>
 export default {
   name: 'PtzControls',
+  inheritAttrs: false,
   props: {
     btnLayout: { type: String, default: 'column' },
     homePosition: { type: Boolean, default: false },
     showDiagonals: { type: Boolean, default: true }
   },
   computed: {
-    hasPtzDirection() { return 'ptz-move' in this.$listeners },
-    hasFocus() { return 'focus-move' in this.$listeners },
-    hasIris() { return 'iris-move' in this.$listeners },
-    hasDragZoom() { return 'toggle-drag-zoom' in this.$listeners || 'toggle-drag-zoom-out' in this.$listeners },
-    hasGuard() { return 'ptz-guard' in this.$listeners },
+    hasPtzDirection() { return Boolean(this.$attrs.onPtzMove) },
+    hasFocus() { return Boolean(this.$attrs.onFocusMove) },
+    hasIris() { return Boolean(this.$attrs.onIrisMove) },
+    hasDragZoom() { return Boolean(this.$attrs.onToggleDragZoom || this.$attrs.onToggleDragZoomOut) },
+    hasGuard() { return Boolean(this.$attrs.onPtzGuard) },
     hasAnyPtz() { return this.hasPtzDirection || this.hasFocus || this.hasIris || this.hasDragZoom || this.hasGuard }
   },
   data() {
@@ -94,7 +95,7 @@ export default {
   mounted() {
     window.addEventListener('mouseup', this.onWindowMouseUp)
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('mouseup', this.onWindowMouseUp)
   },
   methods: {

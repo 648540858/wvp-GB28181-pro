@@ -64,7 +64,7 @@ export default {
   },
   mounted() {
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function(data) {

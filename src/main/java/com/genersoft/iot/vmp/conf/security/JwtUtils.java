@@ -55,7 +55,7 @@ public class JwtUtils implements InitializingBean {
     /**
      * token过期时间(分钟)
      */
-    public static final long EXPIRATION_TIME = 30;
+    public static final long EXPIRATION_TIME = 120;
 
     private static RsaJsonWebKey rsaJsonWebKey;
 
@@ -240,7 +240,7 @@ public class JwtUtils implements InitializingBean {
             claims.setGeneratedJwtId();
             claims.setIssuedAtToNow();
             // 令牌将过期的时间 分钟
-            if (expirationTime != null) {
+            if (expirationTime != null && expirationTime > 0) {
                 claims.setExpirationTimeMinutesInTheFuture(expirationTime);
             }
             claims.setNotBeforeMinutesInThePast(0);
@@ -273,7 +273,8 @@ public class JwtUtils implements InitializingBean {
     }
 
     public static String createToken(String username) {
-        return createToken(username, userSetting.getLoginTimeout());
+        long loginTimeout = userSetting.getLoginTimeout();
+        return createToken(username, loginTimeout == 0 ? null : loginTimeout);
     }
 
     public static String getHeader() {

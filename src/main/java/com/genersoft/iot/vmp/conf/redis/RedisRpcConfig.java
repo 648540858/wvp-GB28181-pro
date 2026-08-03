@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -43,6 +44,7 @@ public class RedisRpcConfig implements MessageListener {
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
+    @Qualifier("applicationTaskExecutor")
     private TaskExecutor taskExecutor;
 
     private final static Map<String, RedisRpcClassHandler> protocolHash = new HashMap<>();

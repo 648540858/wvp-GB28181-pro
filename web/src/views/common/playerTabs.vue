@@ -174,7 +174,7 @@ export default {
 .player-tabs-wrapper .el-tabs {
   margin-bottom: 0;
 }
-.player-tabs-wrapper .el-tabs >>> .el-tabs__header {
+.player-tabs-wrapper .el-tabs :deep(.el-tabs__header) {
   margin-bottom: 0;
 }
 .player-video-area {

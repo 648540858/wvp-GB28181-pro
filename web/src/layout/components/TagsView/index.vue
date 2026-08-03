@@ -9,8 +9,8 @@
         :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }"
         tag="span"
         class="tags-view-item"
-        @click.middle.native="!isAffix(tag)?closeSelectedTag(tag):''"
-        @contextmenu.prevent.native="openMenu(tag,$event)"
+        @click.middle="!isAffix(tag)?closeSelectedTag(tag):''"
+        @contextmenu.prevent="openMenu(tag,$event)"
       >
         {{ tag.title }}
         <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
@@ -27,7 +27,7 @@
 
 <script>
 import ScrollPane from './ScrollPane'
-import path from 'path'
+import path from 'path-browserify'
 
 export default {
   components: { ScrollPane },
@@ -199,66 +199,88 @@ export default {
 
 <style lang="scss" scoped>
 .tags-view-container {
-  height: 34px;
+  position: relative;
+  z-index: 8;
+  height: var(--wvp-tags-height);
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
+  background: var(--wvp-surface);
+  border-bottom: 1px solid var(--wvp-border-light);
+
   .tags-view-wrapper {
     .tags-view-item {
       display: inline-block;
       position: relative;
       cursor: pointer;
-      height: 26px;
+      height: 28px;
       line-height: 26px;
-      border: 1px solid #d8dce5;
-      color: #495060;
-      background: #fff;
-      padding: 0 8px;
+      border: 1px solid transparent;
+      color: var(--wvp-text-regular);
+      background: var(--wvp-surface-muted);
+      padding: 0 10px;
       font-size: 12px;
-      margin-left: 5px;
-      margin-top: 4px;
+      margin-left: 8px;
+      margin-top: 6px;
+      border-radius: var(--wvp-radius-md);
+      transition: color var(--wvp-transition), border-color var(--wvp-transition), background-color var(--wvp-transition);
+
+      &:hover {
+        color: var(--wvp-primary);
+        border-color: #bfdbfe;
+        background: var(--wvp-primary-soft);
+      }
+
       &:first-of-type {
-        margin-left: 15px;
+        margin-left: 12px;
       }
+
       &:last-of-type {
-        margin-right: 15px;
+        margin-right: 12px;
       }
+
       &.active {
-        background-color: #42b983;
-        color: #fff;
-        border-color: #42b983;
+        background-color: var(--wvp-primary-soft);
+        color: var(--wvp-primary);
+        border-color: #bfdbfe;
+        font-weight: 500;
+
         &::before {
           content: '';
-          background: #fff;
+          background: var(--wvp-primary);
           display: inline-block;
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
           position: relative;
-          margin-right: 2px;
+          margin-right: 4px;
+          vertical-align: 1px;
         }
       }
     }
   }
+
   .contextmenu {
     margin: 0;
-    background: #fff;
+    background: var(--wvp-surface);
     z-index: 3000;
     position: absolute;
     list-style-type: none;
-    padding: 5px 0;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 4px 0;
+    border: 1px solid var(--wvp-border-light);
+    border-radius: var(--wvp-radius-md);
+    font-size: 14px;
     font-weight: 400;
-    color: #333;
-    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
+    color: var(--wvp-text-primary);
+    box-shadow: var(--wvp-shadow-md);
+
     li {
       margin: 0;
-      padding: 7px 16px;
+      padding: 8px 16px;
+      line-height: 20px;
       cursor: pointer;
+
       &:hover {
-        background: #eee;
+        color: var(--wvp-primary);
+        background: var(--wvp-primary-soft);
       }
     }
   }
@@ -270,21 +292,24 @@ export default {
 .tags-view-wrapper {
   .tags-view-item {
     .el-icon-close {
-      width: 16px;
-      height: 16px;
-      vertical-align: 2px;
+      width: 20px;
+      height: 20px;
+      margin-left: 2px;
+      line-height: 20px;
+      vertical-align: -1px;
       border-radius: 50%;
       text-align: center;
-      transition: all .3s cubic-bezier(.645, .045, .355, 1);
+      transition: color var(--wvp-transition), background-color var(--wvp-transition);
       transform-origin: 100% 50%;
+
       &:before {
-        transform: scale(.6);
+        transform: scale(.7);
         display: inline-block;
-        vertical-align: -3px;
       }
+
       &:hover {
-        background-color: #b4bccc;
-        color: #fff;
+        background-color: #dbeafe;
+        color: var(--wvp-primary-active);
       }
     }
   }

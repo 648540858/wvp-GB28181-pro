@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+  <div class="app-container">
+    <div style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -12,7 +12,7 @@
             @input="initData"
           />
         </el-form-item>
-        <el-form-item label="Call Id">
+        <el-form-item label="呼叫标识">
           <el-input
             v-model="callId"
             style="margin-right: 1rem; width: auto;"
@@ -89,7 +89,7 @@
         />
         <el-table-column prop="app" label="应用名" />
         <el-table-column prop="stream" label="流ID" />
-        <el-table-column prop="callId" label="Call Id"/>
+        <el-table-column prop="callId" label="呼叫标识"/>
         <el-table-column label="开始时间">
           <template v-slot:default="scope">
             {{ formatTimeStamp(scope.row.startTime) }}
@@ -145,7 +145,6 @@
 <script>
 import playerDialog from './playerDialog.vue'
 import moment from 'moment'
-import Vue from 'vue'
 
 export default {
   name: 'CloudRecord',
@@ -173,9 +172,6 @@ export default {
     }
   },
   computed: {
-    Vue() {
-      return Vue
-    },
     myServerId() {
       return this.$store.getters.serverId
     }
@@ -183,9 +179,6 @@ export default {
   mounted() {
     this.initData()
     this.getMediaServerList()
-  },
-  destroyed() {
-    // this.$destroy('recordVideoPlayer')
   },
   methods: {
     initData: function() {

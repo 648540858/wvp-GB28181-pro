@@ -1,37 +1,42 @@
 <template>
-  <section class="app-main">
-    <transition name="fade-transform" mode="out-in">
-      <KeepAlive :include="cachedViews">
-        <router-view :key="key" />
-      </KeepAlive>
-    </transition>
-  </section>
+  <main id="main-content" class="app-main" tabindex="-1">
+    <router-view />
+  </main>
 </template>
 
 <script>
 export default {
-  name: 'AppMain',
-  computed: {
-    key() {
-      return this.$route.path
-    },
-    cachedViews() {
-      return this.$store.state.tagsView.cachedViews
-    }
-  }
+  name: 'AppMain'
 }
 </script>
 
 <style scoped>
 .app-main {
-  /*50 = navbar  */
-  min-height: calc(100vh - 84px);
+  min-height: calc(100vh - var(--wvp-shell-height));
+  min-height: calc(100dvh - var(--wvp-shell-height));
   width: 100%;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  background: var(--wvp-page-background);
+  outline: none;
+}
+
+.app-main > :deep(*) {
+  animation: wvp-page-enter 0.2s ease-out both;
 }
 .fixed-header+.app-main {
-  padding-top: 50px;
+  padding-top: var(--wvp-shell-height);
+}
+
+@keyframes wvp-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 

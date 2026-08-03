@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IStreamProxyService {
@@ -18,6 +19,8 @@ public interface IStreamProxyService {
      * @return
      */
     PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling,String mediaServerId);
+
+    List<StreamProxy> getAllForExport(String query, Boolean pulling, String mediaServerId);
 
     /**
      * 删除视频代理

@@ -6,13 +6,13 @@
       width="65%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
-      <el-form size="small" @submit.native.prevent>
+      <el-form size="small" @submit.prevent>
         <el-form-item>
-          <el-form inline  @submit.native.prevent>
+          <el-form inline  @submit.prevent>
             <el-form-item style="margin-right: 14.5rem">
               <el-radio-group v-model="commandType">
                 <el-radio :label="true" border>拍摄</el-radio>
@@ -22,7 +22,7 @@
           </el-form>
         </el-form-item>
         <el-form-item>
-          <el-form inline size="small" @submit.native.prevent>
+          <el-form inline size="small" @submit.prevent>
             <el-form-item label="录像时长" v-if="!commandType">
               <el-input type="number" v-model="time" placeholder="一直录像" style="width: 8rem"></el-input>
             </el-form-item>
@@ -221,10 +221,10 @@ export default {
 </script>
 
 <style scoped>
->>> .el-upload {
+:deep(.el-upload) {
   width: 100% !important;
 }
->>> .el-slider__marks-text {
+:deep(.el-slider__marks-text) {
   margin-top: -36px;
   font-size: 12px;
   width: 2rem !important;

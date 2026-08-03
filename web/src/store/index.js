@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import getters from './getters'
 import app from './modules/app'
 import settings from './modules/settings'
@@ -25,9 +24,7 @@ import frontEnd from './modules/frontEnd'
 import jtDevice from './modules/jtDevice'
 import alarm from './modules/alarm'
 
-Vue.use(Vuex)
-
-const store = new Vuex.Store({
+const store = createStore({
   modules: {
     app,
     settings,

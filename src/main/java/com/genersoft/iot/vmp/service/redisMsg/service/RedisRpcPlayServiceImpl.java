@@ -231,11 +231,13 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     @Override
     public void stopProxy(String serverId, int id) {
         RedisRpcRequest request = buildRequest("streamProxy/stop", id);
+        request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
         if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
             log.info("[rpc 拉流代理] 停止成功： id: {}", id);
         }else {
             log.info("[rpc 拉流代理] 停止失败 id: {}", id);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "停止远程拉流代理失败");
         }
     }
 

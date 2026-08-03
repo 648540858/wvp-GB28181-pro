@@ -7,7 +7,7 @@
     center
     :append-to-body="true"
     :close-on-click-modal="false"
-    :visible.sync="showVideoDialog"
+    v-model:visible="showVideoDialog"
     :destroy-on-close="false"
   >
     <el-tabs v-model="activeKey" style="padding: 0 1rem; margin: auto 0" @tab-click="getRegionList">

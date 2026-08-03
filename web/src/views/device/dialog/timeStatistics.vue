@@ -6,7 +6,7 @@
       width="60%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close"
     >
@@ -56,7 +56,7 @@
 
 <script>
 import moment from 'moment/moment'
-import veLine from 'v-charts/lib/line'
+import veLine from '@/components/VChartCompat/line'
 import request from '@/utils/request'
 import elDragDialog from '@/directive/el-drag-dialog'
 

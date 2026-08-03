@@ -5,7 +5,7 @@
       top="10vh"
       width="61.5vw"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       @close="close()"
     >
       <div style="display: flex; gap: 16px;">

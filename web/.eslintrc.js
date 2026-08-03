@@ -6,7 +6,8 @@ module.exports = {
   },
   extends: ["plugin:vue/essential", "eslint:recommended"],
   parserOptions: {
-    parser: "babel-eslint",
+    parser: "@babel/eslint-parser",
+    requireConfigFile: false,
   },
   rules: {
     // Disable or downgrade problematic rules
@@ -24,6 +25,13 @@ module.exports = {
     "vue/require-v-for-key": "warn",
     "vue/valid-v-model": "warn",
     "vue/attributes-order": "off",
+    "vue/no-mutating-props": "error",
+    "vue/multi-word-component-names": "warn",
+    "vue/no-v-model-argument": "warn",
+    "vue/no-useless-template-attributes": "warn",
+    "vue/no-reserved-component-names": "warn",
+    "no-useless-escape": "warn",
+    "no-empty": "warn",
     "no-multiple-empty-lines": "warn",
 
     // Style rules - make them warnings instead of errors

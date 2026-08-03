@@ -1,5 +1,5 @@
 <template>
-  <div id="channelList" style="height: calc(100vh - 124px);">
+  <div id="channelList" style="height: var(--wvp-page-content-height);">
     <div v-if="!editId && !ptzConfigChannelDeviceId && !cameraConfigDeviceId" style="height: 100%">
       <el-form :inline="true" size="mini">
         <el-form-item style="margin-right: 2rem">
@@ -83,7 +83,7 @@
               @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
             >
               <div slot="error" class="image-slot">
-                <i class="el-icon-picture-outline" />
+                <ant-icon name="el-icon-picture-outline" class="el-icon-picture-outline"  />
               </div>
             </el-image>
           </template>
@@ -157,7 +157,6 @@
               @click="stopDevicePush(scope.row)"
             >停止
             </el-button>
-            <el-divider direction="vertical" />
             <el-button
               size="medium"
               type="text"
@@ -166,7 +165,6 @@
             >
               编辑
             </el-button>
-            <el-divider direction="vertical" />
             <el-button
               v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8"
               size="medium"
@@ -175,10 +173,9 @@
               @click="changeSubchannel(scope.row)"
             >查看
             </el-button>
-            <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8" direction="vertical" />
             <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
               <el-button size="medium" type="text">
-                更多<i class="el-icon-arrow-down el-icon--right" />
+                更多<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right"  />
               </el-button>
               <el-dropdown-menu>
                 <el-dropdown-item command="audioTalk" :disabled="device == null || device.online === 0">
@@ -248,7 +245,7 @@ export default {
       default: null
     },
     parentChannelId: {
-      type: String || null,
+      type: [String, Number],
       default: null
     }
   },
@@ -272,6 +269,7 @@ export default {
       ptzConfigDeviceId: null,
       ptzConfigChannelDeviceId: null,
       cameraConfigDeviceId: null,
+      activeParentChannelId: this.parentChannelId,
       loadSnap: {},
       ptzTypes: {
         0: '未知',
@@ -284,10 +282,14 @@ export default {
   },
   watch: {
     deviceId: function(val) {
-      this.$store.dispatch('device/queryDeviceOne', this.deviceId)
+      this.$store.dispatch('device/queryDeviceOne', val)
         .then(data => {
           this.device = data
         })
+      this.initData()
+    },
+    parentChannelId: function(val) {
+      this.activeParentChannelId = val
       this.initData()
     }
   },
@@ -300,25 +302,14 @@ export default {
     }
     this.initData()
   },
-  destroyed() {
-    this.$destroy('videojs')
-    clearTimeout(this.updateLooper)
+  unmounted() {    clearTimeout(this.updateLooper)
   },
   methods: {
     initData: function() {
-      if (this.parentChannelId === null || typeof (this.parentChannelId) === 'undefined' || this.parentChannelId === 0) {
+      if (this.activeParentChannelId === null || typeof (this.activeParentChannelId) === 'undefined' || this.activeParentChannelId === 0) {
         this.getDeviceChannelList()
       } else {
         this.showSubChannels()
-      }
-    },
-    initParam: function() {
-      this.deviceId = this.$route.params.deviceId
-      this.parentChannelId = this.$route.params.parentChannelId
-      this.currentPage = 1
-      this.count = 15
-      if (this.parentChannelId === '' || this.parentChannelId === 0) {
-        this.beforeUrl = '/device/list'
       }
     },
     currentChange: function(val) {
@@ -343,7 +334,7 @@ export default {
         this.deviceChannelList = data.list
         this.deviceChannelList.forEach(e => {
           e.ptzType = e.ptzType + ''
-          this.$set(e, 'playLoading', false)
+          e.playLoading = false
         })
         // 防止出现表格错位
         this.$nextTick(() => {
@@ -459,16 +450,12 @@ export default {
       this.$emit('show-device')
     },
     changeSubchannel(itemData) {
-      this.beforeUrl = this.$router.currentRoute.path
-
-      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.deviceId}`
-      this.$router.push(url).then(() => {
-        this.searchStr = ''
-        this.channelType = ''
-        this.online = ''
-        this.initParam()
-        this.initData()
-      })
+      this.activeParentChannelId = itemData.deviceId
+      this.currentPage = 1
+      this.searchStr = ''
+      this.channelType = ''
+      this.online = ''
+      this.initData()
     },
     showSubChannels: function() {
       this.$store.dispatch('device/querySubChannels', [
@@ -480,7 +467,7 @@ export default {
           channelType: this.channelType
         },
         this.deviceId,
-        this.parentChannelId
+        this.activeParentChannelId
       ])
         .then(data => {
           this.total = data.total

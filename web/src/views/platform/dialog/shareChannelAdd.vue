@@ -74,14 +74,14 @@
         <el-table-column v-if="hasShare ==='true'" label="自定义名称" min-width="180">
           <template v-slot:default="scope">
             <div slot="—" class="name-wrapper">
-              <el-input v-model:value="scope.row.customName" size="mini" placeholder="不填按原名称" />
+              <el-input v-model="scope.row.customName" size="mini" placeholder="不填按原名称" />
             </div>
           </template>
         </el-table-column>
         <el-table-column v-if="hasShare ==='true'" label="自定义编号" min-width="180">
           <template v-slot:default="scope">
             <div slot="—" class="name-wrapper">
-              <el-input v-model:value="scope.row.customDeviceId" size="mini" placeholder="不填按原编号" />
+              <el-input v-model="scope.row.customDeviceId" size="mini" placeholder="不填按原编号" />
             </div>
           </template>
         </el-table-column>
@@ -157,7 +157,7 @@ export default {
   created() {
     this.initData()
   },
-  destroyed() {},
+  unmounted() {},
   methods: {
     initData: function() {
       this.getChannelList()

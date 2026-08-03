@@ -154,9 +154,7 @@ export default {
   mounted() {
     this.updatePlayerList()
   },
-  destroyed() {
-    this.$destroy('recordVideoPlayer')
-  },
+  unmounted() {  },
   methods: {
     updatePlayerList() {
       if (this.$refs.recordVideoPlayer) {

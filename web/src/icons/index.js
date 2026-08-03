@@ -1,9 +1,13 @@
-import Vue from 'vue'
 import SvgIcon from '@/components/SvgIcon'// svg component
+import { registerSvgSprite } from './sprite'
 
-// register globally
-Vue.component('svg-icon', SvgIcon)
+const svgModules = import.meta.glob('./svg/*.svg', {
+  eager: true,
+  query: '?raw',
+  import: 'default'
+})
 
-const req = require.context('./svg', false, /\.svg$/)
-const requireAll = requireContext => requireContext.keys().map(requireContext)
-requireAll(req)
+export function registerIcons(app) {
+  app.component('svg-icon', SvgIcon)
+  registerSvgSprite(svgModules)
+}

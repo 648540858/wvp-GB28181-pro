@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.security.dto.RuntimeSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +38,7 @@ import java.util.List;
 public class WebSecurityConfig {
 
     @Autowired
-    private UserSetting userSetting;
+    private RuntimeSecurityConfigService runtimeSecurityConfigService;
 
     @Autowired
     private DefaultUserDetailsServiceImpl userDetailsService;
@@ -103,10 +102,6 @@ public class WebSecurityConfig {
         defaultExcludes.add("/api/jt1078/playback/download");
         defaultExcludes.add("/api/jt1078/snap");
 
-        if (userSetting.getInterfaceAuthentication() && !userSetting.getInterfaceAuthenticationExcludes().isEmpty()) {
-            defaultExcludes.addAll(userSetting.getInterfaceAuthenticationExcludes());
-        }
-
         http
                 .headers(headers -> headers.contentTypeOptions(contentType -> contentType.disable()))
                 .cors(cors -> cors.configurationSource(configurationSource()))
@@ -129,14 +124,17 @@ public class WebSecurityConfig {
     }
 
     CorsConfigurationSource configurationSource() {
-        // 配置跨域
+        return request -> createCorsConfiguration(runtimeSecurityConfigService.getConfig());
+    }
+
+    private CorsConfiguration createCorsConfiguration(RuntimeSecurityConfig runtimeConfig) {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
         corsConfiguration.setAllowedMethods(Arrays.asList("*"));
         corsConfiguration.setMaxAge(3600L);
-        if (userSetting.getAllowedOrigins() != null && !userSetting.getAllowedOrigins().isEmpty()) {
+        if (runtimeConfig.getAllowedOrigins() != null && !runtimeConfig.getAllowedOrigins().isEmpty()) {
             corsConfiguration.setAllowCredentials(true);
-            corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
+            corsConfiguration.setAllowedOrigins(runtimeConfig.getAllowedOrigins());
         } else {
             // 在SpringBoot 2.4及以上版本处理跨域时，遇到错误提示：当allowCredentials为true时，allowedOrigins不能包含特殊值"*"。
             // 解决方法是明确指定allowedOrigins或使用allowedOriginPatterns。
@@ -145,10 +143,7 @@ public class WebSecurityConfig {
         }
 
         corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));
-
-        UrlBasedCorsConfigurationSource url = new UrlBasedCorsConfigurationSource();
-        url.registerCorsConfiguration("/**", corsConfiguration);
-        return url;
+        return corsConfiguration;
     }
 
     /**

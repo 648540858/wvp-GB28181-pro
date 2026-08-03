@@ -30,11 +30,11 @@
                   style="background-color: #ecf5ff; color: #017690; "
                   @click="chooseFile(index)"
                 >
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <el-tag v-if="chooseFileIndex === index" type="danger">
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <a
@@ -320,8 +320,7 @@ export default {
       this.updatePlayerList()
     })
   },
-  destroyed() {
-    this.$destroy('recordVideoPlayer')
+  unmounted() {
     window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {

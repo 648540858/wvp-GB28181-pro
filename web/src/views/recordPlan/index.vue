@@ -1,6 +1,6 @@
 <template>
   <div id="recordPLan" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+    <div style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -83,7 +83,7 @@ export default {
   created() {
     this.initData()
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     initData: function() {

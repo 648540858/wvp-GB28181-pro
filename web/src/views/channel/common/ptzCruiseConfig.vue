@@ -58,7 +58,7 @@
     </div>
     <div v-if="cruiseTours.length > 0" style="flex: 1; overflow: auto;">
       <el-table ref="cruiseTable" :data="cruiseTours" size="mini" max-height="100%" stripe border highlight-current-row>
-        <el-table-column prop="id" label="ID" />
+        <el-table-column prop="id" label="编号" />
         <el-table-column prop="name" label="巡航名称" />
         <el-table-column label="操作" min-width="150">
           <template v-slot:default="scope">
@@ -188,7 +188,7 @@ export default {
         }))
         const tour = { id: this.formId, name: this.formName, presets }
         if (idx !== -1) {
-          this.$set(this.cruiseTours, idx, tour)
+          this.cruiseTours[idx] = tour
         } else {
           this.cruiseTours.push(tour)
         }

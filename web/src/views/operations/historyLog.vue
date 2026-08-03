@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+  <div class="app-container">
+    <div style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -75,8 +75,9 @@
     <el-dialog
       top="10vh"
       :title="playerTitle"
-      :visible.sync="showLog"
+      v-model:visible="showLog"
       width="90%"
+      :destroy-on-close="true"
     >
       <div style="height: 600px">
         <showLog ref="recordVideoPlayer" :file-url="fileUrl" :load-end="loadEnd" />
@@ -117,7 +118,8 @@ export default {
 
       updateLooper: 0, // 数据刷新轮训标志
       winHeight: window.innerHeight - 180,
-      loading: false
+      loading: false,
+      selectedFile: null
 
     }
   },
@@ -125,9 +127,7 @@ export default {
   mounted() {
     this.initData()
   },
-  destroyed() {
-    this.$destroy('recordVideoPlayer')
-  },
+  unmounted() {  },
   methods: {
     initData: function() {
       this.getFileList()
@@ -150,9 +150,9 @@ export default {
     },
     showLogView(file) {
       this.playerTitle = '正在加载日志...'
-      this.fileUrl = `/api/log/file/${file.fileName}`
+      this.fileUrl = `/api/log/file/${encodeURIComponent(file.fileName)}`
       this.showLog = true
-      this.file = file
+      this.selectedFile = file
     },
     downloadFile(file) {
       // const link = document.createElement('a');
@@ -167,7 +167,7 @@ export default {
       // link.click();
 
       // 文件下载地址
-      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : window.baseUrl) + `/api/log/file/${file.fileName}`
+      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : window.baseUrl) + `/api/log/file/${encodeURIComponent(file.fileName)}`
 
       // 设置请求头
       const headers = new Headers()
@@ -192,12 +192,12 @@ export default {
 
           // 移除虚拟链接元素
           document.body.removeChild(link)
-          this.$message.success('已申请截图', { closed: true })
+          this.$message.success('日志下载已开始')
         })
         .catch(error => console.error('下载失败：', error))
     },
     loadEnd() {
-      this.playerTitle = this.file.fileName
+      this.playerTitle = this.selectedFile ? this.selectedFile.fileName : '日志内容'
     },
     deleteRecord() {
       // TODO

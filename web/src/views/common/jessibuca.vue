@@ -62,7 +62,7 @@ export default {
     this.btnDom = document.getElementById('buttonsBox')
   },
   mounted() {},
-  destroyed() {
+  unmounted() {
     if (jessibucaPlayer[this._uid]) {
       jessibucaPlayer[this._uid].videoPTS = 0
       jessibucaPlayer[this._uid].destroy()
@@ -110,7 +110,7 @@ export default {
 
         isNotMute: this.isNotMute,
         keepScreenOn: true,
-        loadingText: '请稍等, 视频加载中......',
+        loadingText: '请稍候，视频加载中…',
         loadingTimeout: 10,
         loadingTimeoutReplay: true,
         loadingTimeoutReplayTimes: 3,

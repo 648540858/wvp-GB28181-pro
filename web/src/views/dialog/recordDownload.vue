@@ -1,6 +1,6 @@
 <template>
   <div id="recordDownload">
-    <el-dialog v-if="showDialog" v-el-drag-dialog :title="title" width="45rem" :append-to-body="true" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" center @close="close()">
+    <el-dialog v-if="showDialog" v-el-drag-dialog :title="title" width="45rem" :append-to-body="true" :close-on-click-modal="false" v-model:visible="showDialog" :destroy-on-close="true" center @close="close()">
       <div style="display: grid; grid-template-columns: auto 70px">
         <div>
           <el-progress :percentage="percentage" style="height: 28px; line-height: 25px;"/>
@@ -41,7 +41,7 @@ export default {
   created() {
     window.addEventListener('beforeunload', this.stopDownloadRecord)
   },
-  destroyed() {
+  unmounted() {
     window.removeEventListener('beforeunload', this.stopDownloadRecord)
   },
   methods: {

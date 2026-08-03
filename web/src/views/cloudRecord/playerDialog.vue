@@ -9,7 +9,7 @@
       :modal-append-to-body="false"
       :modal="false"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >

@@ -31,7 +31,7 @@ export default {
       }
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this._removeCanvas()
   },
   methods: {

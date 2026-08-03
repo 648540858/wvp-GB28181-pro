@@ -1,5 +1,5 @@
 <template>
-    <div id="devicePosition" style="height: calc(100vh - 84px);width: 100%;">
+    <div id="devicePosition" style="height: calc(100dvh - var(--wvp-shell-height));width: 100%;">
       <div style="height: 100%; display: grid; grid-template-columns: 360px auto">
         <DeviceTree ref="deviceTree" @clickEvent="treeChannelClickEvent" :showPosition="true" :contextmenu="getContextmenu()"/>
         <MapComponent ref="mapComponent" @loaded="initChannelLayer" @coordinateSystemChange="initChannelLayer" @zoomChange="zoomChange"></MapComponent>
@@ -170,7 +170,7 @@ export default {
   created() {
 
   },
-  destroyed() {
+  unmounted() {
 
   },
   methods: {
@@ -766,7 +766,7 @@ export default {
   content: "";
   width: 16px;
   height: 16px;
-  background: url('/static/images/arrow.png') no-repeat center;
+  background: url('../../../public/static/images/arrow.png') no-repeat center;
 }
 
 .infobox-edit-content{
@@ -785,7 +785,7 @@ export default {
   content: "";
   width: 16px;
   height: 16px;
-  background: url('/static/images/arrow.png') no-repeat center;
+  background: url('../../../public/static/images/arrow.png') no-repeat center;
 }
 .infobox-close {
   position: absolute;

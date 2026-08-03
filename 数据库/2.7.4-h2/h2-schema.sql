@@ -434,3 +434,10 @@ create table IF NOT EXISTS wvp_record_plan_item
     create_time     character varying(50),
     update_time     character varying(50)
 );
+
+create table IF NOT EXISTS wvp_security_config
+(
+    server_id   character varying(64) primary key,
+    config_json text not null,
+    update_time character varying(50) not null
+);

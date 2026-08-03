@@ -1,22 +1,22 @@
 <template>
-  <div id="app" style="width: 100%">
+  <div style="width: 100%">
     <el-dialog
-      title="ApiKey列表"
+      title="API密钥列表"
       width="80%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
       <el-form :inline="true" size="mini">
         <el-form-item>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addUserApiKey">
-            添加ApiKey
+            添加API密钥
           </el-button>
         </el-form-item>
       </el-form>
-      <!--ApiKey列表-->
+      <!-- API密钥列表 -->
       <el-table
         size="small"
         :data="userList"
@@ -26,9 +26,9 @@
       >
         <el-table-column prop="user.username" label="用户名" min-width="120" />
         <el-table-column prop="app" label="应用名" min-width="160" />
-        <el-table-column label="ApiKey" :show-overflow-tooltip="true" min-width="300">
+        <el-table-column label="API密钥" :show-overflow-tooltip="true" min-width="300">
           <template #default="scope">
-            <i v-clipboard="scope.row.apiKey" class="cpoy-btn el-icon-document-copy" title="点击拷贝" @success="$message({type:'success', message:'成功拷贝到粘贴板'})" />
+            <ant-icon v-clipboard="scope.row.apiKey" name="el-icon-document-copy" class="cpoy-btn el-icon-document-copy" title="点击拷贝" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"  />
             <span>{{ scope.row.apiKey }}</span>
 
           </template>
@@ -69,15 +69,12 @@
             >
               启用
             </el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-refresh" type="text" @click="resetUserApiKey(scope.row)">
               重置
             </el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-edit" type="text" @click="remarkUserApiKey(scope.row)">
               备注
             </el-button>
-            <el-divider direction="vertical" />
             <el-button
               size="medium"
               icon="el-icon-delete"
@@ -167,7 +164,7 @@ export default {
         this.$refs.addUserApiKey.close()
         this.$message({
           showClose: true,
-          message: 'ApiKey添加成功',
+          message: 'API密钥添加成功',
           type: 'success'
         })
         setTimeout(this.getUserApiKeyList, 200)
@@ -185,9 +182,9 @@ export default {
       })
     },
     enableUserApiKey(row) {
-      let msg = '确定启用此ApiKey？'
+      let msg = '确定启用此API密钥？'
       if (row.online !== 0) {
-        msg = '<strong>确定启用此ApiKey？</strong>'
+        msg = '<strong>确定启用此API密钥？</strong>'
       }
       this.$confirm(msg, '提示', {
         dangerouslyUseHTMLString: true,
@@ -216,9 +213,9 @@ export default {
       })
     },
     disableUserApiKey(row) {
-      let msg = '确定停用此ApiKey？'
+      let msg = '确定停用此API密钥？'
       if (row.online !== 0) {
-        msg = '<strong>确定停用此ApiKey？</strong>'
+        msg = '<strong>确定停用此API密钥？</strong>'
       }
       this.$confirm(msg, '提示', {
         dangerouslyUseHTMLString: true,
@@ -248,9 +245,9 @@ export default {
       })
     },
     resetUserApiKey(row) {
-      let msg = '确定重置此ApiKey？'
+      let msg = '确定重置此API密钥？'
       if (row.online !== 0) {
-        msg = '<strong>确定重置此ApiKey？</strong>'
+        msg = '<strong>确定重置此API密钥？</strong>'
       }
       this.$confirm(msg, '提示', {
         dangerouslyUseHTMLString: true,
@@ -280,9 +277,9 @@ export default {
       })
     },
     deleteUserApiKey(row) {
-      let msg = '确定删除此ApiKey？'
+      let msg = '确定删除此API密钥？'
       if (row.online !== 0) {
-        msg = '<strong>确定删除此ApiKey？</strong>'
+        msg = '<strong>确定删除此API密钥？</strong>'
       }
       this.$confirm(msg, '提示', {
         dangerouslyUseHTMLString: true,

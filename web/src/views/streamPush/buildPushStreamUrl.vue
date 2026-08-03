@@ -6,7 +6,7 @@
       width="40%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
@@ -18,7 +18,7 @@
           <el-form-item label="流ID" prop="stream">
             <el-input v-model="stream" autocomplete="off" />
           </el-form-item>
-          <el-form-item label="CallID" prop="stream">
+          <el-form-item label="呼叫标识" prop="stream">
             <el-input v-model="callId" autocomplete="off" />
           </el-form-item>
           <el-form-item label="媒体节点" prop="mediaServerId">
@@ -34,25 +34,25 @@
           <el-form-item label="地址" prop="url">
             <div style="width: 100%" v-if="rtc" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtc)">
-                <i class="el-icon-document-copy"/>
+                <ant-icon name="el-icon-document-copy" class="el-icon-document-copy" />
                 {{ rtc }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtsp" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtsp)">
-                <i class="el-icon-document-copy"/>
+                <ant-icon name="el-icon-document-copy" class="el-icon-document-copy" />
                 {{ rtsp }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtmp" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtmp)">
-                <i class="el-icon-document-copy"/>
+                <ant-icon name="el-icon-document-copy" class="el-icon-document-copy" />
                 {{ rtmp }}
               </el-tag>
             </div>
             <div style="width: 100%" v-if="rtcs" title="点击拷贝">
               <el-tag size="medium" @click="copyUrl(rtcs)">
-                <i class="el-icon-document-copy" />
+                <ant-icon name="el-icon-document-copy" class="el-icon-document-copy"  />
                 {{ rtcs }}
               </el-tag>
             </div>
@@ -71,7 +71,7 @@
 <script>
 
 import elDragDialog from '@/directive/el-drag-dialog'
-import crypto from "crypto";
+import SparkMD5 from 'spark-md5'
 
 
 export default {
@@ -96,10 +96,10 @@ export default {
         return ''
       }
       if (this.callId) {
-        return crypto.createHash('md5').update(this.callId + '_' + this.pushKey, 'utf8').digest('hex')
+        return SparkMD5.hash(this.callId + '_' + this.pushKey)
 
       }else {
-        return crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+        return SparkMD5.hash(this.pushKey)
       }
 
     },
@@ -107,7 +107,7 @@ export default {
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
-      crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+      SparkMD5.hash(this.pushKey)
       if (this.callId) {
         return `rtsp://${this.mediaServer.streamIp}:${this.mediaServer.rtspPort}/${this.app}/${this.stream}?callId=${this.callId}&sign=${this.sign}`
       }else {

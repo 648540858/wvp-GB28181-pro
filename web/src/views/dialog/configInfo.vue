@@ -3,10 +3,10 @@
     <el-dialog
       v-el-drag-dialog
       title="接入信息"
-      width="=80%"
+      width="720px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
@@ -14,7 +14,7 @@
         <el-descriptions v-if="(!key || key === 'sip') && configInfoData.sip" title="国标服务信息" :span="2">
           <el-descriptions-item label="编号">{{ configInfoData.sip.id }}</el-descriptions-item>
           <el-descriptions-item label="域">{{ configInfoData.sip.domain }}</el-descriptions-item>
-          <el-descriptions-item label="IP">{{ configInfoData.sip.showIp }}</el-descriptions-item>
+          <el-descriptions-item label="IP地址">{{ configInfoData.sip.showIp }}</el-descriptions-item>
           <el-descriptions-item label="端口">{{ configInfoData.sip.port }}</el-descriptions-item>
           <el-descriptions-item label="密码">
             <el-tag size="small">{{ configInfoData.sip.password }}</el-tag>

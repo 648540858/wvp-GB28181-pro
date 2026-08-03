@@ -2,11 +2,11 @@
   <div id="addUserApiKey" v-loading="isLoading">
     <el-dialog
       v-el-drag-dialog
-      title="添加ApiKey"
+      title="添加API密钥"
       width="40%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >

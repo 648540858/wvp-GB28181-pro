@@ -7,7 +7,7 @@
     center
     :append-to-body="true"
     :close-on-click-modal="false"
-    :visible.sync="showVideoDialog"
+    v-model:visible="showVideoDialog"
     v-if="showVideoDialog"
     :destroy-on-close="true"
   >

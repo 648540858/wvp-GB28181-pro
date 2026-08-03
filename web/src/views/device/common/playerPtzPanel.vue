@@ -35,7 +35,7 @@ export default {
   mounted() {
     this.startPlay()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopPlay()
   },
   methods: {

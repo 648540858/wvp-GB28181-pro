@@ -1,16 +1,14 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
-    <transition-group name="breadcrumb">
-      <el-breadcrumb-item v-for="(item,index) in levelList" :key="item.path + '-' + index">
-        <span v-if="item.redirect==='noRedirect'||index==levelList.length-1" class="no-redirect">{{ item.meta.title }}</span>
-        <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
-      </el-breadcrumb-item>
-    </transition-group>
+    <el-breadcrumb-item v-for="(item,index) in levelList" :key="item.path + '-' + index">
+      <span v-if="item.redirect==='noRedirect'||index==levelList.length-1" class="no-redirect">{{ item.meta.title }}</span>
+      <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
+    </el-breadcrumb-item>
   </el-breadcrumb>
 </template>
 
 <script>
-import pathToRegexp from 'path-to-regexp'
+import { compile } from 'path-to-regexp'
 
 export default {
   data() {
@@ -48,7 +46,7 @@ export default {
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
       const { params } = this.$route
-      var toPath = pathToRegexp.compile(path)
+      const toPath = compile(path)
       return toPath(params)
     },
     handleLink(item) {
@@ -65,13 +63,24 @@ export default {
 
 <style lang="scss" scoped>
 .app-breadcrumb.el-breadcrumb {
-  display: inline-block;
+  display: block;
+  overflow: hidden;
   font-size: 14px;
-  line-height: 50px;
-  margin-left: 8px;
+  line-height: 56px;
+  white-space: nowrap;
+
+  :deep(.ant-breadcrumb-link),
+  :deep(.ant-breadcrumb-separator) {
+    color: var(--wvp-text-secondary);
+  }
+
+  :deep(a:hover) {
+    color: var(--wvp-primary);
+  }
 
   .no-redirect {
-    color: #97a8be;
+    color: var(--wvp-text-primary);
+    font-weight: 500;
     cursor: text;
   }
 }

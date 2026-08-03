@@ -1,5 +1,5 @@
 <template>
-  <div id="channelList" style="height: calc(100vh - 124px);">
+  <div id="channelList" style="height: var(--wvp-page-content-height);">
     <div v-if="!jtChannel">
       <el-form :inline="true" size="mini">
         <el-form-item style="margin-right: 2rem">
@@ -43,18 +43,18 @@
                   @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
                 >
                   <div slot="error" class="image-slot">
-                    <i class="el-icon-picture-outline" />
+                    <ant-icon name="el-icon-picture-outline" class="el-icon-picture-outline"  />
                   </div>
                 </el-image>
               </template>
             </el-table-column>
             <el-table-column label="开启音频" min-width="100">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <el-switch v-model="scope.row.hasAudio" active-color="#409EFF" @change="updateChannel(scope.row)" />
               </template>
             </el-table-column>
             <el-table-column label="操作" min-width="340" fixed="right">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <el-button
                   size="medium"
                   :disabled="device == null || !device.status"
@@ -81,7 +81,6 @@
                   @click="shooting(scope.row)"
                 >抓图
                 </el-button>
-                <el-divider direction="vertical" />
                 <el-button
                   size="medium"
                   type="text"
@@ -90,10 +89,9 @@
                 >
                   编辑
                 </el-button>
-                <el-divider direction="vertical" />
                 <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                   <el-button size="medium" type="text">
-                    更多功能<i class="el-icon-arrow-down el-icon--right" />
+                    更多功能<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right"  />
                   </el-button>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item command="records" :disabled="device == null || !device.status">
@@ -163,9 +161,7 @@ export default {
     this.initParam()
     this.initData()
   },
-  destroyed() {
-    this.$destroy('videojs')
-    clearTimeout(this.updateLooper)
+  unmounted() {    clearTimeout(this.updateLooper)
   },
   methods: {
     initData: function() {

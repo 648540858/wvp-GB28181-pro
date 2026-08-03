@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import SparkMD5 from 'spark-md5'
 import {
   add,
   changePassword,
@@ -57,9 +57,12 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({
         username: username.trim(),
-        password: crypto.createHash('md5').update(password, 'utf8').digest('hex')
+        password: SparkMD5.hash(password)
       }).then(response => {
-        const { data } = response
+        const data = response && response.data
+        if (!data || !data.accessToken) {
+          throw new Error((response && response.msg) || '登录响应数据异常，请重试')
+        }
         commit('SET_TOKEN', data.accessToken)
         commit('SET_NAME', data.username)
         commit('SET_SERVER_ID', data.serverId)

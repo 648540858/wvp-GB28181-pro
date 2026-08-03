@@ -6,20 +6,20 @@
       :width="dialogWidth"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
       <div id="formStep" style="margin-top: 1rem; margin-right: 20px;">
         <el-form v-if="currentStep === 1" ref="mediaServerForm" :rules="rules" :model="mediaServerForm" label-width="140px">
-          <el-form-item label="IP" prop="ip">
-            <el-input v-model="mediaServerForm.ip" placeholder="媒体服务IP" clearable :disabled="mediaServerForm.defaultServer" />
+          <el-form-item label="IP地址" prop="ip">
+            <el-input v-model="mediaServerForm.ip" placeholder="请输入媒体服务IP地址" clearable :disabled="mediaServerForm.defaultServer" />
           </el-form-item>
           <el-form-item label="HTTP端口" prop="httpPort">
             <el-input v-model="mediaServerForm.httpPort" placeholder="媒体服务HTTP端口" clearable :disabled="mediaServerForm.defaultServer" />
           </el-form-item>
-          <el-form-item label="SECRET" prop="secret">
-            <el-input v-model="mediaServerForm.secret" placeholder="媒体服务SECRET" clearable :disabled="mediaServerForm.defaultServer" />
+          <el-form-item label="访问密钥" prop="secret">
+            <el-input v-model="mediaServerForm.secret" placeholder="请输入媒体服务访问密钥" clearable :disabled="mediaServerForm.defaultServer" />
           </el-form-item>
           <el-form-item label="类型" prop="type">
             <el-select v-model="mediaServerForm.type" style="float: left; width: 100%">
@@ -32,15 +32,15 @@
               <el-button v-if="currentStep === 1 && serverCheck === 1" type="primary" @click="next">下一步</el-button>
               <el-button @click="close">取消</el-button>
               <el-button type="primary" @click="checkServer">测试</el-button>
-              <i v-if="serverCheck === 1" class="el-icon-success" style="color: #3caf36" />
-              <i v-if="serverCheck === -1" class="el-icon-error" style="color: #c80000" />
+              <ant-icon v-if="serverCheck === 1" name="el-icon-success" class="el-icon-success" style="color: #3caf36"  />
+              <ant-icon v-if="serverCheck === -1" name="el-icon-error" class="el-icon-error" style="color: #c80000"  />
             </div>
           </el-form-item>
         </el-form>
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form v-if="currentStep === 2 || currentStep === 3" ref="mediaServerForm1" :rules="rules" :model="mediaServerForm" label-width="140px">
-              <el-form-item label="IP" prop="ip">
+              <el-form-item label="IP地址" prop="ip">
                 <el-input v-if="currentStep === 2" v-model="mediaServerForm.ip" :disabled="mediaServerForm.defaultServer" />
                 <el-input v-if="currentStep === 3" v-model="mediaServerForm.ip" :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
@@ -48,36 +48,36 @@
                 <el-input v-if="currentStep === 2" v-model="mediaServerForm.httpPort" :disabled="mediaServerForm.defaultServer" />
                 <el-input v-if="currentStep === 3" v-model="mediaServerForm.httpPort" :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="HOOK IP" prop="ip">
-                <el-input v-model="mediaServerForm.hookIp" placeholder="媒体服务HOOK_IP" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="回调IP地址" prop="ip">
+                <el-input v-model="mediaServerForm.hookIp" placeholder="请输入媒体服务回调IP地址" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="SDP IP" prop="ip">
-                <el-input v-model="mediaServerForm.sdpIp" placeholder="媒体服务SDP_IP" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="SDP地址" prop="ip">
+                <el-input v-model="mediaServerForm.sdpIp" placeholder="请输入媒体服务SDP地址" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
               <el-form-item label="流IP" prop="ip">
                 <el-input v-model="mediaServerForm.streamIp" placeholder="媒体服务流IP" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="HTTPS PORT" prop="httpSSlPort">
-                <el-input v-model="mediaServerForm.httpSSlPort" placeholder="媒体服务HTTPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="HTTPS端口" prop="httpSSlPort">
+                <el-input v-model="mediaServerForm.httpSSlPort" placeholder="请输入媒体服务HTTPS端口" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="RTSP PORT" prop="rtspPort">
-                <el-input v-model="mediaServerForm.rtspPort" placeholder="媒体服务RTSP_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="RTSP端口" prop="rtspPort">
+                <el-input v-model="mediaServerForm.rtspPort" placeholder="请输入媒体服务RTSP端口" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="RTSPS PORT" prop="rtspSSLPort">
-                <el-input v-model="mediaServerForm.rtspSSLPort" placeholder="媒体服务RTSPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="RTSPS端口" prop="rtspSSLPort">
+                <el-input v-model="mediaServerForm.rtspSSLPort" placeholder="请输入媒体服务RTSPS端口" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
 
             </el-form>
           </el-col>
           <el-col :span="12">
             <el-form v-if="currentStep === 2 || currentStep === 3" ref="mediaServerForm2" :rules="rules" :model="mediaServerForm" label-width="180px">
-              <el-form-item label="RTMP PORT" prop="rtmpPort">
-                <el-input v-model="mediaServerForm.rtmpPort" placeholder="媒体服务RTMP_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="RTMP端口" prop="rtmpPort">
+                <el-input v-model="mediaServerForm.rtmpPort" placeholder="请输入媒体服务RTMP端口" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="RTMPS PORT" prop="rtmpSSlPort">
-                <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="媒体服务RTMPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+              <el-form-item label="RTMPS端口" prop="rtmpSSlPort">
+                <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="请输入媒体服务RTMPS端口" clearable :disabled="mediaServerForm.defaultServer" />
               </el-form-item>
-              <el-form-item label="SECRET" prop="secret">
+              <el-form-item label="访问密钥" prop="secret">
                 <el-input v-if="currentStep === 2" v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer" />
                 <el-input v-if="currentStep === 3" v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer" />
               </el-form-item>

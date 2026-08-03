@@ -100,7 +100,7 @@ export default {
       this.adjustTreeHeight()
     })
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove event listener when component is destroyed
     window.removeEventListener('resize', this.adjustTreeHeight)
   },

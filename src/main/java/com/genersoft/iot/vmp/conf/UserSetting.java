@@ -182,9 +182,14 @@ public class UserSetting {
     private int gbDeviceOnline = 1;
 
     /**
-     *    登录超时时间(分钟)，
+     * 登录超时时间(分钟)，0为不超时
      */
-    private long loginTimeout = 60;
+    private long loginTimeout = 120;
+
+    /**
+     * 是否启用 X-Content-Type-Options: nosniff 响应头
+     */
+    private Boolean contentTypeOptionsEnabled = Boolean.FALSE;
 
     /**
      * jwk文件路径，若不指定则使用resources目录下的jwk.json

@@ -119,6 +119,11 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    public List<String> getAllDeviceIds() {
+        return commonGBChannelMapper.queryAllGbDeviceIds();
+    }
+
+    @Override
     public int add(CommonGBChannel commonGBChannel) {
         if (commonGBChannel.getDataType() == null || commonGBChannel.getDataDeviceId() == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "缺少通道数据类型或通道数据关联设备ID");
@@ -834,6 +839,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }else {
             channelIdsForClear = channelIds;
         }
+        if (channelIdsForClear == null || channelIdsForClear.isEmpty()) {
+            return;
+        }
         commonGBChannelMapper.removeCivilCodeByChannelIds(channelIdsForClear);
     }
 
@@ -856,6 +864,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
             channelIdsForClear = commonGBChannelMapper.queryAllForUnusualParent();
         }else {
             channelIdsForClear = channelIds;
+        }
+        if (channelIdsForClear == null || channelIdsForClear.isEmpty()) {
+            return;
         }
         commonGBChannelMapper.removeParentIdByChannelIds(channelIdsForClear);
     }

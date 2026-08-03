@@ -115,7 +115,6 @@
 </template>
 
 <script>
-import VueEasyTree from '@wchbrad/vue-easy-tree'
 import regionEdit from './../dialog/regionEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
 import GbChannelSelect from '../dialog/GbChannelSelect.vue'
@@ -124,7 +123,7 @@ export default {
   name: 'DeviceTree',
   components: {
     GbChannelSelect,
-    VueEasyTree, regionEdit, gbDeviceSelect
+    regionEdit, gbDeviceSelect
   },
   props: ['edit', 'enableAddChannel', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight', 'showPosition', 'contextmenu'],
   data() {
@@ -149,7 +148,7 @@ export default {
   },
   created() {
   },
-  destroyed() {
+  unmounted() {
     // if (this.jessibuca) {
     //   this.jessibuca.destroy();
     // }

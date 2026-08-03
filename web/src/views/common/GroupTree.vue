@@ -120,7 +120,6 @@
 </template>
 
 <script>
-import VueEasyTree from '@wchbrad/vue-easy-tree'
 import groupEdit from './../dialog/groupEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
 import GbChannelSelect from '../dialog/GbChannelSelect.vue'
@@ -129,7 +128,7 @@ export default {
   name: 'DeviceTree',
   components: {
     GbChannelSelect,
-    VueEasyTree, groupEdit, gbDeviceSelect
+    groupEdit, gbDeviceSelect
   },
   props: ['edit', 'enableAddChannel', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToGroup', 'treeHeight', 'showPosition', 'contextmenu'],
   data() {
@@ -153,7 +152,7 @@ export default {
   },
   created() {
   },
-  destroyed() {
+  unmounted() {
     // if (this.jessibuca) {
     //   this.jessibuca.destroy();
     // }

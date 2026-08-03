@@ -7,7 +7,7 @@
       top="10vh"
       width="65vw"
       :close-on-click-modal="false"
-      :visible.sync="showVideoDialog"
+      v-model:visible="showVideoDialog"
       @close="close()"
     >
       <div class="dhsdk-player-body">
@@ -71,7 +71,7 @@ import playerTabs from '../../common/playerTabs.vue'
 import streamMediaPanel from '../../common/streamMediaPanel.vue'
 import jtDevicePtzPanel from '../common/jtDevicePtzPanel.vue'
 import elDragDialog from '@/directive/el-drag-dialog'
-import crypto from 'crypto'
+import SparkMD5 from 'spark-md5'
 import mediaInfo from '../../common/mediaInfo.vue'
 
 export default {
@@ -210,7 +210,7 @@ export default {
             return
           }
           const pushKey = data.pushKey
-          url += '&sign=' + crypto.createHash('md5').update(pushKey, 'utf8').digest('hex')
+          url += '&sign=' + SparkMD5.hash(pushKey)
           console.log('开始语音喊话： ' + url)
           this.broadcastRtc = new ZLMRTCClient.Endpoint({
             debug: true,
@@ -236,7 +236,7 @@ export default {
 
           this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, (e) => {
             console.error('offer anwser 交换失败', e)
-            this.$message({ showClose: true, message: 'offer anwser 交换失败' + e, type: 'error' })
+            this.$message({ showClose: true, message: `媒体协商信息交换失败：${e}`, type: 'error' })
             this.broadcastStatus = -1
           })
 

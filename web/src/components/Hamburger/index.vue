@@ -1,5 +1,12 @@
 <template>
-  <div style="padding: 0 15px;" @click="toggleClick">
+  <div
+    class="hamburger-wrapper"
+    role="button"
+    tabindex="0"
+    :aria-label="isActive ? '收起侧边栏' : '展开侧边栏'"
+    @click="toggleClick"
+    @keydown.enter.space.prevent="toggleClick"
+  >
     <svg
       :class="{'is-active':isActive}"
       class="hamburger"
@@ -31,11 +38,28 @@ export default {
 </script>
 
 <style scoped>
+.hamburger-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wvp-text-regular);
+  cursor: pointer;
+  transition: color var(--wvp-transition), background-color var(--wvp-transition);
+}
+
+.hamburger-wrapper:hover,
+.hamburger-wrapper:focus-visible {
+  color: var(--wvp-primary);
+  background: var(--wvp-primary-soft);
+}
+
 .hamburger {
   display: inline-block;
   vertical-align: middle;
   width: 20px;
   height: 20px;
+  fill: currentColor;
+  transition: transform var(--wvp-transition);
 }
 
 .hamburger.is-active {

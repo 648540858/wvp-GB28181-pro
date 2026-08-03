@@ -1,5 +1,5 @@
 <template>
-  <div id="channelList" class="app-container" style="height: calc(100vh - 124px);">
+  <div id="channelList" class="app-container" style="height: var(--wvp-page-content-height);">
     <div v-if="!editId && !showPtzConfig" style="height: 100%">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
@@ -41,7 +41,7 @@
           <el-input placeholder="请选择行政区划" v-model="civilCodeName" readonly style="width: 12rem; margin-right: 1rem;">
             <span slot="suffix" v-show="civilCodeName" style="height: 100%; display: flex; align-items: center; width: 22px;"
                   @click="civilCodeClear">
-               <i class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;"></i>
+               <ant-icon name="el-icon-circle-close" class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;" />
             </span>
             <el-button slot="append" @click="civilCodeFilter">选择</el-button>
           </el-input>
@@ -50,7 +50,7 @@
           <el-input placeholder="请选择业务分组" v-model="groupName" readonly style="width: 12rem; margin-right: 1rem;">
             <span slot="suffix" v-show="groupName" style="height: 100%; display: flex; align-items: center; width: 22px;"
                   @click="groupClear">
-               <i class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;"></i>
+               <ant-icon name="el-icon-circle-close" class="el-icon-circle-close" style="margin-left: 5px;cursor: pointer;" />
             </span>
             <el-button slot="append" @click="groupFilter">选择</el-button>
           </el-input>
@@ -58,11 +58,11 @@
         <el-form-item >
           <el-dropdown >
             <el-button type="primary">
-              批量操作<i class="el-icon-arrow-down el-icon--right"></i>
+              批量操作<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="batchChangeRegion">行政区划</el-dropdown-item>
-              <el-dropdown-item @click.native="batchChangeGroup">业务分组</el-dropdown-item>
+              <el-dropdown-item @click="batchChangeRegion">行政区划</el-dropdown-item>
+              <el-dropdown-item @click="batchChangeGroup">业务分组</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </el-form-item>
@@ -129,7 +129,6 @@
               @click="stopDevicePush(scope.row)"
             >停止
             </el-button>
-            <el-divider direction="vertical" />
             <el-button
               size="medium"
               type="text"
@@ -139,10 +138,9 @@
             >
               编辑
             </el-button>
-            <el-divider direction="vertical" />
             <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
               <el-button size="medium" type="text">
-                更多<i class="el-icon-arrow-down el-icon--right" />
+                更多<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right"  />
               </el-button>
               <el-dropdown-menu>
                 <el-dropdown-item command="records" :disabled="scope.row.gbStatus !== 'ON'">
@@ -266,9 +264,7 @@ export default {
   mounted() {
     this.initData()
   },
-  destroyed() {
-    this.$destroy('videojs')
-    clearTimeout(this.updateLooper)
+  unmounted() {    clearTimeout(this.updateLooper)
   },
   methods: {
     handleSelectionChange: function(val) {
@@ -304,7 +300,7 @@ export default {
         this.channelList = data.list
         this.channelList.forEach(e => {
           e.ptzType = e.ptzType + ''
-          this.$set(e, 'playLoading', false)
+          e.playLoading = false
         })
         // 防止出现表格错位
         this.$nextTick(() => {

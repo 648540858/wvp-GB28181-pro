@@ -94,6 +94,21 @@ export function getSystemInfo() {
   })
 }
 
+export function getSecurityConfig() {
+  return request({
+    method: 'get',
+    url: '/api/server/security/config'
+  })
+}
+
+export function updateSecurityConfig(data) {
+  return request({
+    method: 'put',
+    url: '/api/server/security/config',
+    data
+  })
+}
+
 export function getMediaServerLoad() {
   return request({
     method: 'get',

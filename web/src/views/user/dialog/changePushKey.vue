@@ -2,17 +2,17 @@
   <div id="changepushKey" v-loading="isLoging">
     <el-dialog
       v-el-drag-dialog
-      title="修改pushKey"
+      title="修改推流密钥"
       width="42%"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
       <div id="shared" style="margin-right: 18px;">
         <el-form ref="pushKeyForm" :rules="rules" status-icon label-width="86px">
-          <el-form-item label="新pushKey" prop="newPushKey">
+          <el-form-item label="新推流密钥" prop="newPushKey">
             <el-input v-model="newPushKey" autocomplete="off" />
           </el-form-item>
           <el-form-item>
@@ -38,7 +38,7 @@ export default {
   data() {
     const validatePass1 = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('请输入新pushKey'))
+        callback(new Error('请输入新推流密钥'))
       } else {
         callback()
       }

@@ -8,7 +8,7 @@
       top="10vh"
       width="65vw"
       :close-on-click-modal="false"
-      :visible.sync="showVideoDialog"
+      v-model:visible="showVideoDialog"
       @close="close()"
     >
       <div class="dhsdk-player-body">

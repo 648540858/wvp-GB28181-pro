@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="app-container">
-    <div v-if="!platform" style="height: calc(100vh - 124px);">
+  <div class="app-container">
+    <div v-if="!platform" style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -132,7 +132,7 @@
     <platformEdit
       v-if="platform"
       ref="platformEdit"
-      v-model="platform"
+      :platform="platform"
       :close-edit="closeEdit"
       :device-ips="deviceIps"
     />
@@ -143,7 +143,6 @@
 <script>
 import shareChannel from './dialog/shareChannel.vue'
 import platformEdit from './edit.vue'
-import Vue from 'vue'
 
 export default {
   name: 'Platform',
@@ -166,9 +165,6 @@ export default {
     }
   },
   computed: {
-    Vue() {
-      return Vue
-    },
     myServerId() {
       return this.$store.getters.serverId
     }
@@ -177,7 +173,7 @@ export default {
     this.initData()
     this.updateLooper = setInterval(this.initData, 10000)
   },
-  destroyed() {
+  unmounted() {
     clearTimeout(this.updateLooper)
   },
   methods: {

@@ -83,3 +83,20 @@ export function remove(id) {
   })
 }
 
+export function downloadTemplate() {
+  return request({
+    method: 'get',
+    url: '/api/proxy/excel/template',
+    responseType: 'blob'
+  })
+}
+
+export function exportExcel(params) {
+  return request({
+    method: 'get',
+    url: '/api/proxy/excel/export',
+    params: params,
+    responseType: 'blob'
+  })
+}
+

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="height: calc(100vh - 124px);">
+  <div style="height: var(--wvp-page-content-height);">
     <el-form :inline="true" size="mini">
       <el-form-item label="搜索">
         <el-input
@@ -47,19 +47,19 @@
       <el-table-column prop="phoneNumber" label="终端手机号" min-width="120" />
       <el-table-column prop="terminalId" label="终端ID" min-width="120" />
       <el-table-column label="省域" min-width="120" >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{scope.row.provinceText || scope.row.provinceId}}
         </template>
       </el-table-column>
       <el-table-column label="市县域" min-width="120" >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{scope.row.cityText || scope.row.cityId}}
         </template>
       </el-table-column>
       <el-table-column prop="makerId" label="制造商" min-width="120" />
       <el-table-column prop="model" label="型号" min-width="120" />
       <el-table-column label="车牌颜色" min-width="120">
-        <template slot-scope="scope">
+        <template #default="scope">
           <div slot="reference" class="name-wrapper">
             <span v-if="scope.row.plateColor === 1">蓝色</span>
             <span v-else-if="scope.row.plateColor === 2">黄色</span>
@@ -77,7 +77,7 @@
       <el-table-column prop="plateNo" label="车牌" min-width="120" />
       <el-table-column prop="registerTime" label="注册时间" min-width="160" />
       <el-table-column label="状态" min-width="120">
-        <template slot-scope="scope">
+        <template #default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag v-if="scope.row.status" size="medium">在线</el-tag>
             <el-tag v-if="!scope.row.status" size="medium" type="info">离线</el-tag>
@@ -85,8 +85,7 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" min-width="340" fixed="right">
-        <template slot-scope="scope">
-          <el-divider direction="vertical" />
+        <template #default="scope">
           <el-button
             type="text"
             size="medium"
@@ -94,9 +93,7 @@
             @click="showChannelList(scope.row)"
           >通道
           </el-button>
-          <el-divider direction="vertical" />
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
-          <el-divider direction="vertical" />
           <el-button
             size="medium"
             icon="el-icon-delete"
@@ -105,10 +102,9 @@
             @click="deleteDevice(scope.row)"
           >删除
           </el-button>
-          <el-divider direction="vertical" />
           <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
             <el-button size="medium" type="text">
-              更多功能<i class="el-icon-arrow-down el-icon--right" />
+              更多功能<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right"  />
             </el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="params" :disabled="!scope.row.status">
@@ -210,9 +206,7 @@ export default {
     this.initData()
     this.updateLooper = setInterval(this.getList, 10000)
   },
-  destroyed() {
-    this.$destroy('videojs')
-    clearTimeout(this.updateLooper)
+  unmounted() {    clearTimeout(this.updateLooper)
   },
   methods: {
     initData: function() {

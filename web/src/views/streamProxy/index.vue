@@ -1,6 +1,6 @@
 <template>
   <div id="streamProxyList" class="app-container">
-    <div v-if="!streamProxy" style="height: calc(100vh - 124px);">
+    <div v-if="!streamProxy" style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
@@ -44,20 +44,56 @@
         </el-form-item>
         <el-form-item>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
+          <el-button icon="el-icon-upload2" size="mini" @click="showImportDialog = true">导入</el-button>
+          <el-button icon="el-icon-download" size="mini" :loading="exportLoading" @click="exportStreamProxy">导出</el-button>
         </el-form-item>
         <el-form-item style="float: right;">
           <el-button icon="el-icon-refresh-right" circle @click="refresh()" />
         </el-form-item>
       </el-form>
       <streamProxyPlayer ref="streamProxyPlayer" />
+      <el-dialog
+        v-loading="importLoading"
+        title="导入拉流代理"
+        width="32rem"
+        v-model:visible="showImportDialog"
+        :close-on-click-modal="false"
+        append-to-body
+      >
+        <el-alert
+          title="示例数据不允许删除，否则会影响导入数据内容"
+          type="error"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 16px;"
+        />
+        <el-button icon="el-icon-download" size="mini" :loading="templateLoading" @click="downloadImportTemplate">下载模板</el-button>
+        <el-upload
+          drag
+          name="file"
+          accept=".xls,.xlsx"
+          :action="importUrl"
+          :headers="uploadHeaders"
+          :show-file-list="false"
+          :before-upload="beforeImport"
+          :on-success="importSuccess"
+          :on-error="importError"
+          style="margin-top: 16px; text-align: center;"
+        >
+          <ant-icon name="el-icon-upload" class="el-icon-upload"  />
+          <div class="el-upload__text">将 Excel 文件拖到此处，或<em>点击上传</em></div>
+          <div slot="tip" class="el-upload__tip">仅支持 xls / xlsx 文件；流ID、名称和国标编码留空时自动生成，节点请使用下拉菜单</div>
+        </el-upload>
+      </el-dialog>
       <el-table size="small" :data="streamProxyList" style="width: 100%" height="calc(100% - 64px)">
+        <el-table-column prop="gbName" label="名称" min-width="120" show-overflow-tooltip />
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip />
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip />
         <el-table-column label="流地址" min-width="250" show-overflow-tooltip>
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag v-clipboard="scope.row.srcUrl" size="medium" @success="$message({type:'success', message:'成功拷贝到粘贴板'})">
-                <i class="el-icon-document-copy" title="点击拷贝" />
+                <ant-icon name="el-icon-document-copy" class="el-icon-document-copy" title="点击拷贝"  />
                 {{ scope.row.srcUrl }}
               </el-tag>
             </div>
@@ -95,15 +131,11 @@
         <el-table-column label="操作" width="370" fixed="right">
           <template v-slot:default="scope">
             <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
-            <el-divider direction="vertical" />
             <el-button v-if="scope.row.pulling" size="medium" icon="el-icon-switch-button" style="color: #f56c6c" type="text" @click="stopPlay(scope.row)">停止</el-button>
-            <el-divider v-if="scope.row.pulling" direction="vertical" />
             <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">
               编辑
             </el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像</el-button>
-            <el-divider direction="vertical" />
             <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -119,14 +151,14 @@
         @current-change="currentChange"
       />
     </div>
-    <StreamProxyEdit v-if="streamProxy" v-model="streamProxy" :close-edit="closeEdit" />
+    <StreamProxyEdit v-if="streamProxy" :value="streamProxy" :close-edit="closeEdit" />
   </div>
 </template>
 
 <script>
 import streamProxyPlayer from './player.vue'
 import StreamProxyEdit from './edit.vue'
-import Vue from 'vue'
+import { downloadTemplate, exportExcel } from '@/api/streamProxy'
 
 export default {
   name: 'Proxy',
@@ -147,13 +179,20 @@ export default {
       searchStr: '',
       mediaServerId: '',
       pulling: '',
-      mediaServerList: []
+      mediaServerList: [],
+      showImportDialog: false,
+      templateLoading: false,
+      exportLoading: false,
+      importLoading: false,
+      uploadHeaders: {
+        'access-token': this.$store.getters.token
+      },
+      importUrl: process.env.NODE_ENV === 'development'
+        ? `${process.env.VUE_APP_BASE_API}/api/proxy/excel/import`
+        : (window.baseUrl ? window.baseUrl : '') + '/api/proxy/excel/import'
     }
   },
   computed: {
-    Vue() {
-      return Vue
-    },
     myServerId() {
       return this.$store.getters.serverId
     }
@@ -162,8 +201,7 @@ export default {
     this.initData()
     this.startUpdateList()
   },
-  destroyed() {
-    this.$destroy('videojs')
+  unmounted() {
     clearTimeout(this.updateLooper)
   },
   methods: {
@@ -223,12 +261,12 @@ export default {
     },
     edit: function(row) {
       if (row.enableDisableNoneReader) {
-        this.$set(row, 'noneReader', 1)
+        row.noneReader = 1
       } else {
-        this.$set(row, 'noneReader', 0)
+        row.noneReader = 0
       }
       this.streamProxy = row
-      this.$set(this.streamProxy, 'rtspType', row.rtspType)
+      this.streamProxy.rtspType = row.rtspType
     },
     closeEdit: function(row) {
       this.streamProxy = null
@@ -237,6 +275,7 @@ export default {
       row.playLoading = true
       this.$store.dispatch('streamProxy/play', row.id)
         .then((data) => {
+          row.pulling = true
           this.$refs.streamProxyPlayer.openDialog(data, true)
         })
         .catch((error) => {
@@ -289,6 +328,69 @@ export default {
           })
       }).catch(() => {
       })
+    },
+    downloadImportTemplate: function() {
+      this.templateLoading = true
+      downloadTemplate()
+        .then(blob => this.downloadBlob(blob, '拉流代理导入模板.xlsx'))
+        .finally(() => {
+          this.templateLoading = false
+        })
+    },
+    exportStreamProxy: function() {
+      this.exportLoading = true
+      exportExcel({
+        query: this.searchStr || undefined,
+        pulling: this.pulling || undefined,
+        mediaServerId: this.mediaServerId || undefined
+      })
+        .then(blob => this.downloadBlob(blob, '拉流代理.xlsx'))
+        .finally(() => {
+          this.exportLoading = false
+        })
+    },
+    downloadBlob: function(blob, fileName) {
+      const link = document.createElement('a')
+      const url = window.URL.createObjectURL(blob)
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    },
+    beforeImport: function(file) {
+      const extensionValid = /\.(xls|xlsx)$/i.test(file.name)
+      if (!extensionValid) {
+        this.$message.error('只能上传 xls 或 xlsx 文件')
+        return false
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        this.$message.error('导入文件不能超过 10MB')
+        return false
+      }
+      this.importLoading = true
+      return true
+    },
+    importSuccess: function(response) {
+      this.importLoading = false
+      if (response.code !== 0) {
+        this.$message.error(response.msg)
+        return
+      }
+      const result = response.data || {}
+      const message = `成功 ${result.imported || 0} 条，失败 ${result.failed || 0} 条`
+      if (result.failed) {
+        this.$message.warning(message + '；' + (result.errors || []).slice(0, 3).join('；'))
+      } else {
+        this.$message.success(message)
+      }
+      this.showImportDialog = false
+      this.getStreamProxyList()
+    },
+    importError: function(error) {
+      this.importLoading = false
+      this.$message.error(error.message || '导入失败')
     },
     refresh: function() {
       this.initData()

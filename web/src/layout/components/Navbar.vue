@@ -1,40 +1,39 @@
 <template>
-  <div class="navbar">
+  <header class="navbar">
     <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
 
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
-        <div class="avatar-wrapper">
-          欢迎，{{ name }}
-          <i class="el-icon-caret-bottom" />
-        </div>
+        <button class="avatar-wrapper" type="button" aria-label="用户菜单">
+          <span class="avatar-icon" aria-hidden="true">
+            <svg-icon icon-class="user" />
+          </span>
+          <span class="user-name"><span class="welcome-prefix">欢迎，</span>{{ name }}</span>
+          <ant-icon name="el-icon-arrow-down" class="el-icon-arrow-down" aria-hidden="true"  />
+        </button>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <el-dropdown-item @click.native="changePassword">
-            <span style="display:block;">修改密码</span>
-          </el-dropdown-item>
-          <el-dropdown-item @click.native="logout">
-            <span style="display:block;">注销</span>
-          </el-dropdown-item>
+          <el-dropdown-item icon="el-icon-lock" @click="changePassword">修改密码</el-dropdown-item>
+          <el-dropdown-item icon="el-icon-switch-button" divided @click="logout">注销</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
-    <changePasswordDialog ref="changePasswordDialog"></changePasswordDialog>
-  </div>
+    <change-password-dialog ref="changePasswordDialog" />
+  </header>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-import changePasswordDialog from './dialog/changePassword.vue'
+import ChangePasswordDialog from './dialog/changePassword.vue'
 
 export default {
   components: {
     Breadcrumb,
     Hamburger,
-    changePasswordDialog
+    ChangePasswordDialog
   },
   computed: {
     ...mapGetters([
@@ -48,7 +47,6 @@ export default {
     },
     async logout() {
       await this.$store.dispatch('user/logout')
-      console.log('logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
     changePassword() {
@@ -60,79 +58,108 @@ export default {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 50px;
+  display: flex;
+  align-items: center;
+  height: var(--wvp-header-height);
   overflow: hidden;
-  position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  background: var(--wvp-surface);
+  border-bottom: 1px solid var(--wvp-border-light);
+  box-shadow: var(--wvp-shadow-sm);
+}
 
-  .hamburger-container {
-    line-height: 46px;
-    height: 100%;
-    float: left;
-    cursor: pointer;
-    transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+.hamburger-container {
+  flex: 0 0 56px;
+  width: 56px;
+  height: var(--wvp-header-height);
+}
 
-    &:hover {
-      background: rgba(0, 0, 0, .025)
-    }
+.breadcrumb-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.right-menu {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px;
+}
+
+.avatar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 10px;
+  color: var(--wvp-text-primary);
+  font: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: var(--wvp-radius-md);
+  cursor: pointer;
+  transition: background-color var(--wvp-transition), color var(--wvp-transition);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--wvp-primary);
+    background: var(--wvp-primary-soft);
+  }
+}
+
+.avatar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--wvp-primary);
+  font-size: 16px;
+  background: var(--wvp-primary-soft);
+  border-radius: 50%;
+}
+
+.user-name {
+  max-width: 180px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.el-icon-arrow-down {
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .right-menu {
+    padding: 0 8px;
   }
 
+  .avatar-wrapper {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 8px;
+  }
+
+  .welcome-prefix {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
   .breadcrumb-container {
-    float: left;
+    display: none;
   }
 
   .right-menu {
-    float: right;
-    height: 100%;
-    line-height: 50px;
+    margin-left: auto;
+  }
 
-    &:focus {
-      outline: none;
-    }
-
-    .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
-      font-size: 18px;
-      color: #5a5e66;
-      vertical-align: text-bottom;
-
-      &.hover-effect {
-        cursor: pointer;
-        transition: background .3s;
-
-        &:hover {
-          background: rgba(0, 0, 0, .025)
-        }
-      }
-    }
-
-    .avatar-container {
-      margin-right: 30px;
-
-      .avatar-wrapper {
-        margin-top: 5px;
-        position: relative;
-        cursor: pointer;
-        .user-avatar {
-          cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-        }
-
-        .el-icon-caret-bottom {
-          cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 19px;
-          font-size: 12px;
-        }
-      }
-    }
+  .user-name {
+    display: none;
   }
 }
 </style>

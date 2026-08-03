@@ -24,11 +24,11 @@
                   style="background-color: #ecf5ff; color: #017690; "
                   @click="chooseFile(index)"
                 >
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <el-tag v-if="chooseFileIndex === index" type="danger">
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <a
@@ -203,9 +203,9 @@
                   title="切换播放器"
                 >{{ playerLabel }}</a>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="jessibuca">Jessibuca</el-dropdown-item>
-                  <el-dropdown-item command="webRTC">WebRTC</el-dropdown-item>
-                  <el-dropdown-item command="h265web">H265Web</el-dropdown-item>
+                  <el-dropdown-item command="jessibuca">Jessibuca播放器</el-dropdown-item>
+                  <el-dropdown-item command="webRTC">WebRTC播放器</el-dropdown-item>
+                  <el-dropdown-item command="h265web">H265Web播放器</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
               <a
@@ -333,9 +333,7 @@ export default {
     this.dateChange()
     window.addEventListener('beforeunload', this.stopPlayRecord)
   },
-  destroyed() {
-    this.$destroy('recordVideoPlayer')
-    window.removeEventListener('beforeunload', this.stopPlayRecord)
+  unmounted() {    window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {
     changePlayer(player) {

@@ -1,6 +1,6 @@
 <template>
   <div id="chooseChannel">
-    <el-dialog v-if="showDialog" v-el-drag-dialog v-loading="loading" title="通道共享" top="2rem" width="80%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
+    <el-dialog v-if="showDialog" v-el-drag-dialog v-loading="loading" title="通道共享" top="2rem" width="80%" :close-on-click-modal="false" v-model:visible="showDialog" :destroy-on-close="true" @close="close()">
       <shareChannelAdd ref="shareChannelAdd" :platform-id="platformId" />
     </el-dialog>
   </div>

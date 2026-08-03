@@ -2,24 +2,24 @@
   <div class="media-info-content">
     <el-form label-width="90px" size="small">
       <el-form-item label="播放地址">
-        <el-input v-model="playerUrl" :disabled="true">
-          <template slot="append">
-            <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrl)" />
+        <el-input :value="playerUrl" :disabled="true">
+          <template #append>
+            <ant-icon name="el-icon-document-copy" class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playerUrl)"  />
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item label="iframe">
-        <el-input v-model="sharedIframe" :disabled="true" >
-          <template slot="append">
-            <i class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(sharedIframe)" />
+      <el-form-item label="嵌入页面">
+        <el-input :value="sharedIframe" :disabled="true" >
+          <template #append>
+            <ant-icon name="el-icon-document-copy" class="cpoy-btn el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(sharedIframe)"  />
           </template>
         </el-input>
       </el-form-item>
       <el-form-item label="资源地址">
-        <el-input v-model="playUrl" :disabled="true" size="mini">
+        <el-input :value="playUrl" :disabled="true" size="mini">
           <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" style="cursor: pointer" @click="copyUrl(playUrl)" />
           <el-dropdown v-if="streamInfo" slot="prepend" trigger="click" @command="copyUrl">
-            <el-button>更多地址<i class="el-icon-arrow-down el-icon--right" size="mini"/></el-button>
+            <el-button>更多地址<ant-icon name="el-icon--right" class="el-icon-arrow-down el-icon--right" size="mini" /></el-button>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv"><el-tag>FLV:</el-tag><span>{{ streamInfo.flv }}</span></el-dropdown-item>
               <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv"><el-tag>FLV(https):</el-tag><span>{{ streamInfo.https_flv }}</span></el-dropdown-item>

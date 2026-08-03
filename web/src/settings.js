@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 
   title: 'WVP视频平台',
 

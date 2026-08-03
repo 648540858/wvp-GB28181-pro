@@ -24,7 +24,7 @@ export default {
     }
   },
   mounted() {},
-  destroyed() {
+  unmounted() {
     clearTimeout(this.timer)
     this.pause()
   },
@@ -57,7 +57,7 @@ export default {
 
       player.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, (e) => {
         console.error('offer anwser 交换失败', e)
-        this.eventcallbacK('OFFER ANSWER ERROR ', 'offer anwser 交换失败')
+        this.eventcallbacK('OFFER ANSWER ERROR ', '媒体协商信息交换失败')
         if (e.code == -400 && e.msg == '流不存在') {
           console.log('流不存在')
           this.timer = setTimeout(() => {

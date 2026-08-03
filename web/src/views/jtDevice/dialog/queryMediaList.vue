@@ -1,6 +1,6 @@
 <template>
   <div id="configInfo">
-    <el-form :inline="true" size="mini" @submit.native.prevent>
+    <el-form :inline="true" size="mini" @submit.prevent>
       <el-form-item>
         <el-select
           v-model="type"
@@ -52,7 +52,7 @@
       </el-form-item>
     </el-form>
     <el-table :data="mediaDataInfoList" :height="500" stripe style="width: 100%" empty-text="暂无数据">
-      <el-table-column prop="id" label="ID" />
+      <el-table-column prop="id" label="编号" />
       <el-table-column prop="type" label="类型" >
         <template v-slot:default="scope">
           {{typeLabel(scope.row.type)}}
@@ -158,7 +158,6 @@ export default {
   methods: {
     close: function() {
       this.mediaDataInfoList = []
-      this.channelList = []
       this.type = 0
       this.chanelId = 0
       this.event = 0
@@ -277,7 +276,7 @@ export default {
 </script>
 
 <style scoped>
->>> .el-upload {
+:deep(.el-upload) {
   width: 100% !important;
 }
 .el-slider__marks-text {

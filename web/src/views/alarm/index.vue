@@ -1,6 +1,6 @@
 <template>
   <div id="alarmManage" class="app-container">
-    <div style="height: calc(100vh - 124px);">
+    <div style="height: var(--wvp-page-content-height);">
       <el-form :inline="true" size="mini">
         <el-form-item label="开始时间">
           <el-date-picker
@@ -80,7 +80,7 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="id" label="编号" width="80" />
         <el-table-column prop="alarmType" label="报警类型" width="160">
           <template v-slot:default="scope">
             <el-tag size="mini" :type="getAlarmTypeTagType(scope.row.alarmType)">
@@ -99,7 +99,7 @@
               lazy
             >
               <div slot="error" style="width: 64px; height: 48px; line-height: 48px; text-align: center; color: #c0c4cc; font-size: 12px;">
-                <i class="el-icon-picture-outline" />
+                <ant-icon name="el-icon-picture-outline" class="el-icon-picture-outline"  />
               </div>
             </el-image>
             <span v-else style="color: #c0c4cc; font-size: 12px;">无</span>
@@ -148,17 +148,17 @@
     <!-- 录像回放对话框 -->
     <el-dialog
       :title="playbackTitle"
-      :visible.sync="playbackDialogVisible"
+      v-model:visible="playbackDialogVisible"
       width="800px"
       :before-close="closePlayback"
       destroy-on-close
     >
       <div v-if="playbackLoading" style="text-align: center; padding: 40px 0;">
-        <i class="el-icon-loading" style="font-size: 32px;" />
+        <ant-icon name="el-icon-loading" class="el-icon-loading" style="font-size: 32px;"  />
         <div style="margin-top: 10px; color: #606266;">正在加载回放...</div>
       </div>
       <div v-else-if="playbackError" style="text-align: center; padding: 40px 0; color: #f56c6c;">
-        <i class="el-icon-warning-outline" style="font-size: 32px;" />
+        <ant-icon name="el-icon-warning-outline" class="el-icon-warning-outline" style="font-size: 32px;"  />
         <div style="margin-top: 10px;">{{ playbackError }}</div>
       </div>
       <div v-else-if="playbackStreamInfo" style="height: 400px;">

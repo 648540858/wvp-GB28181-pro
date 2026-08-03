@@ -318,7 +318,7 @@ export default {
     }
     window.addEventListener('resize', this.onResize)
   },
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.isMobile) {
       window.removeEventListener('touchend', this.onTouchend)
     } else {

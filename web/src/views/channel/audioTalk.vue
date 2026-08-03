@@ -5,7 +5,7 @@
       top="10vh"
       width="65vw"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       @close="close()"
     >
       <div style="display: flex; gap: 16px;">
@@ -266,7 +266,7 @@ export default {
           this.talkStatus = -1
         })
         this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, () => {
-          this.$message({ showClose: true, message: 'offer/answer交换失败', type: 'error' })
+          this.$message({ showClose: true, message: '媒体协商信息交换失败', type: 'error' })
           this.talkStatus = -1
         })
         this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE, (e) => {

@@ -1,20 +1,13 @@
-import { mount, createLocalVue } from '@vue/test-utils'
-import VueRouter from 'vue-router'
-import ElementUI from 'element-ui'
+import { mount } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import Breadcrumb from '@/components/Breadcrumb/index.vue'
-
-const localVue = createLocalVue()
-localVue.use(VueRouter)
-localVue.use(ElementUI)
+import antCompat from '@/components/antCompat'
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    children: [{
-      path: 'dashboard',
-      name: 'dashboard'
-    }]
+    children: [{ path: 'dashboard', name: 'dashboard', component: { template: '<div />' } }]
   },
   {
     path: '/menu',
@@ -26,9 +19,9 @@ const routes = [
       children: [{
         path: 'menu1-1',
         name: 'menu1-1',
-        meta: { title: 'menu1-1' }
-      },
-      {
+        meta: { title: 'menu1-1' },
+        component: { template: '<div />' }
+      }, {
         path: 'menu1-2',
         name: 'menu1-2',
         redirect: 'noredirect',
@@ -36,63 +29,37 @@ const routes = [
         children: [{
           path: 'menu1-2-1',
           name: 'menu1-2-1',
-          meta: { title: 'menu1-2-1' }
-        },
-        {
+          meta: { title: 'menu1-2-1' },
+          component: { template: '<div />' }
+        }, {
           path: 'menu1-2-2',
-          name: 'menu1-2-2'
+          name: 'menu1-2-2',
+          component: { template: '<div />' }
         }]
       }]
     }]
-  }]
+  }
+]
 
-const router = new VueRouter({
-  routes
-})
+const router = createRouter({ history: createMemoryHistory(), routes })
+const wrapper = mount(Breadcrumb, { global: { plugins: [router, antCompat] } })
 
 describe('Breadcrumb.vue', () => {
-  const wrapper = mount(Breadcrumb, {
-    localVue,
-    router
+  it.each([
+    ['/dashboard', 1],
+    ['/menu/menu1', 2],
+    ['/menu/menu1/menu1-2/menu1-2-1', 4],
+    ['/menu/menu1/menu1-2/menu1-2-2', 3]
+  ])('renders route %s', async(path, count) => {
+    await router.push(path)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('.ant-breadcrumb-link')).toHaveLength(count)
   })
-  it('dashboard', () => {
-    router.push('/dashboard')
-    const len = wrapper.findAll('.el-breadcrumb__inner').length
-    expect(len).toBe(1)
-  })
-  it('normal route', () => {
-    router.push('/menu/menu1')
-    const len = wrapper.findAll('.el-breadcrumb__inner').length
-    expect(len).toBe(2)
-  })
-  it('nested route', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-1')
-    const len = wrapper.findAll('.el-breadcrumb__inner').length
-    expect(len).toBe(4)
-  })
-  it('no meta.title', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-2')
-    const len = wrapper.findAll('.el-breadcrumb__inner').length
-    expect(len).toBe(3)
-  })
-  // it('click link', () => {
-  //   router.push('/menu/menu1/menu1-2/menu1-2-2')
-  //   const breadcrumbArray = wrapper.findAll('.el-breadcrumb__inner')
-  //   const second = breadcrumbArray.at(1)
-  //   console.log(breadcrumbArray)
-  //   const href = second.find('a').attributes().href
-  //   expect(href).toBe('#/menu/menu1')
-  // })
-  // it('noRedirect', () => {
-  //   router.push('/menu/menu1/menu1-2/menu1-2-1')
-  //   const breadcrumbArray = wrapper.findAll('.el-breadcrumb__inner')
-  //   const redirectBreadcrumb = breadcrumbArray.at(2)
-  //   expect(redirectBreadcrumb.contains('a')).toBe(false)
-  // })
-  it('last breadcrumb', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-1')
-    const breadcrumbArray = wrapper.findAll('.el-breadcrumb__inner')
-    const redirectBreadcrumb = breadcrumbArray.at(3)
-    expect(redirectBreadcrumb.contains('a')).toBe(false)
+
+  it('renders the last breadcrumb as plain text', async() => {
+    await router.push('/menu/menu1/menu1-2/menu1-2-1')
+    await wrapper.vm.$nextTick()
+    const breadcrumbs = wrapper.findAll('.ant-breadcrumb-link')
+    expect(breadcrumbs.at(3).find('a').exists()).toBe(false)
   })
 })

@@ -3,10 +3,10 @@
     <el-dialog
       v-el-drag-dialog
       title="电话回拨"
-      width="=80%"
+      width="480px"
       top="2rem"
       :close-on-click-modal="false"
-      :visible.sync="showDialog"
+      v-model:visible="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >

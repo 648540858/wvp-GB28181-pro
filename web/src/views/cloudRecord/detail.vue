@@ -26,11 +26,11 @@
             <ul v-if="detailFiles.length >0" v-infinite-scroll="infiniteScroll" class="infinite-list record-list">
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item">
                 <el-tag v-if="chooseFileIndex !== index" @click="chooseFile(index)">
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <el-tag v-if="chooseFileIndex === index" type="danger">
-                  <i class="el-icon-video-camera" />
+                  <ant-icon name="el-icon-video-camera" class="el-icon-video-camera"  />
                   {{ getFileShowName(item) }}
                 </el-tag>
                 <a
@@ -145,9 +145,7 @@ export default {
       }
     })
   },
-  destroyed() {
-    this.$destroy('recordVideoPlayer')
-  },
+  unmounted() {  },
   methods: {
     timeProcessMouseup(event) {
       this.isMousedown = false

@@ -1,7 +1,7 @@
 import {
   getTreeList,
   update,
-  add, deleteGroup, getPath, queryTree, sync
+  add, deleteGroup, getPath, queryTree
 } from '@/api/group'
 
 const actions = {

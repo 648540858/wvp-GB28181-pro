@@ -173,7 +173,7 @@ export default {
 }
 </script>
 <style scoped>
-  >>> .el-slider__marks-text {
+  :deep(.el-slider__marks-text) {
     margin-top: 6px;
     font-size: 12px;
     width: 2rem !important;

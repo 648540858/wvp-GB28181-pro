@@ -1,5 +1,5 @@
 <template>
-  <div id="ChannelEdit" v-loading="locading" style="width: 100%">
+  <div id="ChannelEdit" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
         <el-page-header content="编辑通道" @back="close" />

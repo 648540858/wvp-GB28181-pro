@@ -1,7 +1,7 @@
 <template>
   <div id="channelMapInfobox" style="display: none">
     <div >
-      <el-descriptions class="margin-top" title="channel.name" :column="4" direction="vertical">
+      <el-descriptions class="margin-top" :title="channel.name" :column="4" direction="vertical">
         <el-descriptions-item label="生产厂商">{{channel.manufacture}}</el-descriptions-item>
         <el-descriptions-item label="型号">{{channel.model}}</el-descriptions-item>
         <el-descriptions-item label="设备归属" >{{channel.owner}}</el-descriptions-item>

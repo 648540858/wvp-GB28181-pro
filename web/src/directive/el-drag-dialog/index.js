@@ -1,12 +1,7 @@
 import drag from './drag'
 
-const install = function(Vue) {
-  Vue.directive('el-drag-dialog', drag)
-}
-
-if (window.Vue) {
-  window['el-drag-dialog'] = drag
-  Vue.use(install); // eslint-disable-line
+const install = function(app) {
+  app.directive('el-drag-dialog', drag)
 }
 
 drag.install = install

@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import veHistogram from 'v-charts/lib/histogram'
+import veHistogram from '@/components/VChartCompat/histogram'
 import HasStreamChannel from "@/views/dashboard/dialog/hasStreamChannel.vue";
 
 export default {
@@ -60,7 +60,7 @@ export default {
       }, 100)
     })
   },
-  destroyed() {
+  unmounted() {
   },
   methods: {
     setData: function (data) {

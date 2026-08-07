@@ -50,7 +50,6 @@ export default {
         tooltip: {
           trigger: 'axis',
           formatter: (data)=>{
-            console.log(data)
             let relVal = "";
             for (let i = 0; i < data.length; i++) {
               relVal +=  data[i].marker + data[i].seriesName + ":" + data[i].value.toFixed(2) + "GB"

@@ -196,7 +196,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                     return streamInfoList;
                 }
                 for (int i = 0; i < zlmResult.getData().size(); i++) {
-                    JSONObject mediaJSON = zlmResult.getData().getJSONObject(0);
+                    JSONObject mediaJSON = zlmResult.getData().getJSONObject(i);
                     MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
                     StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(),
                             mediaInfo.getStream(), mediaInfo, null, callId, true);

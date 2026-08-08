@@ -547,9 +547,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         Map<String, StreamPush> result = new HashMap<>();
         for (StreamInfo streamInfo : streamInfoList) {
             // 不保存国标推理以及拉流代理的流
-            if (streamInfo.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                    || streamInfo.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                    || streamInfo.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
+            if (streamInfo.getMediaInfo().getOriginType() == OriginType.RTSP_PUSH.ordinal()
+                    || streamInfo.getMediaInfo().getOriginType() == OriginType.RTMP_PUSH.ordinal()
+                    || streamInfo.getMediaInfo().getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
                 String key = streamInfo.getApp() + "_" + streamInfo.getStream();
                 StreamPush streamPushItem = result.get(key);
                 if (streamPushItem == null) {

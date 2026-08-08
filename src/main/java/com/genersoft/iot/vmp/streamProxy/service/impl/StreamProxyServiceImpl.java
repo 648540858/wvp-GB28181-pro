@@ -276,8 +276,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 // 流媒体存在，数据库中不存在
                 continue;
             }
-            if (streamInfo.getOriginType() == OriginType.PULL.ordinal()
-                    || streamInfo.getOriginType() == OriginType.FFMPEG_PULL.ordinal()) {
+            if (streamInfo.getMediaInfo().getOriginType() == OriginType.PULL.ordinal()
+                    || streamInfo.getMediaInfo().getOriginType() == OriginType.FFMPEG_PULL.ordinal()) {
                 if (streamProxyMapForDb.get(key) != null) {
                     redisCatchStorage.addStream(mediaServer, "pull", streamInfo.getApp(), streamInfo.getStream(), streamInfo.getMediaInfo());
                     if ("OFF".equalsIgnoreCase(streamProxy.getGbStatus()) && streamProxy.getGbId() > 0) {

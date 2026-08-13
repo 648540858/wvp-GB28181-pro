@@ -4,6 +4,7 @@ package com.genersoft.iot.vmp.conf.redis;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.redisMsg.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
  */
 @Configuration
 @Order(value=1)
+@ConditionalOnProperty(prefix = "spring.data.redis", name = "host")
 public class RedisMsgListenConfig {
 
 	@Autowired

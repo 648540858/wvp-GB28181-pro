@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

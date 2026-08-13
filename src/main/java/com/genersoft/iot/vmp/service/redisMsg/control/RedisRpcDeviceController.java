@@ -17,7 +17,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component

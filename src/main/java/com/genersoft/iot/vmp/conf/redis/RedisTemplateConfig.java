@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.conf.redis;
 
 import com.alibaba.fastjson2.support.spring.data.redis.GenericFastJsonRedisSerializer;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
+@ConditionalOnProperty(prefix = "spring.data.redis", name = "host")
 public class RedisTemplateConfig {
 
     @Bean

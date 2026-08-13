@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -21,9 +22,10 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -37,7 +39,10 @@ public class RedisRpcConfig implements MessageListener {
     @Autowired
     private UserSetting userSetting;
 
-    @Autowired
+    @Value("${spring.data.redis.host:}")
+    private String redisHost;
+
+    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
@@ -159,12 +164,28 @@ public class RedisRpcConfig implements MessageListener {
         }
     }
 
-    private void sendResponse(RedisRpcResponse response){
+    private boolean isLocalMode() {
+        return redisHost == null || redisHost.isBlank();
+    }
+
+    private void sendResponseToRedis(RedisRpcResponse response){
         log.info("[redis-rpc] >> {}", response);
         response.setToId(userSetting.getServerId());
         RedisRpcMessage message = new RedisRpcMessage();
         message.setResponse(response);
         redisTemplate.convertAndSend(REDIS_REQUEST_CHANNEL_KEY, message);
+    }
+
+    /**
+     * 发送 RPC 响应：redis 模式走 pub/sub；内存模式直接投递给等待中的本地请求。
+     * 各 RPC Controller 内部的 sendResponse 统一调用此方法。
+     */
+    public void sendResponse(RedisRpcResponse response) {
+        if (isLocalMode()) {
+            this.response(response);
+        } else {
+            sendResponseToRedis(response);
+        }
     }
 
     private void sendRequest(RedisRpcRequest request){
@@ -174,7 +195,7 @@ public class RedisRpcConfig implements MessageListener {
         redisTemplate.convertAndSend(REDIS_REQUEST_CHANNEL_KEY, message);
     }
 
-    private final Map<Long, SynchronousQueue<RedisRpcResponse>> topicSubscribers = new ConcurrentHashMap<>();
+    private final Map<Long, BlockingQueue<RedisRpcResponse>> topicSubscribers = new ConcurrentHashMap<>();
     private final Map<Long, CommonCallback<RedisRpcResponse>> callbacks = new ConcurrentHashMap<>();
 
     public RedisRpcResponse request(RedisRpcRequest request, long timeOut) {
@@ -183,10 +204,14 @@ public class RedisRpcConfig implements MessageListener {
 
     public RedisRpcResponse request(RedisRpcRequest request, long timeOut, TimeUnit timeUnit) {
         request.setSn((long) random.nextInt(1000) + 1);
-        SynchronousQueue<RedisRpcResponse> subscribe = subscribe(request.getSn());
+        BlockingQueue<RedisRpcResponse> subscribe = subscribe(request.getSn());
 
         try {
-            sendRequest(request);
+            if (isLocalMode()) {
+                taskExecutor.execute(() -> invokeLocalHandler(request));
+            } else {
+                sendRequest(request);
+            }
             return subscribe.poll(timeOut, timeUnit);
         } catch (InterruptedException e) {
             log.warn("[redis rpc timeout] uri: {}, sn: {}", request.getUri(), request.getSn(), e);
@@ -201,18 +226,44 @@ public class RedisRpcConfig implements MessageListener {
     public void request(RedisRpcRequest request, CommonCallback<RedisRpcResponse> callback) {
         request.setSn((long) random.nextInt(1000) + 1);
         setCallback(request.getSn(), callback);
-        sendRequest(request);
+        if (isLocalMode()) {
+            taskExecutor.execute(() -> invokeLocalHandler(request));
+        } else {
+            sendRequest(request);
+        }
+    }
+
+    /**
+     * 内存模式下直接在本进程内查找并执行 RPC handler，保持原有“方法返回 response 或稍后通过 sendResponse 补发”的语义。
+     */
+    private void invokeLocalHandler(RedisRpcRequest request) {
+        try {
+            RedisRpcClassHandler redisRpcClassHandler = protocolHash.get(request.getUri());
+            if (redisRpcClassHandler == null) {
+                log.error("[redis-rpc] 路径: {}不存在", request.getUri());
+                RedisRpcResponse response = request.getResponse();
+                response.setStatusCode(ErrorCode.ERROR404.getCode());
+                this.response(response);
+                return;
+            }
+            RedisRpcResponse response = (RedisRpcResponse) redisRpcClassHandler.getMethod()
+                    .invoke(redisRpcClassHandler.getController(), request);
+            if (response != null) {
+                this.response(response);
+            }
+        } catch (Exception e) {
+            log.error("[redis-rpc ] 本地处理请求失败 ", e);
+            RedisRpcResponse response = request.getResponse();
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            this.response(response);
+        }
     }
 
     public Boolean response(RedisRpcResponse response) {
-        SynchronousQueue<RedisRpcResponse> queue = topicSubscribers.get(response.getSn());
+        BlockingQueue<RedisRpcResponse> queue = topicSubscribers.get(response.getSn());
         CommonCallback<RedisRpcResponse> callback = callbacks.get(response.getSn());
         if (queue != null) {
-            try {
-                return queue.offer(response, 2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("{}", e.getMessage(), e);
-            }
+            return queue.offer(response);
         }else if (callback != null) {
             callback.run(response);
             callbacks.remove(response.getSn());
@@ -225,10 +276,10 @@ public class RedisRpcConfig implements MessageListener {
     }
 
 
-    private SynchronousQueue<RedisRpcResponse> subscribe(long key) {
-        SynchronousQueue<RedisRpcResponse> queue = null;
+    private BlockingQueue<RedisRpcResponse> subscribe(long key) {
+        BlockingQueue<RedisRpcResponse> queue = null;
         if (!topicSubscribers.containsKey(key))
-            topicSubscribers.put(key, queue = new SynchronousQueue<>());
+            topicSubscribers.put(key, queue = new LinkedBlockingQueue<>());
         return queue;
     }
 

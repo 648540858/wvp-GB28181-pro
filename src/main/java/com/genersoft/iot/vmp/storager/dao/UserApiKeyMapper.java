@@ -12,6 +12,7 @@ public interface UserApiKeyMapper {
 
     @SelectKey(databaseId = "postgresql", statement = "SELECT currval('wvp_user_api_key_id_seq'::regclass) AS id", keyProperty = "id", before = false, resultType = Integer.class)
     @SelectKey(databaseId = "mysql", statement = "SELECT LAST_INSERT_ID() AS id", keyProperty = "id", before = false, resultType = Integer.class)
+    @SelectKey(databaseId = "h2", statement = "SELECT LAST_INSERT_ID() AS id", keyProperty = "id", before = false, resultType = Integer.class)
     @Insert("INSERT INTO wvp_user_api_key (user_id, app, api_key, expired_at, remark, enable, create_time, update_time) VALUES" +
             "(#{userId}, #{app}, #{apiKey}, #{expiredAt}, #{remark}, #{enable}, #{createTime}, #{updateTime})")
     int add(UserApiKey userApiKey);

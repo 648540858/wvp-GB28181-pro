@@ -18,7 +18,7 @@ import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 

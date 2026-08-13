@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.utils;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 
 import java.util.Objects;
 

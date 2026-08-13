@@ -4,8 +4,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -120,16 +119,9 @@ public class SubscribeHolder {
                 .map(platform -> String.format("%s:%s:%s", prefix, "mobilePosition", platform.getServerGBId()))
                 .toList();
 
-        // 2. 批量查询 Redis 【关键：只发1次请求！】
-        List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (String key : keys) {
-                // 注意：这里使用的是底层 connection 接口
-                connection.keyCommands().exists(key.getBytes());
-            }
-            return null; // 流水线模式下必须返回 null
-        });
-        for (int i = 0; i < results.size(); i++) {
-            if (results.get(i) instanceof Boolean exists && exists) {
+        // 2. 逐个查询（redis 模式走真实 redis，内存模式走本地存储）
+        for (int i = 0; i < keys.size(); i++) {
+            if (redisTemplate.hasKey(keys.get(i))) {
                 result.put(platformList.get(i).getId(), platformList.get(i));
             }
         }

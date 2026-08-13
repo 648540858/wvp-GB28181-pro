@@ -20,12 +20,9 @@ import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -558,33 +555,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (deviceList == null || deviceList.isEmpty()) {
             return;
         }
-        // 使用 SessionCallback 保证批量操作在同一个连接中执行
-        SessionCallback<Boolean> sessionCallback = new SessionCallback<>() {
-            @Override
-            // 注意：这里直接写死 String, String 覆盖接口的 K, V
-            public Boolean execute(@NonNull RedisOperations operations) {
-                // 1. 批量添加心跳数据到列表尾部
-                for (Device device : deviceList) {
-                    Long timestamp = device.getKeepaliveTimeStamp();
-                    if (timestamp == null) {
-                        continue;
-                    }
-                    String key = VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId();
-                    operations.opsForList().rightPush(key, timestamp);
-                    // 2. 截取列表，只保留最新 N 条
-                    if (userSetting.getDeviceKeepaliveTimeMaxCount() > 0) {
-                        operations.opsForList().trim(key, -userSetting.getDeviceKeepaliveTimeMaxCount(), -1);
-                    }
-                    // 3. 设置过期时间，ttlHours <= 0 则跳过
-                    if (userSetting.getDeviceKeepaliveTimeTtlHours() > 0) {
-                        operations.expire(key, Duration.ofHours(userSetting.getDeviceKeepaliveTimeTtlHours()));
-                    }
-                }
-                return true;
+        // 批量添加心跳数据到列表尾部，只保留最新 N 条并设置过期时间
+        for (Device device : deviceList) {
+            Long timestamp = device.getKeepaliveTimeStamp();
+            if (timestamp == null) {
+                continue;
             }
-        };
-
-        longRedisTemplate.execute(sessionCallback);
+            String key = VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + device.getDeviceId();
+            longRedisTemplate.opsForList().rightPush(key, timestamp);
+            if (userSetting.getDeviceKeepaliveTimeMaxCount() > 0) {
+                longRedisTemplate.opsForList().trim(key, -userSetting.getDeviceKeepaliveTimeMaxCount(), -1);
+            }
+            if (userSetting.getDeviceKeepaliveTimeTtlHours() > 0) {
+                longRedisTemplate.expire(key, Duration.ofHours(userSetting.getDeviceKeepaliveTimeTtlHours()));
+            }
+        }
     }
 
     @Override
@@ -605,32 +590,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (deviceList == null || deviceList.isEmpty()) {
             return;
         }
-        // 使用 SessionCallback 保证批量操作在同一个连接中执行
-        SessionCallback<Boolean> sessionCallback = new SessionCallback<>() {
-            @Override
-            // 注意：这里直接写死 String, String 覆盖接口的 K, V
-            public Boolean execute(@NonNull RedisOperations operations) {
-                // 1. 批量添加注册数据到列表尾部
-                for (Device device : deviceList) {
-                    Long timestamp = device.getRegisterTimeStamp();
-                    if (timestamp == null) {
-                        continue;
-                    }
-                    String key = VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId();
-                    operations.opsForList().rightPush(key, timestamp);
-                    // 2. 截取列表，只保留最新 N 条
-                    if (userSetting.getDeviceRegisterTimeMaxCount() > 0) {
-                        operations.opsForList().trim(key, -userSetting.getDeviceRegisterTimeMaxCount(), -1);
-                    }
-                    // 3. 设置过期时间，ttlHours <= 0 则跳过
-                    if (userSetting.getDeviceRegisterTimeTtlHours() > 0) {
-                        operations.expire(key, Duration.ofHours(userSetting.getDeviceRegisterTimeTtlHours()));
-                    }
-                }
-                return true;
+        // 批量添加注册数据到列表尾部，只保留最新 N 条并设置过期时间
+        for (Device device : deviceList) {
+            Long timestamp = device.getRegisterTimeStamp();
+            if (timestamp == null) {
+                continue;
             }
-        };
-        longRedisTemplate.execute(sessionCallback);
+            String key = VideoManagerConstants.DEVICE_REGISTER_PREFIX + device.getDeviceId();
+            longRedisTemplate.opsForList().rightPush(key, timestamp);
+            if (userSetting.getDeviceRegisterTimeMaxCount() > 0) {
+                longRedisTemplate.opsForList().trim(key, -userSetting.getDeviceRegisterTimeMaxCount(), -1);
+            }
+            if (userSetting.getDeviceRegisterTimeTtlHours() > 0) {
+                longRedisTemplate.expire(key, Duration.ofHours(userSetting.getDeviceRegisterTimeTtlHours()));
+            }
+        }
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 public class RpcController {
 
     @Autowired
-    private RedisRpcConfig redisRpcConfig;
+    protected RedisRpcConfig redisRpcConfig;
 
 
     @PostConstruct

@@ -10,14 +10,18 @@ import com.genersoft.iot.vmp.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -28,6 +32,8 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    private final Map<String, AtomicInteger> localSendPortCounters = new ConcurrentHashMap<>();
 
 
     @Override
@@ -226,15 +232,12 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
             startPort = 50000;
             endPort = 60000;
         }
-        if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
-            log.warn("{}获取redis连接信息失败", mediaServer.getId());
-            return -1;
-        }
-        RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
-        if (redisAtomicInteger.get() < startPort) {
-            redisAtomicInteger.set(startPort);
-            return startPort;
-        }else {
+        if (redisTemplate.getConnectionFactory() instanceof RedisConnectionFactory redisConnectionFactory) {
+            RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey, redisConnectionFactory);
+            if (redisAtomicInteger.get() < startPort) {
+                redisAtomicInteger.set(startPort);
+                return startPort;
+            }
             for (int i = 0; i < endPort - startPort; i++) {
                 int port = redisAtomicInteger.getAndIncrement();
                 if (port > endPort) {
@@ -242,6 +245,27 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
                     if (sendRtpSet.contains(startPort)) {
                         continue;
                     }else {
+                        return startPort;
+                    }
+                }
+                if (!sendRtpSet.contains(port)) {
+                    return port;
+                }
+            }
+        } else {
+            // 内存模式：使用本地计数器分配发送端口
+            AtomicInteger localCounter = localSendPortCounters.computeIfAbsent(sendIndexKey, k -> new AtomicInteger(startPort));
+            if (localCounter.get() < startPort) {
+                localCounter.set(startPort);
+                return startPort;
+            }
+            for (int i = 0; i < endPort - startPort; i++) {
+                int port = localCounter.getAndIncrement();
+                if (port > endPort) {
+                    localCounter.set(startPort);
+                    if (sendRtpSet.contains(startPort)) {
+                        continue;
+                    } else {
                         return startPort;
                     }
                 }

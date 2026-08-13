@@ -22,7 +22,7 @@ import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -53,11 +53,7 @@ public class RedisRpcStreamPushController extends RpcController {
 
 
     private void sendResponse(RedisRpcResponse response){
-        log.info("[redis-rpc] >> {}", response);
-        response.setToId(userSetting.getServerId());
-        RedisRpcMessage message = new RedisRpcMessage();
-        message.setResponse(response);
-        redisTemplate.convertAndSend(RedisRpcConfig.REDIS_REQUEST_CHANNEL_KEY, message);
+        redisRpcConfig.sendResponse(response);
     }
 
     /**

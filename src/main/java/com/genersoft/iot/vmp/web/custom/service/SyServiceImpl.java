@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.vmanager.bean.MapModelIcon;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -214,12 +215,18 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             redisTemplate.delete(key);
             return;
         }
-        InviteInfo inviteInfo = getInviteInfo(type, channelId, stream);
-        if (inviteInfo != null) {
-            String objectKey = inviteInfo.getType() +
-                    ":" + inviteInfo.getChannelId() +
-                    ":" + inviteInfo.getStream();
-            redisTemplate.opsForHash().delete(key, objectKey);
+        String keyPattern = (type != null ? type : "*") + ":" + (channelId != null ? channelId : "*") + ":" + (stream != null ? stream : "*");
+        ScanOptions options = ScanOptions.scanOptions().match(keyPattern).count(20).build();
+        List<Object> objectKeys = new ArrayList<>();
+        try (Cursor<Map.Entry<Object, Object>> cursor = redisTemplate.opsForHash().scan(key, options)) {
+            while (cursor.hasNext()) {
+                objectKeys.add(cursor.next().getKey());
+            }
+        } catch (Exception e) {
+            log.error("[Redis-InviteInfo] 删除异常: ", e);
+        }
+        if (!objectKeys.isEmpty()) {
+            redisTemplate.opsForHash().delete(key, objectKeys.toArray());
         }
     }
 
@@ -239,6 +246,25 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>());
         callbacks.add(callback);
 
+    }
+
+    @Override
+    public boolean onceAndFirst(InviteSessionType type, Integer channelId, String stream, ErrorCallback<StreamInfo> callback) {
+        String key = buildKey(type, channelId, stream);
+        AtomicBoolean first = new AtomicBoolean(false);
+        inviteErrorCallbackMap.computeIfAbsent(key, k -> {
+            first.set(true);
+            List<ErrorCallback<StreamInfo>> callbacks = new CopyOnWriteArrayList<>();
+            callbacks.add(callback);
+            return callbacks;
+        });
+        if (!first.get()) {
+            List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
+            if (callbacks != null) {
+                callbacks.add(callback);
+            }
+        }
+        return first.get();
     }
 
     private String buildKey(InviteSessionType type, Integer channelId, String stream) {
@@ -287,7 +313,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void call(InviteSessionType type, Integer channelId, String stream, int code, String msg, StreamInfo data) {
         String key = buildSubStreamKey(type, channelId, stream);
-        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.remove(key);
         if (callbacks == null || callbacks.isEmpty()) {
             return;
         }
@@ -296,7 +322,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 callback.run(code, msg, data);
             }
         }
-        inviteErrorCallbackMap.remove(key);
     }
 
 

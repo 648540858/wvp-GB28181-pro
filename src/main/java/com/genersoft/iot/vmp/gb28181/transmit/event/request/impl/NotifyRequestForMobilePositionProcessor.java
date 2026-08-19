@@ -80,7 +80,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				}
 				List<DeviceMobilePosition> mobilePositions = DeviceMobilePosition.decode(device, rootElement);
 				for (DeviceMobilePosition mobilePosition : mobilePositions) {
-					log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", device.getDeviceId(), mobilePosition.getChannelDeviceId(),
+					log.info("[收到移动位置订阅通知]：{}/{}->{},{}, 时间： {}", device.getDeviceId(), mobilePosition.getChannelDeviceId(),
 							mobilePosition.getLongitude(), mobilePosition.getLatitude(), mobilePosition.getTimestamp());
 					mobilePositionList.add(mobilePosition);
 				}

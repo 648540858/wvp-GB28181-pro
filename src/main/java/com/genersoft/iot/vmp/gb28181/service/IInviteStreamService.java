@@ -58,6 +58,12 @@ public interface IInviteStreamService {
     void once(InviteSessionType type, Integer channelId, String stream,  ErrorCallback<StreamInfo> callback);
 
     /**
+     * 原子注册invite回调并认领点播发起权
+     * @return true 表示本次注册是第一个（发起者，负责发起点播），false 表示已有发起者在途，仅需等待结果
+     */
+    boolean onceAndFirst(InviteSessionType type, Integer channelId, String stream, ErrorCallback<StreamInfo> callback);
+
+    /**
      * 调用一个invite回调
      */
     void call(InviteSessionType type,  Integer channelId, String stream,  int code, String msg, StreamInfo data);

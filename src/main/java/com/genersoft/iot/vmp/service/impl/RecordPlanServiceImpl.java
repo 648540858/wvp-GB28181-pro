@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -57,7 +60,11 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         // 流断开，检查是否还处于录像状态， 如果是则继续录像
         Integer channelId = recording(event.getApp(), event.getStream());
         if(channelId == null) {
-            return;
+            // 内存中没有匹配记录，按 stream 反查通道，若当前时间段需要录像则继续走下面的拉起逻辑
+            channelId = queryRecordChannelIdByStream(event.getApp(), event.getStream(), queryCurrentChannelRecord());
+            if (channelId == null) {
+                return;
+            }
         }
         // 重新拉起
         CommonGBChannel channel = channelMapper.queryById(channelId);
@@ -65,22 +72,27 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             log.warn("[录制计划] 流离开时拉起需要录像的流时, 发现通道不存在, id: {}", channelId);
             return;
         }
+        final Integer recordChannelId = channelId;
         // 开启点播,
         channelPlayService.play(channel, null, true, ((code, msg, streamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode() && streamInfo != null) {
                 log.info("[录像] 流离开时拉起需要录像的流, 开启成功, 通道ID: {}", channel.getGbId());
                 recordStreamMap.put(channel.getGbId(), streamInfo);
             } else {
-                recordStreamMap.remove(channelId);
-                log.info("[录像] 流离开时拉起需要录像的流, 开启失败, 十分钟后重试,  通道ID: {}", channel.getGbId());
+                recordStreamMap.remove(recordChannelId);
+                log.info("[录像] 流离开时拉起需要录像的流, 开启失败, 1分钟后重试,  通道ID: {}", channel.getGbId());
             }
         }));
     }
 
-    Map<Integer, StreamInfo> recordStreamMap = new HashMap<>();
+    // 定时任务、流事件监听、流媒体hook 多个线程都会读写, 必须用并发容器
+    Map<Integer, StreamInfo> recordStreamMap = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void execution() {
+        // 对账: 核实内存中"正在录像"的流在流媒体中真实存在
+        reconcileRecordStreams();
+
         // 查询现在需要录像的通道Id
         List<Integer> startChannelIdList = queryCurrentChannelRecord();
 
@@ -114,12 +126,66 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
                                 log.info("[录像] 开启成功, 通道ID: {}", channel.getGbId());
                                 recordStreamMap.put(channel.getGbId(), streamInfo);
                             } else {
-                                log.info("[录像] 开启失败, 十分钟后重试,  通道ID: {}", channel.getGbId());
+                                log.info("[录像] 开启失败, 1分钟后重试,  通道ID: {}", channel.getGbId());
                             }
                         }));
                     }
                 } else {
                     log.error("[录制计划] 数据异常, 这些关联的通道已经不存在了: {}", Joiner.on(",").join(startChannelIdList));
+                }
+            }
+        }
+    }
+
+    /**
+     * 对账: 核实内存中"正在录像"的流在流媒体中真实存在, 不存在则移除记录。
+     * 兜住流注销事件丢失(ZLM重启/hook失败/事件匹配不上)导致的僵尸记录，否则内存认为在录而实际没录, 通道会永久停录。
+     * 按媒体节点分组批量拉取流列表, 每个节点每分钟只一次HTTP请求, 通道数多时不会线性放大。
+     */
+    private void reconcileRecordStreams() {
+        if (recordStreamMap.isEmpty()) {
+            return;
+        }
+        // 按节点ID分组
+        Map<String, List<Integer>> channelIdsByServerId = new HashMap<>();
+        Map<String, MediaServer> serverById = new HashMap<>();
+        for (Integer channelId : new HashSet<>(recordStreamMap.keySet())) {
+            StreamInfo streamInfo = recordStreamMap.get(channelId);
+            if (streamInfo == null || streamInfo.getMediaServer() == null) {
+                recordStreamMap.remove(channelId);
+                continue;
+            }
+            String serverId = streamInfo.getMediaServer().getId();
+            channelIdsByServerId.computeIfAbsent(serverId, k -> new ArrayList<>()).add(channelId);
+            serverById.putIfAbsent(serverId, streamInfo.getMediaServer());
+        }
+        for (Map.Entry<String, List<Integer>> entry : channelIdsByServerId.entrySet()) {
+            Set<String> onlineStreams = new HashSet<>();
+            try {
+                List<StreamInfo> mediaList = mediaServerService.getMediaList(serverById.get(entry.getKey()), null, null, null);
+                if (mediaList != null) {
+                    for (StreamInfo info : mediaList) {
+                        onlineStreams.add(info.getApp() + "/" + info.getStream());
+                    }
+                }
+            } catch (Exception e) {
+                // 节点查询失败时跳过该节点本轮对账, 防止误删记录
+                log.error("[录像] 对账获取流列表失败, 跳过该节点本轮对账, 节点: {}", entry.getKey(), e);
+                continue;
+            }
+            for (Integer channelId : entry.getValue()) {
+                StreamInfo streamInfo = recordStreamMap.get(channelId);
+                if (streamInfo == null) {
+                    continue;
+                }
+                if (onlineStreams.contains(streamInfo.getApp() + "/" + streamInfo.getStream())) {
+                    continue;
+                }
+                // 列表中不存在, 单路复核一次再移除, 防止列表异常导致误判
+                Boolean ready = mediaServerService.isStreamReady(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
+                if (ready == null || !ready) {
+                    log.warn("[录像] 对账发现流实际不存在, 移除记录等待重新拉起, 通道ID: {}", channelId);
+                    recordStreamMap.remove(channelId);
                 }
             }
         }
@@ -165,6 +231,26 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             StreamInfo streamInfo = recordStreamMap.get(channelId);
             if (streamInfo != null && streamInfo.getApp().equals(app) && streamInfo.getStream().equals(stream)) {
                 return channelId;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 按流信息反查当前时间段需要录像的通道ID
+     */
+    private Integer queryRecordChannelIdByStream(String app, String stream, List<Integer> currentRecordChannels) {
+        if (!MediaStreamUtil.RTP_APP.equals(app) || stream == null || currentRecordChannels.isEmpty()) {
+            return null;
+        }
+        String[] streamArray = stream.split("_");
+        if (streamArray.length != 2) {
+            return null;
+        }
+        List<CommonGBChannel> channels = channelMapper.queryByDeviceId(streamArray[1]);
+        for (CommonGBChannel channel : channels) {
+            if (currentRecordChannels.contains(channel.getGbId())) {
+                return channel.getGbId();
             }
         }
         return null;

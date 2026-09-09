@@ -55,7 +55,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 try {
-                    removeInviteInfo(inviteInfo);
+                    if (inviteInfo.getStatus() != InviteSessionStatus.ok) {
+                        removeInviteInfo(inviteInfo);
+                    }
                     Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
                     if (device != null) {
                         deviceChannelMapper.stopPlayById(inviteInfo.getChannelId());

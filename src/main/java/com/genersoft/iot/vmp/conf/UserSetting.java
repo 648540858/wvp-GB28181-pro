@@ -247,6 +247,12 @@ public class UserSetting {
     private boolean alarmSnapByStream = false;
 
     /**
+     * 截图是否使用ZLM内部的解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，
+     * 部分环境下内部解码通道截图会失败(ZLM 报错 decode frame timeout)，此时保持关闭即可。
+     */
+    private boolean snapAsync = false;
+
+    /**
      * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制
      */
     private List<AlarmType> allowedAlarmType = new ArrayList<>();

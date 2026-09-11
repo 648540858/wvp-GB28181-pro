@@ -224,7 +224,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         } else {
             streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServer.getHttpPort(), app, stream);
         }
-        return zlmresTfulUtils.getSnap(mediaServer, streamUrl, timeoutSec, expireSec, path, fileName);
+        return zlmresTfulUtils.getSnap(mediaServer, streamUrl, timeoutSec, expireSec,
+                userSetting.isSnapAsync(), path, fileName);
     }
 
     @Override

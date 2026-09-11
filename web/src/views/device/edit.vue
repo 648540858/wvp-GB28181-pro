@@ -46,8 +46,8 @@
           </el-form-item>
           <el-form-item label="坐标系" prop="geoCoordSys">
             <el-select v-model="form.geoCoordSys" style="float: left; width: 100%">
-              <el-option key="WGS84" label="WGS84" value="gb2312" />
-              <el-option key="GCJ02" label="GCJ02" value="utf-8" />
+              <el-option key="WGS84" label="WGS84" value="WGS84" />
+              <el-option key="GCJ02" label="GCJ02" value="GCJ02" />
             </el-select>
           </el-form-item>
           <el-form-item label="其他选项">

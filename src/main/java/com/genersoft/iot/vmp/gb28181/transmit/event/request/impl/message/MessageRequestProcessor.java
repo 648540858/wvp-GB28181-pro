@@ -105,7 +105,8 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             }else {
                 Element rootElement;
                 try {
-                    rootElement = getRootElement(evt);
+                    String messageCharset = device != null ? SipUtils.getCharset(device) : parentPlatform.getCharacterSet();
+                    rootElement = getRootElement(evt, messageCharset);
                     if (rootElement == null) {
                         log.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
                         responseAck(request, Response.BAD_REQUEST, "content is null");

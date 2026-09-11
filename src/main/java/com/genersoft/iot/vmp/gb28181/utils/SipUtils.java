@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -21,6 +22,8 @@ import javax.sip.header.FromHeader;
 import javax.sip.header.SubjectHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,6 +40,33 @@ import java.util.UUID;
  */
 @Slf4j
 public class SipUtils {
+
+    /**
+     * 国标默认字符集， 设备未配置字符集时使用
+     */
+    public static final String DEFAULT_CHARSET = "GB2312";
+
+    /**
+     * 获取设备消息使用的字符集
+     */
+    public static String getCharset(Device device) {
+        if (device == null || ObjectUtils.isEmpty(device.getCharset())) {
+            return DEFAULT_CHARSET;
+        }
+        return device.getCharset();
+    }
+
+    /**
+     * 按设备字符集编码消息体
+     */
+    public static byte[] getContentBytes(String content, Device device) {
+        try {
+            return content.getBytes(getCharset(device));
+        } catch (UnsupportedEncodingException e) {
+            log.warn("[字符集] 不支持的字符集： {}， 设备： {}， 已使用 UTF-8 编码", device.getCharset(), device.getDeviceId());
+            return content.getBytes(StandardCharsets.UTF_8);
+        }
+    }
 
     public static String getUserIdFromFromHeader(Request request) {
         FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);

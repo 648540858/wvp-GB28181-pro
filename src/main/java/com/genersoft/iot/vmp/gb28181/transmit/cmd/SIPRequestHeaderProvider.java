@@ -75,7 +75,7 @@ public class SIPRequestHeaderProvider {
 		request.addHeader(SipUtils.createUserAgentHeader(gitUtil));
 
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-		request.setContent(content, contentTypeHeader);
+		request.setContent(SipUtils.getContentBytes(content, device), contentTypeHeader);
 		return request;
 	}
 
@@ -281,7 +281,7 @@ public class SIPRequestHeaderProvider {
         request.addHeader(eventHeader);
 
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-		request.setContent(content, contentTypeHeader);
+		request.setContent(SipUtils.getContentBytes(content, device), contentTypeHeader);
 
 		request.addHeader(SipUtils.createUserAgentHeader(gitUtil));
 

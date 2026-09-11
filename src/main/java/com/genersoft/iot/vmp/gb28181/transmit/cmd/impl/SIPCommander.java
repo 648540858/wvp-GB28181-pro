@@ -123,7 +123,7 @@ public class SIPCommander implements ISIPCommander {
                        int zoomSpeed) throws InvalidArgumentException, SipException, ParseException {
         String cmdStr = SipUtils.cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
         StringBuilder ptzXml = new StringBuilder(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         ptzXml.append("<Control>\r\n");
         ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
@@ -155,7 +155,7 @@ public class SIPCommander implements ISIPCommander {
 
         String cmdStr = frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
         StringBuffer ptzXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         ptzXml.append("<Control>\r\n");
         ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
@@ -183,7 +183,7 @@ public class SIPCommander implements ISIPCommander {
     public void fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer ptzXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         ptzXml.append("<Control>\r\n");
         ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
@@ -598,7 +598,7 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer broadcastXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         broadcastXml.append("<Notify>\r\n");
         broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
@@ -626,7 +626,7 @@ public class SIPCommander implements ISIPCommander {
         final int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -658,7 +658,7 @@ public class SIPCommander implements ISIPCommander {
     public void teleBootCmd(Device device) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
@@ -686,7 +686,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -717,7 +717,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -758,7 +758,7 @@ public class SIPCommander implements ISIPCommander {
     public void iFrameCmd(Device device, String channelId) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
@@ -793,7 +793,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -842,7 +842,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
         String cmdType = "DeviceConfig";
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -889,7 +889,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
         String cmdType = "DeviceConfig";
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -926,7 +926,7 @@ public class SIPCommander implements ISIPCommander {
         String cmdType = "DeviceStatus";
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         StringBuffer catalogXml = new StringBuffer(200);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         catalogXml.append("<Query>\r\n");
@@ -959,7 +959,7 @@ public class SIPCommander implements ISIPCommander {
         String sn = (int) ((Math.random() * 9 + 1) * 100000) + "";
 
         StringBuffer catalogXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         catalogXml.append("<Query>\r\n");
         catalogXml.append("<CmdType>" + cmdType +"</CmdType>\r\n");
@@ -990,7 +990,7 @@ public class SIPCommander implements ISIPCommander {
     public void catalogQuery(Device device, int sn, SipSubscribe.Event errorEvent) throws SipException, InvalidArgumentException, ParseException {
 
         StringBuffer catalogXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         catalogXml.append("<Query>\r\n");
         catalogXml.append("  <CmdType>Catalog</CmdType>\r\n");
@@ -1020,7 +1020,7 @@ public class SIPCommander implements ISIPCommander {
         }
 
         StringBuffer recordInfoXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         recordInfoXml.append("<Query>\r\n");
         recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
@@ -1069,7 +1069,7 @@ public class SIPCommander implements ISIPCommander {
         String sn = (int) ((Math.random() * 9 + 1) * 100000) + "";
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -1118,7 +1118,7 @@ public class SIPCommander implements ISIPCommander {
         String cmdType = "ConfigDownload";
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -1196,7 +1196,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
         cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
@@ -1227,7 +1227,7 @@ public class SIPCommander implements ISIPCommander {
     public void mobilePositionQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer mobilePositionXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         mobilePositionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         mobilePositionXml.append("<Query>\r\n");
         mobilePositionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
@@ -1254,7 +1254,7 @@ public class SIPCommander implements ISIPCommander {
     public SIPRequest mobilePositionSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer subscribePositionXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         subscribePositionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         subscribePositionXml.append("<Query>\r\n");
         subscribePositionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
@@ -1294,7 +1294,7 @@ public class SIPCommander implements ISIPCommander {
     public SIPRequest alarmSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
         cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
@@ -1339,7 +1339,7 @@ public class SIPCommander implements ISIPCommander {
     public SIPRequest catalogSubscribe(Device device, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
         cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
@@ -1374,7 +1374,7 @@ public class SIPCommander implements ISIPCommander {
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer dragXml = new StringBuffer(200);
-        String charset = device.getCharset();
+        String charset = SipUtils.getCharset(device);
         dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         dragXml.append("<Control>\r\n");
         dragXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");

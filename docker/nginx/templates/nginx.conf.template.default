@@ -18,8 +18,6 @@ server {
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header REMOTE-HOST $remote_addr;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		# sub_filter cannot rewrite a compressed JSON response.
-		proxy_set_header Accept-Encoding "";
         proxy_pass http://polaris-wvp:18978;
 
 
@@ -28,12 +26,6 @@ server {
         
         # 执行字符串替换
         # 将媒体资源文件替换为Nginx输出的相对地址
-        # Rewrite the RTP WebSocket URL to the frontend Host, including its port.
-        # Example: ws://172.18.8.175:80/rtp/... -> ws://172.18.8.175:8080/rtp/...
-        sub_filter "ws://$original_host:80/rtp/" "ws://$http_host/rtp/";
-        sub_filter "ws://$original_host/rtp/" "ws://$http_host/rtp/";
-        sub_filter "http://$original_host:80/rtp/" "http://$http_host/rtp/";
-        sub_filter "http://$original_host/rtp/" "http://$http_host/rtp/";
         sub_filter "http://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
         sub_filter "http://$original_host:80/index/api/downloadFile" "mediaserver/api/downloadFile";
         sub_filter "https://$original_host/index/api/downloadFile" "mediaserver/api/downloadFile";
@@ -77,7 +69,7 @@ server {
         proxy_pass http://polaris-media:80;
         
         # 基础HTTP代理配置
-        proxy_set_header Host $http_host;
+        proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

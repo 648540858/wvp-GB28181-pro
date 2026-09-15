@@ -279,6 +279,8 @@ user-settings:
     alarm-catch-size: 10000
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     alarm-snap-by-stream: true
+    # 截图是否使用 ZLM 内部解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，部分环境内部解码截图会失败(ZLM 报错 decode frame timeout)
+    snap-async: false
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     allowed-alarm-type:
       - IntrusionDetection

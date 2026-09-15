@@ -21,8 +21,7 @@ fi
 
 # 定义要构建的镜像和对应的Dockerfile路径（相对当前工作目录）
 images=(
-    "wvp-service:docker/wvp/Dockerfile"
-    "wvp-nginx:docker/nginx/Dockerfile"
+    "library/polaris-wvp:docker/wvp/Dockerfile"
 )
 
 # 构建镜像的函数

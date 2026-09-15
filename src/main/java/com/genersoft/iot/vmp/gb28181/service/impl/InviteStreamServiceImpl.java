@@ -54,6 +54,11 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
+                if (isStaleStreamDeparture(inviteInfo, event.getCreateStamp())) {
+                    log.info("[流离开] 流实例创建时间早于当前会话，判定为旧会话的迟到注销事件，跳过清理: stream={}, deviceId={}, channelId={}",
+                            event.getStream(), inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                    return;
+                }
                 try {
                     if (inviteInfo.getStatus() != InviteSessionStatus.ok) {
                         removeInviteInfo(inviteInfo);
@@ -406,5 +411,19 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 }
             });
         }
+    }
+
+    @Override
+    public boolean isStaleStreamDeparture(InviteInfo inviteInfo, Long streamCreateStamp) {
+        if (inviteInfo == null || inviteInfo.getCreateTime() == null || streamCreateStamp == null || streamCreateStamp <= 0) {
+            return false;
+        }
+        long streamCreateMs = streamCreateStamp * 1000L;
+        // 时间戳与当前时间偏差过大(超过24小时)，认为数据异常，不做判断，保持原有清理逻辑
+        if (Math.abs(streamCreateMs - System.currentTimeMillis()) > 24 * 3600 * 1000L) {
+            return false;
+        }
+        // 流实例创建时间比当前会话创建时间至少早2秒(容忍ZLM与WVP的时钟偏差)，说明该注销事件属于旧会话
+        return inviteInfo.getCreateTime() - streamCreateMs > 2000L;
     }
 }

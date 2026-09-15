@@ -163,6 +163,7 @@ public class ZLMHttpHookListener {
             } else {
                 log.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
                 MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
+                mediaDepartureEvent.setCreateStamp(param.getCreateStamp());
                 applicationEventPublisher.publishEvent(mediaDepartureEvent);
             }
         }

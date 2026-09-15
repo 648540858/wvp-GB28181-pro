@@ -237,8 +237,13 @@ public class PlayServiceImpl implements IPlayService {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok
                     && inviteInfo.getStreamInfo() != null && inviteInfo.getSsrcInfo() != null) {
-                // 发送bye
-                stop(inviteInfo);
+                if (inviteStreamService.isStaleStreamDeparture(inviteInfo, event.getCreateStamp())) {
+                    log.info("[流离开] 流实例创建时间早于当前会话，判定为旧会话的迟到注销事件，跳过BYE: stream={}, deviceId={}, channelId={}",
+                            event.getStream(), inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                } else {
+                    // 发送bye
+                    stop(inviteInfo);
+                }
             }
 
         }

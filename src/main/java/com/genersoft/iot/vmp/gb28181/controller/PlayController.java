@@ -97,12 +97,13 @@ public class PlayController {
 
 		result.onTimeout(()->{
 			log.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
-			// 释放rtpserver
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
 			result.setResult(wvpResult);
 
+			inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
+					ErrorCode.ERROR100.getCode(), "点播超时", null);
 			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
 			deviceChannelService.stopPlay(channel.getId());
 		});

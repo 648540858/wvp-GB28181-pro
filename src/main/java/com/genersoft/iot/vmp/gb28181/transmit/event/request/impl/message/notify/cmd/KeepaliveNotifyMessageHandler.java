@@ -73,16 +73,27 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         SIPRequest request = (SIPRequest) evt.getRequest();
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
+        boolean addressChanged = false;
         if (device.getIp() == null || !device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
             log.info("[收到心跳] 地址变化, {}({}), {}:{}->{}:{}", device.getName(), device.getDeviceId(), device.getIp(), device.getPort(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
             device.setLocalIp(request.getLocalAddress().getHostAddress());
+            addressChanged = true;
+        }
+        String transport = request.getTopmostViaHeader().getTransport();
+        transport = "TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP";
+        if (!transport.equals(device.getTransport())) {
+            device.setTransport(transport);
+            addressChanged = true;
         }
         device.setKeepaliveTimeStamp(System.currentTimeMillis());
 
         if (device.isOnLine()) {
+            if (addressChanged) {
+                deviceService.updateDevice(device);
+            }
             long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
             deviceStatusManager.add(device.getDeviceId(), expiresTime + System.currentTimeMillis());
         } else {

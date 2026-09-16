@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,9 +114,10 @@ public class ApiStreamController {
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","timeout");
             result.setResult(resultJSON);
+            inviteStreamService.call(InviteSessionType.PLAY, deviceChannel.getId(), null,
+                    ErrorCode.ERROR100.getCode(), "点播超时", null);
             inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceChannel.getId());
             deviceChannelService.stopPlay(deviceChannel.getId());
-            // 清理RTP server
         });
 
         MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);

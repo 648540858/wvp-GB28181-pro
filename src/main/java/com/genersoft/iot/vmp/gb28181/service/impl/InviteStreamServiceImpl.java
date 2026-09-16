@@ -220,6 +220,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         String key = VideoManagerConstants.INVITE_PREFIX;
         if (type == null && channelId == null && stream == null) {
             redisTemplate.delete(key);
+            inviteErrorCallbackMap.clear();
             return;
         }
         String keyPattern = (type != null ? type : "*") + ":" + (channelId != null ? channelId : "*") + ":" + (stream != null ? stream : "*");
@@ -235,6 +236,20 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         if (!objectKeys.isEmpty()) {
             redisTemplate.opsForHash().delete(key, objectKeys.toArray());
         }
+        clearInviteCallbacks(type, channelId, stream);
+    }
+
+    private void clearInviteCallbacks(InviteSessionType type, Integer channelId, String stream) {
+        if (type == null || channelId == null) {
+            return;
+        }
+        String prefix = type + ":" + channelId;
+        if (stream != null) {
+            inviteErrorCallbackMap.remove(prefix);
+            inviteErrorCallbackMap.remove(prefix + ":" + stream);
+            return;
+        }
+        inviteErrorCallbackMap.keySet().removeIf(k -> k.equals(prefix) || k.startsWith(prefix + ":"));
     }
 
     @Override

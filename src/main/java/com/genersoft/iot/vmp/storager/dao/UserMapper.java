@@ -22,6 +22,7 @@ public interface UserMapper {
             "<if test=\"role != null\">, role_id=#{role.id}</if>" +
             "<if test=\"password != null\">, password=#{password}</if>" +
             "<if test=\"username != null\">, username=#{username}</if>" +
+            ", default_password=#{defaultPassword} " +
             "WHERE id=#{id}" +
             " </script>"})
     int update(User user);

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp;
 
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.jt1078.util.ClassUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -12,6 +11,7 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import jakarta.servlet.ServletContext;
@@ -26,6 +26,7 @@ import java.util.Collections;
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
 @EnableScheduling
+@EnableAsync(proxyTargetClass = true)
 @EnableCaching
 @Slf4j
 public class VManageBootstrap extends SpringBootServletInitializer {

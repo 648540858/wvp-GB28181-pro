@@ -88,4 +88,13 @@ public interface IInviteStreamService {
      * 更新ssrc
      */
     InviteInfo updateInviteInfoForSSRC(InviteInfo inviteInfo, String ssrcInResponse);
+
+    /**
+     * 判断流注销事件是否属于旧会话（流实例创建时间早于当前invite会话），
+     * 避免停止后重新点播时，旧流的迟到注销事件误清理/误BYE新会话
+     * @param inviteInfo 当前流对应的invite信息
+     * @param streamCreateStamp 流实例创建时间戳(秒)，来自ZLM on_stream_changed，为null时无法判断
+     * @return true 表示事件属于旧会话，应跳过清理
+     */
+    boolean isStaleStreamDeparture(InviteInfo inviteInfo, Long streamCreateStamp);
 }

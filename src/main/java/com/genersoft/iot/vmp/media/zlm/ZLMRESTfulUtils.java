@@ -646,12 +646,13 @@ public class ZLMRESTfulUtils {
         sendPost(mediaServer, "kick_sessions",param, null);
     }
 
-    public byte[] getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public byte[] getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec,
+                          boolean async, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>(3);
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
-        param.put("async", 1);
+        param.put("async", async ? 1 : 0);
         return sendGetForImg(mediaServer, "getSnap", param, targetPath, fileName);
     }
 

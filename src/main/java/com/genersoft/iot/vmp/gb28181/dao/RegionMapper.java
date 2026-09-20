@@ -108,35 +108,12 @@ public interface RegionMapper {
 
 
     @Update(value = " <script>" +
-            " update wvp_common_region w1 " +
-            " inner join (select * from wvp_common_region ) w2 on w1.parent_device_id = w2.device_id " +
-            " set w1.parent_id = w2.id" +
+            " update wvp_common_region w1" +
+            " set parent_id = (select w2.id from wvp_common_region w2 where w1.parent_device_id = w2.device_id)" +
             " where w1.id in " +
             " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "mysql")
-    @Update(value = " <script>" +
-            " update wvp_common_region w1 " +
-            " inner join (select * from wvp_common_region ) w2 on w1.parent_device_id = w2.device_id " +
-            " set w1.parent_id = w2.id" +
-            " where w1.id in " +
-            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "h2")
-    @Update( value = " <script>" +
-            " update wvp_common_region w1\n" +
-            " set parent_id = w2.id\n" +
-            " from wvp_common_region w2\n" +
-            " where w1.parent_device_id = w2.device_id\n" +
-            "  and w1.id in " +
-            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "kingbase")
-    @Update( value = " <script>" +
-            " update wvp_common_region w1\n" +
-            " set parent_id = w2.id\n" +
-            " from wvp_common_region w2\n" +
-            " where w1.parent_device_id = w2.device_id\n" +
-            "  and w1.id in " +
-            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "postgresql")
+            " and exists (select 1 from wvp_common_region w2 where w1.parent_device_id = w2.device_id)" +
+            " </script>")
     void updateParentId(List<Region> regionListForAdd);
 
     @Update(" <script>" +

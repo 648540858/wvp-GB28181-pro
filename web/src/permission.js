@@ -2,12 +2,12 @@ import router from './router'
 import store from './store'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import { getToken, getName, getServerId } from '@/utils/auth' // get token from cookie
+import { getToken, getName, getServerId, getDefaultPassword } from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/login', '/play/share'] // no redirect whitelist
+const whiteList = ['/login', '/play/share', '/forceChangePassword'] // no redirect whitelist
 
 router.beforeEach(async(to, from, next) => {
   // start progress bar
@@ -29,6 +29,13 @@ router.beforeEach(async(to, from, next) => {
       if (!hasGetUserInfo) {
         store.commit('user/SET_NAME', getName())
         store.commit('user/SET_SERVER_ID', getServerId())
+        store.commit('user/SET_DEFAULT_PASSWORD', getDefaultPassword())
+      }
+      // 使用默认密码登录的用户：仅允许访问强制改密页，其他页面重定向到改密页
+      if (store.state.user.defaultPassword && to.path !== '/forceChangePassword') {
+        next({ path: '/forceChangePassword' })
+        NProgress.done()
+        return
       }
       next()
     }

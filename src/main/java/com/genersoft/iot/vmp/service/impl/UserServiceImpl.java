@@ -26,6 +26,8 @@ public class UserServiceImpl implements IUserService {
     public boolean changePassword(int id, String password) {
         User user = userMapper.selectById(id);
         user.setPassword(password);
+        // 修改密码后取消默认密码标记
+        user.setDefaultPassword(false);
         return userMapper.update(user) > 0;
     }
 

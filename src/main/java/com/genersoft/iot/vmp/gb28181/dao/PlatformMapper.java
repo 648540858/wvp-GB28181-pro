@@ -20,7 +20,7 @@ public interface PlatformMapper {
             " VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIp}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             " #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{status}, #{catalogGroup},#{updateTime}," +
             " #{createTime}, #{asMessageChannel}, #{sendStreamIp}, #{autoPushChannel}, #{catalogWithPlatform}, #{catalogWithGroup},#{catalogWithRegion}, " +
-            " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy}, #{serverId})")
+             " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy}, #{serverId})")
     int add(Platform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
@@ -81,6 +81,7 @@ public interface PlatformMapper {
     List<Platform> queryEnableParentPlatformListByServerId(@Param("serverId") String serverId, @Param("enable") boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")
+    @Select(value = "SELECT * FROM wvp_platform WHERE enable=1 and as_message_channel=1", databaseId = "dm")
     List<Platform> queryEnablePlatformListWithAsMessageChannel();
 
     @Select("SELECT * FROM wvp_platform WHERE server_gb_id=#{platformGbId}")
@@ -93,6 +94,8 @@ public interface PlatformMapper {
     int updateStatus(@Param("id") int id, @Param("online") boolean online, @Param("serverId") String serverId);
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
+    @Select(value = "SELECT server_id FROM wvp_platform WHERE enable=1 and server_id !=" +
+            "#{serverId} group by server_id", databaseId = "dm")
     List<String> queryServerIdsWithEnableAndNotInServer(@Param("serverId") String serverId);
 
     @Select("SELECT * FROM wvp_platform WHERE server_id = #{serverId}")
@@ -102,9 +105,12 @@ public interface PlatformMapper {
     List<Platform> queryAll();
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and server_id = #{serverId}")
+    @Select(value = "SELECT * FROM wvp_platform WHERE enable=1 and server_id =" +
+            "#{serverId}", databaseId = "dm")
     List<Platform> queryServerIdsWithEnableAndServer(@Param("serverId") String serverId);
 
     @Update("UPDATE wvp_platform SET status=false where server_id = #{serverId}" )
+    @Update(value = "UPDATE wvp_platform SET status=0 where server_id = #{serverId}", databaseId = "dm")
     void offlineAll(@Param("serverId") String serverId);
 
 }

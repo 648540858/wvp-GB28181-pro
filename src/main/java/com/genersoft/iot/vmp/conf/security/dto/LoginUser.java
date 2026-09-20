@@ -111,4 +111,11 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         return user.getPushKey();
     }
 
+    /**
+     * 当前登录用户是否仍使用默认密码（需强制修改）
+     */
+    public boolean isDefaultPassword() {
+        return user.isDefaultPassword();
+    }
+
 }

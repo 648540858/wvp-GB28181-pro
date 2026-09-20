@@ -38,6 +38,12 @@ export const constantRoutes = [
   },
 
   {
+    path: '/forceChangePassword',
+    component: () => import('@/views/user/forceChangePassword'),
+    hidden: true
+  },
+
+  {
     path: '/404',
     component: () => import('@/views/404'),
     hidden: true

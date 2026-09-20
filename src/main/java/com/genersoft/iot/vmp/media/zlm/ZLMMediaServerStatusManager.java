@@ -263,7 +263,6 @@ public class ZLMMediaServerStatusManager {
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
         param.put("hook.on_play",String.format("%s/on_play", hookPrefix));
-        param.put("hook.on_http_access","");
         param.put("hook.on_publish", String.format("%s/on_publish", hookPrefix));
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
@@ -278,6 +277,8 @@ public class ZLMMediaServerStatusManager {
         param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
         param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrefix));
         param.put("hook.timeoutSec","30");
+        // 默认禁用目录浏览
+        param.put("http.dirMenu","0");
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间

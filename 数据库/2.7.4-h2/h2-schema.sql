@@ -357,13 +357,14 @@ create table IF NOT EXISTS wvp_cloud_record
 
 create table IF NOT EXISTS wvp_user
 (
-    id          bigint primary key,
-    username    character varying(255),
-    password    character varying(255),
-    role_id     integer,
-    create_time character varying(50),
-    update_time character varying(50),
-    push_key    character varying(50),
+    id               bigint primary key,
+    username         character varying(255),
+    password         character varying(255),
+    role_id          integer,
+    create_time      character varying(50),
+    update_time      character varying(50),
+    push_key         character varying(50),
+    default_password bool default false,
     constraint uk_user_username unique (username)
 );
 

@@ -847,6 +847,92 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    /**
+     * 达梦(DM8)圆形范围查询：不使用空间函数，改用弧度制球面距离(havesine)计算，半径以米为单位。
+     * 与 ST_Distance_Sphere(= 米) 语义一致。<br>
+     * 注意：若达梦实例可加载空间扩展，可改为等价空间函数；此处以纯算术后备，保证可运行。
+     */
+    public String queryListInCircleForDm(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null or  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        for (int i = 0; i < groupList.size(); i++) {
+            if (i > 0) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("#{groupList[").append(i).append("].deviceId}");
+        }
+        sqlBuild.append(" )");
+
+        sqlBuild.append("AND (" +
+                " 6371000.0 * " +
+                " acos ( " +
+                "    least(1.0," +
+                "         cos(radians(#{centerLatitude})) * cos(radians(coalesce(wdc.gb_latitude, wdc.latitude))) * " +
+                "         cos(radians(coalesce(wdc.gb_longitude, wdc.longitude)) - radians(#{centerLongitude}))" +
+                "         + sin(radians(#{centerLatitude})) * sin(radians(coalesce(wdc.gb_latitude, wdc.latitude))) " +
+                "    )" +
+                " ) < #{radius})");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} or map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
+    /**
+     * 达梦(DM8)多边形范围查询：不使用空间函数，改用射线法(point-in-polygon)判断经纬度点在多边形内。
+     * 通过 MOD(SUM(CASE WHEN ...),2)=1 统计穿越次数为奇数判断。
+     */
+    public String queryListInPolygonForDm(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null or  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        for (int i = 0; i < groupList.size(); i++) {
+            if (i > 0) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("#{groupList[").append(i).append("].deviceId}");
+        }
+        sqlBuild.append(" )");
+
+        List<Point> pointList = (List<Point>)params.get("pointList");
+        // 射线法：对每条边，若 (p1.lat > py) != (p2.lat > py) 且 px < p2.lng + (py-p2.lat)*(p1.lng-p2.lng)/(p1.lat-p2.lat) 则穿越
+        sqlBuild.append("AND MOD(");
+        int n = pointList.size();
+        for (int i = 0; i < n; i++) {
+            Point p1 = pointList.get(i);
+            Point p2 = pointList.get((i + 1) % n);
+            if (i > 0) {
+                sqlBuild.append(" + ");
+            }
+            sqlBuild.append("CASE WHEN (");
+            sqlBuild.append(" #{pointList[").append(i).append("].lat} > coalesce(wdc.gb_latitude, wdc.latitude) ");
+            sqlBuild.append(") != (");
+            sqlBuild.append(" #{pointList[").append((i + 1) % n).append("].lat} > coalesce(wdc.gb_latitude, wdc.latitude) ");
+            sqlBuild.append(") AND (");
+            sqlBuild.append(" coalesce(wdc.gb_longitude, wdc.longitude) < (").append(p2.getLng())
+                .append(" + (coalesce(wdc.gb_latitude, wdc.latitude) - ").append(p2.getLat())
+                .append(") * (").append(p1.getLng()).append(" - ").append(p2.getLng())
+                .append(") / NULLIF(").append(p1.getLat()).append(" - ").append(p2.getLat()).append(", 0))");
+            sqlBuild.append(") THEN 1 ELSE 0 END");
+        }
+        sqlBuild.append(" ), 2) = 1");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} or map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
     public String queryGbChannelByChannelDeviceIdAndGbDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);

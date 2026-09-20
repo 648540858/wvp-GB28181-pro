@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
+import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import jakarta.servlet.FilterChain;
@@ -33,6 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IUserService userService;
 
 
     @Override
@@ -107,6 +111,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Role role = new Role();
         role.setId(jwtUser.getRoleId());
         user.setRole(role);
+
+        // 加载真实用户（含 defaultPassword），用于默认密码访问限制
+        User dbUser = userService.getUserById(jwtUser.getUserId());
+        user.setDefaultPassword(dbUser != null && dbUser.isDefaultPassword());
+
+        // 默认密码用户：仅允许修改密码与登出接口
+        if (user.isDefaultPassword()) {
+            if (!requestURI.equalsIgnoreCase("/api/user/changePassword")
+                    && !requestURI.equalsIgnoreCase("/api/user/logout")) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+        }
+
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, jwtUser.getPassword(), new ArrayList<>() );
         SecurityContextHolder.getContext().setAuthentication(token);
         chain.doFilter(request, response);

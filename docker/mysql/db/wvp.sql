@@ -381,13 +381,14 @@ create table IF NOT EXISTS wvp_cloud_record
 drop table IF EXISTS wvp_user;
 create table IF NOT EXISTS wvp_user
 (
-    id          serial primary key,
-    username    character varying(255),
-    password    character varying(255),
-    role_id     integer,
-    create_time character varying(50),
-    update_time character varying(50),
-    push_key    character varying(50),
+    id               serial primary key,
+    username         character varying(255),
+    password         character varying(255),
+    role_id          integer,
+    create_time      character varying(50),
+    update_time      character varying(50),
+    push_key         character varying(50),
+    default_password bool default false,
     constraint uk_user_username unique (username)
 );
 
@@ -418,9 +419,9 @@ create table IF NOT EXISTS wvp_user_api_key
 
 
 /*初始数据*/
-INSERT INTO wvp_user
+INSERT INTO wvp_user (id, username, password, role_id, create_time, update_time, push_key, default_password)
 VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57', '2021-04-13 14:14:57',
-        '3e80d1762a324d5b0ff636e0bd16f1e3');
+        '3e80d1762a324d5b0ff636e0bd16f1e3', TRUE);
 INSERT INTO wvp_user_role
 VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

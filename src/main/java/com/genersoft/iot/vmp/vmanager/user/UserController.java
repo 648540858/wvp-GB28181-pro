@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.user;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.conf.security.PasswordComplexityValidator;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.service.IRoleService;
@@ -45,6 +46,9 @@ public class UserController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private PasswordComplexityValidator passwordComplexityValidator;
 
     @GetMapping("/login")
     @PostMapping("/login")
@@ -89,6 +93,10 @@ public class UserController {
             if (user == null) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
+            // 密码复杂度校验
+            if (!passwordComplexityValidator.validatePassword(password, username)) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
+            }
             //int userId = SecurityUtils.getUserId();
             boolean result = userService.changePassword(user.getId(), DigestUtils.md5DigestAsHex(password.getBytes()));
             if (!result) {
@@ -110,6 +118,10 @@ public class UserController {
                                                  @RequestParam Integer roleId){
         if (ObjectUtils.isEmpty(username) || ObjectUtils.isEmpty(password) || roleId == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "参数不可为空");
+        }
+        // 密码复杂度校验
+        if (!passwordComplexityValidator.validatePassword(password, username)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
         }
         // 获取当前登录用户id
         int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
@@ -204,6 +216,12 @@ public class UserController {
         }
         Role role = userInfo.getRole();
         if (role != null && role.getId() == 1) {
+            // 密码复杂度校验
+            User changeUser = userService.getUserById(userId);
+            String changeUsername = changeUser != null ? changeUser.getUsername() : String.valueOf(userId);
+            if (!passwordComplexityValidator.validatePassword(password, changeUsername)) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
+            }
             boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));
             if (!result) {
                 throw new ControllerException(ErrorCode.ERROR100);

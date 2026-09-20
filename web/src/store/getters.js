@@ -5,6 +5,7 @@ const getters = {
   showConfirmBoxForLoginLose: state => state.user.showConfirmBoxForLoginLose,
   serverId: state => state.user.serverId,
   name: state => state.user.name,
+  defaultPassword: state => state.user.defaultPassword,
   visitedViews: state => state.tagsView.visitedViews,
   cachedViews: state => state.tagsView.cachedViews
 }

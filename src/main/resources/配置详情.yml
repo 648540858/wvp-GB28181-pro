@@ -48,13 +48,20 @@ spring:
         #        driver-class-name: com.kingbase8.Driver
         #        url: jdbc:kingbase8://192.168.1.55:54321/wvp?useUnicode=true&characterEncoding=utf8
         #        username: system
-        #        password: system
+        #        password:
         # postgresql配置
         #    type: com.zaxxer.hikari.HikariDataSource
         #    driver-class-name: org.postgresql.Driver
         #    url: jdbc:postgresql://192.168.1.242:3306/242wvp
         #    username: root
-        #    password: SYceshizu1234
+        #    password:
+        # 达梦数据库(DM8)配置
+        #    type: com.zaxxer.hikari.HikariDataSource
+        #    driver-class-name: dm.jdbc.driver.DmDriver
+        #    url: jdbc:dm://192.168.1.238:5236?keyWords=(model,owner,block,status,secret,type,enable,self,alias,snap,start,stop)
+        #    username: SYSDBA
+        #    # [必须修改] 达梦数据库密码，由用户手动填写
+        #    password:
         # mysql配置
         type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
@@ -272,6 +279,8 @@ user-settings:
     alarm-catch-size: 10000
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     alarm-snap-by-stream: true
+    # 截图是否使用 ZLM 内部解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，部分环境内部解码截图会失败(ZLM 报错 decode frame timeout)
+    snap-async: false
     # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
     allowed-alarm-type:
       - IntrusionDetection

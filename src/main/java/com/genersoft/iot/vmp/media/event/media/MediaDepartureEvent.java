@@ -12,6 +12,19 @@ public class MediaDepartureEvent extends MediaEvent {
         super(source);
     }
 
+    /**
+     * 流实例创建时间戳(秒)，来自ZLM on_stream_changed，用于区分旧会话的迟到注销事件
+     */
+    private Long createStamp;
+
+    public Long getCreateStamp() {
+        return createStamp;
+    }
+
+    public void setCreateStamp(Long createStamp) {
+        this.createStamp = createStamp;
+    }
+
     public static MediaDepartureEvent getInstance(Object source, OnStreamChangedHookParam hookParam, MediaServer mediaServer){
         MediaDepartureEvent mediaDepartureEven = new MediaDepartureEvent(source);
         mediaDepartureEven.setApp(hookParam.getApp());

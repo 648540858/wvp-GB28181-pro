@@ -119,7 +119,10 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     }
                     Map<String, String> map = recordList.stream()
                             .filter(record -> record.getDeviceId() != null)
-                            .collect(Collectors.toMap(record -> record.getStartTime()+ record.getEndTime(), UJson::writeJson));
+                            .collect(Collectors.toMap(record -> record.getStartTime()+ record.getEndTime(), UJson::writeJson,(existing, replacement) -> {
+						log.warn("[国标录像] 发现重复录像记录，时间段: {}, 保留第一条", existing);
+						return existing;
+					}));
                     // 获取任务结果数据
                     String resKey = VideoManagerConstants.REDIS_RECORD_INFO_RES_PRE + channelId + sn;
                     redisTemplate.opsForHash().putAll(resKey, map);

@@ -212,6 +212,36 @@ public interface DeviceMapper {
             "server_id,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
+    @Select(value = "SELECT " +
+            "id, " +
+            "device_id, " +
+            "coalesce(custom_name, name) as name, " +
+            "password, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "stream_mode," +
+            "ip," +
+            "sdp_ip,"+
+            "local_ip,"+
+            "port,"+
+            "host_address,"+
+            "expires,"+
+            "create_time,"+
+            "update_time,"+
+            "charset,"+
+            "subscribe_cycle_for_catalog,"+
+            "subscribe_cycle_for_mobile_position,"+
+            "mobile_position_submission_interval,"+
+            "subscribe_cycle_for_alarm,"+
+            "ssrc_check,"+
+            "as_message_channel,"+
+            "broadcast_push_after_ack,"+
+            "geo_coord_sys,"+
+            "server_id,"+
+            "on_line"+
+            " FROM wvp_device WHERE on_line = 1", databaseId = "dm")
     List<Device> getOnlineDevices();
 
     @Select("SELECT " +
@@ -245,6 +275,37 @@ public interface DeviceMapper {
             "server_id,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true and server_id = #{serverId}")
+    @Select(value = "SELECT " +
+            "id, " +
+            "device_id, " +
+            "coalesce(custom_name, name) as name, " +
+            "password, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "stream_mode," +
+            "ip," +
+            "sdp_ip,"+
+            "local_ip,"+
+            "port,"+
+            "host_address,"+
+            "expires,"+
+            "create_time,"+
+            "update_time,"+
+            "charset,"+
+            "subscribe_cycle_for_catalog,"+
+            "subscribe_cycle_for_mobile_position,"+
+            "mobile_position_submission_interval,"+
+            "subscribe_cycle_for_alarm,"+
+            "ssrc_check,"+
+            "media_server_id,"+
+            "as_message_channel,"+
+            "broadcast_push_after_ack,"+
+            "geo_coord_sys,"+
+            "server_id,"+
+            "on_line"+
+            " FROM wvp_device WHERE on_line = 1 and server_id = #{serverId}", databaseId = "dm")
     List<Device> getOnlineDevicesByServerId(@Param("serverId") String serverId);
 
     @Select("SELECT " +
@@ -408,6 +469,12 @@ public interface DeviceMapper {
             " WHERE id in"+
             "<foreach collection='offlineDevices' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>"})
+    @Update(value = {" <script>" +
+            "UPDATE wvp_device " +
+            "SET on_line=0" +
+            " WHERE id in"+
+            "<foreach collection='offlineDevices' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>"}, databaseId = "dm")
     void offlineByList(List<Device> offlineDevices);
 
 

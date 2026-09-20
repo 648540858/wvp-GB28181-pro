@@ -207,85 +207,30 @@ public interface GroupMapper {
     Set<Group> queryByChannelList(List<CommonGBChannel> channelList);
 
     @Update(value = " <script>" +
-            " update wvp_common_group w1 " +
-            " inner join (select * from wvp_common_group ) w2 on w1.parent_device_id = w2.device_id " +
-            " set w1.parent_id = w2.id" +
+            " update wvp_common_group w1" +
+            " set parent_id = (select w2.id from wvp_common_group w2 where w1.parent_device_id = w2.device_id)" +
             " where w1.id in " +
             " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "mysql")
-    @Update(value = " <script>" +
-            " update wvp_common_group w1 " +
-            " inner join (select * from wvp_common_group ) w2 on w1.parent_device_id = w2.device_id " +
-            " set w1.parent_id = w2.id" +
-            " where w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "h2")
-    @Update( value = " <script>" +
-            " update wvp_common_group w1\n" +
-            " set parent_id = w2.id\n" +
-            " from wvp_common_group w2\n" +
-            " where w1.parent_device_id = w2.device_id\n" +
-            "  and w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "postgresql")
-    @Update( value = " <script>" +
-            " update wvp_common_group w1\n" +
-            " set parent_id = w2.id\n" +
-            " from wvp_common_group w2\n" +
-            " where w1.parent_device_id = w2.device_id\n" +
-            "  and w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "kingbase")
+            " and exists (select 1 from wvp_common_group w2 where w1.parent_device_id = w2.device_id)" +
+            " </script>")
     void updateParentId(List<Group> groupListForAdd);
 
     @Update(value = " <script>" +
-            " update wvp_common_group w1 " +
-            "    inner join (select * from wvp_common_group ) w2" +
-            "    on w1.parent_device_id is null" +
-            "           and w2.parent_device_id is null" +
-            "           and w2.device_id = w2.business_group " +
-            "           and w1.business_group = w2.device_id " +
-            "            and w1.device_id != w1.business_group " +
-            " set w1.parent_id = w2.id" +
-            " where w1.id in " +
+            " update wvp_common_group w1" +
+            " set parent_id = (select w2.id from wvp_common_group w2" +
+            "                  where w2.parent_device_id is null" +
+            "                   and w2.device_id = w2.business_group" +
+            "                   and w1.business_group = w2.device_id" +
+            "                   and w1.device_id != w1.business_group)" +
+            " where w1.parent_device_id is null" +
+            "   and w1.id in " +
             " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "mysql")
-    @Update(value = " <script>" +
-            " update wvp_common_group w1 " +
-            "    inner join (select * from wvp_common_group ) w2" +
-            "    on w1.parent_device_id is null" +
-            "           and w2.parent_device_id is null" +
-            "           and w2.device_id = w2.business_group " +
-            "           and w1.business_group = w2.device_id " +
-            "            and w1.device_id != w1.business_group " +
-            " set w1.parent_id = w2.id" +
-            " where w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "h2")
-    @Update( value = " <script>" +
-            " update wvp_common_group w1 " +
-            " set parent_id = w2.id " +
-            " from wvp_common_group w2 " +
-            " where w1.parent_device_id is null " +
-            "       and w2.parent_device_id is null " +
-            "       and w2.device_id = w2.business_group " +
-            "       and w1.business_group = w2.device_id " +
-            "       and w1.device_id != w1.business_group " +
-            "       and w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "kingbase")
-    @Update( value = " <script>" +
-            " update wvp_common_group w1 " +
-            " set parent_id = w2.id " +
-            " from wvp_common_group w2 " +
-            " where w1.parent_device_id is null " +
-            "       and w2.parent_device_id is null " +
-            "       and w2.device_id = w2.business_group " +
-            "       and w1.business_group = w2.device_id " +
-            "       and w1.device_id != w1.business_group " +
-            "       and w1.id in " +
-            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>", databaseId = "postgresql")
+            "   and exists (select 1 from wvp_common_group w2" +
+            "              where w2.parent_device_id is null" +
+            "               and w2.device_id = w2.business_group" +
+            "               and w1.business_group = w2.device_id" +
+            "               and w1.device_id != w1.business_group)" +
+            " </script>")
     void updateParentIdWithBusinessGroup(List<Group> groupListForAdd);
 
     @Select(" <script>" +
@@ -329,25 +274,9 @@ public interface GroupMapper {
     void deleteHasAlias();
 
     @Update(value = " UPDATE wvp_common_group g1" +
-            "    JOIN wvp_common_group g2" +
-            "    ON g1.parent_device_id = g2.device_id" +
-            " SET g1.parent_id = g2.id" +
-            " WHERE g1.alias IS NOT NULL;", databaseId = "mysql")
-    @Update(value = " UPDATE wvp_common_group g1" +
-            "    JOIN wvp_common_group g2" +
-            "    ON g1.parent_device_id = g2.device_id" +
-            " SET g1.parent_id = g2.id" +
-            " WHERE g1.alias IS NOT NULL;", databaseId = "h2")
-    @Update(value = " UPDATE wvp_common_group AS g1" +
-            " SET parent_id = g2.id" +
-            " FROM wvp_common_group AS g2" +
-            " WHERE g1.parent_device_id = g2.device_id" +
-            "  AND g1.alias IS NOT NULL;", databaseId = "kingbase")
-    @Update(value = " UPDATE wvp_common_group AS g1" +
-            " SET parent_id = g2.id" +
-            " FROM wvp_common_group AS g2" +
-            " WHERE g1.parent_device_id = g2.device_id" +
-            "  AND g1.alias IS NOT NULL;", databaseId = "postgresql")
+            " SET g1.parent_id = (SELECT g2.id FROM wvp_common_group g2 WHERE g1.parent_device_id = g2.device_id)" +
+            " WHERE g1.alias IS NOT NULL" +
+            "   AND EXISTS (SELECT 1 FROM wvp_common_group g2 WHERE g1.parent_device_id = g2.device_id)")
     void fixParentId();
 
 }

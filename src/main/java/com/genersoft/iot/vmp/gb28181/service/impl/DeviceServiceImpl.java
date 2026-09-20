@@ -314,10 +314,14 @@ public class DeviceServiceImpl implements IDeviceService {
             inviteStreamService.clearInviteInfo(device.getDeviceId());
         }
         device.setUpdateTime(now);
-        if (device.getHeartBeatCount() == null) {
+        if (device.getHeartBeatCount() == null || device.getHeartBeatCount() <= 0) {
             // 读取设备配置， 获取心跳间隔和心跳超时次数， 在次之前暂时设置为默认值
             device.setHeartBeatCount(3);
+        }
+        if (device.getHeartBeatInterval() == null || device.getHeartBeatInterval() <= 0) {
             device.setHeartBeatInterval(60);
+        }
+        if (device.getPositionCapability() == null) {
             device.setPositionCapability(0);
         }
 
@@ -1100,6 +1104,16 @@ public class DeviceServiceImpl implements IDeviceService {
         Device deviceInDb = deviceMapper.query(device.getId());
         if (deviceInDb == null) {
             return;
+        }
+        // 心跳参数缺失或非法(<=0)时回退默认值，防止设备上报0导致刚上线即被判离线
+        if (device.getHeartBeatCount() == null || device.getHeartBeatCount() <= 0) {
+            device.setHeartBeatCount(3);
+        }
+        if (device.getHeartBeatInterval() == null || device.getHeartBeatInterval() <= 0) {
+            device.setHeartBeatInterval(60);
+        }
+        if (device.getPositionCapability() == null) {
+            device.setPositionCapability(0);
         }
         if (!Objects.equals(deviceInDb.getHeartBeatCount(), device.getHeartBeatCount())
                 || !Objects.equals(deviceInDb.getHeartBeatInterval(), device.getHeartBeatInterval())) {

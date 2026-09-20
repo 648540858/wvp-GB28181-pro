@@ -99,41 +99,6 @@ public interface MediaServerMapper {
             " </script>"})
     int update(MediaServer mediaServerItem);
 
-    @Update(value = {" <script>" +
-            "UPDATE wvp_media_server " +
-            "SET update_time=#{updateTime}" +
-            "<if test=\"id != null\">, id=#{id}</if>" +
-            "<if test=\"hookIp != null\">, hook_ip=#{hookIp}</if>" +
-            "<if test=\"sdpIp != null\">, sdp_ip=#{sdpIp}</if>" +
-            "<if test=\"streamIp != null\">, stream_ip=#{streamIp}</if>" +
-            "<if test=\"httpSSlPort != null\">, http_ssl_port=#{httpSSlPort}</if>" +
-            "<if test=\"rtmpPort != null\">, rtmp_port=#{rtmpPort}</if>" +
-            "<if test=\"rtmpSSlPort != null\">, rtmp_ssl_port=#{rtmpSSlPort}</if>" +
-            "<if test=\"rtpProxyPort != null\">, rtp_proxy_port=#{rtpProxyPort}</if>" +
-            "<if test=\"jttProxyPort != null\">, jtt_proxy_port=#{jttProxyPort}</if>" +
-            "<if test=\"rtspPort != null\">, rtsp_port=#{rtspPort}</if>" +
-            "<if test=\"rtspSSLPort != null\">, rtsp_ssl_port=#{rtspSSLPort}</if>" +
-            "<if test=\"flvPort != null\">, flv_port=#{flvPort}</if>" +
-            "<if test=\"mp4Port != null\">, mp4_port=#{mp4Port}</if>" +
-            "<if test=\"flvSSLPort != null\">, flv_ssl_port=#{flvSSLPort}</if>" +
-            "<if test=\"wsFlvPort != null\">, ws_flv_port=#{wsFlvPort}</if>" +
-            "<if test=\"wsFlvSSLPort != null\">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>" +
-            "<if test=\"autoConfig != null\">, auto_config=#{autoConfig}</if>" +
-            "<if test=\"rtpEnable != null\">, rtp_enable=#{rtpEnable}</if>" +
-            "<if test=\"rtpPortRange != null\">, rtp_port_range=#{rtpPortRange}</if>" +
-            "<if test=\"sendRtpPortRange != null\">, send_rtp_port_range=#{sendRtpPortRange}</if>" +
-            "<if test=\"secret != null\">, secret=#{secret}</if>" +
-            "<if test=\"recordAssistPort != null\">, record_assist_port=#{recordAssistPort}</if>" +
-            "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
-            "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
-            "<if test=\"type != null\">, type=#{type}</if>" +
-            "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
-            "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
-            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
-            " WHERE ip=#{ip} and http_port=#{httpPort}"+
-            " </script>"})
-    int updateByHostAndPort(MediaServer mediaServerItem);
-
     @Select("SELECT * FROM wvp_media_server WHERE id=#{id}")
     MediaServer queryOne(@Param("id") String id);
 

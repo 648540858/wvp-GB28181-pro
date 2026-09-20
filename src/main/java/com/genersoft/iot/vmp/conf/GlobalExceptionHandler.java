@@ -107,6 +107,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<WVPResult<String>> exceptionHandler(BadCredentialsException e) {
-        return new ResponseEntity<>(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMessage()), HttpStatus.OK);
+        return new ResponseEntity<>(WVPResult.fail(ErrorCode.ERROR100.getCode(), "认证失败"), HttpStatus.OK);
     }
 }

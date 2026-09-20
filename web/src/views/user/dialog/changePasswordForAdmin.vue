@@ -11,12 +11,12 @@
       @close="close()"
     >
       <div id="shared" style="margin-right: 20px;">
-        <el-form ref="passwordForm" :rules="rules" status-icon label-width="80px">
+        <el-form ref="passwordForm" :model="passwordForm" :rules="rules" status-icon label-width="80px">
           <el-form-item label="新密码" prop="newPassword">
-            <el-input v-model="newPassword" autocomplete="off" />
+            <el-input v-model="passwordForm.newPassword" autocomplete="off" />
           </el-form-item>
           <el-form-item label="确认密码" prop="confirmPassword">
-            <el-input v-model="confirmPassword" autocomplete="off" />
+            <el-input v-model="passwordForm.confirmPassword" autocomplete="off" />
           </el-form-item>
 
           <el-form-item>
@@ -41,8 +41,15 @@ export default {
   props: {},
   data() {
     const validatePass1 = (rule, value, callback) => {
-      if (value === '') {
+      const username = (this.form && this.form.username) || ''
+      if (!value) {
         callback(new Error('请输入新密码'))
+      } else if (value.length < 10) {
+        callback(new Error('密码长度至少10位'))
+      } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{10,}$/.test(value)) {
+        callback(new Error('密码必须同时包含大写字母、小写字母、数字和特殊符号'))
+      } else if (username && value.toLowerCase().includes(username.toLowerCase())) {
+        callback(new Error('密码不能包含用户名'))
       } else {
         if (this.confirmPassword !== '') {
           this.$refs.passwordForm.validateField('confirmPassword')
@@ -60,23 +67,29 @@ export default {
       }
     }
     return {
-      newPassword: null,
-      confirmPassword: null,
+      passwordForm: {
+        newPassword: null,
+        confirmPassword: null
+      },
       userId: null,
       showDialog: false,
       isLoging: false,
       listChangeCallback: null,
       form: {},
       rules: {
-        newPassword: [{ required: true, validator: validatePass1, trigger: 'blur' }, {
-          pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,.\/]).{8,20}$/,
-          message: '密码长度在8-20位之间,由字母+数字+特殊字符组成'
-        }],
+        newPassword: [{ required: true, validator: validatePass1, trigger: 'blur' }],
         confirmPassword: [{ required: true, validator: validatePass2, trigger: 'blur' }]
       }
     }
   },
-  computed: {},
+  computed: {
+    newPassword: function() {
+      return this.passwordForm.newPassword
+    },
+    confirmPassword: function() {
+      return this.passwordForm.confirmPassword
+    }
+  },
   created() {},
   methods: {
     openDialog: function(row, callback) {
@@ -88,29 +101,38 @@ export default {
       }
     },
     onSubmit: function() {
-      this.$store.dispatch('user/changePasswordForAdmin', {
-        password: this.newPassword,
-        userId: this.form.id
-      })
-        .then(data => {
-          this.$message({
-            showClose: true,
-            message: '修改成功',
-            type: 'success'
+      this.$refs.passwordForm.validate(valid => {
+        if (!valid) {
+          return false
+        }
+        this.$store.dispatch('user/changePasswordForAdmin', {
+          password: this.passwordForm.newPassword,
+          userId: this.form.id
+        })
+          .then(data => {
+            this.$message({
+              showClose: true,
+              message: '修改成功',
+              type: 'success'
+            })
+            this.showDialog = false
+            if (this.listChangeCallback) {
+              this.listChangeCallback()
+            }
           })
-          this.showDialog = false
-        })
-        .catch((error) => {
-          console.error(error)
-        })
-        .finally(() => {
-          this.showDialog = false
-        })
+          .catch((error) => {
+            this.$message({
+              showClose: true,
+              message: error,
+              type: 'error'
+            })
+          })
+      })
     },
     close: function() {
       this.showDialog = false
-      this.newPassword = null
-      this.confirmPassword = null
+      this.passwordForm.newPassword = null
+      this.passwordForm.confirmPassword = null
       this.userId = null
       this.adminId = null
     }

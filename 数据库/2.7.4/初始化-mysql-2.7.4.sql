@@ -383,13 +383,14 @@ create table IF NOT EXISTS wvp_cloud_record
 drop table IF EXISTS wvp_user;
 create table IF NOT EXISTS wvp_user
 (
-    id          serial primary key COMMENT '主键ID',
-    username    character varying(255) COMMENT '用户名',
-    password    character varying(255) COMMENT '密码（MD5）',
-    role_id     integer COMMENT '角色ID',
-    create_time character varying(50) COMMENT '创建时间',
-    update_time character varying(50) COMMENT '更新时间',
-    push_key    character varying(50) COMMENT '推送密钥',
+    id               serial primary key COMMENT '主键ID',
+    username         character varying(255) COMMENT '用户名',
+    password         character varying(255) COMMENT '密码（MD5）',
+    role_id          integer COMMENT '角色ID',
+    create_time      character varying(50) COMMENT '创建时间',
+    update_time      character varying(50) COMMENT '更新时间',
+    push_key         character varying(50) COMMENT '推送密钥',
+    default_password bool default false COMMENT '是否使用默认密码',
     constraint uk_user_username unique (username)
 );
 
@@ -422,9 +423,9 @@ create table IF NOT EXISTS wvp_user_api_key
 
 /*初始数据*/
 -- 初始化管理员账号，账号admin 密码admin（MD5加密后）
-INSERT INTO wvp_user
+INSERT INTO wvp_user (id, username, password, role_id, create_time, update_time, push_key, default_password)
 VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57', '2021-04-13 14:14:57',
-        '3e80d1762a324d5b0ff636e0bd16f1e3');
+        '3e80d1762a324d5b0ff636e0bd16f1e3', TRUE);
 -- 初始化管理员角色
 INSERT INTO wvp_user_role
 VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');

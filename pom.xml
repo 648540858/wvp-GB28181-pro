@@ -185,6 +185,14 @@
             <version>8.6.0</version>
         </dependency>
 
+        <!-- 达梦数据库 DM8 -->
+        <dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver11</artifactId>
+            <version>8.1.5.45</version>
+            <optional>true</optional>
+        </dependency>
+
         <!--Mybatis分页插件 -->
         <dependency>
             <groupId>com.github.pagehelper</groupId>

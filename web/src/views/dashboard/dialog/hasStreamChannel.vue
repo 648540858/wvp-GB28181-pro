@@ -132,7 +132,10 @@ export default {
         })
     },
     stopDevicePush: function (row) {
-      this.$store.dispatch("play/stop", [row.parentDeviceId, row.deviceId]).then(_ => {
+      this.$store.dispatch("play/stop", {
+        deviceId: row.parentDeviceId,
+        channelId: row.deviceId
+      }).then(_ => {
         this.getChannelList();
       }).catch((error) => {
         if (error.response.status === 402) {

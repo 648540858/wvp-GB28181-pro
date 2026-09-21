@@ -1,158 +1,84 @@
-version: '3'
+# ============================================
+# WVP-GB28181-Pro 一键部署
+# wvp : 本项目镜像(H2文件数据库 + 代码内置内存模拟Redis, 无需外部MySQL/Redis)
+# zlm : ZLMediaKit 官方镜像(与代码master分支保持最新)
+#
+# 使用: 修改 .env 后执行  docker compose up -d
+# 配置: 首次启动后自动生成 ./config/ 目录(内置默认配置),
+#       修改 ./config/ 下文件后 docker compose restart wvp 生效
+# ============================================
 services:
-  polaris-redis:
-    image: redis:latest  # 使用官方Redis镜像
+  wvp:
+    # 使用已构建/已推送的镜像(镜像名 = ${DOCKER_HUB_USER}/wvp-GB28181-pro:${VERSION})
+    image: ${DOCKER_HUB_USER:-wvp}/wvp-gb28181-pro:${VERSION:-2.7.4}
+    # 本地构建镜像: 注释上面的 image, 取消下面注释(需先本地 mvn 编译出 jar)
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile
+    container_name: wvp
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    networks:
-      - media-net
-    # ports:
-    #   - 6379:6379
-    volumes:
-      - ./redis/conf/redis.conf:/opt/polaris/redis/redis.conf
-      - ./volumes/redis/data/:/data
-    environment:
-      TZ: "Asia/Shanghai"
-    command: redis-server /opt/polaris/redis/redis.conf --appendonly yes
-
-  polaris-mysql:
-    image: mysql:8  # 使用官方MySQL 8镜像
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/3306" ]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    networks:
-      - media-net
-    environment:
-      MYSQL_DATABASE: wvp
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: wvp_user
-      MYSQL_PASSWORD: wvp_password
-      TZ: Asia/Shanghai
-    # ports:
-    #   - 3306:3306
-    volumes:
-      - ./mysql/conf:/etc/mysql/conf.d
-      - ./logs/mysql:/logs
-      - ./volumes/mysql/data:/var/lib/mysql  
-      - ../数据库/2.7.4/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql  # 初始化SQL脚本目录
-    command: [
-          # '--default-authentication-plugin=mysql_native_password',
-          '--innodb-buffer-pool-size=80M',
-          '--character-set-server=utf8mb4',
-          '--collation-server=utf8mb4_general_ci',
-          '--default-time-zone=+8:00',
-          '--lower-case-table-names=1'
-        ]
-
-  polaris-media:
-    image: zlmediakit/zlmediakit:master  # 替换为官方镜像
-    restart: always
-    networks:
-      - media-net
     ports:
-     #- "6080:80/tcp"     # [播流]HTTP  安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
-     #- "4443:443/tcp"     # [播流]HTTPS 安全考虑-非测试阶段需要注释掉，改为由nginx代理播流地址
-      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/tcp"   # [收流]RTMP  
-      - "${MediaRtmp:-10935}:${MediaRtmp:-10935}/udp"   # [收流]RTMP  
-     #- "41935:41935/tcp"   # [收流]RTMPS 无效
-      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/tcp"     # [收流]RTSP  
-      - "${MediaRtsp:-5540}:${MediaRtsp:-5540}/udp"     # [收流]RTSP  
-     #- "45540:45540/tcp"   # [收流]RTSPS 无效
-      - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP   
-      - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP   
-    volumes:
-      - ./volumes/video:/opt/media/bin/www/record/
-      - ./logs/media:/opt/media/log/
-      - ./media/config.ini:/conf/config.ini
-    command: [
-        'MediaServer',
-        '-c', '/conf/config.ini',
-        '-l', '0'
-    ]
-
-  polaris-wvp:
-    # 显式指定构建上下文和Dockerfile路径
-    build:
-      context: ..  # 构建上下文的根路径
-      dockerfile: ./docker/wvp/Dockerfile  # 相对于上下文路径的Dockerfile位置
-    restart: always
-    networks:
-      - media-net
-    ports:
-      - "18978:18978"
-      - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"
+      - "${WVP_HTTP_PORT:-18978}:18978"          # Web界面与API
+      - "${SIP_Port:-8116}:${SIP_Port:-8116}/udp"  # GB28181信令
       - "${SIP_Port:-8116}:${SIP_Port:-8116}/tcp"
-    depends_on:
-      - polaris-redis
-      - polaris-mysql
-      - polaris-media
-    volumes:
-      - ./wvp/config:/opt/wvp/config
-      - ./wvp/wvp/:/opt/ylcx/wvp/
-      - ./logs/wvp:/opt/wvp/logs/
     environment:
       TZ: "Asia/Shanghai"
-      # docker env
-      RUN_ENV: "docker"
-      # 流链接的IP
-      Stream_IP: ${Stream_IP}
-      # SDP里的IP
+      # [可选] Java内存参数
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx1024m}
+      # [必须修改] 客户端播放流时访问ZLM使用的IP: 局域网填宿主机内网IP, 公网填公网IP
+      STREAM_IP: ${STREAM_IP}
+      # [必须修改] 设备向服务器推流时使用的IP, 一般与STREAM_IP相同
       SDP_IP: ${SDP_IP}
-      # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
-      ZLM_HOOK_HOST: polaris-wvp
-      ZLM_HOST: polaris-media
-      ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
-
-      MediaHttp: ${WebHttp:-8080}
-      #MediaHttps: ${WebHttps:-8081}
-      MediaRtmp: ${MediaRtmp:-10935}
-      MediaRtsp: ${MediaRtsp:-5540}
-      MediaRtp: ${MediaRtp:-10000}
-
-      REDIS_HOST: polaris-redis
-      REDIS_PORT: 6379
-
-      DATABASE_HOST: polaris-mysql
-      DATABASE_PORT: 3306
-      DATABASE_USER: wvp_user
-      DATABASE_PASSWORD: wvp_password
-
-      SIP_ShowIP: ${SIP_ShowIP}
+      # [可选] 前端展示用的IP
+      SIP_ShowIP: ${SIP_ShowIP:-127.0.0.1}
+      # GB28181服务器配置
       SIP_Port: ${SIP_Port:-8116}
-      SIP_Domain: ${SIP_Domain}
-      SIP_Id: ${SIP_Id}
-      SIP_Password: ${SIP_Password}
-
-      RecordSip: ${RecordSip}
-      RecordPushLive: ${RecordPushLive}
-
-  polaris-nginx:
-    # 显式指定构建上下文和Dockerfile路径
-    build:
-      context: ..  # 构建上下文的根路径
-      dockerfile: ./docker/nginx/Dockerfile  # 相对于上下文路径的Dockerfile位置
-    ports:
-      - "${WebHttp:-8080}:8080"
-    depends_on:
-      - polaris-wvp
+      SIP_Domain: ${SIP_Domain:-3502000000}
+      SIP_Id: ${SIP_Id:-35020000002000000001}
+      SIP_Password: ${SIP_Password:-wvp_sip_password}
+      # ZLM关联(compose内部用服务名, 无需修改)
+      ZLM_HOST: zlm
+      ZLM_HOOK_HOST: wvp
+      # [可选] 必须与 media/config.ini 中的 api.secret 一致
+      ZLM_SECRET: ${ZLM_SECRET:-su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf}
+      # RTP多端口范围(需在宿主机防火墙/云安全组放行)
+      RTP_RANGE_START: ${RTP_RANGE_START:-30000}
+      RTP_RANGE_END: ${RTP_RANGE_END:-30500}
+      RecordSip: ${RecordSip:-false}
+      RecordPushLive: ${RecordPushLive:-false}
     volumes:
-      - ./nginx/templates/:/etc/nginx/templates
-      - ./logs/nginx:/var/log/nginx
-    environment:
-      # 流链接的IP
-      Stream_IP: ${Stream_IP}
+      - ./config:/opt/wvp/config          # 配置目录(首次启动自动生成默认配置)
+      - ./data/wvp:/opt/wvp/data          # H2数据库持久化
+      - ./logs/wvp:/opt/wvp/logs          # WVP日志
+    depends_on:
+      - zlm
     networks:
-      - media-net
-      
+      - wvp-net
+
+  zlm:
+    # ZLMediaKit 官方镜像, github action 自动构建, 与代码(master分支)保持最新状态
+    image: zlmediakit/zlmediakit:master
+    container_name: zlm
+    restart: unless-stopped
+    ports:
+      - "${ZLM_HTTP:-8080}:80"                        # [播流]HTTP-FLV/fmp4/API
+      - "${ZLM_HTTPS:-8443}:443"                      # [播流]HTTPS
+      - "${ZLM_RTMP:-1935}:1935"                      # [推/拉流]RTMP
+      - "${ZLM_RTSP:-8554}:554"                       # [推/拉流]RTSP
+      - "${ZLM_RTP:-10000}:${ZLM_RTP:-10000}/tcp"     # [收流]RTP(单端口模式)
+      - "${ZLM_RTP:-10000}:${ZLM_RTP:-10000}/udp"
+      - "${ZLM_RTC:-8000}:8000/udp"                   # [播流]WebRTC
+      - "${ZLM_SRT:-9000}:9000/udp"                   # [推/拉流]SRT
+      - "${RTP_RANGE_START:-30000}-${RTP_RANGE_END:-30500}:${RTP_RANGE_START:-30000}-${RTP_RANGE_END:-30500}/tcp"  # [收流]RTP多端口模式
+      - "${RTP_RANGE_START:-30000}-${RTP_RANGE_END:-30500}:${RTP_RANGE_START:-30000}-${RTP_RANGE_END:-30500}/udp"
+    volumes:
+      - ./media/config.ini:/conf/config.ini           # ZLM配置(含hook指向wvp)
+      - ./data/zlm/record:/opt/media/bin/www/record   # 录像
+      - ./logs/zlm:/opt/media/log                     # ZLM日志
+    command: ['MediaServer', '-c', '/conf/config.ini', '-l', '0']
+    networks:
+      - wvp-net
+
 networks:
-  media-net:
+  wvp-net:
     driver: bridge

@@ -10,6 +10,7 @@ logs/*
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 src/main/resources/application-*.yml
+!src/main/resources/application-standalone-docker.yml
 # Package Files #
 #*.jar
 *.war
@@ -29,8 +30,11 @@ hs_err_pid*
 /src/main/resources/static/
 certificates
 /.vs
+/docker/config/
+/docker/data/
 /docker/volumes
-/docker/wvp/config/jwk.json
+/docker/wvp
+/data/
 /打包/
 /snap/
 /config/

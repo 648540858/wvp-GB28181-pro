@@ -1,0 +1,107 @@
+# ============================================
+# WVP Standalone Docker Profile
+# Profiles: standalone,docker
+# Combines H2+Caffeine with Docker env vars
+# ============================================
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  cache:
+    type: caffeine
+  thymeleaf:
+    cache: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/h2-schema.sql
+      data-locations: classpath:db/h2-data.sql
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:file:./data/wvp;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password:
+
+pagehelper:
+  helper-dialect: h2
+
+# WVP HTTP port (configurable via env)
+server:
+  port: ${WVP_HTTP_PORT:18978}
+  ssl:
+    enabled: false
+
+# GB28181 SIP configuration (configurable via env)
+sip:
+  ip: ${SIP_SHOW_IP:0.0.0.0}
+  port: ${SIP_PORT:8116}
+  domain: ${SIP_DOMAIN:3502000000}
+  id: ${SIP_ID:35020000002000000001}
+  password: ${SIP_PASSWORD:wvp_sip_password}
+
+# ZLMediaKit configuration
+media:
+  id: ${ZLM_ID:standalone}
+  # ZLM服务器地址(docker compose部署时使用服务名zlm, 单独部署时改为ZLM的IP)
+  ip: ${ZLM_HOST:${STREAM_IP:127.0.0.1}}
+  # ZLM回调WVP的地址(docker compose部署时使用服务名wvp, 单独部署时改为WVP的IP)
+  hook-ip: ${ZLM_HOOK_HOST:127.0.0.1}
+  http-port: ${ZLM_HTTP_PORT:80}
+  secret: ${ZLM_SECRET:su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf}
+  record-day: 10
+  record-path: ./www/record
+  rtp:
+    enable: true
+    port-range: ${RTP_RANGE_START:-30000},${RTP_RANGE_END:-30500}
+    send-port-range: ${RTP_SEND_RANGE_START:-30000},${RTP_SEND_RANGE_END:-30500}
+  sdp-ip: ${SDP_IP:${sip.ip}}
+  stream-ip: ${STREAM_IP:${sip.ip}}
+
+# JT1078 configuration (optional)
+ftp:
+  enable: false
+  port: 2121
+  passive-ports: 10000-10500
+
+jt1078:
+  enable: false
+  port: 18088
+  password: admin123
+  reader-idle-time: 20
+
+# User settings (defaults for standalone)
+user-settings:
+  interface-authentication-excludes:
+    - /api/sy/**
+    - /api/common/channel/map/thin/tile/**
+  play-timeout: 18000
+  record-push-live: ${RecordPushLive:true}
+  push-authority: true
+  record-sip: ${RecordSip:true}
+  auto-apply-play: false
+  device-status-notify: true
+  sip-log: false
+  sql-log: false
+  server-id: "765250"
+  save-position-history: true
+  broadcast-for-platform: TCP-ACTIVE
+  doc-enable: true
+  use-alias-for-group-sync: true
+  auto-register-platform: true
+  subscribe-mobile-position: true
+  device-id-strict: true
+
+# Logging
+logging:
+  level:
+    root: info
+    org.springframework: warn
+    com.polaris: info
+  logback:
+    rollingpolicy:
+      max-history: 30
+      max-file-size: 100MB

@@ -23,6 +23,23 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016、部标808、部标1078标准实�
 - 支持跨网网闸平台互联。
 
 
+# Docker 部署（快速开始）
+
+Docker Compose 一键部署：WVP 镜像（内置 H2 文件数据库 + 代码内置内存模拟 Redis，无需自备 MySQL/Redis）+ ZLMediaKit 官方镜像。
+
+```bash
+cd docker
+# 1. 修改 .env:
+#    DOCKER_HUB_USER  = 你的 Docker Hub 用户名(镜像仓库)
+#    STREAM_IP/SDP_IP = 部署宿主机IP(局域网填内网IP, 公网填公网IP)
+# 2. 启动
+docker compose up -d
+```
+
+浏览器访问 `http://<宿主机IP>:18978`，默认账号 admin/admin。
+
+本地构建镜像并推送到 Docker Hub、ZLM 单独使用官方镜像、配置修改与数据持久化等详细说明见 [docker/README.md](docker/README.md)。
+
 # 文档
 wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)  
 ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)

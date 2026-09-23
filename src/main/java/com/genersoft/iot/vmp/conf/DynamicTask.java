@@ -103,8 +103,14 @@ public class DynamicTask {
             return false;
         }
         boolean result = false;
-        if (!ObjectUtils.isEmpty(futureMap.get(key)) && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
-            result = futureMap.get(key).cancel(false);
+        ScheduledFuture<?> future = futureMap.get(key);
+        if (future != null) {
+            if (!future.isCancelled() && !future.isDone()) {
+                result = future.cancel(false);
+            }
+            // 已取消/已执行完成的任务不再需要取消，但必须从map中移除，
+            // 否则残留的 completed future 会拦截后续同key任务的注册(startDelay)，
+            // 例如收流超时看门狗执行完成后，同通道再次点播将无法注册新的看门狗
             futureMap.remove(key);
             runnableMap.remove(key);
         }

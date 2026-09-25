@@ -14,6 +14,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 /**
  * [可选] 媒体服务器 hook 回调鉴权。
@@ -32,9 +34,12 @@ import java.io.IOException;
 public class HookSecretFilter extends OncePerRequestFilter {
 
     /**
-     * 媒体服务器回调的路径前缀, 与 ZLMHttpHookListener / ABLHttpHookListener 的 @RequestMapping 一致
+     * 媒体服务器回调的路径前缀, 与 ZLMHttpHookListener / ABLHttpHookListener 的 @RequestMapping 一致。
+     * 只匹配 "/index/hook" 本身或 "/index/hook/" 前缀, 避免把 "/index/hookxyz" 之类的路径也拦下来。
      */
     private static final String HOOK_PATH_PREFIX = "/index/hook";
+
+    private static final String HOOK_PATH_PREFIX_WITH_SLASH = HOOK_PATH_PREFIX + "/";
 
     @Autowired
     private UserSetting userSetting;
@@ -49,16 +54,34 @@ public class HookSecretFilter extends OncePerRequestFilter {
         }
 
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        if (!path.startsWith(HOOK_PATH_PREFIX)) {
+        if (!HOOK_PATH_PREFIX.equals(path) && !path.startsWith(HOOK_PATH_PREFIX_WITH_SLASH)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (!hookSecret.equals(request.getParameter("secret"))) {
+        if (!isSameSecret(hookSecret, request.getParameter("secret"))) {
             log.warn("[媒体服务节点] hook 鉴权失败, 未携带正确的 secret: {}", path);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 常量时间比较, 避免逐字符比较短路带来的时序差异。
+     *
+     * MessageDigest#isEqual 的入参是 byte[], 且在长度不同时会提前返回 false,
+     * 所以这里先做 null 保护与长度判断, 只在长度相同时进入逐字节比较。
+     */
+    private static boolean isSameSecret(String expected, String actual) {
+        if (expected == null || actual == null) {
+            return false;
+        }
+        byte[] expectedBytes = expected.getBytes(StandardCharsets.UTF_8);
+        byte[] actualBytes = actual.getBytes(StandardCharsets.UTF_8);
+        if (expectedBytes.length != actualBytes.length) {
+            return false;
+        }
+        return MessageDigest.isEqual(expectedBytes, actualBytes);
     }
 }

@@ -21,8 +21,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.util.UriUtils;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -256,26 +258,31 @@ public class ZLMMediaServerStatusManager {
         String protocol = sslEnabled ? "https" : "http";
         String hookPrefix = String.format("%s://%s:%s%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort, (serverServletContextPath == null || "/".equals(serverServletContextPath)) ? "" : serverServletContextPath);
 
+        // [可选] hook 回调鉴权: 配置了 user-settings.hook-secret 时, 把 secret 追加到 hook URL 上,
+        // 由 HookSecretFilter 校验; 未配置时保持原有行为(不带 secret, 不校验)
+        String hookSecretSuffix = ObjectUtils.isEmpty(userSetting.getHookSecret())
+                ? "" : "?secret=" + UriUtils.encode(userSetting.getHookSecret(), StandardCharsets.UTF_8);
+
         Map<String, Object> param = new HashMap<>();
         if (mediaServerItem.getRtspPort() != 0) {
             param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -frames:v 1 %s");
         }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
-        param.put("hook.on_play",String.format("%s/on_play", hookPrefix));
-        param.put("hook.on_publish", String.format("%s/on_publish", hookPrefix));
+        param.put("hook.on_play",String.format("%s/on_play%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_publish", String.format("%s/on_publish%s", hookPrefix, hookSecretSuffix));
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
         param.put("hook.on_rtsp_realm","");
-        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrefix));
+        param.put("hook.on_server_started",String.format("%s/on_server_started%s", hookPrefix, hookSecretSuffix));
         param.put("hook.on_shell_login","");
-        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrefix));
-        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrefix));
-        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrefix));
-        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrefix));
-        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrefix));
-        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
-        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrefix));
+        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout%s", hookPrefix, hookSecretSuffix));
+        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4%s", hookPrefix, hookSecretSuffix));
         param.put("hook.timeoutSec","30");
         // 默认禁用目录浏览
         param.put("http.dirMenu","0");

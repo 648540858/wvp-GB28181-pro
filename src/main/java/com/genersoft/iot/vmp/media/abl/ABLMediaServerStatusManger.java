@@ -20,8 +20,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.util.UriUtils;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -275,7 +278,9 @@ public class ABLMediaServerStatusManger {
                     ConfigKeyId configKeyId = field.getAnnotation(ConfigKeyId.class);
                     for (String hook : hookUrlArray) {
                         if (configKeyId.value().equals(hook)) {
-                            String hookUrl =  String.format("%s/%s", hookPrefix, hook);
+                            String hookUrl =  String.format("%s/%s", hookPrefix, hook)
+                                    + (ObjectUtils.isEmpty(userSetting.getHookSecret()) ? ""
+                                    : "?secret=" + UriUtils.encode(userSetting.getHookSecret(), StandardCharsets.UTF_8));
                             field.setAccessible(true);
                             // 利用反射获取值后对比是否与配置中相同，不同则进行设置
                             if (!hookUrl.equals(field.get(config))) {

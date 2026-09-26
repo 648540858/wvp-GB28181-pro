@@ -44,6 +44,15 @@ public class UserSetting {
     private Integer recordInfoTimeout = 15000;
 
     /**
+     * [可选] 媒体服务器 hook 回调鉴权密钥。
+     *
+     * 为空(默认)时保持原有行为: 推送给媒体服务器的 hook URL 不带 secret, 也不校验回调请求。
+     * 配置后: wvp 会把 ?secret=xxx 追加到推送给媒体服务器的 hook URL, 并拒绝未携带正确 secret 的
+     * /index/hook/** 请求。注意: 配置后需要媒体服务器重新下发一次配置(重启媒体服务器或重新注册)才能生效。
+     */
+    private String hookSecret = "";
+
+    /**
      * 上级点播等待超时时间,单位：毫秒
      */
     private int platformPlayTimeout = 20000;

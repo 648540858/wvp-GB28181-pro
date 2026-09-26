@@ -559,50 +559,87 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         }
         log.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
         String characterSet = parentPlatform.getCharacterSet();
+        String gbDeviceId = deviceChannel == null ? null : deviceChannel.getGbDeviceId();
+        List<RecordItem> recordList = recordInfo.getRecordList() == null ? new ArrayList<>() : recordInfo.getRecordList();
+        // 按"每页数量"切分: 配置小于等于 0 时不分页(与历史行为一致)
+        List<List<RecordItem>> pages = partitionRecordItems(recordList, userSetting.getRecordInfoPageSize());
+        for (int i = 0; i < pages.size(); i++) {
+            String recordXml = buildRecordInfoXml(characterSet, recordInfo.getSn(), gbDeviceId,
+                    recordInfo.getSumNum(), pages.get(i));
+            log.debug("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页, 内容： {}",
+                    recordInfo.getChannelId(), i + 1, pages.size(), recordXml);
+            // callid
+            CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
+
+            Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml, fromTag, SipUtils.getNewViaTag(), callIdHeader);
+            int pageNo = i + 1;
+            int pageCount = pages.size();
+            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
+                log.info("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页发送成功", recordInfo.getChannelId(), pageNo, pageCount);
+            });
+        }
+    }
+
+    /**
+     * 按每页数量切分录像记录。
+     *
+     * @param recordList 全部录像记录, 允许为 null
+     * @param pageSize   每页数量, 小于等于 0 表示不分页(整批作为一页)
+     * @return 至少一页; 记录为空时返回一个空页, 保证调用方仍会回复一个 Num=0 的响应
+     */
+    static List<List<RecordItem>> partitionRecordItems(List<RecordItem> recordList, Integer pageSize) {
+        List<List<RecordItem>> pages = new ArrayList<>();
+        if (recordList == null || recordList.isEmpty()) {
+            pages.add(new ArrayList<>());
+            return pages;
+        }
+        int size = pageSize == null ? 0 : pageSize;
+        if (size <= 0 || recordList.size() <= size) {
+            pages.add(recordList);
+            return pages;
+        }
+        for (int start = 0; start < recordList.size(); start += size) {
+            pages.add(new ArrayList<>(recordList.subList(start, Math.min(start + size, recordList.size()))));
+        }
+        return pages;
+    }
+
+    /**
+     * 生成一页 RecordInfo 响应 XML。SumNum 始终为总条数, RecordList 的 Num 为本页条数,
+     * 便于上级平台按 SN 聚合多页结果。
+     */
+    static String buildRecordInfoXml(String characterSet, String sn, String gbDeviceId, int sumNum,
+                                     List<RecordItem> pageItems) {
+        List<RecordItem> items = pageItems == null ? new ArrayList<>() : pageItems;
         StringBuffer recordXml = new StringBuffer(600);
         recordXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Response>\r\n")
                 .append("<CmdType>RecordInfo</CmdType>\r\n")
-                .append("<SN>" +recordInfo.getSn() + "</SN>\r\n")
-                .append("<DeviceID>" + deviceChannel.getGbDeviceId() + "</DeviceID>\r\n")
-                .append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
-        if (recordInfo.getRecordList() == null ) {
-            recordXml.append("<RecordList Num=\"0\">\r\n");
-        }else {
-            recordXml.append("<RecordList Num=\"" + recordInfo.getRecordList().size()+"\">\r\n");
-            if (recordInfo.getRecordList().size() > 0) {
-                for (RecordItem recordItem : recordInfo.getRecordList()) {
-                    recordXml.append("<Item>\r\n");
-                    if (deviceChannel != null) {
-                        recordXml.append("<DeviceID>" + deviceChannel.getGbDeviceId() + "</DeviceID>\r\n")
-                                .append("<Name>" + recordItem.getName() + "</Name>\r\n")
-                                .append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n")
-                                .append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n")
-                                .append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n")
-                                .append("<Type>" + recordItem.getType() + "</Type>\r\n");
-                        if (!ObjectUtils.isEmpty(recordItem.getFileSize())) {
-                            recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
-                        }
-                        if (!ObjectUtils.isEmpty(recordItem.getFilePath())) {
-                            recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
-                        }
-                    }
-                    recordXml.append("</Item>\r\n");
+                .append("<SN>" + sn + "</SN>\r\n")
+                .append("<DeviceID>" + gbDeviceId + "</DeviceID>\r\n")
+                .append("<SumNum>" + sumNum + "</SumNum>\r\n")
+                .append("<RecordList Num=\"" + items.size() + "\">\r\n");
+        for (RecordItem recordItem : items) {
+            recordXml.append("<Item>\r\n");
+            if (gbDeviceId != null) {
+                recordXml.append("<DeviceID>" + gbDeviceId + "</DeviceID>\r\n")
+                        .append("<Name>" + recordItem.getName() + "</Name>\r\n")
+                        .append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n")
+                        .append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n")
+                        .append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n")
+                        .append("<Type>" + recordItem.getType() + "</Type>\r\n");
+                if (!ObjectUtils.isEmpty(recordItem.getFileSize())) {
+                    recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(recordItem.getFilePath())) {
+                    recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
                 }
             }
+            recordXml.append("</Item>\r\n");
         }
-
         recordXml.append("</RecordList>\r\n")
                 .append("</Response>\r\n");
-        log.debug("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
-        // callid
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
-
-        Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
-            log.info("[国标级联] 发送录像数据通道：{}, 发送成功", recordInfo.getChannelId());
-        });
-
+        return recordXml.toString();
     }
 
     @Override

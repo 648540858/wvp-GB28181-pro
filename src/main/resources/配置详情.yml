@@ -207,6 +207,9 @@ user-settings:
     play-timeout: 18000
     # 获取设备录像数据超时时间,单位：毫秒
     record-info-timeout: 10000
+    # [可选] 级联录像查询(RecordInfo)回复的每页记录数量: 大于0时按页发送, 小于等于0不分页;
+    # 默认1000足够大(不改变现有行为), 上级平台受MTU限制时(尤其UDP)建议调小, 例如 10
+    record-info-page-size: 1000
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
     # 是否开启接口鉴权

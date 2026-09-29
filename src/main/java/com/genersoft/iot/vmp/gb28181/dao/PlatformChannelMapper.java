@@ -482,6 +482,16 @@ public interface PlatformChannelMapper {
             " </script>"})
     void updateCustomChannel(PlatformChannel channel);
 
+    @Select(" <script>" +
+            " select pgc.id, pgc.platform_id," +
+            " coalesce(nullif(pgc.custom_name, ''), nullif(wdc.gb_name, ''), nullif(wdc.name, '')) as gb_name" +
+            " from wvp_platform_channel pgc" +
+            " left join wvp_device_channel wdc on wdc.id = pgc.device_channel_id" +
+            " where pgc.custom_device_id = #{customDeviceId}" +
+            " <if test='excludeId != null'> and pgc.id != #{excludeId}</if>" +
+            " </script>")
+    List<PlatformChannel> queryByCustomDeviceId(@Param("customDeviceId") String customDeviceId, @Param("excludeId") Integer excludeId);
+
 
     @Select("<script>" +
             " select " +

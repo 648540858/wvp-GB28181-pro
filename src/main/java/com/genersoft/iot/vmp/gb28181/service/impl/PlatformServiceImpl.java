@@ -862,6 +862,9 @@ public class PlatformServiceImpl implements IPlatformService {
                     sendUnRegister(platform, transactionInfo);
                 }catch (Exception ignored) {}
             }
+            platformChannelMapper.removeChannelsByPlatformId(platform.getId());
+            platformChannelMapper.removePlatformGroupsByPlatformId(platform.getId());
+            platformChannelMapper.removePlatformRegionByPlatformId(platform.getId());
             platformMapper.delete(platform.getId());
 
             statusTaskRunner.removeRegisterTask(platform.getServerGBId());

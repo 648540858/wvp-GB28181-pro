@@ -74,8 +74,20 @@ public class SipInviteSessionManager {
 		}
 		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId(), callId);
 		if (ssrcTransaction.getStream() != null) {
-			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getApp() + ssrcTransaction.getStream());
+			// stream 索引在同一通道重新点播时会被新事务覆盖，这里必须确认索引仍然指向当前事务再删除，
+			// 否则清理旧 Call-ID 会顺带删掉新 Dialog 的 stream 索引，导致后续 stop 找不到事务、无法发送 BYE。
+			SsrcTransaction indexed = getSsrcTransactionByStream(ssrcTransaction.getApp(), ssrcTransaction.getStream());
+			if (isStreamIndexOwnedBy(indexed, callId)) {
+				redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getApp() + ssrcTransaction.getStream());
+			}
 		}
+	}
+
+	/**
+	 * 判断 stream 索引当前是否仍属于指定的事务(Call-ID)
+	 */
+	static boolean isStreamIndexOwnedBy(SsrcTransaction indexed, String callId) {
+		return indexed != null && callId != null && callId.equals(indexed.getCallId());
 	}
 
 	public List<SsrcTransaction> getAll() {

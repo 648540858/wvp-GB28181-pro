@@ -359,8 +359,17 @@ public class PlayServiceImpl implements IPlayService {
                     log.info("[点播已存在] 直接返回， 设备编号: {}, 通道编号: {}", device.getDeviceId(), channel.getDeviceId());
                     return inviteInfoInCatch.getSsrcInfo();
                 }else {
-                    // 流不存在，清理异常状态后重新点播
+                    // 流不存在，先断开设备旧会话再重新点播
                     log.warn("[点播] 已存在点播信息但流不存在，重新点播， 设备编号: {}, 通道编号: {}", device.getDeviceId(), channel.getDeviceId());
+                    try {
+                        cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.RTP_APP, streamId, null, null);
+                    } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+                        log.warn("[点播] 清理旧会话发送BYE失败: {}", e.getMessage());
+                        sessionManager.removeByStream(MediaStreamUtil.RTP_APP, streamId);
+                    }
+                    if (streamInfo.getMediaServer() != null) {
+                        receiveRtpServerService.closeRTPServer(streamInfo.getMediaServer(), MediaStreamUtil.RTP_APP, streamId);
+                    }
                     deviceChannelService.stopPlay(channel.getId());
                     inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                 }
@@ -374,9 +383,19 @@ public class PlayServiceImpl implements IPlayService {
         // 原子认领点播发起权，并发请求只有一个能发起invite，其余等待结果
         boolean first = inviteStreamService.onceAndFirst(InviteSessionType.PLAY, channel.getId(), null, callback);
         if (!first) {
-            log.info("[点播开始] 已有请求在途，等待结果， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId());
             InviteInfo inviteInfoWaiting = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-            return inviteInfoWaiting != null ? inviteInfoWaiting.getSsrcInfo() : null;
+            if (inviteInfoWaiting != null) {
+                log.info("[点播开始] 已有请求在途，等待结果， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId());
+                return inviteInfoWaiting.getSsrcInfo();
+            }
+            // 内存认领残留但无实际点播，清空后由本请求接管
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+            first = inviteStreamService.onceAndFirst(InviteSessionType.PLAY, channel.getId(), null, callback);
+            if (!first) {
+                inviteInfoWaiting = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+                log.info("[点播开始] 已有请求在途，等待结果， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId());
+                return inviteInfoWaiting != null ? inviteInfoWaiting.getSsrcInfo() : null;
+            }
         }
         // 认领成功后二次确认，避免发起者刚完成(已写入redis)时本线程重复发起invite
         InviteInfo inviteInfoForConfirm = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());

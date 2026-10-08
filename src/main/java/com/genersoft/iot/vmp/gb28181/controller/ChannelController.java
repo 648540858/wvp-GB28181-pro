@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -8,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -56,6 +58,9 @@ public class ChannelController {
 
     @Autowired
     private IGbChannelPlayService channelPlayService;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private UserSetting userSetting;
@@ -310,6 +315,14 @@ public class ChannelController {
         Assert.notNull(channel, "通道不存在");
 
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+        result.onTimeout(() -> {
+            log.info("[通道点播等待超时] channelId：{}", channelId);
+            inviteStreamService.call(InviteSessionType.PLAY, channel.getGbId(), null,
+                    ErrorCode.ERROR100.getCode(), "点播超时", null);
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+            result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "点播超时"));
+        });
 
         ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {

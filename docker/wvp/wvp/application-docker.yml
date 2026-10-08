@@ -130,6 +130,8 @@ user-settings:
     send-to-platforms-when-id-lost: true
     interface-authentication-excludes:
     #  - /api/**
+    # [可选] hook 回调鉴权密钥, 默认空=不校验; 配置后 hook 地址会带上 ?secret=xxx, 详见 配置详情.yml
+    # hook-secret: ${HookSecret:}
     push-authority: true
     # allowed-origins:
     #   - http://localhost:8080

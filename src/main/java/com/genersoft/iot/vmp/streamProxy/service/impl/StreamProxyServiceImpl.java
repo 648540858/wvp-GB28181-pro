@@ -109,7 +109,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         // 拉流代理
         StreamProxy streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
-        if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
+        if (streamProxyByAppAndStream != null) {
             startByAppAndStream(event.getApp(), event.getStream(), ((code, msg, data) -> {
                 log.info("[拉流代理] 自动点播成功， app： {}， stream: {}", event.getApp(), event.getStream());
             }));

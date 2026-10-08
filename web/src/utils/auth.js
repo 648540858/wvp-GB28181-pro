@@ -7,7 +7,6 @@ const defaultPasswordKey = 'wvp_default_password'
 const expires = 30
 
 export function getToken() {
-  console.log('Getting token...')
   return Cookies.get(TokenKey)
 }
 

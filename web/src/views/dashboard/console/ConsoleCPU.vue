@@ -61,7 +61,6 @@ export default {
         tooltip: {
           trigger: 'axis',
           formatter: (data) => {
-            console.log(data)
             return moment(data[0].data[0]).format('HH:mm:ss') + '</br> ' +
               data[0].marker + '使用：' + (data[0].data[1] * 100).toFixed(2) + '%'
           }

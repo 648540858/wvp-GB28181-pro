@@ -86,7 +86,6 @@ export default {
         window.clearTimeout(this.timer)
       }
       this.timer = setTimeout(() => {
-        console.log(this.$route.name)
         if (this.$route.name === '控制台') {
           this.getSystemInfo()
           this.getLoad()

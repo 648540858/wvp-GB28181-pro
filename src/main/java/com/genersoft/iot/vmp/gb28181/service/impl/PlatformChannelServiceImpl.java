@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelListForRpcParam;
 import com.genersoft.iot.vmp.gb28181.dao.*;
@@ -12,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -645,6 +647,16 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         Platform platform = platformMapper.query(channel.getPlatformId());
         Assert.notNull(platform, "平台不存在");
         log.info("[国标级联-自定义共享通道] 平台：{}， 通道：{}", platform.getServerGBId(), channel);
+        if (channel.getCustomDeviceId() != null && channel.getCustomDeviceId().trim().isEmpty()) {
+            channel.setCustomDeviceId(null);
+        }
+        if (channel.getCustomDeviceId() != null) {
+            List<PlatformChannel> conflictList = platformChannelMapper.queryByCustomDeviceId(channel.getCustomDeviceId(), channel.getId());
+            if (!conflictList.isEmpty()) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                        buildCustomDeviceIdConflictMessage(channel, platform, conflictList.getFirst()));
+            }
+        }
         if (!userSetting.getServerId().equals(platform.getServerId())) {
             boolean result = redisRpcService.updateCustomPlatformChannel(platform.getServerId(), channel);
             if (result) {
@@ -666,6 +678,26 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             log.warn("[国标级联-自定义共享通道] 发送失败， 平台ID： {}， 通道： {}（{}）", channel.getPlatformId(),
                     channel.getGbName(), channel.getId(), e);
         }
+    }
+
+    private String buildCustomDeviceIdConflictMessage(PlatformChannel channel, Platform platform, PlatformChannel conflict) {
+        String customDeviceId = channel.getCustomDeviceId();
+        String conflictChannelName = conflict.getGbName();
+        if (conflictChannelName == null || conflictChannelName.isBlank()) {
+            conflictChannelName = "未知通道";
+        }
+        if (conflict.getPlatformId() == platform.getId()) {
+            return "保存失败，自定义编号 " + customDeviceId + " 已被本平台的通道【" + conflictChannelName + "】使用";
+        }
+        Platform conflictPlatform = platformMapper.query(conflict.getPlatformId());
+        if (conflictPlatform == null) {
+            return "保存失败，自定义编号 " + customDeviceId + " 已被通道【" + conflictChannelName + "】使用（该通道所属平台已被删除）";
+        }
+        String platformName = conflictPlatform.getName();
+        if (platformName == null || platformName.isBlank()) {
+            platformName = conflictPlatform.getServerGBId();
+        }
+        return "保存失败，自定义编号 " + customDeviceId + " 已被平台【" + platformName + "】下的通道【" + conflictChannelName + "】使用";
     }
 
     @Override

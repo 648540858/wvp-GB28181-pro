@@ -1,0 +1,127 @@
+# ============================================
+# WVP 单机默认配置 (default profile)
+# 内置 H2 文件数据库 + 内存版 Redis 门面，无需 MySQL / Redis
+# 启动时若 /config 为空，start.sh 会把本文件复制到 /config 使用
+# ============================================
+
+spring:
+  application:
+    name: wvp
+  threads:
+    virtual:
+      enabled: true
+  # 内存版缓存，替代 redis
+  cache:
+    type: caffeine
+  thymeleaf:
+    cache: false
+  # 未配置 spring.data.redis.host 时，排除 redis 自动装配，使用 conf/local 的内存版门面
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  sql:
+    init:
+      # 每次启动执行建表/初始化脚本（建表为 IF NOT EXISTS，初始数据为幂等插入）
+      mode: always
+      schema-locations: classpath:db/h2-schema.sql
+      data-locations: classpath:db/h2-data.sql
+  # H2 文件数据库：数据保存在工作目录下的 ./data/wvp.mv.db，重启保留
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:file:./data/wvp;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password:
+
+pagehelper:
+  helper-dialect: h2
+
+# WVP 监听的 HTTP 端口，网页和接口调用都是这个端口
+server:
+  port: ${WVP_HTTP_PORT:18978}
+  ssl:
+    enabled: false
+
+# 作为28181服务器的配置
+sip:
+  # 监听网卡，0.0.0.0 表示监听所有网卡；请勿使用 127.0.0.1 或域名
+  ip: ${SIP_IP:0.0.0.0}
+  # SDP/Via 中对外展示的 IP
+  show-ip: ${SIP_SHOW_IP:127.0.0.1}
+  port: ${SIP_PORT:8116}
+  domain: ${SIP_DOMAIN:3502000000}
+  id: ${SIP_ID:35020000002000000001}
+  password: ${SIP_PASSWORD:wvp_sip_password}
+
+# 做为JT1078服务器的配置
+ftp:
+  enable: ${FTP_ENABLE:false}
+  port: ${FTP_PORT:2121}
+  passive-ports: ${FTP_PASSIVE_PORTS:10000-10500}
+
+jt1078:
+  enable: ${JT1078_ENABLE:false}
+  port: ${JT1078_PORT:18088}
+  password: ${JT1078_PASSWORD:admin123}
+  reader-idle-time: 20
+
+# ZLMediaKit 配置
+media:
+  # zlm 服务器唯一 id，对应 general.mediaServerId
+  id: ${ZLM_ID:standalone}
+  # zlm 服务器地址：docker compose 部署时使用服务名，单独部署时改为 zlm 的 IP
+  ip: ${ZLM_HOST:polaris-media}
+  # zlm 回调 WVP 时访问的地址：docker compose 部署时使用服务名，单独部署时改为 WVP 的 IP
+  hook-ip: ${ZLM_HOOK_HOST:polaris-wvp}
+  http-port: ${ZLM_HTTP_PORT:80}
+  # zlm 的 hook.admin_params=secret
+  secret: ${ZLM_SECRET:su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf}
+  record-day: ${ZLM_RECORD_DAY:10}
+  record-path: ${ZLM_RECORD_PATH:./www/record}
+  # 播流地址中使用的 IP
+  stream-ip: ${STREAM_IP:127.0.0.1}
+  # SDP 中使用的 IP
+  sdp-ip: ${SDP_IP:127.0.0.1}
+  rtp:
+    # 收流单端口模式：false 即使用流的 ssrc 区分每路流（true 即多端口模式，端口区分每路流）
+    enable: ${RTP_ENABLE:false}
+    # 收流端口范围，仅多端口模式使用
+    port-range: ${RTP_RANGE_START:30000},${RTP_RANGE_END:30500}
+    # 国标级链在此范围内选择端口发送媒体流，单端口模式仍需要此范围
+    send-port-range: ${RTP_SEND_RANGE_START:40001},${RTP_SEND_RANGE_END:40500}
+
+user-settings:
+  # JWT 密钥文件，指向挂载的 /config 目录，容器重启后密钥保持不变
+  jwk-file: ${JWK_FILE:/config/jwk.json}
+  interface-authentication-excludes:
+    - /api/sy/**
+    - /api/common/channel/map/thin/tile/**
+  play-timeout: 18000
+  record-push-live: ${RECORD_PUSH_LIVE:true}
+  push-authority: true
+  record-sip: ${RECORD_SIP:true}
+  auto-apply-play: false
+  device-status-notify: true
+  sip-log: false
+  sql-log: false
+  server-id: ${SERVER_ID:765250}
+  save-position-history: true
+  broadcast-for-platform: TCP-ACTIVE
+  doc-enable: true
+  use-alias-for-group-sync: true
+  auto-register-platform: true
+  subscribe-mobile-position: true
+  device-id-strict: true
+
+logging:
+  level:
+    root: info
+    org.springframework: warn
+    com.genersoft: info
+  logback:
+    rollingpolicy:
+      max-history: 30
+      max-file-size: 100MB

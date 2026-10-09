@@ -30,7 +30,13 @@ hs_err_pid*
 certificates
 /.vs
 /docker/volumes
-/docker/wvp/config/jwk.json
+/docker/config
+/docker/data
+/docker/logs
+/docker/wvp/config
+/docker/wvp/data
+/docker/wvp/logs
+/docker/wvp/wvp.jar
 /打包/
 /snap/
 /config/

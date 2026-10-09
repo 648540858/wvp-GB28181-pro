@@ -41,7 +41,7 @@ spring:
             poolMaxIdle: 500
             # [可选] 最大的等待时间(秒)
             poolMaxWait: 5
-    # [必选] jdbc数据库配置
+    # [可选] jdbc数据库配置，不配置时默认使用内置 H2 文件数据库（./data/wvp.mv.db，与 application-standalone.yml 相同），首次启动自动建表/初始化
     datasource:
         # kingbase配置
         #        type: com.zaxxer.hikari.HikariDataSource

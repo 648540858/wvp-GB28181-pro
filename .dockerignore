@@ -1,1 +1,26 @@
+# 构建上下文为项目根目录，只保留 docker/wvp 下的 jar 与配置文件
+.git
+.github
+.idea
+.run
+bin
+config
+doc
+logs
+snap
+web
+打包
+数据库
+更新内容
+*.iml
+*.md
+
+target
+
+docker/config
+docker/data
+docker/logs
 docker/volumes
+docker/wvp/config
+docker/media
+docker/redis

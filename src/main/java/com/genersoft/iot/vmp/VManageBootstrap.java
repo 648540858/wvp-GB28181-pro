@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp;
 
+import com.genersoft.iot.vmp.conf.DataSourceDefaults;
 import com.genersoft.iot.vmp.jt1078.util.ClassUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -11,6 +12,7 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -19,6 +21,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.SessionTrackingMode;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 启动类
@@ -35,7 +39,7 @@ public class VManageBootstrap extends SpringBootServletInitializer {
 	private static ConfigurableApplicationContext context;
 	public static void main(String[] args) {
 		VManageBootstrap.args = args;
-		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
+		VManageBootstrap.context = createApplication().run(args);
 		ClassUtil.context = VManageBootstrap.context;
 		GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
 		if (gitUtil == null) {
@@ -50,12 +54,41 @@ public class VManageBootstrap extends SpringBootServletInitializer {
 	// 项目重启
 	public static void restart() {
 		context.close();
-		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
+		VManageBootstrap.context = createApplication().run(args);
+	}
+
+	private static SpringApplication createApplication() {
+		SpringApplication application = new SpringApplication(VManageBootstrap.class);
+		application.addListeners(DataSourceDefaults.ENVIRONMENT_LISTENER);
+		application.addInitializers(VManageBootstrap::excludeRedisAutoConfigIfNoRedis);
+		// 默认启用虚拟线程，profile/命令行仍可覆盖
+		application.setDefaultProperties(Map.of("spring.threads.virtual.enabled", true));
+		return application;
+	}
+
+	/**
+	 * 未配置 spring.data.redis.host（内存模式）时排除 Redis 自动装配，
+	 * 避免启动时创建无用的 RedisConnectionFactory 并尝试连接 Redis。
+	 */
+	private static void excludeRedisAutoConfigIfNoRedis(ConfigurableApplicationContext context) {
+		String host = context.getEnvironment().getProperty("spring.data.redis.host");
+		if (host != null && !host.isBlank()) {
+			// redis 模式，保留自动装配
+			return;
+		}
+		Map<String, Object> props = new HashMap<>();
+		props.put("spring.autoconfigure.exclude",
+				new String[]{"org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"});
+		context.getEnvironment().getPropertySources()
+				.addFirst(new MapPropertySource("conditionalRedisAutoConfigExclude", props));
 	}
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(VManageBootstrap.class);
+		return application.sources(VManageBootstrap.class)
+				.listeners(DataSourceDefaults.ENVIRONMENT_LISTENER)
+				.initializers(VManageBootstrap::excludeRedisAutoConfigIfNoRedis)
+				.properties("spring.threads.virtual.enabled=true");
 	}
 
 	@Override

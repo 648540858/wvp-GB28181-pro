@@ -1,8 +1,5 @@
 spring:
   application:
     name: wvp
-  threads:
-    virtual:
-      enabled: true
   profiles:
     active: standalone

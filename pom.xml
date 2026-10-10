@@ -506,6 +506,13 @@
                                         <include>install.sh</include>
                                     </includes>
                                 </resource>
+                                <!-- 重启脚本, 与 jar、配置文件并列 -->
+                                <resource>
+                                    <directory>bin</directory>
+                                    <includes>
+                                        <include>restart.sh</include>
+                                    </includes>
+                                </resource>
                             </resources>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                         </configuration>

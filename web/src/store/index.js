@@ -24,6 +24,7 @@ import log from './modules/log'
 import frontEnd from './modules/frontEnd'
 import jtDevice from './modules/jtDevice'
 import alarm from './modules/alarm'
+import setting from './modules/setting'
 
 Vue.use(Vuex)
 
@@ -51,7 +52,8 @@ const store = new Vuex.Store({
     log,
     frontEnd,
     jtDevice,
-    alarm
+    alarm,
+    setting
   },
   getters
 })

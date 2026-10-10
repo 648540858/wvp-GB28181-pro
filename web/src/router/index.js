@@ -254,30 +254,17 @@ export const constantRoutes = [
       }
     ]
   },
-  // {
-  //   path: '/setting',
-  //   component: Layout,
-  //   redirect: '/setting',
-  //   children: [
-  //     {
-  //       path: '',
-  //       name: '系统设置',
-  //       component: () => import('@/views/platform/index'),
-  //       meta: { title: '系统设置', icon: 'setting' }
-  //     }
-  //   ]
-  // },
   {
     path: '/operations',
     component: Layout,
     meta: { title: '运维中心', icon: 'operations' },
-    redirect: '/operations/systemInfo',
+    redirect: '/setting',
     children: [
       {
-        path: '/operations/systemInfo',
-        name: 'OperationsSystemInfo',
-        component: () => import('@/views/operations/systemInfo'),
-        meta: { title: '平台信息', icon: 'systemInfo' }
+        path: '/setting',
+        name: 'Setting',
+        component: () => import('@/views/setting/index'),
+        meta: { title: '系统设置', icon: 'setting' }
       },
       {
         path: '/operations/historyLog',
@@ -290,6 +277,12 @@ export const constantRoutes = [
         name: 'OperationsRealLog',
         component: () => import('@/views/operations/realLog'),
         meta: { title: '实时日志', icon: 'realLog' }
+      },
+      {
+        path: '/operations/systemInfo',
+        name: 'OperationsSystemInfo',
+        component: () => import('@/views/operations/systemInfo'),
+        meta: { title: '平台信息', icon: 'systemInfo' }
       }
     ]
   },

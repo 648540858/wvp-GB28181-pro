@@ -14,8 +14,10 @@ public class CivilCodePo {
         CivilCodePo civilCodePo = new CivilCodePo();
         civilCodePo.setCode(infoArray[0]);
         civilCodePo.setName(infoArray[1]);
-        if (!ObjectUtils.isEmpty(infoArray[2])) {
+        if (infoArray.length == 3 && !ObjectUtils.isEmpty(infoArray[2])) {
             civilCodePo.setParentCode(infoArray[2]);
+        }else {
+            civilCodePo.setParentCode("");
         }
         return civilCodePo;
     }

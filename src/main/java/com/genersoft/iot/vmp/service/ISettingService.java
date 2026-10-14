@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
-import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
@@ -94,21 +94,18 @@ public interface ISettingService {
     String saveJtServerConfig(JtServerConfig config);
 
     /**
-     * 查询全局策略-流媒体(media)配置
+     * 将默认媒体节点配置回写到当前生效的配置文件(media.*)
      * <p>
-     * 返回当前生效配置文件中的 media 配置项(可编辑), 以及运行中实际生效的值(只读)
+     * 供媒体节点编辑保存时调用, 仅默认节点需要写配置文件; 配置文件不可写时抛异常
+     *
+     * @param mediaServer 默认媒体节点
      */
-    MediaServerConfig queryMediaServerConfig();
+    void saveDefaultMediaConfig(MediaServer mediaServer);
 
     /**
-     * 保存全局策略-流媒体(media)配置到当前生效的配置文件
-     * <p>
-     * 修改后需要重启服务才能生效
-     *
-     * @param config 流媒体配置
-     * @return 被修改的配置文件路径
+     * 当前生效的配置文件是否可写
      */
-    String saveMediaServerConfig(MediaServerConfig config);
+    boolean isActiveConfigWritable();
 
     /**
      * 查询全局策略-平台策略(user-settings)配置

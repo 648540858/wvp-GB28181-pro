@@ -125,10 +125,6 @@ sip:
     id: 44010200492000000001
     # [可选] 公共认证密码 移除密码将必须提前添加设备才能通过认证
     password: admin123
-    # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
-    register-time-interval: 60
-    # [可选] 云台控制速度
-    ptz-speed: 50
     # TODO [可选] 收到心跳后自动上线， 重启服务后会将所有设备置为离线，默认false，等待注册后上线。设置为true则收到心跳设置为上线。
     # keepalliveToOnline: false
     # 是否存储alarm信息
@@ -163,8 +159,6 @@ media:
     id:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.0.100
-    # [可选] 有公网IP就配置公网IP, 不可用域名
-    wan_ip:
     # [可选] 返回流地址时的ip，置空使用 media.ip
     stream-ip:
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip

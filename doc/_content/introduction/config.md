@@ -125,8 +125,6 @@ media:
   id: zlmediakit-local
   # [必须修改] zlm服务器的内网IP
   ip: 172.19.128.50
-  # [可选] 有公网IP就配置公网IP, 不可用域名
-  wan_ip:
   # [必须修改] zlm服务器的http.port
   http-port: 9092
   # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置

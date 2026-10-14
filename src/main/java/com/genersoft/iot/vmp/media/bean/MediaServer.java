@@ -115,6 +115,9 @@ public class MediaServer {
     @Schema(description = "服务Id")
     private String serverId;
 
+    @Schema(description = "默认节点配置文件是否可写(仅默认节点返回, 非持久化)")
+    private Boolean configWritable;
+
     public MediaServer() {
     }
 

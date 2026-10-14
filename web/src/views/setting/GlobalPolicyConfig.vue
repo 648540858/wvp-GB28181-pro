@@ -1,34 +1,20 @@
 <template>
   <div class="global-policy-panel">
-    <el-tabs v-model="activeInner" class="policy-tabs">
-      <el-tab-pane label="流媒体" name="media">
-        <media-server-config ref="media" />
-      </el-tab-pane>
-      <el-tab-pane label="平台策略" name="userSetting">
-        <user-setting-config ref="userSetting" />
-      </el-tab-pane>
-    </el-tabs>
+    <user-setting-config ref="userSetting" />
   </div>
 </template>
 
 <script>
-import MediaServerConfig from './MediaServerConfig.vue'
 import UserSettingConfig from './UserSettingConfig.vue'
 
 export default {
   name: 'GlobalPolicyConfig',
-  components: { MediaServerConfig, UserSettingConfig },
-  data() {
-    return {
-      activeInner: 'media'
-    }
-  },
+  components: { UserSettingConfig },
   methods: {
-    // 供外层刷新按钮调用, 刷新当前子页签
+    // 供外层刷新按钮调用
     reload() {
-      const ref = this.activeInner === 'media' ? this.$refs.media : this.$refs.userSetting
-      if (ref && typeof ref.reload === 'function') {
-        ref.reload()
+      if (this.$refs.userSetting && typeof this.$refs.userSetting.reload === 'function') {
+        this.$refs.userSetting.reload()
       }
     }
   }
@@ -36,7 +22,7 @@ export default {
 </script>
 
 <style scoped>
-.policy-tabs >>> .el-tabs__header {
-  margin-bottom: 16px;
+.global-policy-panel {
+  width: 100%;
 }
 </style>

@@ -20,21 +20,66 @@
 
     <!-- 右侧内容 -->
     <section class="setting-main">
+      <!-- 顶部：配置文件操作栏 -->
+      <div class="profile-bar">
+        <div class="profile-bar-head">
+          <div class="pb-current">
+            <i class="el-icon-collection-tag" />
+            <span class="pb-label">当前配置</span>
+            <span class="pb-name" :title="currentProfileName">{{ currentProfileName || '—' }}</span>
+          </div>
+          <div class="pb-actions">
+            <el-button size="mini" icon="el-icon-view" :disabled="!currentProfileName" @click="viewCurrentConfig">查看</el-button>
+            <el-button size="mini" icon="el-icon-refresh" :loading="profileLoading" @click="getProfileList">刷新</el-button>
+            <el-button
+              size="mini"
+              :icon="profileExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+              @click="profileExpanded = !profileExpanded"
+            >
+              {{ profileExpanded ? '收起' : '展开' }}
+            </el-button>
+          </div>
+        </div>
+
+        <div v-show="profileExpanded" v-loading="profileLoading" class="profile-panel">
+          <div v-if="!switchable && !profileLoading" class="pb-tip">
+            <i class="el-icon-info" /> {{ switchDisabledReason }}
+          </div>
+          <div class="profile-grid">
+            <div
+              v-for="item in profileList"
+              :key="item.id"
+              class="profile-card"
+              :class="{ 'is-active': item.active }"
+            >
+              <div class="pc-top">
+                <span class="pc-id">{{ item.id }}</span>
+                <el-tag v-if="item.active" size="mini" type="success" effect="dark">使用中</el-tag>
+              </div>
+              <div class="pc-name" :title="item.name">{{ item.name }}</div>
+              <div class="pc-actions">
+                <el-button type="text" size="mini" icon="el-icon-view" @click="viewConfig(item)">详情</el-button>
+                <el-button
+                  v-if="switchable && !item.active"
+                  type="text"
+                  size="mini"
+                  icon="el-icon-position"
+                  :loading="profileSaving && switchTarget === item.id"
+                  @click="switchToProfile(item)"
+                >切换</el-button>
+              </div>
+            </div>
+            <div v-if="!profileLoading && profileList.length === 0" class="profile-empty">未找到配置文件</div>
+          </div>
+        </div>
+      </div>
+
       <header class="main-header">
         <div class="header-text">
           <h3>{{ currentTitle }}</h3>
           <p>{{ currentDesc }}</p>
         </div>
         <div class="header-actions">
-          <el-button
-            v-if="activeTab === 'profile'"
-            size="mini"
-            icon="el-icon-refresh"
-            :loading="profileLoading"
-            @click="getProfileList"
-          >
-            刷新
-          </el-button>
           <el-button
             v-if="activeTab === 'webService'"
             size="mini"
@@ -70,144 +115,7 @@
         </div>
       </header>
 
-      <template v-if="activeTab === 'profile'">
-        <!-- 概览 -->
-        <div class="stat-row">
-          <div class="stat-card">
-            <div class="stat-icon stat-icon-blue"><i class="el-icon-star-on" /></div>
-            <div class="stat-body">
-              <div class="stat-label">当前生效配置</div>
-              <div class="stat-value">{{ currentProfileName || '—' }}</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon stat-icon-green"><i class="el-icon-files" /></div>
-            <div class="stat-body">
-              <div class="stat-label">可用配置数</div>
-              <div class="stat-value">{{ profileList.length }}</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" :class="switchable ? 'stat-icon-green' : 'stat-icon-orange'">
-              <i :class="switchable ? 'el-icon-success' : 'el-icon-warning-outline'" />
-            </div>
-            <div class="stat-body">
-              <div class="stat-label">是否支持切换</div>
-              <div class="stat-value">{{ switchable ? '支持' : '不支持' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <el-card shadow="never" class="section-card">
-          <div slot="header" class="card-header">
-            <span class="card-title">选择配置文件</span>
-            <span v-if="!switchable && !profileLoading" class="card-tip">
-              <i class="el-icon-info" /> {{ switchDisabledReason }}
-            </span>
-          </div>
-
-          <div v-loading="profileLoading" class="profile-picker">
-            <div
-              v-for="item in profileList"
-              :key="item.id"
-              class="profile-item"
-              :class="{
-                'is-active': item.active,
-                'is-selected': activeProfile === item.id,
-                'is-disabled': !switchable
-              }"
-              @click="selectProfile(item)"
-            >
-              <div class="pi-top">
-                <span class="pi-id">{{ item.id }}</span>
-                <el-tag v-if="item.active" size="mini" type="success" effect="dark">使用中</el-tag>
-              </div>
-              <div class="pi-name" :title="item.name">{{ item.name }}</div>
-              <div class="pi-foot">
-                <span class="pi-check">
-                  <i v-if="activeProfile === item.id" class="el-icon-success" />
-                </span>
-              </div>
-            </div>
-            <div v-if="!profileLoading && profileList.length === 0" class="profile-empty">
-              未找到配置文件
-            </div>
-          </div>
-
-          <div v-if="switchable" class="save-bar">
-            <span class="save-hint">
-              <template v-if="profileChanged">
-                已选择「{{ activeProfile }}」，保存后需重启服务生效
-              </template>
-              <template v-else>当前配置未变更</template>
-            </span>
-            <div>
-              <el-button size="mini" :disabled="!profileChanged" @click="resetSelection">重置</el-button>
-              <el-button
-                type="primary"
-                size="mini"
-                icon="el-icon-position"
-                :loading="profileSaving"
-                :disabled="!profileChanged"
-                @click="saveProfile"
-              >
-                保存
-              </el-button>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="section-card">
-          <div slot="header" class="card-header">
-            <span class="card-title">配置文件详情</span>
-          </div>
-          <el-table
-            v-loading="profileLoading"
-            :data="profileList"
-            size="mini"
-            style="width: 100%"
-            @current-change="handleCurrentChange"
-            ref="profileTable"
-          >
-            <el-table-column label="状态" width="90" align="center">
-              <template v-slot:default="scope">
-                <el-tag v-if="scope.row.active" type="success" size="mini">使用中</el-tag>
-                <span v-else class="text-muted">—</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="id" label="配置ID" min-width="140">
-              <template v-slot:default="scope">
-                <span class="mono">{{ scope.row.id }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="文件名" min-width="220" show-overflow-tooltip />
-            <el-table-column prop="createTime" label="创建时间" width="170">
-              <template v-slot:default="scope">
-                <span class="text-muted">{{ scope.row.createTime || '—' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="updateTime" label="修改时间" width="170">
-              <template v-slot:default="scope">
-                <span class="text-muted">{{ scope.row.updateTime || '—' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="100" align="center" fixed="right">
-              <template v-slot:default="scope">
-                <el-button
-                  type="text"
-                  size="mini"
-                  icon="el-icon-view"
-                  @click="viewConfig(scope.row)"
-                >
-                  查看
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </template>
-
-      <web-server-config v-else-if="activeTab === 'webService'" ref="webServer" />
+      <web-server-config v-if="activeTab === 'webService'" ref="webServer" />
       <sip-server-config v-else-if="activeTab === 'sipService'" ref="sipServer" />
       <jt-server-config v-else-if="activeTab === 'jtService'" ref="jtServer" />
       <global-policy-config v-else-if="activeTab === 'globalPolicy'" ref="globalPolicy" />
@@ -241,12 +149,13 @@ export default {
   components: { ConfigViewer, WebServerConfig, SipServerConfig, JtServerConfig, GlobalPolicyConfig },
   data() {
     return {
-      activeTab: 'profile',
+      activeTab: 'webService',
       profileLoading: false,
       profileList: [],
-      activeProfile: '',
       savedProfile: '',
       profileSaving: false,
+      profileExpanded: false,
+      switchTarget: '',
       restarting: false,
       viewerProfileId: '',
       menuList: [
@@ -266,19 +175,13 @@ export default {
           key: 'jtService',
           title: '部标服务',
           icon: 'el-icon-truck',
-          desc: 'JT/T 1078 部标服务配置(端口、密码等)。'
+          desc: 'JT/T 808+1078 部标服务配置(端口、密码等)。'
         },
         {
           key: 'globalPolicy',
           title: '全局策略',
           icon: 'el-icon-set-up',
-          desc: '平台全局策略配置(流媒体、录像、订阅、鉴权等)。'
-        },
-        {
-          key: 'profile',
-          title: '配置文件',
-          icon: 'el-icon-files',
-          desc: '查看并切换服务端配置 profile，切换后需重启服务生效。'
+          desc: '平台全局策略配置(订阅、鉴权等)。'
         }
       ]
     }
@@ -306,9 +209,6 @@ export default {
     // 后端仅当存在 spring.profiles 且配置可写时返回多个配置, 此时才允许切换
     switchable() {
       return this.profileList.length > 1 && this.profileList.some(item => item.writable)
-    },
-    profileChanged() {
-      return this.switchable && !!this.activeProfile && this.activeProfile !== this.savedProfile
     },
     viewerIsActive() {
       return !!this.viewerProfileId && this.viewerProfileId === this.savedProfile
@@ -341,45 +241,23 @@ export default {
         this.$refs.globalPolicy.reload()
       }
     },
-    selectProfile(item) {
-      if (!this.switchable) {
-        return
-      }
-      this.activeProfile = item.id
-      if (this.$refs.profileTable) {
-        this.$refs.profileTable.setCurrentRow(item)
-      }
-    },
-    handleCurrentChange(row) {
-      if (row) {
-        this.activeProfile = row.id
-      }
-    },
-    resetSelection() {
-      this.activeProfile = this.savedProfile
-      const activeItem = this.profileList.find(item => item.active)
-      if (activeItem && this.$refs.profileTable) {
-        this.$refs.profileTable.setCurrentRow(activeItem)
-      }
-    },
     viewConfig(row) {
       this.viewerProfileId = row.id
       this.$refs.viewer.open(row)
     },
     handleViewerSwitch(payload) {
-      this.activeProfile = payload.id
-      const item = this.profileList.find(row => row.id === payload.id)
-      if (item && this.$refs.profileTable) {
-        this.$refs.profileTable.setCurrentRow(item)
-      }
       this.$refs.viewer.visible = false
-      this.saveProfile()
+      const item = this.profileList.find(row => row.id === payload.id)
+      if (item && !item.active) {
+        this.switchToProfile(item)
+      }
     },
-    saveProfile() {
-      if (!this.profileChanged) {
+    switchToProfile(item) {
+      if (!this.switchable || item.active) {
         return
       }
-      const target = this.activeProfile
+      const target = item.id
+      this.switchTarget = target
       this.$confirm(
         `确认将配置文件切换为「${target}」吗？切换后需要重启服务才能生效。`,
         '切换配置文件',
@@ -395,7 +273,15 @@ export default {
         if (action === 'cancel') {
           this.doSaveProfile(target, false)
         }
+      }).finally(() => {
+        this.switchTarget = ''
       })
+    },
+    viewCurrentConfig() {
+      const item = this.profileList.find(row => row.active)
+      if (item) {
+        this.viewConfig(item)
+      }
     },
     doSaveProfile(target, needRestart) {
       this.profileSaving = true
@@ -470,18 +356,8 @@ export default {
       this.$store.dispatch('setting/getProfileList')
         .then(data => {
           this.profileList = data || []
-          // 默认选中当前正在使用的配置文件
           const activeItem = this.profileList.find(item => item.active)
-          const selected = activeItem || this.profileList[0]
-          if (selected) {
-            this.activeProfile = selected.id
-            this.savedProfile = activeItem ? activeItem.id : ''
-          }
-          this.$nextTick(() => {
-            if (activeItem && this.$refs.profileTable) {
-              this.$refs.profileTable.setCurrentRow(activeItem)
-            }
-          })
+          this.savedProfile = activeItem ? activeItem.id : ''
         })
         .catch(error => {
           console.log(error)
@@ -580,76 +456,6 @@ export default {
   color: #8b95a5;
 }
 
-/* ---------- 概览卡片 ---------- */
-.stat-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.stat-card {
-  flex: 1;
-  min-width: 180px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #fff;
-  border: 1px solid #e8eaef;
-  border-radius: 8px;
-  transition: box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.stat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  font-size: 18px;
-  flex: 0 0 38px;
-}
-
-.stat-icon-blue {
-  background: #ecf5ff;
-  color: #409eff;
-}
-
-.stat-icon-green {
-  background: #f0f9eb;
-  color: #67c23a;
-}
-
-.stat-icon-orange {
-  background: #fdf6ec;
-  color: #e6a23c;
-}
-
-.stat-body {
-  min-width: 0;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 2px;
-}
-
-.stat-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* ---------- 卡片 ---------- */
 .section-card {
   border: 1px solid #e8eaef;
@@ -680,51 +486,97 @@ export default {
   color: #e6a23c;
 }
 
-/* ---------- 配置选择 ---------- */
-.profile-picker {
+/* ---------- 顶部配置文件操作栏 ---------- */
+.profile-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #e8eaef;
+  border-radius: 8px;
+}
+
+.profile-bar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.pb-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  color: #5a6474;
+}
+
+.pb-current > i {
+  color: #409eff;
+  font-size: 16px;
+}
+
+.pb-label {
+  color: #909399;
+}
+
+.pb-name {
+  font-weight: 600;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pb-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.profile-panel {
+  border-top: 1px solid #f0f2f5;
+  padding: 12px 16px 16px;
+}
+
+.pb-tip {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #e6a23c;
+}
+
+.profile-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   min-height: 78px;
 }
 
-.profile-item {
-  position: relative;
-  width: 190px;
+.profile-card {
+  width: 200px;
   padding: 10px 12px;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
   background: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
   box-sizing: border-box;
+  transition: all 0.2s;
 }
 
-.profile-item:hover {
+.profile-card:hover {
   border-color: #b3d8ff;
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.12);
 }
 
-.profile-item.is-selected {
-  border-color: #409eff;
-  background: #f5faff;
-}
-
-.profile-item.is-active {
+.profile-card.is-active {
   border-color: #67c23a;
+  background: #f6ffed;
 }
 
-.profile-item.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.75;
-}
-
-.profile-item.is-disabled:hover {
-  border-color: #e4e7ed;
-  box-shadow: none;
-}
-
-.pi-top {
+.pc-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -732,7 +584,7 @@ export default {
   margin-bottom: 6px;
 }
 
-.pi-id {
+.pc-id {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
@@ -741,54 +593,26 @@ export default {
   white-space: nowrap;
 }
 
-.pi-name {
+.pc-name {
   font-size: 12px;
   color: #909399;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-height: 16px;
 }
 
-.pi-foot {
-  height: 16px;
-  text-align: right;
-}
-
-.pi-check {
-  font-size: 13px;
-  color: #409eff;
+.pc-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
 }
 
 .profile-empty {
   padding: 20px;
   color: #909399;
   font-size: 13px;
-}
-
-/* ---------- 保存条 ---------- */
-.save-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px dashed #ebeef5;
-}
-
-.save-hint {
-  font-size: 12px;
-  color: #909399;
-}
-
-/* ---------- 表格 ---------- */
-.mono {
-  font-family: Menlo, Monaco, Consolas, monospace;
-  color: #1f6feb;
-}
-
-.text-muted {
-  color: #a8b0bd;
 }
 
 /* ---------- 占位页 ---------- */

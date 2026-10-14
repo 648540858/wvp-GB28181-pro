@@ -35,12 +35,6 @@ public class SipServerConfig {
     @Schema(description = "公共认证密码(配置文件中的值)")
     private String password;
 
-    @Schema(description = "国标级联注册失败再次发起注册的时间间隔(秒)")
-    private Integer registerTimeInterval;
-
-    @Schema(description = "云台控制速度")
-    private Integer ptzSpeed;
-
     @Schema(description = "是否存储alarm信息")
     private Boolean alarm;
 

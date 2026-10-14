@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMapService;
+import com.genersoft.iot.vmp.service.ISettingService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
@@ -94,12 +95,22 @@ public class ServerController {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+    @Autowired
+    private ISettingService settingService;
+
 
     @GetMapping(value = "/media_server/list")
     @ResponseBody
     @Operation(summary = "流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServer> getMediaServerList() {
-        return mediaServerService.getAll();
+        List<MediaServer> list = mediaServerService.getAll();
+        boolean writable = settingService.isActiveConfigWritable();
+        for (MediaServer item : list) {
+            if (item.isDefaultServer()) {
+                item.setConfigWritable(writable);
+            }
+        }
+        return list;
     }
 
     @GetMapping(value = "/media_server/online/list")
@@ -145,11 +156,27 @@ public class ServerController {
     @ResponseBody
     public void saveMediaServer(@RequestBody MediaServer mediaServer) {
         MediaServer mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServer.getId());
-
-        if (mediaServerItemInDatabase != null) {
-            mediaServerService.update(mediaServer);
-        } else {
+        boolean isNew = mediaServerItemInDatabase == null;
+        if (isNew) {
             mediaServerService.add(mediaServer);
+        } else {
+            mediaServerService.update(mediaServer);
+        }
+
+        if (mediaServer.isDefaultServer()) {
+            // 默认节点: 同步回写配置文件, 便于重启后保持一致
+            try {
+                settingService.saveDefaultMediaConfig(mediaServer);
+            } catch (Exception e) {
+                log.warn("[媒体节点] 默认节点回写配置文件失败: {}", e.getMessage());
+            }
+            // 强制重连: 先置为离线, 再触发状态管理按新配置连接
+            mediaServer.setStatus(false);
+            mediaServerService.update(mediaServer);
+            MediaServerChangeEvent event = new MediaServerChangeEvent(this);
+            event.setMediaServerItemList(mediaServer);
+            applicationEventPublisher.publishEvent(event);
+        } else if (isNew) {
             // 发送事件
             MediaServerChangeEvent event = new MediaServerChangeEvent(this);
             event.setMediaServerItemList(mediaServer);

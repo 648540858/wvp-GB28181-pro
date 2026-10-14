@@ -1,4 +1,4 @@
-import { getProfileList, getProfileContent, switchProfile, restartServer, getWebServerConfig, saveWebServerConfig, getSipServerConfig, saveSipServerConfig, getJtServerConfig, saveJtServerConfig, getMediaServerConfig, saveMediaServerConfig, getUserSettingConfig, saveUserSettingConfig, getAlarmTypes } from '@/api/setting'
+import { getProfileList, getProfileContent, switchProfile, restartServer, getWebServerConfig, saveWebServerConfig, getSipServerConfig, saveSipServerConfig, getJtServerConfig, saveJtServerConfig, getUserSettingConfig, saveUserSettingConfig, getAlarmTypes } from '@/api/setting'
 
 const actions = {
   getProfileList({ commit }) {
@@ -90,25 +90,6 @@ const actions = {
   saveJtServerConfig({ commit }, data) {
     return new Promise((resolve, reject) => {
       saveJtServerConfig(data).then(response => {
-        resolve(response)
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-  getMediaServerConfig({ commit }) {
-    return new Promise((resolve, reject) => {
-      getMediaServerConfig().then(response => {
-        const { data } = response
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-  saveMediaServerConfig({ commit }, data) {
-    return new Promise((resolve, reject) => {
-      saveMediaServerConfig(data).then(response => {
         resolve(response)
       }).catch(error => {
         reject(error)

@@ -90,23 +90,6 @@ export function saveJtServerConfig(data) {
   })
 }
 
-// 查询流媒体服务配置
-export function getMediaServerConfig() {
-  return request({
-    method: 'get',
-    url: `/api/setting/media`
-  })
-}
-
-// 保存流媒体服务配置(需重启生效)
-export function saveMediaServerConfig(data) {
-  return request({
-    method: 'post',
-    url: `/api/setting/media`,
-    data
-  })
-}
-
 // 查询平台策略配置
 export function getUserSettingConfig() {
   return request({

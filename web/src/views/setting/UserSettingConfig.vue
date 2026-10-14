@@ -11,12 +11,6 @@
         </div>
       </div>
 
-      <div class="meta-row">
-        <span class="meta-item"><i class="el-icon-collection-tag" /> {{ profileLabel }}</span>
-        <span class="meta-item"><i class="el-icon-folder-opened" /> {{ filePath || '—' }}</span>
-        <el-tag v-if="pendingRestart && !dirty" size="mini" type="warning" effect="plain">有改动待重启生效</el-tag>
-      </div>
-
       <el-collapse v-model="activeGroups">
         <el-collapse-item v-for="group in groups" :key="group.title" :title="group.title" :name="group.title">
           <el-form label-width="240px" class="config-form" @submit.native.prevent>

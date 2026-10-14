@@ -26,19 +26,16 @@ public class MediaConfig{
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.wan_ip:}")
-    private String wanIp;
-
     @Value("${media.hook-ip:127.0.0.1}")
     private String hookIp;
 
     @Value("${sip.domain}")
     private String sipDomain;
 
-    @Value("${media.sdp-ip:${media.wan_ip:}}")
+    @Value("${media.sdp-ip:}")
     private String sdpIp;
 
-    @Value("${media.stream-ip:${media.wan_ip:}}")
+    @Value("${media.stream-ip:}")
     private String streamIp;
 
     @Value("${media.http-port:0}")

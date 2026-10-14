@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
-import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
@@ -669,8 +669,6 @@ class SettingServiceImplTest {
                         + "  domain: 4101050000\n"
                         + "  id: 41010500002000000001\n"
                         + "  password: admin123\n"
-                        + "  register-time-interval: 60\n"
-                        + "  ptz-speed: 50\n"
                         + "  alarm: false\n"
                         + "  timeout: 1000\n");
 
@@ -686,13 +684,33 @@ class SettingServiceImplTest {
         assertEquals("4101050000", config.getDomain());
         assertEquals("41010500002000000001", config.getId());
         assertEquals("admin123", config.getPassword());
-        assertEquals(60, config.getRegisterTimeInterval());
-        assertEquals(50, config.getPtzSpeed());
         assertEquals(Boolean.FALSE, config.getAlarm());
         assertEquals(1000L, config.getTimeout());
         assertEquals("dev", config.getProfileId());
         assertTrue(config.isWritable());
         assertTrue(config.getFilePath().endsWith("application-dev.yml"));
+    }
+
+    /**
+     * 查询国标服务配置: YAML 未配置 alarm/timeout 时应回退到默认值
+     */
+    @Test
+    void querySipServerConfig_missingAlarmAndTimeout_fallsBackToDefaults() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "sip:\n"
+                        + "  ip: 0.0.0.0\n"
+                        + "  port: 5060\n"
+                        + "  id: 41010500002000000001\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        SipServerConfig config = service.querySipServerConfig();
+
+        assertEquals(Boolean.TRUE, config.getAlarm(), "YAML 未配置 alarm 时应返回默认值 true");
+        assertEquals(1000L, config.getTimeout(), "YAML 未配置 timeout 时应返回默认值 1000");
     }
 
     /**
@@ -720,8 +738,6 @@ class SettingServiceImplTest {
         config.setPassword("admin123");
         config.setIp("0.0.0.0");
         config.setShowIp("192.168.1.3");
-        config.setRegisterTimeInterval(60);
-        config.setPtzSpeed(50);
         config.setAlarm(false);
         config.setTimeout(1000L);
         service.saveSipServerConfig(config);
@@ -730,7 +746,6 @@ class SettingServiceImplTest {
         assertTrue(updated.contains("port: 5061"), "端口应被更新, 实际:\n" + updated);
         assertTrue(updated.contains("id: 41010500002000000002"), "国标编号应被更新, 实际:\n" + updated);
         assertTrue(updated.contains("domain: 4101050000"), "国标域应被写入, 实际:\n" + updated);
-        assertTrue(updated.contains("register-time-interval: 60"), "应写入注册重试间隔, 实际:\n" + updated);
         assertTrue(updated.contains("timeout: 1000"), "应写入超时时间, 实际:\n" + updated);
         assertTrue(updated.contains("# SIP 服务"), "应保留头部注释");
         assertTrue(updated.contains("# 端口"), "应保留行尾注释");
@@ -858,51 +873,10 @@ class SettingServiceImplTest {
     // ------------------------------------------------------------------
 
     /**
-     * 查询流媒体配置: 应读取 media 配置
+     * 回写默认媒体节点: 应更新各项, 空串不覆盖已有端口范围, 并保留其它配置
      */
     @Test
-    void queryMediaServerConfig_readsMediaBlock() throws IOException {
-        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
-        writeFile("application-dev.yml",
-                "media:\n"
-                        + "  id: XwFtVZrtZbHJq4UV\n"
-                        + "  ip: 192.168.1.3\n"
-                        + "  wan_ip: 1.2.3.4\n"
-                        + "  hook-ip: 127.0.0.1\n"
-                        + "  http-port: 7082\n"
-                        + "  secret: abcdef\n"
-                        + "  auto-config: true\n"
-                        + "  record-day: 10\n"
-                        + "  record-path: ./www/record\n"
-                        + "  rtp:\n"
-                        + "    enable: true\n"
-                        + "    port-range: 30000,40000\n"
-                        + "    send-port-range: 40200,50005\n");
-
-        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
-        environment.setActiveProfiles("dev");
-        inject(environment);
-
-        MediaServerConfig config = service.queryMediaServerConfig();
-
-        assertEquals("XwFtVZrtZbHJq4UV", config.getId());
-        assertEquals("192.168.1.3", config.getIp());
-        assertEquals("1.2.3.4", config.getWanIp());
-        assertEquals("127.0.0.1", config.getHookIp());
-        assertEquals(7082, config.getHttpPort());
-        assertEquals("abcdef", config.getSecret());
-        assertEquals(Boolean.TRUE, config.getAutoConfig());
-        assertEquals(10, config.getRecordDay());
-        assertEquals(Boolean.TRUE, config.getRtpEnable());
-        assertEquals("30000,40000", config.getRtpPortRange());
-        assertEquals("40200,50005", config.getRtpSendPortRange());
-    }
-
-    /**
-     * 保存流媒体配置: 应更新各项并创建缺失的 rtp 块
-     */
-    @Test
-    void saveMediaServerConfig_updatesValues() throws IOException {
+    void saveDefaultMediaConfig_writesValuesAndSkipsEmpty() throws IOException {
         writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
         writeFile("application-dev.yml",
                 "# 流媒体\n"
@@ -912,6 +886,7 @@ class SettingServiceImplTest {
                         + "  secret: old-secret\n"
                         + "  rtp:\n"
                         + "    enable: false\n"
+                        + "    port-range: 10000,20000\n"
                         + "sip:\n"
                         + "  port: 5060\n");
 
@@ -919,15 +894,19 @@ class SettingServiceImplTest {
         environment.setActiveProfiles("dev");
         inject(environment);
 
-        MediaServerConfig config = new MediaServerConfig();
-        config.setId("new-id");
-        config.setIp("192.168.1.4");
-        config.setSecret("new-secret");
-        config.setHttpPort(7082);
-        config.setRecordDay(7);
-        config.setRtpEnable(true);
-        config.setRtpPortRange("30000,40000");
-        service.saveMediaServerConfig(config);
+        MediaServer mediaServer = new MediaServer();
+        mediaServer.setId("new-id");
+        mediaServer.setIp("192.168.1.4");
+        mediaServer.setHookIp("127.0.0.1");
+        mediaServer.setSecret("new-secret");
+        mediaServer.setHttpPort(7082);
+        mediaServer.setAutoConfig(true);
+        mediaServer.setRtpEnable(true);
+        mediaServer.setRtpPortRange("");
+        mediaServer.setRecordDay(7);
+        mediaServer.setRecordPath("./www/record");
+        mediaServer.setType("zlm");
+        service.saveDefaultMediaConfig(mediaServer);
 
         String updated = Files.readString(configDir.resolve("application-dev.yml"));
         assertTrue(updated.contains("id: new-id"), "媒体ID应被更新, 实际:\n" + updated);
@@ -935,16 +914,17 @@ class SettingServiceImplTest {
         assertTrue(updated.contains("secret: new-secret"), "密钥应被更新, 实际:\n" + updated);
         assertTrue(updated.contains("http-port: 7082"), "HTTP端口应被写入, 实际:\n" + updated);
         assertTrue(updated.contains("record-day: 7"), "录像天数应被写入, 实际:\n" + updated);
-        assertTrue(updated.contains("port-range: 30000,40000"), "收流端口应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("record-path: ./www/record"), "录像路径应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("port-range: 10000,20000"), "空串不应覆盖已有收流端口, 实际:\n" + updated);
         assertTrue(updated.contains("# 流媒体"), "应保留头部注释");
         assertTrue(updated.contains("sip:\n  port: 5060"), "应保留其他配置项");
     }
 
     /**
-     * 保存流媒体配置: 缺少ID/IP/密钥时应报错
+     * 当前生效配置文件可写时应返回 true
      */
     @Test
-    void saveMediaServerConfig_missingRequired_throws() throws IOException {
+    void isActiveConfigWritable_returnsTrueForWritableFile() throws IOException {
         writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
         writeFile("application-dev.yml", "media:\n  id: a\n");
 
@@ -952,9 +932,7 @@ class SettingServiceImplTest {
         environment.setActiveProfiles("dev");
         inject(environment);
 
-        MediaServerConfig config = new MediaServerConfig();
-        config.setId("a");
-        assertThrows(Exception.class, () -> service.saveMediaServerConfig(config));
+        assertTrue(service.isActiveConfigWritable());
     }
 
     // ------------------------------------------------------------------

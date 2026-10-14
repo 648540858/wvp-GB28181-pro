@@ -11,15 +11,23 @@
       @close="close()"
     >
       <div id="formStep" style="margin-top: 1rem; margin-right: 20px;">
+        <el-alert
+          v-if="configReadOnly"
+          type="warning"
+          :closable="false"
+          show-icon
+          title="当前配置文件不可写，无法在此修改默认节点，请手动修改配置文件后重启服务"
+          style="margin-bottom: 12px;"
+        />
         <el-form v-if="currentStep === 1" ref="mediaServerForm" :rules="rules" :model="mediaServerForm" label-width="140px">
           <el-form-item label="IP" prop="ip">
-            <el-input v-model="mediaServerForm.ip" placeholder="媒体服务IP" clearable :disabled="mediaServerForm.defaultServer" />
+            <el-input v-model="mediaServerForm.ip" placeholder="媒体服务IP" clearable :disabled="configReadOnly" />
           </el-form-item>
           <el-form-item label="HTTP端口" prop="httpPort">
-            <el-input v-model="mediaServerForm.httpPort" placeholder="媒体服务HTTP端口" clearable :disabled="mediaServerForm.defaultServer" />
+            <el-input v-model="mediaServerForm.httpPort" placeholder="媒体服务HTTP端口" clearable :disabled="configReadOnly" />
           </el-form-item>
           <el-form-item label="SECRET" prop="secret">
-            <el-input v-model="mediaServerForm.secret" placeholder="媒体服务SECRET" clearable :disabled="mediaServerForm.defaultServer" />
+            <el-input v-model="mediaServerForm.secret" placeholder="媒体服务SECRET" clearable :disabled="configReadOnly" />
           </el-form-item>
           <el-form-item label="类型" prop="type">
             <el-select v-model="mediaServerForm.type" style="float: left; width: 100%">
@@ -41,30 +49,30 @@
           <el-col :span="12">
             <el-form v-if="currentStep === 2 || currentStep === 3" ref="mediaServerForm1" :rules="rules" :model="mediaServerForm" label-width="140px">
               <el-form-item label="IP" prop="ip">
-                <el-input v-if="currentStep === 2" v-model="mediaServerForm.ip" :disabled="mediaServerForm.defaultServer" />
-                <el-input v-if="currentStep === 3" v-model="mediaServerForm.ip" :disabled="mediaServerForm.defaultServer" />
+                <el-input v-if="currentStep === 2" v-model="mediaServerForm.ip" :disabled="configReadOnly" />
+                <el-input v-if="currentStep === 3" v-model="mediaServerForm.ip" :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="HTTP端口" prop="httpPort">
-                <el-input v-if="currentStep === 2" v-model="mediaServerForm.httpPort" :disabled="mediaServerForm.defaultServer" />
-                <el-input v-if="currentStep === 3" v-model="mediaServerForm.httpPort" :disabled="mediaServerForm.defaultServer" />
+                <el-input v-if="currentStep === 2" v-model="mediaServerForm.httpPort" :disabled="configReadOnly" />
+                <el-input v-if="currentStep === 3" v-model="mediaServerForm.httpPort" :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="HOOK IP" prop="ip">
-                <el-input v-model="mediaServerForm.hookIp" placeholder="媒体服务HOOK_IP" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.hookIp" placeholder="媒体服务HOOK_IP" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="SDP IP" prop="ip">
-                <el-input v-model="mediaServerForm.sdpIp" placeholder="媒体服务SDP_IP" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.sdpIp" placeholder="媒体服务SDP_IP" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="流IP" prop="ip">
-                <el-input v-model="mediaServerForm.streamIp" placeholder="媒体服务流IP" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.streamIp" placeholder="媒体服务流IP" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="HTTPS PORT" prop="httpSSlPort">
-                <el-input v-model="mediaServerForm.httpSSlPort" placeholder="媒体服务HTTPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.httpSSlPort" placeholder="媒体服务HTTPS_PORT" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="RTSP PORT" prop="rtspPort">
-                <el-input v-model="mediaServerForm.rtspPort" placeholder="媒体服务RTSP_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.rtspPort" placeholder="媒体服务RTSP_PORT" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="RTSPS PORT" prop="rtspSSLPort">
-                <el-input v-model="mediaServerForm.rtspSSLPort" placeholder="媒体服务RTSPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.rtspSSLPort" placeholder="媒体服务RTSPS_PORT" clearable :disabled="configReadOnly" />
               </el-form-item>
 
             </el-form>
@@ -72,40 +80,48 @@
           <el-col :span="12">
             <el-form v-if="currentStep === 2 || currentStep === 3" ref="mediaServerForm2" :rules="rules" :model="mediaServerForm" label-width="180px">
               <el-form-item label="RTMP PORT" prop="rtmpPort">
-                <el-input v-model="mediaServerForm.rtmpPort" placeholder="媒体服务RTMP_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.rtmpPort" placeholder="媒体服务RTMP_PORT" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="RTMPS PORT" prop="rtmpSSlPort">
-                <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="媒体服务RTMPS_PORT" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="媒体服务RTMPS_PORT" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="SECRET" prop="secret">
-                <el-input v-if="currentStep === 2" v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer" />
-                <el-input v-if="currentStep === 3" v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer" />
+                <el-input v-if="currentStep === 2" v-model="mediaServerForm.secret" :disabled="configReadOnly" />
+                <el-input v-if="currentStep === 3" v-model="mediaServerForm.secret" :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="自动配置媒体服务">
-                <el-switch v-model="mediaServerForm.autoConfig" :disabled="mediaServerForm.defaultServer" />
+                <el-switch v-model="mediaServerForm.autoConfig" :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item label="收流端口模式">
-                <el-switch v-model="mediaServerForm.rtpEnable" active-text="多端口" inactive-text="单端口" :disabled="mediaServerForm.defaultServer" @change="portRangeChange" />
+                <el-switch v-model="mediaServerForm.rtpEnable" active-text="多端口" inactive-text="单端口" :disabled="configReadOnly" @change="portRangeChange" />
               </el-form-item>
 
               <el-form-item v-if="!mediaServerForm.rtpEnable" label="收流端口" prop="rtpProxyPort">
-                <el-input v-model.number="mediaServerForm.rtpProxyPort" clearable :disabled="mediaServerForm.defaultServer" />
+                <el-input v-model.number="mediaServerForm.rtpProxyPort" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item v-if="mediaServerForm.rtpEnable" label="收流端口">
-                <el-input v-model="rtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="rtpPortRange1" :disabled="mediaServerForm.defaultServer" @change="portRangeChange" />
+                <el-input v-model="rtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="rtpPortRange1" :disabled="configReadOnly" @change="portRangeChange" />
                 -
-                <el-input v-model="rtpPortRange2" placeholder="终止" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer" @change="portRangeChange" />
+                <el-input v-model="rtpPortRange2" placeholder="终止" clearable style="width: 100px" prop="rtpPortRange2" :disabled="configReadOnly" @change="portRangeChange" />
               </el-form-item>
               <el-form-item v-if="mediaServerForm.sendRtpEnable" label="发流端口">
-                <el-input v-model="sendRtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="rtpPortRange1" :disabled="mediaServerForm.defaultServer" @change="portRangeChange" />
+                <el-input v-model="sendRtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="rtpPortRange1" :disabled="configReadOnly" @change="portRangeChange" />
                 -
-                <el-input v-model="sendRtpPortRange2" placeholder="终止" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer" @change="portRangeChange" />
+                <el-input v-model="sendRtpPortRange2" placeholder="终止" clearable style="width: 100px" prop="rtpPortRange2" :disabled="configReadOnly" @change="portRangeChange" />
+              </el-form-item>
+              <el-form-item label="录像保存天数">
+                <el-input v-model.number="mediaServerForm.recordDay" placeholder="录像保存天数" clearable :disabled="configReadOnly" />
+              </el-form-item>
+              <el-form-item label="录像保存路径">
+                <el-input v-model="mediaServerForm.recordPath" placeholder="录像保存路径" clearable :disabled="configReadOnly" />
+              </el-form-item>
+              <el-form-item label="录像辅助服务端口">
+                <el-input v-model.number="mediaServerForm.recordAssistPort" placeholder="0 表示不使用" clearable :disabled="configReadOnly" />
               </el-form-item>
               <el-form-item>
                 <div style="float: right;">
-                  <el-button v-if="!mediaServerForm.defaultServer" type="primary" @click="onSubmit">提交</el-button>
-                  <el-button v-if="!mediaServerForm.defaultServer" @click="close">取消</el-button>
-                  <el-button v-if="mediaServerForm.defaultServer" @click="close">关闭</el-button>
+                  <el-button v-if="!configReadOnly" type="primary" @click="onSubmit">提交</el-button>
+                  <el-button @click="close">{{ configReadOnly ? '关闭' : '取消' }}</el-button>
                 </div>
               </el-form-item>
             </el-form>
@@ -168,6 +184,8 @@ export default {
         httpPort: '',
         httpSSlPort: '',
         recordAssistPort: '',
+        recordDay: '',
+        recordPath: '',
         rtmpPort: '',
         rtmpSSlPort: '',
         rtpEnable: false,
@@ -188,7 +206,6 @@ export default {
         ip: [{ required: true, validator: isValidIp, message: '请输入有效的IP地址', trigger: 'blur' }],
         httpPort: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         httpSSlPort: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
-        recordAssistPort: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtmpPort: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtmpSSlPort: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtpPortRange1: [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
@@ -202,7 +219,12 @@ export default {
       }
     }
   },
-  computed: {},
+  computed: {
+    // 默认节点且配置文件不可写时, 禁止编辑
+    configReadOnly() {
+      return !!this.mediaServerForm.defaultServer && this.mediaServerForm.configWritable === false
+    }
+  },
   created() {
     this.setDialogWidth()
   },
@@ -297,6 +319,8 @@ export default {
         httpPort: '',
         httpSSlPort: '',
         recordAssistPort: '',
+        recordDay: '',
+        recordPath: '',
         rtmpPort: '',
         rtmpSSlPort: '',
         rtpEnable: false,

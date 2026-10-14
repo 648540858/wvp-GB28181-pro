@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.service.IApplicationRestartService;
 import com.genersoft.iot.vmp.service.ISettingService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
-import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
@@ -120,21 +119,6 @@ public class SettingController {
     @Operation(summary = "保存部标服务配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public WVPResult<String> saveJtServerConfig(@RequestBody JtServerConfig config) {
         String path = settingService.saveJtServerConfig(config);
-        return WVPResult.success(path, "配置已保存, 重启服务后生效");
-    }
-
-    @ResponseBody
-    @GetMapping("/media")
-    @Operation(summary = "查询流媒体服务配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public MediaServerConfig queryMediaServerConfig() {
-        return settingService.queryMediaServerConfig();
-    }
-
-    @ResponseBody
-    @PostMapping("/media")
-    @Operation(summary = "保存流媒体服务配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public WVPResult<String> saveMediaServerConfig(@RequestBody MediaServerConfig config) {
-        String path = settingService.saveMediaServerConfig(config);
         return WVPResult.success(path, "配置已保存, 重启服务后生效");
     }
 

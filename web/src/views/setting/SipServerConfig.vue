@@ -8,21 +8,6 @@
         </span>
       </div>
 
-      <div class="meta-row">
-        <span class="meta-item"><i class="el-icon-collection-tag" /> {{ profileLabel }}</span>
-        <span class="meta-item"><i class="el-icon-folder-opened" /> {{ filePath || '—' }}</span>
-        <el-tag v-if="pendingRestart && !dirty" size="mini" type="warning" effect="plain">有改动待重启生效</el-tag>
-      </div>
-
-      <el-alert
-        v-if="runtimeMonitorIps.length"
-        type="info"
-        :closable="false"
-        show-icon
-        :title="`运行中实际监听网卡: ${runtimeMonitorIps.join(', ')}`"
-        class="tip-alert"
-      />
-
       <el-form
         ref="form"
         :model="form"
@@ -50,21 +35,21 @@
             clearable
             maxlength="10"
             placeholder="10位数字, 如 4101050000"
-            style="width: 260px"
+            style="width: 320px"
           />
           <span class="field-tip">一般取国标编号前10位</span>
         </el-form-item>
 
-        <el-form-item label="SIP服务端口" prop="port">
+        <el-form-item label="端口" prop="port">
           <el-input
             v-model.number="form.port"
             type="number"
             :disabled="!writable"
             clearable
             placeholder="1-65535"
-            style="width: 200px"
+            style="width: 320px"
           />
-          <span class="field-tip">运行中: {{ runtime.port || '—' }}</span>
+          <span class="field-tip">当前监听: {{ runtime.port || '—' }}</span>
         </el-form-item>
 
         <el-form-item label="认证密码" prop="password">
@@ -73,7 +58,7 @@
             :disabled="!writable"
             clearable
             placeholder="公共认证密码"
-            style="width: 260px"
+            style="width: 320px"
           />
         </el-form-item>
 
@@ -85,7 +70,7 @@
             placeholder="如 0.0.0.0, 不配置则自动获取"
             style="width: 320px"
           />
-          <span class="field-tip">运行中监听: {{ runtime.ip || '—' }}</span>
+          <span class="field-tip">当前监听: {{ runtimeMonitorIps.join(', ') || '—' }}</span>
         </el-form-item>
 
         <el-form-item label="对外展示IP" prop="showIp">
@@ -93,37 +78,13 @@
             v-model="form.showIp"
             :disabled="!writable"
             clearable
-            placeholder="如 192.168.1.3, 不配置则使用监听IP"
+          placeholder="对外展示IP, 可以是域名, 置空则使用监听IP"
             style="width: 320px"
           />
-          <span class="field-tip">运行中展示: {{ runtime.showIp || '—' }}</span>
+          <span class="field-tip">当前展示: {{ runtime.showIp || runtimeMonitorIps.join(', ') || '—' }}</span>
         </el-form-item>
 
         <el-divider content-position="left">高级配置</el-divider>
-
-        <el-form-item label="注册重试间隔" prop="registerTimeInterval">
-          <el-input
-            v-model.number="form.registerTimeInterval"
-            type="number"
-            :disabled="!writable"
-            clearable
-            placeholder="秒"
-            style="width: 160px"
-          >
-            <template slot="append">秒</template>
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="云台控制速度" prop="ptzSpeed">
-          <el-input
-            v-model.number="form.ptzSpeed"
-            type="number"
-            :disabled="!writable"
-            clearable
-            placeholder="0-255"
-            style="width: 160px"
-          />
-        </el-form-item>
 
         <el-form-item label="命令超时时间" prop="timeout">
           <el-input
@@ -132,7 +93,7 @@
             :disabled="!writable"
             clearable
             placeholder="毫秒"
-            style="width: 160px"
+            style="width: 320px"
           >
             <template slot="append">毫秒</template>
           </el-input>
@@ -178,8 +139,6 @@ function emptyForm() {
     domain: '',
     id: '',
     password: '',
-    registerTimeInterval: null,
-    ptzSpeed: null,
     alarm: false,
     timeout: null
   }
@@ -214,13 +173,6 @@ export default {
         callback()
       }
     }
-    const validPtzSpeed = (rule, value, callback) => {
-      if (value !== null && value !== '' && (Number(value) < 0 || Number(value) > 255)) {
-        callback(new Error('云台控制速度需在 0-255 之间'))
-      } else {
-        callback()
-      }
-    }
     const validTimeout = (rule, value, callback) => {
       if (value !== null && value !== '' && Number(value) <= 0) {
         callback(new Error('超时时间必须大于0'))
@@ -247,7 +199,6 @@ export default {
         id: [{ validator: validId, trigger: 'blur' }],
         domain: [{ validator: validDomain, trigger: 'blur' }],
         port: [{ validator: requiredNumber, trigger: 'blur' }],
-        ptzSpeed: [{ validator: validPtzSpeed, trigger: 'blur' }],
         timeout: [{ validator: validTimeout, trigger: 'blur' }]
       }
     }
@@ -287,8 +238,6 @@ export default {
             domain: data.domain || '',
             id: data.id || '',
             password: data.password || '',
-            registerTimeInterval: typeof data.registerTimeInterval === 'number' ? data.registerTimeInterval : null,
-            ptzSpeed: typeof data.ptzSpeed === 'number' ? data.ptzSpeed : null,
             alarm: !!data.alarm,
             timeout: typeof data.timeout === 'number' ? data.timeout : null
           }
@@ -338,8 +287,6 @@ export default {
         domain: this.form.domain,
         id: this.form.id,
         password: this.form.password,
-        registerTimeInterval: this.form.registerTimeInterval === '' ? null : this.form.registerTimeInterval,
-        ptzSpeed: this.form.ptzSpeed === '' ? null : this.form.ptzSpeed,
         alarm: this.form.alarm,
         timeout: this.form.timeout === '' ? null : this.form.timeout
       }).then(() => {
@@ -412,11 +359,11 @@ export default {
 }
 
 .config-form {
-  max-width: 820px;
+  max-width: 420px;
 }
 
 .field-tip {
-  margin-left: 12px;
+  margin-left: 2px;
   font-size: 12px;
   color: #909399;
 }

@@ -7,8 +7,8 @@ import com.genersoft.iot.vmp.service.ISettingService;
 import com.genersoft.iot.vmp.service.bean.AlarmType;
 import com.genersoft.iot.vmp.service.bean.ConfigEntry;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
-import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
@@ -85,6 +85,16 @@ public class SettingServiceImpl implements ISettingService {
      * 在线查看配置文件的内容大小上限(字节)
      */
     private static final int MAX_CONTENT_LENGTH = 2 * 1024 * 1024;
+
+    /**
+     * 国标服务命令超时时间的默认值(毫秒), 与 {@link SipConfig#timeout} 默认值保持一致
+     */
+    private static final long DEFAULT_SIP_TIMEOUT = 1000L;
+
+    /**
+     * 国标服务是否存储alarm信息的默认值, 与 {@link SipConfig#alarm} 默认值保持一致
+     */
+    private static final boolean DEFAULT_SIP_ALARM = true;
 
     private static final String[] CLASSPATH_PATTERNS = {
             "classpath*:application-*.yml",
@@ -289,10 +299,10 @@ public class SettingServiceImpl implements ISettingService {
         config.setDomain(toStringValue(readNested(root, "sip", "domain")));
         config.setId(toStringValue(readNested(root, "sip", "id")));
         config.setPassword(toStringValue(readNested(root, "sip", "password")));
-        config.setRegisterTimeInterval(toInteger(readNested(root, "sip", "register-time-interval")));
-        config.setPtzSpeed(toInteger(readNested(root, "sip", "ptz-speed")));
-        config.setAlarm(toBoolean(readNested(root, "sip", "alarm")));
-        config.setTimeout(toLong(readNested(root, "sip", "timeout")));
+        Boolean alarm = toBoolean(readNested(root, "sip", "alarm"));
+        config.setAlarm(alarm != null ? alarm : readRuntimeSipAlarm());
+        Long timeout = toLong(readNested(root, "sip", "timeout"));
+        config.setTimeout(timeout != null ? timeout : readRuntimeSipTimeout());
 
         if (sipConfig != null) {
             config.setRuntimePort(sipConfig.getPort());
@@ -331,13 +341,6 @@ public class SettingServiceImpl implements ISettingService {
         }
         if (config.getShowIp() != null) {
             setYamlScalar(lines, new String[]{"sip", "show-ip"}, config.getShowIp().trim());
-        }
-        if (config.getRegisterTimeInterval() != null) {
-            setYamlScalar(lines, new String[]{"sip", "register-time-interval"},
-                    String.valueOf(config.getRegisterTimeInterval()));
-        }
-        if (config.getPtzSpeed() != null) {
-            setYamlScalar(lines, new String[]{"sip", "ptz-speed"}, String.valueOf(config.getPtzSpeed()));
         }
         if (config.getAlarm() != null) {
             setYamlScalar(lines, new String[]{"sip", "alarm"}, String.valueOf(config.getAlarm()));
@@ -419,104 +422,75 @@ public class SettingServiceImpl implements ISettingService {
     }
 
     // ------------------------------------------------------------------
-    // 全局策略-流媒体(media)
+    // 全局策略-流媒体(media) - 默认媒体节点配置
     // ------------------------------------------------------------------
 
     @Override
-    public MediaServerConfig queryMediaServerConfig() {
-        ConfigEntry entry = resolveTargetConfigEntry();
-        Map<String, Object> root = loadYaml(entry.getContent());
-
-        MediaServerConfig config = new MediaServerConfig();
-        config.setId(toStringValue(readNested(root, "media", "id")));
-        config.setIp(toStringValue(readNested(root, "media", "ip")));
-        config.setWanIp(toStringValue(readNested(root, "media", "wan_ip")));
-        config.setStreamIp(toStringValue(readNested(root, "media", "stream-ip")));
-        config.setSdpIp(toStringValue(readNested(root, "media", "sdp-ip")));
-        config.setHookIp(toStringValue(readNested(root, "media", "hook-ip")));
-        config.setHttpPort(toInteger(readNested(root, "media", "http-port")));
-        config.setSecret(toStringValue(readNested(root, "media", "secret")));
-        config.setAutoConfig(toBoolean(readNested(root, "media", "auto-config")));
-        config.setRtpEnable(toBoolean(readNested(root, "media", "rtp", "enable")));
-        config.setRtpPortRange(toStringValue(readNested(root, "media", "rtp", "port-range")));
-        config.setRtpSendPortRange(toStringValue(readNested(root, "media", "rtp", "send-port-range")));
-        config.setRecordAssistPort(toInteger(readNested(root, "media", "record-assist-port")));
-        config.setRecordDay(toInteger(readNested(root, "media", "record-day")));
-        config.setRecordPath(toStringValue(readNested(root, "media", "record-path")));
-        config.setType(toStringValue(readNested(root, "media", "type")));
-
-        config.setRuntimeId(environment.getProperty("media.id"));
-        config.setRuntimeIp(environment.getProperty("media.ip"));
-        config.setRuntimeHttpPort(environment.getProperty("media.http-port", Integer.class));
-
-        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
-        config.setFilePath(entry.getPath());
-        config.setWritable(entry.isWritable());
-        return config;
-    }
-
-    @Override
-    public String saveMediaServerConfig(MediaServerConfig config) {
-        if (config == null) {
+    public void saveDefaultMediaConfig(MediaServer mediaServer) {
+        if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
         }
-        validateMediaServerConfig(config);
         File file = resolveWritableConfigFile();
         List<String> lines = readConfigLines(file);
 
-        if (config.getId() != null) {
-            setYamlScalar(lines, new String[]{"media", "id"}, config.getId().trim());
+        if (!ObjectUtils.isEmpty(mediaServer.getId())) {
+            setYamlScalar(lines, new String[]{"media", "id"}, mediaServer.getId().trim());
         }
-        if (config.getIp() != null) {
-            setYamlScalar(lines, new String[]{"media", "ip"}, config.getIp().trim());
+        if (!ObjectUtils.isEmpty(mediaServer.getIp())) {
+            setYamlScalar(lines, new String[]{"media", "ip"}, mediaServer.getIp().trim());
         }
-        if (config.getWanIp() != null) {
-            setYamlScalar(lines, new String[]{"media", "wan_ip"}, config.getWanIp().trim());
+        if (!ObjectUtils.isEmpty(mediaServer.getHookIp())) {
+            setYamlScalar(lines, new String[]{"media", "hook-ip"}, mediaServer.getHookIp().trim());
         }
-        if (config.getStreamIp() != null) {
-            setYamlScalar(lines, new String[]{"media", "stream-ip"}, config.getStreamIp().trim());
+        // sdp-ip / stream-ip 允许置空(表示回退到 media.ip)
+        if (mediaServer.getSdpIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "sdp-ip"}, mediaServer.getSdpIp().trim());
         }
-        if (config.getSdpIp() != null) {
-            setYamlScalar(lines, new String[]{"media", "sdp-ip"}, config.getSdpIp().trim());
+        if (mediaServer.getStreamIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "stream-ip"}, mediaServer.getStreamIp().trim());
         }
-        if (config.getHookIp() != null) {
-            setYamlScalar(lines, new String[]{"media", "hook-ip"}, config.getHookIp().trim());
+        if (mediaServer.getHttpPort() > 0) {
+            setYamlScalar(lines, new String[]{"media", "http-port"}, String.valueOf(mediaServer.getHttpPort()));
         }
-        if (config.getHttpPort() != null) {
-            setYamlScalar(lines, new String[]{"media", "http-port"}, String.valueOf(config.getHttpPort()));
+        if (!ObjectUtils.isEmpty(mediaServer.getSecret())) {
+            setYamlScalar(lines, new String[]{"media", "secret"}, mediaServer.getSecret());
         }
-        if (config.getSecret() != null) {
-            setYamlScalar(lines, new String[]{"media", "secret"}, config.getSecret());
+        setYamlScalar(lines, new String[]{"media", "auto-config"}, String.valueOf(mediaServer.isAutoConfig()));
+        setYamlScalar(lines, new String[]{"media", "rtp", "enable"}, String.valueOf(mediaServer.isRtpEnable()));
+        // 端口范围为空时不写, 避免把已有配置写成空值
+        if (!ObjectUtils.isEmpty(mediaServer.getRtpPortRange())) {
+            setYamlScalar(lines, new String[]{"media", "rtp", "port-range"}, mediaServer.getRtpPortRange().trim());
         }
-        if (config.getAutoConfig() != null) {
-            setYamlScalar(lines, new String[]{"media", "auto-config"}, String.valueOf(config.getAutoConfig()));
+        if (!ObjectUtils.isEmpty(mediaServer.getSendRtpPortRange())) {
+            setYamlScalar(lines, new String[]{"media", "rtp", "send-port-range"},
+                    mediaServer.getSendRtpPortRange().trim());
         }
-        if (config.getRtpEnable() != null) {
-            setYamlScalar(lines, new String[]{"media", "rtp", "enable"}, String.valueOf(config.getRtpEnable()));
-        }
-        if (config.getRtpPortRange() != null) {
-            setYamlScalar(lines, new String[]{"media", "rtp", "port-range"}, config.getRtpPortRange().trim());
-        }
-        if (config.getRtpSendPortRange() != null) {
-            setYamlScalar(lines, new String[]{"media", "rtp", "send-port-range"}, config.getRtpSendPortRange().trim());
-        }
-        if (config.getRecordAssistPort() != null) {
+        if (mediaServer.getRecordAssistPort() >= 0) {
             setYamlScalar(lines, new String[]{"media", "record-assist-port"},
-                    String.valueOf(config.getRecordAssistPort()));
+                    String.valueOf(mediaServer.getRecordAssistPort()));
         }
-        if (config.getRecordDay() != null) {
-            setYamlScalar(lines, new String[]{"media", "record-day"}, String.valueOf(config.getRecordDay()));
+        if (mediaServer.getRecordDay() > 0) {
+            setYamlScalar(lines, new String[]{"media", "record-day"}, String.valueOf(mediaServer.getRecordDay()));
         }
-        if (config.getRecordPath() != null) {
-            setYamlScalar(lines, new String[]{"media", "record-path"}, config.getRecordPath());
+        if (!ObjectUtils.isEmpty(mediaServer.getRecordPath())) {
+            setYamlScalar(lines, new String[]{"media", "record-path"}, mediaServer.getRecordPath().trim());
         }
-        if (config.getType() != null) {
-            setYamlScalar(lines, new String[]{"media", "type"}, config.getType().trim());
+        if (!ObjectUtils.isEmpty(mediaServer.getType())) {
+            setYamlScalar(lines, new String[]{"media", "type"}, mediaServer.getType().trim());
         }
 
         writeConfigLines(file, lines);
-        log.info("[系统设置] 流媒体服务配置已保存: {}", file.getAbsolutePath());
-        return file.getAbsolutePath();
+        log.info("[系统设置] 默认媒体节点配置已回写: {}", file.getAbsolutePath());
+    }
+
+    @Override
+    public boolean isActiveConfigWritable() {
+        try {
+            ConfigEntry entry = resolveTargetConfigEntry();
+            return entry.isWritable() && entry.getFile() != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -855,6 +829,26 @@ public class SettingServiceImpl implements ISettingService {
         return environment.getProperty("sip.port", Integer.class);
     }
 
+    /**
+     * 读取运行中实际生效的国标命令超时时间, 未注入 sipConfig 时回退到 environment / 默认值
+     */
+    private Long readRuntimeSipTimeout() {
+        if (sipConfig != null) {
+            return sipConfig.getTimeout();
+        }
+        return environment.getProperty("sip.timeout", Long.class, DEFAULT_SIP_TIMEOUT);
+    }
+
+    /**
+     * 读取运行中实际生效的国标alarm开关, 未注入 sipConfig 时回退到 environment / 默认值
+     */
+    private Boolean readRuntimeSipAlarm() {
+        if (sipConfig != null) {
+            return sipConfig.isAlarm();
+        }
+        return environment.getProperty("sip.alarm", Boolean.class, DEFAULT_SIP_ALARM);
+    }
+
     private Boolean readBoolean(Map<String, Object> root, String[] path, Boolean fallback) {
         Boolean value = toBoolean(readNested(root, path));
         return value != null ? value : fallback;
@@ -964,12 +958,6 @@ public class SettingServiceImpl implements ISettingService {
         if (!ObjectUtils.isEmpty(config.getDomain()) && !config.getDomain().trim().matches("\\d{10}")) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标域必须为10位数字");
         }
-        if (config.getRegisterTimeInterval() != null && config.getRegisterTimeInterval() < 0) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "注册失败重试间隔不能小于0");
-        }
-        if (config.getPtzSpeed() != null && (config.getPtzSpeed() < 0 || config.getPtzSpeed() > 255)) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "云台控制速度必须在 0-255 之间");
-        }
         if (config.getTimeout() != null && config.getTimeout() <= 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "命令超时时间必须大于0");
         }
@@ -998,23 +986,6 @@ public class SettingServiceImpl implements ISettingService {
     /**
      * 校验流媒体配置
      */
-    private void validateMediaServerConfig(MediaServerConfig config) {
-        if (ObjectUtils.isEmpty(config.getId())) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器ID不能为空");
-        }
-        if (ObjectUtils.isEmpty(config.getIp())) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器IP不能为空");
-        }
-        if (ObjectUtils.isEmpty(config.getSecret())) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器密钥不能为空");
-        }
-        validatePort(config.getHttpPort(), "流媒体HTTP端口", true);
-        validatePort(config.getRecordAssistPort(), "录像辅助服务端口", true);
-        if (config.getRecordDay() != null && config.getRecordDay() < 0) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "录像保存天数不能小于0");
-        }
-    }
-
     /**
      * 校验平台策略配置
      */

@@ -26,7 +26,7 @@
                 :disabled="!writable"
                 clearable
                 placeholder="请选择"
-                style="width: 260px"
+                style="width: 480px"
               >
                 <el-option v-for="opt in field.options" :key="opt" :label="opt" :value="opt" />
               </el-select>
@@ -61,7 +61,7 @@
                 type="number"
                 :disabled="!writable"
                 clearable
-                style="width: 220px"
+                style="width: 480px"
               >
                 <template v-if="field.unit" slot="append">{{ field.unit }}</template>
               </el-input>
@@ -70,7 +70,7 @@
                 v-model="form[field.key]"
                 :disabled="!writable"
                 clearable
-                style="width: 320px"
+                style="width: 480px"
               />
               <span v-if="field.tip" class="field-tip">{{ field.tip }}</span>
             </el-form-item>
@@ -190,29 +190,29 @@ export default {
         {
           title: '基础配置',
           fields: [
+            { key: 'serverId', label: '服务ID', type: 'text', tip: '不写则为 000000' },
             { key: 'interfaceAuthentication', label: '开启接口鉴权', type: 'switch' },
             { key: 'interfaceAuthenticationExcludes', label: '鉴权例外接口', type: 'list', tip: '每行一个' },
-            { key: 'useSourceIpAsStreamIp', label: '使用来源IP作为streamIp', type: 'switch' },
-            { key: 'sqlLog', label: '开启sql日志', type: 'switch' },
-            { key: 'deviceStatusNotify', label: '设备/通道状态变化发送消息', type: 'switch' },
-            { key: 'docEnable', label: '开启接口文档', type: 'switch' },
-            { key: 'serverId', label: '服务ID', type: 'text', tip: '不写则为 000000' },
-            { key: 'civilCodeFile', label: '行政区划文件', type: 'text' },
-            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', tip: '每行一个，不设置则允许所有' },
-            { key: 'maxNotifyCountQueue', label: 'notify缓存队列长度', type: 'number' },
             { key: 'loginTimeout', label: '登录超时时间', type: 'number', unit: '分钟' },
+            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', tip: '每行一个，不设置则允许所有' },
+            { key: 'useSourceIpAsStreamIp', label: '使用来源IP拼接流地址', type: 'switch' },
+            { key: 'sqlLog', label: 'sql日志', type: 'switch' },
+            { key: 'deviceStatusNotify', label: '通知设备/通道状态变化', type: 'switch' },
+            { key: 'civilCodeFile', label: '行政区划文件', type: 'text' },
+            { key: 'maxNotifyCountQueue', label: 'notify缓存队列长度', type: 'number' },
             { key: 'jwkFile', label: 'jwk文件路径', type: 'text' },
-            { key: 'savePositionHistory', label: '保存位置历史轨迹', type: 'switch' }
+            { key: 'savePositionHistory', label: '保存位置历史轨迹', type: 'switch' },
+            { key: 'docEnable', label: '开启接口文档', type: 'switch' }
           ]
         },
         {
           title: '视频播放',
           fields: [
+            { key: 'streamOnDemand', label: '按需拉流', type: 'switch' },
             { key: 'autoApplyPlay', label: '自动点播', type: 'switch' },
-            { key: 'playTimeout', label: '点播等待超时时间', type: 'number', unit: '毫秒' },
+            { key: 'playTimeout', label: '点播超时时间', type: 'number', unit: '毫秒' },
             { key: 'recordInfoTimeout', label: '录像查询超时时间', type: 'number', unit: '毫秒' },
-            { key: 'streamOnDemand', label: '国标点播按需拉流', type: 'switch' },
-            { key: 'snapAsync', label: '使用ZLM内部解码截图', type: 'switch' }
+            { key: 'snapAsync', label: 'ZLM内部解码截图', type: 'switch' }
           ]
         },
         {
@@ -227,34 +227,34 @@ export default {
         {
           title: '国标服务',
           fields: [
+            { key: 'syncChannelOnDeviceOnline', label: '自动同步通道', type: 'switch' },
+            { key: 'recordSip', label: '国标录制', type: 'switch' },
+            { key: 'ssrcRandom', label: '随机SSRC', type: 'switch' },
             { key: 'deviceIdStrict', label: '设备ID严格模式', type: 'switch' },
             { key: 'seniorSdp', label: '扩展SDP', type: 'switch' },
-            { key: 'sipLog', label: '开启sip日志', type: 'switch' },
-            { key: 'sipUseSourceIpAsRemoteAddress', label: '使用来源IP作为回复IP', type: 'switch' },
-            { key: 'recordSip', label: '国标录制', type: 'switch' },
-            { key: 'syncChannelOnDeviceOnline', label: '上线自动同步通道', type: 'switch' },
-            { key: 'sendToPlatformsWhenIdLost', label: '缺少ID时给所有上级发消息', type: 'switch' },
-            { key: 'refuseChannelStatusChannelFormNotify', label: '不接受notify通道状态变化', type: 'switch' },
-            { key: 'ssrcRandom', label: '多端口模式随机SSRC', type: 'switch' },
-            { key: 'gbDeviceOnline', label: '离线上线策略', type: 'number', tip: '0-标准实现, 1-收到心跳即上线' },
+            { key: 'sipLog', label: 'sip日志', type: 'switch' },
+            { key: 'sipUseSourceIpAsRemoteAddress', label: '来源IP作为回复IP', type: 'switch' },
+            { key: 'sendToPlatformsWhenIdLost', label: '消息默认推送所有上级', type: 'switch' },
+            { key: 'refuseChannelStatusChannelFormNotify', label: '禁用Notify通道状态变化', type: 'switch' },
             { key: 'sipCacheServerConnections', label: '保持服务器套接字', type: 'switch' },
-            { key: 'disableDateHeader', label: '禁用date头', type: 'switch' },
+            { key: 'disableDateHeader', label: '禁用时间同步', type: 'switch' },
             { key: 'groupSyncDeviceTemplate', label: '分组编号模板', type: 'text' },
             { key: 'subscribeMobilePosition', label: '默认开启位置订阅', type: 'switch' },
-            { key: 'deviceRegisterTimeMaxCount', label: '注册时间列表最大条数', type: 'number' },
+            { key: 'gbDeviceOnline', label: '离线上线策略', type: 'number', tip: '0-标准实现, 1-收到心跳即上线' },
+            { key: 'deviceRegisterTimeMaxCount', label: '注册时间最大条数', type: 'number' },
             { key: 'deviceRegisterTimeTtlHours', label: '注册时间过期时间', type: 'number', unit: '小时' },
-            { key: 'deviceKeepaliveTimeMaxCount', label: '心跳时间列表最大条数', type: 'number' },
+            { key: 'deviceKeepaliveTimeMaxCount', label: '心跳时间最大条数', type: 'number' },
             { key: 'deviceKeepaliveTimeTtlHours', label: '心跳时间过期时间', type: 'number', unit: '小时' }
           ]
         },
         {
           title: '国标级联',
           fields: [
-            { key: 'platformPlayTimeout', label: '上级点播等待超时', type: 'number', unit: '毫秒' },
-            { key: 'useCustomSsrcForParentInvite', label: '上级点播使用自定义SSRC', type: 'switch' },
-            { key: 'broadcastForPlatform', label: '喊话发流模式', type: 'select', options: ['UDP', 'TCP-ACTIVE', 'TCP-PASSIVE'] },
-            { key: 'registerAgainAfterTime', label: '级联重注册间隔', type: 'number', unit: '秒' },
             { key: 'registerKeepIntDialog', label: '续订方式', type: 'switch', tip: '开启为续订, 关闭为重新注册' },
+            { key: 'registerAgainAfterTime', label: '级联重注册间隔', type: 'number', unit: '秒' },
+            { key: 'broadcastForPlatform', label: '喊话发流模式', type: 'select', options: ['UDP', 'TCP-ACTIVE', 'TCP-PASSIVE'] },
+            { key: 'platformPlayTimeout', label: '点播等待超时', type: 'number', unit: '毫秒' },
+            { key: 'useCustomSsrcForParentInvite', label: '点播使用自定义SSRC', type: 'switch' },
             { key: 'autoRegisterPlatform', label: '集群自动注册上级', type: 'switch' },
             { key: 'sendPositionOnDemand', label: '按需发送位置', type: 'switch' }
           ]

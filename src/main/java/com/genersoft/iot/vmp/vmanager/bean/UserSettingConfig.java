@@ -183,6 +183,9 @@ public class UserSettingConfig {
 
     // ---------------- 元信息 ----------------
 
+    @Schema(description = "需要重启服务才能生效的字段(仅查询时下发)")
+    private List<String> restartRequiredFields;
+
     @Schema(description = "当前生效的配置文件ID")
     private String profileId;
 

@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -132,9 +133,10 @@ public class SettingController {
     @ResponseBody
     @PostMapping("/user-setting")
     @Operation(summary = "保存平台策略配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public WVPResult<String> saveUserSettingConfig(@RequestBody UserSettingConfig config) {
-        String path = settingService.saveUserSettingConfig(config);
-        return WVPResult.success(path, "配置已保存, 重启服务后生效");
+    public WVPResult<UserSettingSaveResult> saveUserSettingConfig(@RequestBody UserSettingConfig config) {
+        UserSettingSaveResult result = settingService.saveUserSettingConfig(config);
+        String message = result.isRestartRequired() ? "配置已保存，部分配置需重启后生效" : "配置已保存并已生效";
+        return WVPResult.success(result, message);
     }
 
     @ResponseBody

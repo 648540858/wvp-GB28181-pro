@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
 import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 
 import java.util.List;
@@ -117,12 +118,12 @@ public interface ISettingService {
     /**
      * 保存全局策略-平台策略(user-settings)配置到当前生效的配置文件
      * <p>
-     * 修改后需要重启服务才能生效
+     * 无需重启的字段会被就地热应用立即生效; 需要重启的字段仍以配置为准, 重启后生效。
      *
      * @param config 平台策略配置
-     * @return 被修改的配置文件路径
+     * @return 保存结果, 含被修改的文件路径以及本次变更且需要重启的字段
      */
-    String saveUserSettingConfig(UserSettingConfig config);
+    UserSettingSaveResult saveUserSettingConfig(UserSettingConfig config);
 
     /**
      * 查询可用的报警订阅类型列表

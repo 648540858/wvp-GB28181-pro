@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
 import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -1037,6 +1039,79 @@ class SettingServiceImplTest {
         assertFalse(updated.contains("/api/old/**"), "旧列表项应被移除, 实际:\n" + updated);
         assertTrue(updated.contains("doc-enable: true"), "应保留后续同级配置, 实际:\n" + updated);
         assertTrue(updated.contains("server-id: \"000000\""), "应保留原引号字符串, 实际:\n" + updated);
+    }
+
+    /**
+     * 查询平台策略配置: 应下发需要重启才能生效的字段清单
+     */
+    @Test
+    void queryUserSettingConfig_returnsRestartRequiredFields() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "user-settings:\n  sip-log: true\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSettingConfig config = service.queryUserSettingConfig();
+
+        assertNotNull(config.getRestartRequiredFields());
+        assertTrue(config.getRestartRequiredFields().contains("serverId"));
+        assertTrue(config.getRestartRequiredFields().contains("allowedOrigins"));
+        assertTrue(config.getRestartRequiredFields().contains("sipLog"));
+        assertFalse(config.getRestartRequiredFields().contains("loginTimeout"), "热字段不应出现在重启清单中");
+    }
+
+    /**
+     * 保存平台策略配置: 仅修改热字段时无需重启, 且应即时生效
+     */
+    @Test
+    void saveUserSettingConfig_hotField_appliesImmediately() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "user-settings:\n  login-timeout: 60\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSetting runtime = new UserSetting();
+        runtime.setLoginTimeout(60L);
+        ReflectionTestUtils.setField(service, "userSetting", runtime);
+
+        UserSettingConfig config = service.queryUserSettingConfig();
+        config.setLoginTimeout(120L);
+
+        UserSettingSaveResult result = service.saveUserSettingConfig(config);
+
+        assertFalse(result.isRestartRequired(), "仅修改热字段无需重启");
+        assertTrue(result.getRestartFields().isEmpty(), "不应报告需要重启的字段");
+        assertEquals(120L, runtime.getLoginTimeout(), "热字段应即时生效");
+    }
+
+    /**
+     * 保存平台策略配置: 修改需要重启的字段时应报告, 且不即时生效
+     */
+    @Test
+    void saveUserSettingConfig_restartField_reportsAndKeepsRuntimeValue() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "user-settings:\n  sip-log: false\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSetting runtime = new UserSetting();
+        runtime.setSipLog(false);
+        ReflectionTestUtils.setField(service, "userSetting", runtime);
+
+        UserSettingConfig config = service.queryUserSettingConfig();
+        config.setSipLog(true);
+
+        UserSettingSaveResult result = service.saveUserSettingConfig(config);
+
+        assertTrue(result.isRestartRequired(), "修改 sip-log 需要重启");
+        assertTrue(result.getRestartFields().contains("sipLog"));
+        assertFalse(runtime.getSipLog(), "需要重启的字段不应即时生效");
     }
 
     /**

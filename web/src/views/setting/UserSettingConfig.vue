@@ -15,6 +15,17 @@
         <el-collapse-item v-for="group in groups" :key="group.title" :title="group.title" :name="group.title">
           <el-form label-width="240px" class="config-form" @submit.native.prevent>
             <el-form-item v-for="field in group.fields" :key="field.key" :label="field.label">
+              <template slot="label">
+                <span>{{ field.label }}</span>
+                <el-tag
+                  v-if="restartFieldKeys.length"
+                  size="mini"
+                  class="restart-tag"
+                  :type="isRestartField(field.key) ? 'warning' : 'success'"
+                >
+                  {{ isRestartField(field.key) ? '重启' : '即时' }}
+                </el-tag>
+              </template>
               <el-switch
                 v-if="field.type === 'switch'"
                 v-model="form[field.key]"
@@ -46,14 +57,13 @@
                   :value="opt.value"
                 />
               </el-select>
-              <el-input
+              <tag-list-input
                 v-else-if="field.type === 'list'"
-                type="textarea"
-                :rows="4"
-                :value="listText[field.key]"
+                v-model="form[field.key]"
                 :disabled="!writable"
-                style="width: 480px"
-                @input="value => onListInput(field.key, value)"
+                :placeholder="field.placeholder"
+                :tips="field.tips"
+                :item-validator="listValidator(field.key)"
               />
               <el-input
                 v-else-if="field.type === 'number'"
@@ -80,8 +90,8 @@
 
       <div class="save-bar">
         <span class="save-hint">
-          <template v-if="dirty">配置已修改，保存后需重启服务生效</template>
-          <template v-else-if="pendingRestart">配置已保存，重启服务后生效</template>
+          <template v-if="dirty">配置已修改，保存后即时生效（标记为“重启”的字段需重启）</template>
+          <template v-else-if="pendingRestart">配置已保存，部分配置需重启后生效</template>
           <template v-else>当前配置未变更</template>
         </span>
         <div>
@@ -104,6 +114,7 @@
 
 <script>
 import configPanelMixin from './configPanelMixin'
+import TagListInput from './components/TagListInput.vue'
 
 function emptyForm() {
   return {
@@ -169,6 +180,7 @@ function emptyForm() {
 
 export default {
   name: 'UserSettingConfig',
+  components: { TagListInput },
   mixins: [configPanelMixin],
   data() {
     return {
@@ -181,20 +193,17 @@ export default {
       form: emptyForm(),
       saved: emptyForm(),
       alarmTypes: [],
+      restartFieldKeys: [],
       activeGroups: ['基础配置'],
-      listText: {
-        interfaceAuthenticationExcludes: '',
-        allowedOrigins: ''
-      },
       groups: [
         {
           title: '基础配置',
           fields: [
             { key: 'serverId', label: '服务ID', type: 'text', tip: '不写则为 000000' },
             { key: 'interfaceAuthentication', label: '开启接口鉴权', type: 'switch' },
-            { key: 'interfaceAuthenticationExcludes', label: '鉴权例外接口', type: 'list', tip: '每行一个' },
+            { key: 'interfaceAuthenticationExcludes', label: '鉴权例外接口', type: 'list', placeholder: '/api/device/query/...', tips: '需以 / 开头, 至少两级目录, 尽量不使用 /**' },
             { key: 'loginTimeout', label: '登录超时时间', type: 'number', unit: '分钟' },
-            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', tip: '每行一个，不设置则允许所有' },
+            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', placeholder: 'http://example.com:8080', tips: '需以 http:// 或 https:// 开头, 不设置则允许所有跨域' },
             { key: 'useSourceIpAsStreamIp', label: '使用来源IP拼接流地址', type: 'switch' },
             { key: 'sqlLog', label: 'sql日志', type: 'switch' },
             { key: 'deviceStatusNotify', label: '通知设备/通道状态变化', type: 'switch' },
@@ -304,9 +313,20 @@ export default {
     toggleAll() {
       this.activeGroups = this.allExpanded ? [] : this.groups.map(item => item.title)
     },
-    onListInput(key, value) {
-      this.listText[key] = value
-      this.form[key] = value.split('\n').map(item => item.trim()).filter(item => item)
+    // 按字段返回列表项的格式校验函数
+    listValidator(key) {
+      if (key === 'allowedOrigins') {
+        return (value) => (/^https?:\/\/[^\s]+$/.test(value) ? '' : '需以 http:// 或 https:// 开头')
+      }
+      if (key === 'interfaceAuthenticationExcludes') {
+        return (value) => {
+          if (!value.startsWith('/')) {
+            return '需以 / 开头, 如 /api/device/query/...'
+          }
+          return ''
+        }
+      }
+      return null
     },
     reload() {
       this.loading = true
@@ -318,6 +338,7 @@ export default {
           this.writable = !!data.writable
           this.profileId = data.profileId || ''
           this.filePath = data.filePath || ''
+          this.restartFieldKeys = Array.isArray(data.restartRequiredFields) ? data.restartRequiredFields : []
           const form = emptyForm()
           const num = (value) => (typeof value === 'number' ? value : null)
           const bool = (value) => !!value
@@ -381,10 +402,6 @@ export default {
           form.allowedAlarmType = list(data.allowedAlarmType)
           form.alarmKeepDays = num(data.alarmKeepDays)
 
-          this.listText = {
-            interfaceAuthenticationExcludes: form.interfaceAuthenticationExcludes.join('\n'),
-            allowedOrigins: form.allowedOrigins.join('\n')
-          }
           this.form = { ...form, interfaceAuthenticationExcludes: [...form.interfaceAuthenticationExcludes], allowedOrigins: [...form.allowedOrigins], allowedAlarmType: [...form.allowedAlarmType] }
           this.saved = JSON.parse(JSON.stringify(this.form))
           this.pendingRestart = false
@@ -400,37 +417,51 @@ export default {
       if (!this.dirty) {
         return
       }
-      this.$confirm(
-        '确认保存平台策略配置吗？保存后需要重启服务才能生效。',
-        '保存平台策略配置',
-        {
-          confirmButtonText: '保存并重启',
-          cancelButtonText: '仅保存',
-          distinguishCancelAndClose: true,
-          type: 'warning'
-        }
-      ).then(() => {
-        this.doSave(true)
-      }).catch(action => {
-        if (action === 'cancel') {
-          this.doSave(false)
-        }
-      })
+      this.doSave()
     },
-    doSave(needRestart) {
+    // 是否属于后端标识的“需重启才能生效”字段
+    isRestartField(key) {
+      return this.restartFieldKeys.indexOf(key) >= 0
+    },
+    // 由字段 key 映射到中文名称, 用于保存提示
+    fieldLabel(key) {
+      for (const group of this.groups) {
+        const field = group.fields.find(item => item.key === key)
+        if (field) {
+          return field.label
+        }
+      }
+      return key
+    },
+    doSave() {
       const payload = {}
       Object.keys(this.form).forEach(key => {
         payload[key] = this.form[key] === '' ? null : this.form[key]
       })
       this.saving = true
-      this.$store.dispatch('setting/saveUserSettingConfig', payload).then(() => {
-        this.$message.success('平台策略配置已保存')
+      this.$store.dispatch('setting/saveUserSettingConfig', payload).then(res => {
+        const result = (res && res.data) || {}
         this.saved = JSON.parse(JSON.stringify(this.form))
-        this.pendingRestart = true
-        if (needRestart) {
-          this.confirmRestart(() => this.reload())
+        if (result.restartRequired) {
+          this.pendingRestart = true
+          const names = (result.restartFields || []).map(key => this.fieldLabel(key))
+          const detail = names.length ? `：${names.join('、')}` : ''
+          this.$confirm(
+            `配置已保存，以下配置需重启服务后生效${detail}。是否立即重启？`,
+            '保存平台策略配置',
+            {
+              confirmButtonText: '立即重启',
+              cancelButtonText: '稍后手动重启',
+              type: 'warning'
+            }
+          ).then(() => {
+            this.doRestart(() => this.reload())
+          }).catch(() => {
+            this.$message.info('配置将在下次服务重启后生效')
+          })
         } else {
-          this.$message.info('配置将在下次服务重启后生效')
+          this.pendingRestart = false
+          this.$message.success('配置已保存并已生效')
         }
       }).catch(error => {
         this.$message.error(typeof error === 'string' ? error : '保存平台策略配置失败')
@@ -504,6 +535,15 @@ export default {
   margin-left: 12px;
   font-size: 12px;
   color: #909399;
+}
+
+.restart-tag {
+  margin-left: 6px;
+  padding: 0 4px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 10px;
+  border-radius: 3px;
 }
 
 .save-bar {

@@ -98,7 +98,7 @@ export function getUserSettingConfig() {
   })
 }
 
-// 保存平台策略配置(需重启生效)
+// 保存平台策略配置(无需重启的字段即时生效, 需要重启的字段由返回结果标识)
 export function saveUserSettingConfig(data) {
   return request({
     method: 'post',

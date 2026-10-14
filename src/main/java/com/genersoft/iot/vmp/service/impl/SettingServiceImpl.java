@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
 import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +103,26 @@ public class SettingServiceImpl implements ISettingService {
             "classpath*:application-*.yml",
             "classpath*:application-*.yaml"
     };
+
+    /**
+     * 需要重启服务才能生效的字段(camelCase, 与 {@link UserSettingConfig} 属性名一致)
+     * <p>
+     * 判定标准: 该字段在启动阶段被读取并固化(如 Security 过滤链、SqlSessionFactory、SIP Stack、
+     * Caffeine 缓存容量、静态 JWT 密钥等), 运行中修改无法生效; 其余字段均在请求/事件处理时动态读取,
+     * 保存后可通过 {@link #applyHotUserSetting(UserSettingConfig)} 就地热应用立即生效。
+     */
+    private static final Set<String> RESTART_REQUIRED_FIELDS = new LinkedHashSet<>(List.of(
+            "serverId",
+            "interfaceAuthentication",
+            "interfaceAuthenticationExcludes",
+            "allowedOrigins",
+            "sqlLog",
+            "civilCodeFile",
+            "sipLog",
+            "sipCacheServerConnections",
+            "jwkFile",
+            "alarmCatchSize"
+    ));
 
     /**
      * 未指定 spring.config.location 时, 按 Spring Boot 默认搜索路径查找 application.yml
@@ -621,6 +644,7 @@ public class SettingServiceImpl implements ISettingService {
         config.setAlarmKeepDays(readInteger(root, new String[]{"user-settings", "alarm-keep-days"},
                 defaults.getAlarmKeepDays()));
 
+        config.setRestartRequiredFields(new ArrayList<>(RESTART_REQUIRED_FIELDS));
         config.setProfileId(isMainConfig(entry) ? null : entry.getId());
         config.setFilePath(entry.getPath());
         config.setWritable(entry.isWritable());
@@ -628,11 +652,15 @@ public class SettingServiceImpl implements ISettingService {
     }
 
     @Override
-    public String saveUserSettingConfig(UserSettingConfig config) {
+    public UserSettingSaveResult saveUserSettingConfig(UserSettingConfig config) {
         if (config == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
         }
         validateUserSettingConfig(config);
+
+        // 先基于当前运行中的配置判断本次变更涉及哪些需要重启的字段
+        List<String> restartFields = collectChangedRestartFields(config);
+
         File file = resolveWritableConfigFile();
         List<String> lines = readConfigLines(file);
 
@@ -707,7 +735,15 @@ public class SettingServiceImpl implements ISettingService {
 
         writeConfigLines(file, lines);
         log.info("[系统设置] 平台策略配置已保存: {}", file.getAbsolutePath());
-        return file.getAbsolutePath();
+
+        // 无需重启的字段就地热应用, 立即生效
+        applyHotUserSetting(config);
+
+        UserSettingSaveResult result = new UserSettingSaveResult();
+        result.setFilePath(file.getAbsolutePath());
+        result.setRestartFields(restartFields);
+        result.setRestartRequired(!restartFields.isEmpty());
+        return result;
     }
 
     @Override
@@ -913,6 +949,243 @@ public class SettingServiceImpl implements ISettingService {
 
     private UserSetting userSettingOrDefaults() {
         return userSetting != null ? userSetting : new UserSetting();
+    }
+
+    /**
+     * 收集本次变更且需要重启才能生效的字段(与当前运行中的配置比较)
+     * <p>
+     * 说明: 布尔/数字字段为空视为"未变更"; 文本字段将 null 视同空串比较; 列表字段按集合语义比较。
+     */
+    private List<String> collectChangedRestartFields(UserSettingConfig config) {
+        List<String> changed = new ArrayList<>();
+        UserSetting current = userSettingOrDefaults();
+        if (changedRestartText(config.getServerId(), current.getServerId())) {
+            changed.add("serverId");
+        }
+        if (changedRestartObject(config.getInterfaceAuthentication(), current.getInterfaceAuthentication())) {
+            changed.add("interfaceAuthentication");
+        }
+        if (changedRestartList(config.getInterfaceAuthenticationExcludes(),
+                current.getInterfaceAuthenticationExcludes())) {
+            changed.add("interfaceAuthenticationExcludes");
+        }
+        if (changedRestartList(config.getAllowedOrigins(), current.getAllowedOrigins())) {
+            changed.add("allowedOrigins");
+        }
+        if (changedRestartObject(config.getSqlLog(), current.getSqlLog())) {
+            changed.add("sqlLog");
+        }
+        if (changedRestartText(config.getCivilCodeFile(), current.getCivilCodeFile())) {
+            changed.add("civilCodeFile");
+        }
+        if (changedRestartObject(config.getSipLog(), current.getSipLog())) {
+            changed.add("sipLog");
+        }
+        if (changedRestartObject(config.getSipCacheServerConnections(), current.isSipCacheServerConnections())) {
+            changed.add("sipCacheServerConnections");
+        }
+        if (changedRestartText(config.getJwkFile(), current.getJwkFile())) {
+            changed.add("jwkFile");
+        }
+        if (changedRestartObject(config.getAlarmCatchSize(), current.getAlarmCatchSize())) {
+            changed.add("alarmCatchSize");
+        }
+        return changed;
+    }
+
+    /**
+     * 布尔/数字等值比较, null 视为未变更
+     */
+    private boolean changedRestartObject(Object newValue, Object currentValue) {
+        return newValue != null && !Objects.equals(newValue, currentValue);
+    }
+
+    /**
+     * 文本比较, null 视同空串
+     */
+    private boolean changedRestartText(String newValue, String currentValue) {
+        String left = newValue == null ? "" : newValue;
+        String right = currentValue == null ? "" : currentValue;
+        return !left.equals(right);
+    }
+
+    /**
+     * 列表比较, null 视为未变更, 顺序无关
+     */
+    private boolean changedRestartList(List<String> newValue, List<?> currentValue) {
+        if (newValue == null) {
+            return false;
+        }
+        Set<String> newSet = new HashSet<>(newValue);
+        Set<String> currentSet = new HashSet<>();
+        if (currentValue != null) {
+            for (Object item : currentValue) {
+                if (item != null) {
+                    currentSet.add(item.toString());
+                }
+            }
+        }
+        return !newSet.equals(currentSet);
+    }
+
+    /**
+     * 无需重启的字段就地热应用, 立即生效; 需要重启的字段不在此处理(保持运行中的旧值直到重启)
+     */
+    private void applyHotUserSetting(UserSettingConfig config) {
+        UserSetting target = userSetting;
+        if (target == null) {
+            return;
+        }
+        // 基础配置
+        if (config.getUseSourceIpAsStreamIp() != null) {
+            target.setUseSourceIpAsStreamIp(config.getUseSourceIpAsStreamIp());
+        }
+        if (config.getDeviceStatusNotify() != null) {
+            target.setDeviceStatusNotify(config.getDeviceStatusNotify());
+        }
+        if (config.getDocEnable() != null) {
+            target.setDocEnable(config.getDocEnable());
+        }
+        if (config.getMaxNotifyCountQueue() != null) {
+            target.setMaxNotifyCountQueue(config.getMaxNotifyCountQueue());
+        }
+        if (config.getLoginTimeout() != null) {
+            target.setLoginTimeout(config.getLoginTimeout());
+        }
+        if (config.getSavePositionHistory() != null) {
+            target.setSavePositionHistory(config.getSavePositionHistory());
+        }
+        // 视频播放
+        if (config.getAutoApplyPlay() != null) {
+            target.setAutoApplyPlay(config.getAutoApplyPlay());
+        }
+        if (config.getPlayTimeout() != null) {
+            target.setPlayTimeout(config.getPlayTimeout());
+        }
+        if (config.getRecordInfoTimeout() != null) {
+            target.setRecordInfoTimeout(config.getRecordInfoTimeout());
+        }
+        if (config.getStreamOnDemand() != null) {
+            target.setStreamOnDemand(config.getStreamOnDemand());
+        }
+        if (config.getSnapAsync() != null) {
+            target.setSnapAsync(config.getSnapAsync());
+        }
+        // 推流控制
+        if (config.getPushAuthority() != null) {
+            target.setPushAuthority(config.getPushAuthority());
+        }
+        if (config.getRecordPushLive() != null) {
+            target.setRecordPushLive(config.getRecordPushLive());
+        }
+        if (config.getUsePushingAsStatus() != null) {
+            target.setUsePushingAsStatus(config.getUsePushingAsStatus());
+        }
+        if (config.getUseAliasForGroupSync() != null) {
+            target.setUseAliasForGroupSync(config.getUseAliasForGroupSync());
+        }
+        // 国标服务
+        if (config.getDeviceIdStrict() != null) {
+            target.setDeviceIdStrict(config.getDeviceIdStrict());
+        }
+        if (config.getSeniorSdp() != null) {
+            target.setSeniorSdp(config.getSeniorSdp());
+        }
+        if (config.getSipUseSourceIpAsRemoteAddress() != null) {
+            target.setSipUseSourceIpAsRemoteAddress(config.getSipUseSourceIpAsRemoteAddress());
+        }
+        if (config.getRecordSip() != null) {
+            target.setRecordSip(config.getRecordSip());
+        }
+        if (config.getSyncChannelOnDeviceOnline() != null) {
+            target.setSyncChannelOnDeviceOnline(config.getSyncChannelOnDeviceOnline());
+        }
+        if (config.getSendToPlatformsWhenIdLost() != null) {
+            target.setSendToPlatformsWhenIdLost(config.getSendToPlatformsWhenIdLost());
+        }
+        if (config.getRefuseChannelStatusChannelFormNotify() != null) {
+            target.setRefuseChannelStatusChannelFormNotify(config.getRefuseChannelStatusChannelFormNotify());
+        }
+        if (config.getSsrcRandom() != null) {
+            target.setSsrcRandom(config.getSsrcRandom());
+        }
+        if (config.getGbDeviceOnline() != null) {
+            target.setGbDeviceOnline(config.getGbDeviceOnline());
+        }
+        if (config.getDisableDateHeader() != null) {
+            target.setDisableDateHeader(config.getDisableDateHeader());
+        }
+        if (config.getGroupSyncDeviceTemplate() != null) {
+            target.setGroupSyncDeviceTemplate(config.getGroupSyncDeviceTemplate());
+        }
+        if (config.getSubscribeMobilePosition() != null) {
+            target.setSubscribeMobilePosition(config.getSubscribeMobilePosition());
+        }
+        if (config.getDeviceRegisterTimeMaxCount() != null) {
+            target.setDeviceRegisterTimeMaxCount(config.getDeviceRegisterTimeMaxCount());
+        }
+        if (config.getDeviceRegisterTimeTtlHours() != null) {
+            target.setDeviceRegisterTimeTtlHours(config.getDeviceRegisterTimeTtlHours());
+        }
+        if (config.getDeviceKeepaliveTimeMaxCount() != null) {
+            target.setDeviceKeepaliveTimeMaxCount(config.getDeviceKeepaliveTimeMaxCount());
+        }
+        if (config.getDeviceKeepaliveTimeTtlHours() != null) {
+            target.setDeviceKeepaliveTimeTtlHours(config.getDeviceKeepaliveTimeTtlHours());
+        }
+        // 国标级联
+        if (config.getPlatformPlayTimeout() != null) {
+            target.setPlatformPlayTimeout(config.getPlatformPlayTimeout());
+        }
+        if (config.getUseCustomSsrcForParentInvite() != null) {
+            target.setUseCustomSsrcForParentInvite(config.getUseCustomSsrcForParentInvite());
+        }
+        if (config.getBroadcastForPlatform() != null) {
+            target.setBroadcastForPlatform(config.getBroadcastForPlatform());
+        }
+        if (config.getRegisterAgainAfterTime() != null) {
+            target.setRegisterAgainAfterTime(config.getRegisterAgainAfterTime());
+        }
+        if (config.getRegisterKeepIntDialog() != null) {
+            target.setRegisterKeepIntDialog(config.getRegisterKeepIntDialog());
+        }
+        if (config.getAutoRegisterPlatform() != null) {
+            target.setAutoRegisterPlatform(config.getAutoRegisterPlatform());
+        }
+        if (config.getSendPositionOnDemand() != null) {
+            target.setSendPositionOnDemand(config.getSendPositionOnDemand());
+        }
+        // 报警控制
+        if (config.getAlarmSnapByStream() != null) {
+            target.setAlarmSnapByStream(config.getAlarmSnapByStream());
+        }
+        if (config.getAllowedAlarmType() != null) {
+            target.setAllowedAlarmType(toAlarmTypes(config.getAllowedAlarmType()));
+        }
+        if (config.getAlarmKeepDays() != null) {
+            target.setAlarmKeepDays(config.getAlarmKeepDays());
+        }
+    }
+
+    /**
+     * 报警类型名称(枚举名) 转换为枚举, 非法值忽略
+     */
+    private List<AlarmType> toAlarmTypes(List<String> names) {
+        List<AlarmType> result = new ArrayList<>();
+        if (names == null) {
+            return result;
+        }
+        for (String name : names) {
+            if (ObjectUtils.isEmpty(name)) {
+                continue;
+            }
+            try {
+                result.add(AlarmType.valueOf(name.trim()));
+            } catch (IllegalArgumentException e) {
+                log.warn("[系统设置] 忽略非法的报警类型: {}", name);
+            }
+        }
+        return result;
     }
 
     /**
@@ -1523,17 +1796,36 @@ public class SettingServiceImpl implements ISettingService {
                 continue;
             }
             File dir = toConfigDir(path);
-            if (dir != null) {
-                log.info("[系统设置] 使用 spring.config.location 指定目录: {}", dir.getAbsolutePath());
-                return ConfigSource.ofDir(dir);
+            if (dir == null) {
+                continue;
             }
+            // 目录存在但没有主配置文件时继续查找下一个位置, 避免定位到错误目录后无法回退
+            if (!containsMainConfig(dir)) {
+                log.warn("[系统设置] spring.config.location 指定目录下未找到主配置文件, 跳过: {}",
+                        dir.getAbsolutePath());
+                continue;
+            }
+            log.info("[系统设置] 使用 spring.config.location 指定目录: {}", dir.getAbsolutePath());
+            return ConfigSource.ofDir(dir);
         }
-        if (classpathRequested) {
+        if (classpathRequested && classpathHasMainConfig()) {
             log.info("[系统设置] spring.config.location 仅包含 classpath, 使用jar内配置");
             return ConfigSource.ofClasspath();
         }
         log.warn("[系统设置] spring.config.location 指定的路径不可用: {}", location);
         return ConfigSource.none();
+    }
+
+    /**
+     * classpath 中是否包含主配置文件
+     */
+    private boolean classpathHasMainConfig() {
+        for (String name : mainConfigNames()) {
+            if (new ClassPathResource(name).exists()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

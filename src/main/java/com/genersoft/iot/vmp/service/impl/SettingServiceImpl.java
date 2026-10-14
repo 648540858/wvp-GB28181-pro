@@ -504,45 +504,83 @@ public class SettingServiceImpl implements ISettingService {
         UserSetting defaults = userSettingOrDefaults();
 
         UserSettingConfig config = new UserSettingConfig();
-        config.setServerId(readString(root, new String[]{"user-settings", "server-id"}, defaults.getServerId()));
-        config.setBroadcastForPlatform(readString(root, new String[]{"user-settings", "broadcast-for-platform"},
-                defaults.getBroadcastForPlatform()));
-        config.setCivilCodeFile(readString(root, new String[]{"user-settings", "civil-code-file"},
-                defaults.getCivilCodeFile()));
-        config.setJwkFile(readString(root, new String[]{"user-settings", "jwk-file"}, defaults.getJwkFile()));
-        config.setDocEnable(readBoolean(root, new String[]{"user-settings", "doc-enable"}, defaults.getDocEnable()));
-        config.setLoginTimeout(readLongValue(root, new String[]{"user-settings", "login-timeout"},
-                defaults.getLoginTimeout()));
-        config.setAutoRegisterPlatform(readBoolean(root, new String[]{"user-settings", "auto-register-platform"},
-                defaults.isAutoRegisterPlatform()));
-        config.setUseAliasForGroupSync(readBoolean(root, new String[]{"user-settings", "use-alias-for-group-sync"},
-                defaults.isUseAliasForGroupSync()));
-        config.setGroupSyncDeviceTemplate(readString(root, new String[]{"user-settings", "group-sync-device-template"},
-                defaults.getGroupSyncDeviceTemplate()));
-        config.setDeviceIdStrict(readBoolean(root, new String[]{"user-settings", "device-id-strict"},
-                defaults.isDeviceIdStrict()));
 
+        // 基础配置
         config.setInterfaceAuthentication(readBoolean(root, new String[]{"user-settings", "interface-authentication"},
                 defaults.getInterfaceAuthentication()));
         config.setInterfaceAuthenticationExcludes(readStringList(root,
                 new String[]{"user-settings", "interface-authentication-excludes"},
                 defaults.getInterfaceAuthenticationExcludes()));
+        config.setUseSourceIpAsStreamIp(readBoolean(root, new String[]{"user-settings", "use-source-ip-as-stream-ip"},
+                defaults.getUseSourceIpAsStreamIp()));
+        config.setSqlLog(readBoolean(root, new String[]{"user-settings", "sql-log"}, defaults.getSqlLog()));
+        config.setDeviceStatusNotify(readBoolean(root, new String[]{"user-settings", "device-status-notify"},
+                defaults.getDeviceStatusNotify()));
+        config.setDocEnable(readBoolean(root, new String[]{"user-settings", "doc-enable"}, defaults.getDocEnable()));
+        config.setServerId(readString(root, new String[]{"user-settings", "server-id"}, defaults.getServerId()));
+        config.setCivilCodeFile(readString(root, new String[]{"user-settings", "civil-code-file"},
+                defaults.getCivilCodeFile()));
         config.setAllowedOrigins(readStringList(root, new String[]{"user-settings", "allowed-origins"},
                 defaults.getAllowedOrigins()));
+        config.setMaxNotifyCountQueue(readInteger(root, new String[]{"user-settings", "max-notify-count-queue"},
+                defaults.getMaxNotifyCountQueue()));
+        config.setLoginTimeout(readLongValue(root, new String[]{"user-settings", "login-timeout"},
+                defaults.getLoginTimeout()));
+        config.setJwkFile(readString(root, new String[]{"user-settings", "jwk-file"}, defaults.getJwkFile()));
+        config.setSavePositionHistory(readBoolean(root, new String[]{"user-settings", "save-position-history"},
+                defaults.getSavePositionHistory()));
 
-        config.setGbDeviceOnline(readInteger(root, new String[]{"user-settings", "gb-device-online"},
-                defaults.getGbDeviceOnline()));
-        config.setRegisterAgainAfterTime(readInteger(root, new String[]{"user-settings", "register-again-after-time"},
-                defaults.getRegisterAgainAfterTime()));
-        config.setRegisterKeepIntDialog(readBoolean(root, new String[]{"user-settings", "register-keep-int-dialog"},
-                defaults.isRegisterKeepIntDialog()));
+        // 视频播放
+        config.setAutoApplyPlay(readBoolean(root, new String[]{"user-settings", "auto-apply-play"},
+                defaults.getAutoApplyPlay()));
+        config.setPlayTimeout(readInteger(root, new String[]{"user-settings", "play-timeout"},
+                defaults.getPlayTimeout()));
+        config.setRecordInfoTimeout(readInteger(root, new String[]{"user-settings", "record-info-timeout"},
+                defaults.getRecordInfoTimeout()));
+        config.setStreamOnDemand(readBoolean(root, new String[]{"user-settings", "stream-on-demand"},
+                defaults.getStreamOnDemand()));
+        config.setSnapAsync(readBoolean(root, new String[]{"user-settings", "snap-async"},
+                defaults.isSnapAsync()));
+
+        // 推流控制
+        config.setPushAuthority(readBoolean(root, new String[]{"user-settings", "push-authority"},
+                defaults.getPushAuthority()));
+        config.setRecordPushLive(readBoolean(root, new String[]{"user-settings", "record-push-live"},
+                defaults.getRecordPushLive()));
+        config.setUsePushingAsStatus(readBoolean(root, new String[]{"user-settings", "use-pushing-as-status"},
+                defaults.getUsePushingAsStatus()));
+        config.setUseAliasForGroupSync(readBoolean(root, new String[]{"user-settings", "use-alias-for-group-sync"},
+                defaults.isUseAliasForGroupSync()));
+
+        // 国标服务
+        config.setDeviceIdStrict(readBoolean(root, new String[]{"user-settings", "device-id-strict"},
+                defaults.isDeviceIdStrict()));
+        config.setSeniorSdp(readBoolean(root, new String[]{"user-settings", "senior-sdp"}, defaults.getSeniorSdp()));
+        config.setSipLog(readBoolean(root, new String[]{"user-settings", "sip-log"}, defaults.getSipLog()));
         config.setSipUseSourceIpAsRemoteAddress(readBoolean(root,
                 new String[]{"user-settings", "sip-use-source-ip-as-remote-address"},
                 defaults.getSipUseSourceIpAsRemoteAddress()));
+        config.setRecordSip(readBoolean(root, new String[]{"user-settings", "record-sip"}, defaults.getRecordSip()));
+        config.setSyncChannelOnDeviceOnline(readBoolean(root,
+                new String[]{"user-settings", "sync-channel-on-device-online"}, defaults.getSyncChannelOnDeviceOnline()));
+        config.setSendToPlatformsWhenIdLost(readBoolean(root,
+                new String[]{"user-settings", "send-to-platforms-when-id-lost"},
+                defaults.getSendToPlatformsWhenIdLost()));
+        config.setRefuseChannelStatusChannelFormNotify(readBoolean(root,
+                new String[]{"user-settings", "refuse-channel-status-channel-form-notify"},
+                defaults.getRefuseChannelStatusChannelFormNotify()));
+        config.setSsrcRandom(readBoolean(root, new String[]{"user-settings", "ssrc-random"},
+                defaults.getSsrcRandom()));
+        config.setGbDeviceOnline(readInteger(root, new String[]{"user-settings", "gb-device-online"},
+                defaults.getGbDeviceOnline()));
         config.setSipCacheServerConnections(readBoolean(root,
                 new String[]{"user-settings", "sip-cache-server-connections"}, defaults.isSipCacheServerConnections()));
         config.setDisableDateHeader(readBoolean(root, new String[]{"user-settings", "disable-date-header"},
                 defaults.isDisableDateHeader()));
+        config.setGroupSyncDeviceTemplate(readString(root, new String[]{"user-settings", "group-sync-device-template"},
+                defaults.getGroupSyncDeviceTemplate()));
+        config.setSubscribeMobilePosition(readBoolean(root, new String[]{"user-settings", "subscribe-mobile-position"},
+                defaults.isSubscribeMobilePosition()));
         config.setDeviceRegisterTimeMaxCount(readInteger(root,
                 new String[]{"user-settings", "device-register-time-max-count"},
                 defaults.getDeviceRegisterTimeMaxCount()));
@@ -556,66 +594,32 @@ public class SettingServiceImpl implements ISettingService {
                 new String[]{"user-settings", "device-keepalive-time-ttl-hours"},
                 defaults.getDeviceKeepaliveTimeTtlHours()));
 
-        config.setSyncChannelOnDeviceOnline(readBoolean(root,
-                new String[]{"user-settings", "sync-channel-on-device-online"}, defaults.getSyncChannelOnDeviceOnline()));
-        config.setSubscribeMobilePosition(readBoolean(root, new String[]{"user-settings", "subscribe-mobile-position"},
-                defaults.isSubscribeMobilePosition()));
-        config.setSavePositionHistory(readBoolean(root, new String[]{"user-settings", "save-position-history"},
-                defaults.getSavePositionHistory()));
-        config.setSendPositionOnDemand(readBoolean(root, new String[]{"user-settings", "send-position-on-demand"},
-                defaults.isSendPositionOnDemand()));
-
-        config.setPlayTimeout(readInteger(root, new String[]{"user-settings", "play-timeout"},
-                defaults.getPlayTimeout()));
-        config.setRecordInfoTimeout(readInteger(root, new String[]{"user-settings", "record-info-timeout"},
-                defaults.getRecordInfoTimeout()));
+        // 国标级联
         config.setPlatformPlayTimeout(readInteger(root, new String[]{"user-settings", "platform-play-timeout"},
                 defaults.getPlatformPlayTimeout()));
-        config.setAutoApplyPlay(readBoolean(root, new String[]{"user-settings", "auto-apply-play"},
-                defaults.getAutoApplyPlay()));
-        config.setStreamOnDemand(readBoolean(root, new String[]{"user-settings", "stream-on-demand"},
-                defaults.getStreamOnDemand()));
-        config.setPushAuthority(readBoolean(root, new String[]{"user-settings", "push-authority"},
-                defaults.getPushAuthority()));
-        config.setSeniorSdp(readBoolean(root, new String[]{"user-settings", "senior-sdp"}, defaults.getSeniorSdp()));
-        config.setUsePushingAsStatus(readBoolean(root, new String[]{"user-settings", "use-pushing-as-status"},
-                defaults.getUsePushingAsStatus()));
-        config.setUseSourceIpAsStreamIp(readBoolean(root, new String[]{"user-settings", "use-source-ip-as-stream-ip"},
-                defaults.getUseSourceIpAsStreamIp()));
         config.setUseCustomSsrcForParentInvite(readBoolean(root,
                 new String[]{"user-settings", "use-custom-ssrc-for-parent-invite"},
                 defaults.getUseCustomSsrcForParentInvite()));
-        config.setSsrcRandom(readBoolean(root, new String[]{"user-settings", "ssrc-random"},
-                defaults.getSsrcRandom()));
+        config.setBroadcastForPlatform(readString(root, new String[]{"user-settings", "broadcast-for-platform"},
+                defaults.getBroadcastForPlatform()));
+        config.setRegisterAgainAfterTime(readInteger(root, new String[]{"user-settings", "register-again-after-time"},
+                defaults.getRegisterAgainAfterTime()));
+        config.setRegisterKeepIntDialog(readBoolean(root, new String[]{"user-settings", "register-keep-int-dialog"},
+                defaults.isRegisterKeepIntDialog()));
+        config.setAutoRegisterPlatform(readBoolean(root, new String[]{"user-settings", "auto-register-platform"},
+                defaults.isAutoRegisterPlatform()));
+        config.setSendPositionOnDemand(readBoolean(root, new String[]{"user-settings", "send-position-on-demand"},
+                defaults.isSendPositionOnDemand()));
 
-        config.setRecordPushLive(readBoolean(root, new String[]{"user-settings", "record-push-live"},
-                defaults.getRecordPushLive()));
-        config.setRecordSip(readBoolean(root, new String[]{"user-settings", "record-sip"}, defaults.getRecordSip()));
-
-        config.setSipLog(readBoolean(root, new String[]{"user-settings", "sip-log"}, defaults.getSipLog()));
-        config.setSqlLog(readBoolean(root, new String[]{"user-settings", "sql-log"}, defaults.getSqlLog()));
-
-        config.setDeviceStatusNotify(readBoolean(root, new String[]{"user-settings", "device-status-notify"},
-                defaults.getDeviceStatusNotify()));
-        config.setSendToPlatformsWhenIdLost(readBoolean(root,
-                new String[]{"user-settings", "send-to-platforms-when-id-lost"},
-                defaults.getSendToPlatformsWhenIdLost()));
-        config.setRefuseChannelStatusChannelFormNotify(readBoolean(root,
-                new String[]{"user-settings", "refuse-channel-status-channel-form-notify"},
-                defaults.getRefuseChannelStatusChannelFormNotify()));
-        config.setMaxNotifyCountQueue(readInteger(root, new String[]{"user-settings", "max-notify-count-queue"},
-                defaults.getMaxNotifyCountQueue()));
-
+        // 报警控制
         config.setAlarmCatchSize(readLongValue(root, new String[]{"user-settings", "alarm-catch-size"},
                 defaults.getAlarmCatchSize()));
-        config.setAlarmKeepDays(readInteger(root, new String[]{"user-settings", "alarm-keep-days"},
-                defaults.getAlarmKeepDays()));
         config.setAlarmSnapByStream(readBoolean(root, new String[]{"user-settings", "alarm-snap-by-stream"},
                 defaults.isAlarmSnapByStream()));
-        config.setSnapAsync(readBoolean(root, new String[]{"user-settings", "snap-async"},
-                defaults.isSnapAsync()));
         config.setAllowedAlarmType(readStringList(root, new String[]{"user-settings", "allowed-alarm-type"},
                 alarmTypeNames(defaults.getAllowedAlarmType())));
+        config.setAlarmKeepDays(readInteger(root, new String[]{"user-settings", "alarm-keep-days"},
+                defaults.getAlarmKeepDays()));
 
         config.setProfileId(isMainConfig(entry) ? null : entry.getId());
         config.setFilePath(entry.getPath());
@@ -633,69 +637,73 @@ public class SettingServiceImpl implements ISettingService {
         List<String> lines = readConfigLines(file);
 
         String prefix = "user-settings";
-        putYamlScalar(lines, prefix, "server-id", config.getServerId());
-        putYamlScalar(lines, prefix, "broadcast-for-platform", config.getBroadcastForPlatform());
-        putYamlScalar(lines, prefix, "civil-code-file", config.getCivilCodeFile());
-        putYamlScalar(lines, prefix, "jwk-file", config.getJwkFile());
-        putYamlScalar(lines, prefix, "doc-enable", config.getDocEnable());
-        putYamlScalar(lines, prefix, "login-timeout", config.getLoginTimeout());
-        putYamlScalar(lines, prefix, "auto-register-platform", config.getAutoRegisterPlatform());
-        putYamlScalar(lines, prefix, "use-alias-for-group-sync", config.getUseAliasForGroupSync());
-        putYamlScalar(lines, prefix, "group-sync-device-template", config.getGroupSyncDeviceTemplate());
-        putYamlScalar(lines, prefix, "device-id-strict", config.getDeviceIdStrict());
 
+        // 基础配置
         putYamlScalar(lines, prefix, "interface-authentication", config.getInterfaceAuthentication());
         putYamlList(lines, new String[]{prefix, "interface-authentication-excludes"},
                 config.getInterfaceAuthenticationExcludes());
+        putYamlScalar(lines, prefix, "use-source-ip-as-stream-ip", config.getUseSourceIpAsStreamIp());
+        putYamlScalar(lines, prefix, "sql-log", config.getSqlLog());
+        putYamlScalar(lines, prefix, "device-status-notify", config.getDeviceStatusNotify());
+        putYamlScalar(lines, prefix, "doc-enable", config.getDocEnable());
+        putYamlScalar(lines, prefix, "server-id", config.getServerId());
+        putYamlScalar(lines, prefix, "civil-code-file", config.getCivilCodeFile());
         putYamlList(lines, new String[]{prefix, "allowed-origins"}, config.getAllowedOrigins());
+        putYamlScalar(lines, prefix, "max-notify-count-queue", config.getMaxNotifyCountQueue());
+        putYamlScalar(lines, prefix, "login-timeout", config.getLoginTimeout());
+        putYamlScalar(lines, prefix, "jwk-file", config.getJwkFile());
+        putYamlScalar(lines, prefix, "save-position-history", config.getSavePositionHistory());
 
-        putYamlScalar(lines, prefix, "gb-device-online", config.getGbDeviceOnline());
-        putYamlScalar(lines, prefix, "register-again-after-time", config.getRegisterAgainAfterTime());
-        putYamlScalar(lines, prefix, "register-keep-int-dialog", config.getRegisterKeepIntDialog());
+        // 视频播放
+        putYamlScalar(lines, prefix, "auto-apply-play", config.getAutoApplyPlay());
+        putYamlScalar(lines, prefix, "play-timeout", config.getPlayTimeout());
+        putYamlScalar(lines, prefix, "record-info-timeout", config.getRecordInfoTimeout());
+        putYamlScalar(lines, prefix, "stream-on-demand", config.getStreamOnDemand());
+        putYamlScalar(lines, prefix, "snap-async", config.getSnapAsync());
+
+        // 推流控制
+        putYamlScalar(lines, prefix, "push-authority", config.getPushAuthority());
+        putYamlScalar(lines, prefix, "record-push-live", config.getRecordPushLive());
+        putYamlScalar(lines, prefix, "use-pushing-as-status", config.getUsePushingAsStatus());
+        putYamlScalar(lines, prefix, "use-alias-for-group-sync", config.getUseAliasForGroupSync());
+
+        // 国标服务
+        putYamlScalar(lines, prefix, "device-id-strict", config.getDeviceIdStrict());
+        putYamlScalar(lines, prefix, "senior-sdp", config.getSeniorSdp());
+        putYamlScalar(lines, prefix, "sip-log", config.getSipLog());
         putYamlScalar(lines, prefix, "sip-use-source-ip-as-remote-address",
                 config.getSipUseSourceIpAsRemoteAddress());
+        putYamlScalar(lines, prefix, "record-sip", config.getRecordSip());
+        putYamlScalar(lines, prefix, "sync-channel-on-device-online", config.getSyncChannelOnDeviceOnline());
+        putYamlScalar(lines, prefix, "send-to-platforms-when-id-lost", config.getSendToPlatformsWhenIdLost());
+        putYamlScalar(lines, prefix, "refuse-channel-status-channel-form-notify",
+                config.getRefuseChannelStatusChannelFormNotify());
+        putYamlScalar(lines, prefix, "ssrc-random", config.getSsrcRandom());
+        putYamlScalar(lines, prefix, "gb-device-online", config.getGbDeviceOnline());
         putYamlScalar(lines, prefix, "sip-cache-server-connections", config.getSipCacheServerConnections());
         putYamlScalar(lines, prefix, "disable-date-header", config.getDisableDateHeader());
+        putYamlScalar(lines, prefix, "group-sync-device-template", config.getGroupSyncDeviceTemplate());
+        putYamlScalar(lines, prefix, "subscribe-mobile-position", config.getSubscribeMobilePosition());
         putYamlScalar(lines, prefix, "device-register-time-max-count", config.getDeviceRegisterTimeMaxCount());
         putYamlScalar(lines, prefix, "device-register-time-ttl-hours", config.getDeviceRegisterTimeTtlHours());
         putYamlScalar(lines, prefix, "device-keepalive-time-max-count", config.getDeviceKeepaliveTimeMaxCount());
         putYamlScalar(lines, prefix, "device-keepalive-time-ttl-hours", config.getDeviceKeepaliveTimeTtlHours());
 
-        putYamlScalar(lines, prefix, "sync-channel-on-device-online", config.getSyncChannelOnDeviceOnline());
-        putYamlScalar(lines, prefix, "subscribe-mobile-position", config.getSubscribeMobilePosition());
-        putYamlScalar(lines, prefix, "save-position-history", config.getSavePositionHistory());
-        putYamlScalar(lines, prefix, "send-position-on-demand", config.getSendPositionOnDemand());
-
-        putYamlScalar(lines, prefix, "play-timeout", config.getPlayTimeout());
-        putYamlScalar(lines, prefix, "record-info-timeout", config.getRecordInfoTimeout());
+        // 国标级联
         putYamlScalar(lines, prefix, "platform-play-timeout", config.getPlatformPlayTimeout());
-        putYamlScalar(lines, prefix, "auto-apply-play", config.getAutoApplyPlay());
-        putYamlScalar(lines, prefix, "stream-on-demand", config.getStreamOnDemand());
-        putYamlScalar(lines, prefix, "push-authority", config.getPushAuthority());
-        putYamlScalar(lines, prefix, "senior-sdp", config.getSeniorSdp());
-        putYamlScalar(lines, prefix, "use-pushing-as-status", config.getUsePushingAsStatus());
-        putYamlScalar(lines, prefix, "use-source-ip-as-stream-ip", config.getUseSourceIpAsStreamIp());
         putYamlScalar(lines, prefix, "use-custom-ssrc-for-parent-invite",
                 config.getUseCustomSsrcForParentInvite());
-        putYamlScalar(lines, prefix, "ssrc-random", config.getSsrcRandom());
+        putYamlScalar(lines, prefix, "broadcast-for-platform", config.getBroadcastForPlatform());
+        putYamlScalar(lines, prefix, "register-again-after-time", config.getRegisterAgainAfterTime());
+        putYamlScalar(lines, prefix, "register-keep-int-dialog", config.getRegisterKeepIntDialog());
+        putYamlScalar(lines, prefix, "auto-register-platform", config.getAutoRegisterPlatform());
+        putYamlScalar(lines, prefix, "send-position-on-demand", config.getSendPositionOnDemand());
 
-        putYamlScalar(lines, prefix, "record-push-live", config.getRecordPushLive());
-        putYamlScalar(lines, prefix, "record-sip", config.getRecordSip());
-
-        putYamlScalar(lines, prefix, "sip-log", config.getSipLog());
-        putYamlScalar(lines, prefix, "sql-log", config.getSqlLog());
-
-        putYamlScalar(lines, prefix, "device-status-notify", config.getDeviceStatusNotify());
-        putYamlScalar(lines, prefix, "send-to-platforms-when-id-lost", config.getSendToPlatformsWhenIdLost());
-        putYamlScalar(lines, prefix, "refuse-channel-status-channel-form-notify",
-                config.getRefuseChannelStatusChannelFormNotify());
-        putYamlScalar(lines, prefix, "max-notify-count-queue", config.getMaxNotifyCountQueue());
-
+        // 报警控制
         putYamlScalar(lines, prefix, "alarm-catch-size", config.getAlarmCatchSize());
-        putYamlScalar(lines, prefix, "alarm-keep-days", config.getAlarmKeepDays());
         putYamlScalar(lines, prefix, "alarm-snap-by-stream", config.getAlarmSnapByStream());
-        putYamlScalar(lines, prefix, "snap-async", config.getSnapAsync());
         putYamlList(lines, new String[]{prefix, "allowed-alarm-type"}, config.getAllowedAlarmType());
+        putYamlScalar(lines, prefix, "alarm-keep-days", config.getAlarmKeepDays());
 
         writeConfigLines(file, lines);
         log.info("[系统设置] 平台策略配置已保存: {}", file.getAbsolutePath());

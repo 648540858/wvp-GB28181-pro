@@ -18,35 +18,7 @@ import java.util.List;
 @Data
 public class UserSetting {
 
-    /**
-     * 是否保存位置的历史记录(轨迹)
-     */
-    private Boolean savePositionHistory = Boolean.FALSE;
-
-    /**
-     * 是否开始自动点播: 请求流为未拉起的流时,自动开启点播, 需要rtp.enable=true
-     */
-    private Boolean autoApplyPlay = Boolean.FALSE;
-
-    /**
-     * [可选] 部分设备需要扩展SDP，需要打开此设置,一般设备无需打开
-     */
-    private Boolean seniorSdp = Boolean.FALSE;
-
-    /**
-     * 点播/录像回放 等待超时时间,单位：毫秒
-     */
-    private Integer playTimeout = 10000;
-
-    /**
-     * 获取设备录像数据超时时间,单位：毫秒
-     */
-    private Integer recordInfoTimeout = 15000;
-
-    /**
-     * 上级点播等待超时时间,单位：毫秒
-     */
-    private int platformPlayTimeout = 20000;
+    // ---------------- 基础配置 ----------------
 
     /**
      * 是否开启接口鉴权
@@ -59,49 +31,9 @@ public class UserSetting {
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     /**
-     * 推流直播是否录制
-     */
-    private Boolean recordPushLive = Boolean.TRUE;
-
-    /**
-     * 国标是否录制
-     */
-    private Boolean recordSip = Boolean.TRUE;
-
-    /**
-     * 使用推流状态作为推流通道状态
-     */
-    private Boolean usePushingAsStatus = Boolean.FALSE;
-
-    /**
      * 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
      */
     private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
-
-    /**
-     * 是否使用设备来源Ip作为回复IP， 不设置则为 false
-     */
-    private Boolean sipUseSourceIpAsRemoteAddress = Boolean.FALSE;
-
-    /**
-     * 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
-     */
-    private Boolean streamOnDemand = Boolean.TRUE;
-
-    /**
-     * 推流鉴权， 默认开启
-     */
-    private Boolean pushAuthority = Boolean.TRUE;
-
-    /**
-     * 设备上线时是否自动同步通道
-     */
-    private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
-
-    /**
-     * 是否开启sip日志
-     */
-    private Boolean sipLog = Boolean.FALSE;
 
     /**
      * 是否开启mybatis-sql日志
@@ -109,29 +41,9 @@ public class UserSetting {
     private Boolean sqlLog = Boolean.FALSE;
 
     /**
-     * 消息通道功能-缺少国标ID是否给所有上级发送消息
-     */
-    private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
-
-    /**
-     * 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
-     */
-    private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
-
-    /**
      * 设备/通道状态变化时发送消息
      */
     private Boolean deviceStatusNotify = Boolean.TRUE;
-
-    /**
-     * 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-     */
-    private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
-
-    /**
-     * 多端口模式使用随机SSRC，端口区分流，SSRC允许重复
-     */
-    private Boolean ssrcRandom = Boolean.FALSE;
 
     /**
      * 开启接口文档页面。 默认开启，生产环境建议关闭，遇到swagger相关的漏洞时也可以关闭
@@ -142,12 +54,6 @@ public class UserSetting {
      * 服务ID，不写则为000000
      */
     private String serverId = "000000";
-
-
-    /**
-     * 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
-     */
-    private String broadcastForPlatform = "UDP";
 
     /**
      * 行政区划信息文件,系统启动时会加载到系统里
@@ -165,23 +71,6 @@ public class UserSetting {
     private int maxNotifyCountQueue = 100000;
 
     /**
-     * 国标级联离线后多久重试一次注册
-     */
-    private int registerAgainAfterTime = 60;
-
-    /**
-     * 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
-     */
-    private boolean registerKeepIntDialog = false;
-
-    /**
-     * 国标设备离线后的上线策略，
-     * 0： 国标标准实现，设备离线后不回复心跳，直到设备重新注册上线，
-     * 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
-     */
-    private int gbDeviceOnline = 1;
-
-    /**
      *    登录超时时间(分钟)，
      */
     private long loginTimeout = 60;
@@ -192,14 +81,113 @@ public class UserSetting {
     private String jwkFile = null;
 
     /**
-     * wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+     * 是否保存位置的历史记录(轨迹)
      */
-    private boolean autoRegisterPlatform = false;
+    private Boolean savePositionHistory = Boolean.FALSE;
+
+    // ---------------- 视频播放 ----------------
 
     /**
-     * 按需发送推流设备位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+     * 是否开始自动点播: 请求流为未拉起的流时,自动开启点播, 需要rtp.enable=true
      */
-    private boolean sendPositionOnDemand = true;
+    private Boolean autoApplyPlay = Boolean.FALSE;
+
+    /**
+     * 点播/录像回放 等待超时时间,单位：毫秒
+     */
+    private Integer playTimeout = 10000;
+
+    /**
+     * 获取设备录像数据超时时间,单位：毫秒
+     */
+    private Integer recordInfoTimeout = 15000;
+
+    /**
+     * 点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+     */
+    private Boolean streamOnDemand = Boolean.TRUE;
+
+    /**
+     * 截图是否使用ZLM内部的解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，
+     * 部分环境下内部解码通道截图会失败(ZLM 报错 decode frame timeout)，此时保持关闭即可。
+     */
+    private boolean snapAsync = false;
+
+    // ---------------- 推流控制 ----------------
+
+    /**
+     * 推流鉴权， 默认开启
+     */
+    private Boolean pushAuthority = Boolean.TRUE;
+
+    /**
+     * 推流直播是否录制
+     */
+    private Boolean recordPushLive = Boolean.TRUE;
+
+    /**
+     * 使用推流状态作为推流通道状态
+     */
+    private Boolean usePushingAsStatus = Boolean.FALSE;
+
+    /**
+     * 与第三方进行分组同步时使用别名而不是分组ID， 如果没有设置此项为true，那么分组编号就是必须传递的。如果是设置为true则，自动为别名的分组生成新的编号
+     */
+    private boolean useAliasForGroupSync = false;
+
+    // ---------------- 国标服务 ----------------
+
+    /**
+     * 设备ID严格模式，开启后设备注册时如果设备ID不符合规范则拒绝注册, 默认开启
+     */
+    private boolean deviceIdStrict = true;
+
+    /**
+     * [可选] 部分设备需要扩展SDP，需要打开此设置,一般设备无需打开
+     */
+    private Boolean seniorSdp = Boolean.FALSE;
+
+    /**
+     * 是否开启sip日志
+     */
+    private Boolean sipLog = Boolean.FALSE;
+
+    /**
+     * 是否使用设备来源Ip作为回复IP， 不设置则为 false
+     */
+    private Boolean sipUseSourceIpAsRemoteAddress = Boolean.FALSE;
+
+    /**
+     * 国标是否录制
+     */
+    private Boolean recordSip = Boolean.TRUE;
+
+    /**
+     * 设备上线时是否自动同步通道
+     */
+    private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
+
+    /**
+     * 消息通道功能-缺少国标ID是否给所有上级发送消息
+     */
+    private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
+
+    /**
+     * 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
+     */
+    private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
+
+    /**
+     * 多端口模式使用随机SSRC，端口区分流，SSRC允许重复
+     */
+    private Boolean ssrcRandom = Boolean.FALSE;
+
+    /**
+     * 国标设备离线后的上线策略，
+     * 0： 国标标准实现，设备离线后不回复心跳，直到设备重新注册上线，
+     * 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
+     */
+    private int gbDeviceOnline = 1;
 
     /**
      * 部分设备会在短时间内发送大量注册， 导致协议栈内存溢出， 开启此项可以防止这部分设备注册， 避免服务崩溃，但是会降低系统性能， 描述如下
@@ -221,46 +209,9 @@ public class UserSetting {
     private String groupSyncDeviceTemplate;
 
     /**
-     * 与第三方进行分组同步时使用别名而不是分组ID， 如果没有设置此项为true，那么分组编号就是必须传递的。如果是设置为true则，自动为别名的分组生成新的编号
-     */
-    private boolean useAliasForGroupSync = false;
-
-    /**
-     * 设备ID严格模式，开启后设备注册时如果设备ID不符合规范则拒绝注册, 默认开启
-     */
-    private boolean deviceIdStrict = true;
-
-    /**
      * 对于识别为设备的国标设备的，是否默认开启位置订阅
      */
     private boolean subscribeMobilePosition = false;
-
-    /**
-     * 处理报警消息时，会缓存通道数据，如果超出则丢弃低热度消息，被丢弃的通道下次使用就需要重新查询数据库，默认10000，
-     * 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力
-     */
-    private long alarmCatchSize = 10000;
-
-    /**
-     * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
-     */
-    private boolean alarmSnapByStream = false;
-
-    /**
-     * 截图是否使用ZLM内部的解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，
-     * 部分环境下内部解码通道截图会失败(ZLM 报错 decode frame timeout)，此时保持关闭即可。
-     */
-    private boolean snapAsync = false;
-
-    /**
-     * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制
-     */
-    private List<AlarmType> allowedAlarmType = new ArrayList<>();
-
-    /**
-     * 报警记录保留天数，超过此天数的报警记录将在每天凌晨自动清理，默认30天，设置为0则不自动清理
-     */
-    private int alarmKeepDays = 7;
 
     /**
      * 设备注册时间列表最大保留条数，默认100
@@ -281,5 +232,65 @@ public class UserSetting {
      * 设备心跳时间列表过期时间（小时），默认1，设置为0则永不过期
      */
     private int deviceKeepaliveTimeTtlHours = 1;
+
+    // ---------------- 国标级联 ----------------
+
+    /**
+     * 上级点播等待超时时间,单位：毫秒
+     */
+    private int platformPlayTimeout = 20000;
+
+    /**
+     * 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+     */
+    private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
+
+    /**
+     * 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+     */
+    private String broadcastForPlatform = "UDP";
+
+    /**
+     * 国标级联离线后多久重试一次注册
+     */
+    private int registerAgainAfterTime = 60;
+
+    /**
+     * 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
+     */
+    private boolean registerKeepIntDialog = false;
+
+    /**
+     * wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+     */
+    private boolean autoRegisterPlatform = false;
+
+    /**
+     * 按需发送推流设备位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+     */
+    private boolean sendPositionOnDemand = true;
+
+    // ---------------- 报警控制 ----------------
+
+    /**
+     * 处理报警消息时，会缓存通道数据，如果超出则丢弃低热度消息，被丢弃的通道下次使用就需要重新查询数据库，默认10000，
+     * 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力
+     */
+    private long alarmCatchSize = 10000;
+
+    /**
+     * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
+     */
+    private boolean alarmSnapByStream = false;
+
+    /**
+     * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制
+     */
+    private List<AlarmType> allowedAlarmType = new ArrayList<>();
+
+    /**
+     * 报警记录保留天数，超过此天数的报警记录将在每天凌晨自动清理，默认30天，设置为0则不自动清理
+     */
+    private int alarmKeepDays = 7;
 
 }

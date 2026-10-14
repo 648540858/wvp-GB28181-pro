@@ -189,95 +189,77 @@ media:
 
 # [根据业务需求配置]
 user-settings:
+    # ---- 基础配置 ----
     # 服务ID，不写则为000000
     server-id:
-    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-    auto-apply-play: false
-    # [可选] 部分设备需要扩展SDP，需要打开此设置
-    senior-sdp: false
-    # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
-    save-position-history: false
-    # 点播/录像回放 等待超时时间,单位：毫秒
-    play-timeout: 18000
-    # 获取设备录像数据超时时间,单位：毫秒
-    record-info-timeout: 10000
-    # 上级点播等待超时时间,单位：毫秒
-    platform-play-timeout: 60000
     # 是否开启接口鉴权
     interface-authentication: true
     # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
     interface-authentication-excludes:
         - /api/v1/**
-    # 推流直播是否录制
-    record-push-live: true
-    # 国标是否录制
-    record-sip: true
-    # 使用推流状态作为推流通道状态
-    use-pushing-as-status: true
     # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
     use-source-ip-as-stream-ip: false
-    # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
-    stream-on-demand: true
-    # 推流鉴权， 默认开启
-    push-authority: true
-    # 设备上线时是否自动同步通道
-    sync-channel-on-device-online: false
-    # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
-    broadcast-for-platform: UDP
-    # 是否使用设备来源Ip作为回复IP， 不设置则为 false
-    sip-use-source-ip-as-remote-address: false
-    # 是否开启sip日志
-    sip-log: true
     # 是否开启sql日志
     sql-log: true
-    # 消息通道功能-缺少国标ID是否给所有上级发送消息
-    send-to-platforms-when-id-lost: true
-    # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
-    refuse-channel-status-channel-form-notify: false
-    # 设置notify缓存队列最大长度，超过此长度的数据将返回486 BUSY_HERE，消息丢弃, 默认10000
-    max-notify-count-queue: 10000
     # 设备/通道状态变化时发送消息
     device-status-notify: false
-    # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-    use-custom-ssrc-for-parent-invite: true
-    # 国标级联离线后多久重试一次注册
-    register-again-after-time: 60
-    # 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
-    register-keep-int-dialog: false
     # 开启接口文档页面。 默认开启，生产环境建议关闭，遇到swagger相关的漏洞时也可以关闭
     doc-enable: true
     # 跨域配置，不配置此项则允许所有跨域请求，配置后则只允许配置的页面的地址请求， 可以配置多个
     allowed-origins:
         - http://localhost:8008
         - http://192.168.1.3:8008
-    # 国标设备离线后的上线策略，
-    # 0： 国标标准实现，设备离线后不回复心跳，直到设备重新注册上线，
-    # 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
-    gb-device-online: 0
+    # 设置notify缓存队列最大长度，超过此长度的数据将返回486 BUSY_HERE，消息丢弃, 默认10000
+    max-notify-count-queue: 10000
     # 登录超时时间(分钟)，
     login-timeout: 30
     # jwk文件路径，若不指定则使用resources目录下的jwk.json
     jwk-file: classpath:jwk.json
-    # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
-    auto-register-platform: true
-    # 按需发送位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
-    send-position-on-demand: true
+    # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
+    save-position-history: false
+    # ---- 视频播放 ----
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
+    auto-apply-play: false
+    # 点播/录像回放 等待超时时间,单位：毫秒
+    play-timeout: 18000
+    # 获取设备录像数据超时时间,单位：毫秒
+    record-info-timeout: 10000
+    # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+    stream-on-demand: true
+    # 截图是否使用 ZLM 内部解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，部分环境内部解码截图会失败(ZLM 报错 decode frame timeout)
+    snap-async: false
+    # ---- 推流控制 ----
+    # 推流直播是否录制
+    record-push-live: true
+    # 使用推流状态作为推流通道状态
+    use-pushing-as-status: true
+    # 推流鉴权， 默认开启
+    push-authority: true
+    # ---- 国标服务 ----
+    # [可选] 部分设备需要扩展SDP，需要打开此设置
+    senior-sdp: false
+    # 国标是否录制
+    record-sip: true
+    # 设备上线时是否自动同步通道
+    sync-channel-on-device-online: false
+    # 是否使用设备来源Ip作为回复IP， 不设置则为 false
+    sip-use-source-ip-as-remote-address: false
+    # 是否开启sip日志
+    sip-log: true
+    # 消息通道功能-缺少国标ID是否给所有上级发送消息
+    send-to-platforms-when-id-lost: true
+    # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
+    refuse-channel-status-channel-form-notify: false
+    # 国标设备离线后的上线策略，
+    # 0： 国标标准实现，设备离线后不回复心跳，直到设备重新注册上线，
+    # 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
+    gb-device-online: 0
     # 部分设备会在短时间内发送大量注册， 导致协议栈内存溢出， 开启此项可以防止这部分设备注册， 避免服务崩溃，但是会降低系统性能， 描述如下
     # 默认值为 true。
     # 将此设置为 false 会使 Stack 在 Server Transaction 进入 TERMINATED 状态后关闭服务器套接字。
     # 这允许服务器防止客户端发起的基于 TCP 的拒绝服务攻击（即发起数百个客户端事务）。
     # 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
     sip-cache-server-connections: true
-    # 处理报警消息时，会缓存通道数据，如果超出则丢弃低热度消息，被丢弃的通道下次使用就需要重新查询数据库，默认10000，
-    # 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力,
-    alarm-catch-size: 10000
-    # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
-    alarm-snap-by-stream: true
-    # 截图是否使用 ZLM 内部解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，部分环境内部解码截图会失败(ZLM 报错 decode frame timeout)
-    snap-async: false
-    # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
-    allowed-alarm-type:
-      - IntrusionDetection
     # 设备注册时间列表最大保留条数，默认100，设置为0则不限制
     device-register-time-max-count: 100
     # 设备注册时间列表过期时间（小时），默认3，设置为0则永不过期
@@ -286,6 +268,30 @@ user-settings:
     device-keepalive-time-max-count: 100
     # 设备心跳时间列表过期时间（小时），默认1，设置为0则永不过期
     device-keepalive-time-ttl-hours: 1
+    # ---- 国标级联 ----
+    # 上级点播等待超时时间,单位：毫秒
+    platform-play-timeout: 60000
+    # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+    use-custom-ssrc-for-parent-invite: true
+    # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+    broadcast-for-platform: UDP
+    # 国标级联离线后多久重试一次注册
+    register-again-after-time: 60
+    # 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
+    register-keep-int-dialog: false
+    # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+    auto-register-platform: true
+    # 按需发送位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+    send-position-on-demand: true
+    # ---- 报警控制 ----
+    # 处理报警消息时，会缓存通道数据，如果超出则丢弃低热度消息，被丢弃的通道下次使用就需要重新查询数据库，默认10000，
+    # 建议根据实际情况调整，过大可能会占用较多内存，过小可能会增加数据库查询压力,
+    alarm-catch-size: 10000
+    # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
+    alarm-snap-by-stream: true
+    # 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
+    allowed-alarm-type:
+      - IntrusionDetection
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

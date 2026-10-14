@@ -107,57 +107,63 @@ import configPanelMixin from './configPanelMixin'
 
 function emptyForm() {
   return {
-    serverId: '',
-    broadcastForPlatform: '',
-    civilCodeFile: '',
-    jwkFile: '',
-    docEnable: false,
-    loginTimeout: null,
-    autoRegisterPlatform: false,
-    useAliasForGroupSync: false,
-    groupSyncDeviceTemplate: '',
-    deviceIdStrict: false,
+    // 基础配置
     interfaceAuthentication: false,
     interfaceAuthenticationExcludes: [],
+    useSourceIpAsStreamIp: false,
+    sqlLog: false,
+    deviceStatusNotify: false,
+    docEnable: false,
+    serverId: '',
+    civilCodeFile: '',
     allowedOrigins: [],
-    gbDeviceOnline: null,
-    registerAgainAfterTime: null,
-    registerKeepIntDialog: false,
+    maxNotifyCountQueue: null,
+    loginTimeout: null,
+    jwkFile: '',
+    savePositionHistory: false,
+    // 视频播放
+    autoApplyPlay: false,
+    playTimeout: null,
+    recordInfoTimeout: null,
+    streamOnDemand: false,
+    snapAsync: false,
+    // 推流控制
+    pushAuthority: false,
+    recordPushLive: false,
+    usePushingAsStatus: false,
+    useAliasForGroupSync: false,
+    // 国标服务
+    deviceIdStrict: false,
+    seniorSdp: false,
+    sipLog: false,
     sipUseSourceIpAsRemoteAddress: false,
+    recordSip: false,
+    syncChannelOnDeviceOnline: false,
+    sendToPlatformsWhenIdLost: false,
+    refuseChannelStatusChannelFormNotify: false,
+    ssrcRandom: false,
+    gbDeviceOnline: null,
     sipCacheServerConnections: false,
     disableDateHeader: false,
+    groupSyncDeviceTemplate: '',
+    subscribeMobilePosition: false,
     deviceRegisterTimeMaxCount: null,
     deviceRegisterTimeTtlHours: null,
     deviceKeepaliveTimeMaxCount: null,
     deviceKeepaliveTimeTtlHours: null,
-    syncChannelOnDeviceOnline: false,
-    subscribeMobilePosition: false,
-    savePositionHistory: false,
-    sendPositionOnDemand: false,
-    playTimeout: null,
-    recordInfoTimeout: null,
+    // 国标级联
     platformPlayTimeout: null,
-    autoApplyPlay: false,
-    streamOnDemand: false,
-    seniorSdp: false,
-    usePushingAsStatus: false,
-    useSourceIpAsStreamIp: false,
     useCustomSsrcForParentInvite: false,
-    ssrcRandom: false,
-    pushAuthority: false,
-    recordPushLive: false,
-    recordSip: false,
-    sipLog: false,
-    sqlLog: false,
-    deviceStatusNotify: false,
-    sendToPlatformsWhenIdLost: false,
-    refuseChannelStatusChannelFormNotify: false,
-    maxNotifyCountQueue: null,
+    broadcastForPlatform: '',
+    registerAgainAfterTime: null,
+    registerKeepIntDialog: false,
+    autoRegisterPlatform: false,
+    sendPositionOnDemand: false,
+    // 报警控制
     alarmCatchSize: null,
-    alarmKeepDays: null,
     alarmSnapByStream: false,
-    snapAsync: false,
-    allowedAlarmType: []
+    allowedAlarmType: [],
+    alarmKeepDays: null
   }
 }
 
@@ -175,44 +181,66 @@ export default {
       form: emptyForm(),
       saved: emptyForm(),
       alarmTypes: [],
-      activeGroups: ['平台基础'],
+      activeGroups: ['基础配置'],
       listText: {
         interfaceAuthenticationExcludes: '',
         allowedOrigins: ''
       },
       groups: [
         {
-          title: '平台基础',
-          fields: [
-            { key: 'serverId', label: '服务ID', type: 'text', tip: '不写则为 000000' },
-            { key: 'broadcastForPlatform', label: '喊话发流模式', type: 'select', options: ['UDP', 'TCP-ACTIVE', 'TCP-PASSIVE'] },
-            { key: 'civilCodeFile', label: '行政区划文件', type: 'text' },
-            { key: 'jwkFile', label: 'jwk文件路径', type: 'text' },
-            { key: 'docEnable', label: '开启接口文档', type: 'switch' },
-            { key: 'loginTimeout', label: '登录超时时间', type: 'number', unit: '分钟' },
-            { key: 'autoRegisterPlatform', label: '集群自动注册上级', type: 'switch' },
-            { key: 'useAliasForGroupSync', label: '分组同步使用别名', type: 'switch' },
-            { key: 'groupSyncDeviceTemplate', label: '分组编号模板', type: 'text' },
-            { key: 'deviceIdStrict', label: '设备ID严格模式', type: 'switch' }
-          ]
-        },
-        {
-          title: '接口鉴权与跨域',
+          title: '基础配置',
           fields: [
             { key: 'interfaceAuthentication', label: '开启接口鉴权', type: 'switch' },
             { key: 'interfaceAuthenticationExcludes', label: '鉴权例外接口', type: 'list', tip: '每行一个' },
-            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', tip: '每行一个，不设置则允许所有' }
+            { key: 'useSourceIpAsStreamIp', label: '使用来源IP作为streamIp', type: 'switch' },
+            { key: 'sqlLog', label: '开启sql日志', type: 'switch' },
+            { key: 'deviceStatusNotify', label: '设备/通道状态变化发送消息', type: 'switch' },
+            { key: 'docEnable', label: '开启接口文档', type: 'switch' },
+            { key: 'serverId', label: '服务ID', type: 'text', tip: '不写则为 000000' },
+            { key: 'civilCodeFile', label: '行政区划文件', type: 'text' },
+            { key: 'allowedOrigins', label: '跨域白名单', type: 'list', tip: '每行一个，不设置则允许所有' },
+            { key: 'maxNotifyCountQueue', label: 'notify缓存队列长度', type: 'number' },
+            { key: 'loginTimeout', label: '登录超时时间', type: 'number', unit: '分钟' },
+            { key: 'jwkFile', label: 'jwk文件路径', type: 'text' },
+            { key: 'savePositionHistory', label: '保存位置历史轨迹', type: 'switch' }
           ]
         },
         {
-          title: '设备注册与心跳',
+          title: '视频播放',
           fields: [
-            { key: 'gbDeviceOnline', label: '离线上线策略', type: 'number', tip: '0-标准实现, 1-收到心跳即上线' },
-            { key: 'registerAgainAfterTime', label: '级联重注册间隔', type: 'number', unit: '秒' },
-            { key: 'registerKeepIntDialog', label: '续订方式', type: 'switch', tip: '开启为续订, 关闭为重新注册' },
+            { key: 'autoApplyPlay', label: '自动点播', type: 'switch' },
+            { key: 'playTimeout', label: '点播等待超时时间', type: 'number', unit: '毫秒' },
+            { key: 'recordInfoTimeout', label: '录像查询超时时间', type: 'number', unit: '毫秒' },
+            { key: 'streamOnDemand', label: '国标点播按需拉流', type: 'switch' },
+            { key: 'snapAsync', label: '使用ZLM内部解码截图', type: 'switch' }
+          ]
+        },
+        {
+          title: '推流控制',
+          fields: [
+            { key: 'pushAuthority', label: '开启推流鉴权', type: 'switch' },
+            { key: 'recordPushLive', label: '推流直播录制', type: 'switch' },
+            { key: 'usePushingAsStatus', label: '推流状态作为通道状态', type: 'switch' },
+            { key: 'useAliasForGroupSync', label: '分组同步使用别名', type: 'switch' }
+          ]
+        },
+        {
+          title: '国标服务',
+          fields: [
+            { key: 'deviceIdStrict', label: '设备ID严格模式', type: 'switch' },
+            { key: 'seniorSdp', label: '扩展SDP', type: 'switch' },
+            { key: 'sipLog', label: '开启sip日志', type: 'switch' },
             { key: 'sipUseSourceIpAsRemoteAddress', label: '使用来源IP作为回复IP', type: 'switch' },
+            { key: 'recordSip', label: '国标录制', type: 'switch' },
+            { key: 'syncChannelOnDeviceOnline', label: '上线自动同步通道', type: 'switch' },
+            { key: 'sendToPlatformsWhenIdLost', label: '缺少ID时给所有上级发消息', type: 'switch' },
+            { key: 'refuseChannelStatusChannelFormNotify', label: '不接受notify通道状态变化', type: 'switch' },
+            { key: 'ssrcRandom', label: '多端口模式随机SSRC', type: 'switch' },
+            { key: 'gbDeviceOnline', label: '离线上线策略', type: 'number', tip: '0-标准实现, 1-收到心跳即上线' },
             { key: 'sipCacheServerConnections', label: '保持服务器套接字', type: 'switch' },
             { key: 'disableDateHeader', label: '禁用date头', type: 'switch' },
+            { key: 'groupSyncDeviceTemplate', label: '分组编号模板', type: 'text' },
+            { key: 'subscribeMobilePosition', label: '默认开启位置订阅', type: 'switch' },
             { key: 'deviceRegisterTimeMaxCount', label: '注册时间列表最大条数', type: 'number' },
             { key: 'deviceRegisterTimeTtlHours', label: '注册时间过期时间', type: 'number', unit: '小时' },
             { key: 'deviceKeepaliveTimeMaxCount', label: '心跳时间列表最大条数', type: 'number' },
@@ -220,61 +248,24 @@ export default {
           ]
         },
         {
-          title: '设备与通道',
+          title: '国标级联',
           fields: [
-            { key: 'syncChannelOnDeviceOnline', label: '上线自动同步通道', type: 'switch' },
-            { key: 'subscribeMobilePosition', label: '默认开启位置订阅', type: 'switch' },
-            { key: 'savePositionHistory', label: '保存位置历史轨迹', type: 'switch' },
+            { key: 'platformPlayTimeout', label: '上级点播等待超时', type: 'number', unit: '毫秒' },
+            { key: 'useCustomSsrcForParentInvite', label: '上级点播使用自定义SSRC', type: 'switch' },
+            { key: 'broadcastForPlatform', label: '喊话发流模式', type: 'select', options: ['UDP', 'TCP-ACTIVE', 'TCP-PASSIVE'] },
+            { key: 'registerAgainAfterTime', label: '级联重注册间隔', type: 'number', unit: '秒' },
+            { key: 'registerKeepIntDialog', label: '续订方式', type: 'switch', tip: '开启为续订, 关闭为重新注册' },
+            { key: 'autoRegisterPlatform', label: '集群自动注册上级', type: 'switch' },
             { key: 'sendPositionOnDemand', label: '按需发送位置', type: 'switch' }
           ]
         },
         {
-          title: '点播与转发',
-          fields: [
-            { key: 'playTimeout', label: '点播等待超时时间', type: 'number', unit: '毫秒' },
-            { key: 'recordInfoTimeout', label: '录像查询超时时间', type: 'number', unit: '毫秒' },
-            { key: 'platformPlayTimeout', label: '上级点播等待超时', type: 'number', unit: '毫秒' },
-            { key: 'autoApplyPlay', label: '自动点播', type: 'switch' },
-            { key: 'streamOnDemand', label: '国标点播按需拉流', type: 'switch' },
-            { key: 'seniorSdp', label: '扩展SDP', type: 'switch' },
-            { key: 'usePushingAsStatus', label: '推流状态作为通道状态', type: 'switch' },
-            { key: 'useSourceIpAsStreamIp', label: '使用来源IP作为streamIp', type: 'switch' },
-            { key: 'useCustomSsrcForParentInvite', label: '上级点播使用自定义SSRC', type: 'switch' },
-            { key: 'ssrcRandom', label: '多端口模式随机SSRC', type: 'switch' },
-            { key: 'pushAuthority', label: '开启推流鉴权', type: 'switch' }
-          ]
-        },
-        {
-          title: '录像',
-          fields: [
-            { key: 'recordPushLive', label: '推流直播录制', type: 'switch' },
-            { key: 'recordSip', label: '国标录制', type: 'switch' }
-          ]
-        },
-        {
-          title: '日志',
-          fields: [
-            { key: 'sipLog', label: '开启sip日志', type: 'switch' },
-            { key: 'sqlLog', label: '开启sql日志', type: 'switch' }
-          ]
-        },
-        {
-          title: '消息与通知',
-          fields: [
-            { key: 'deviceStatusNotify', label: '设备/通道状态变化发送消息', type: 'switch' },
-            { key: 'sendToPlatformsWhenIdLost', label: '缺少ID时给所有上级发消息', type: 'switch' },
-            { key: 'refuseChannelStatusChannelFormNotify', label: '不接受notify通道状态变化', type: 'switch' },
-            { key: 'maxNotifyCountQueue', label: 'notify缓存队列长度', type: 'number' }
-          ]
-        },
-        {
-          title: '报警与快照',
+          title: '报警控制',
           fields: [
             { key: 'alarmCatchSize', label: '报警通道缓存大小', type: 'number' },
-            { key: 'alarmKeepDays', label: '报警记录保留天数', type: 'number', unit: '天', tip: '0 表示不自动清理' },
             { key: 'alarmSnapByStream', label: '拉流方式获取快照', type: 'switch' },
-            { key: 'snapAsync', label: '使用ZLM内部解码截图', type: 'switch' },
-            { key: 'allowedAlarmType', label: '报警订阅白名单', type: 'multiselect', options: [] }
+            { key: 'allowedAlarmType', label: '报警订阅白名单', type: 'multiselect', options: [] },
+            { key: 'alarmKeepDays', label: '报警记录保留天数', type: 'number', unit: '天', tip: '0 表示不自动清理' }
           ]
         }
       ]
@@ -299,7 +290,7 @@ export default {
     loadAlarmTypes() {
       this.$store.dispatch('setting/getAlarmTypes').then(data => {
         this.alarmTypes = data || []
-        const group = this.groups.find(item => item.title === '报警与快照')
+        const group = this.groups.find(item => item.title === '报警控制')
         if (group) {
           const field = group.fields.find(item => item.key === 'allowedAlarmType')
           if (field) {
@@ -332,57 +323,63 @@ export default {
           const bool = (value) => !!value
           const text = (value) => value || ''
           const list = (value) => (Array.isArray(value) ? value : [])
-          form.serverId = text(data.serverId)
-          form.broadcastForPlatform = text(data.broadcastForPlatform)
-          form.civilCodeFile = text(data.civilCodeFile)
-          form.jwkFile = text(data.jwkFile)
-          form.docEnable = bool(data.docEnable)
-          form.loginTimeout = num(data.loginTimeout)
-          form.autoRegisterPlatform = bool(data.autoRegisterPlatform)
-          form.useAliasForGroupSync = bool(data.useAliasForGroupSync)
-          form.groupSyncDeviceTemplate = text(data.groupSyncDeviceTemplate)
-          form.deviceIdStrict = bool(data.deviceIdStrict)
+          // 基础配置
           form.interfaceAuthentication = bool(data.interfaceAuthentication)
           form.interfaceAuthenticationExcludes = list(data.interfaceAuthenticationExcludes)
+          form.useSourceIpAsStreamIp = bool(data.useSourceIpAsStreamIp)
+          form.sqlLog = bool(data.sqlLog)
+          form.deviceStatusNotify = bool(data.deviceStatusNotify)
+          form.docEnable = bool(data.docEnable)
+          form.serverId = text(data.serverId)
+          form.civilCodeFile = text(data.civilCodeFile)
           form.allowedOrigins = list(data.allowedOrigins)
-          form.gbDeviceOnline = num(data.gbDeviceOnline)
-          form.registerAgainAfterTime = num(data.registerAgainAfterTime)
-          form.registerKeepIntDialog = bool(data.registerKeepIntDialog)
+          form.maxNotifyCountQueue = num(data.maxNotifyCountQueue)
+          form.loginTimeout = num(data.loginTimeout)
+          form.jwkFile = text(data.jwkFile)
+          form.savePositionHistory = bool(data.savePositionHistory)
+          // 视频播放
+          form.autoApplyPlay = bool(data.autoApplyPlay)
+          form.playTimeout = num(data.playTimeout)
+          form.recordInfoTimeout = num(data.recordInfoTimeout)
+          form.streamOnDemand = bool(data.streamOnDemand)
+          form.snapAsync = bool(data.snapAsync)
+          // 推流控制
+          form.pushAuthority = bool(data.pushAuthority)
+          form.recordPushLive = bool(data.recordPushLive)
+          form.usePushingAsStatus = bool(data.usePushingAsStatus)
+          form.useAliasForGroupSync = bool(data.useAliasForGroupSync)
+          // 国标服务
+          form.deviceIdStrict = bool(data.deviceIdStrict)
+          form.seniorSdp = bool(data.seniorSdp)
+          form.sipLog = bool(data.sipLog)
           form.sipUseSourceIpAsRemoteAddress = bool(data.sipUseSourceIpAsRemoteAddress)
+          form.recordSip = bool(data.recordSip)
+          form.syncChannelOnDeviceOnline = bool(data.syncChannelOnDeviceOnline)
+          form.sendToPlatformsWhenIdLost = bool(data.sendToPlatformsWhenIdLost)
+          form.refuseChannelStatusChannelFormNotify = bool(data.refuseChannelStatusChannelFormNotify)
+          form.ssrcRandom = bool(data.ssrcRandom)
+          form.gbDeviceOnline = num(data.gbDeviceOnline)
           form.sipCacheServerConnections = bool(data.sipCacheServerConnections)
           form.disableDateHeader = bool(data.disableDateHeader)
+          form.groupSyncDeviceTemplate = text(data.groupSyncDeviceTemplate)
+          form.subscribeMobilePosition = bool(data.subscribeMobilePosition)
           form.deviceRegisterTimeMaxCount = num(data.deviceRegisterTimeMaxCount)
           form.deviceRegisterTimeTtlHours = num(data.deviceRegisterTimeTtlHours)
           form.deviceKeepaliveTimeMaxCount = num(data.deviceKeepaliveTimeMaxCount)
           form.deviceKeepaliveTimeTtlHours = num(data.deviceKeepaliveTimeTtlHours)
-          form.syncChannelOnDeviceOnline = bool(data.syncChannelOnDeviceOnline)
-          form.subscribeMobilePosition = bool(data.subscribeMobilePosition)
-          form.savePositionHistory = bool(data.savePositionHistory)
-          form.sendPositionOnDemand = bool(data.sendPositionOnDemand)
-          form.playTimeout = num(data.playTimeout)
-          form.recordInfoTimeout = num(data.recordInfoTimeout)
+          // 国标级联
           form.platformPlayTimeout = num(data.platformPlayTimeout)
-          form.autoApplyPlay = bool(data.autoApplyPlay)
-          form.streamOnDemand = bool(data.streamOnDemand)
-          form.seniorSdp = bool(data.seniorSdp)
-          form.usePushingAsStatus = bool(data.usePushingAsStatus)
-          form.useSourceIpAsStreamIp = bool(data.useSourceIpAsStreamIp)
           form.useCustomSsrcForParentInvite = bool(data.useCustomSsrcForParentInvite)
-          form.ssrcRandom = bool(data.ssrcRandom)
-          form.pushAuthority = bool(data.pushAuthority)
-          form.recordPushLive = bool(data.recordPushLive)
-          form.recordSip = bool(data.recordSip)
-          form.sipLog = bool(data.sipLog)
-          form.sqlLog = bool(data.sqlLog)
-          form.deviceStatusNotify = bool(data.deviceStatusNotify)
-          form.sendToPlatformsWhenIdLost = bool(data.sendToPlatformsWhenIdLost)
-          form.refuseChannelStatusChannelFormNotify = bool(data.refuseChannelStatusChannelFormNotify)
-          form.maxNotifyCountQueue = num(data.maxNotifyCountQueue)
+          form.broadcastForPlatform = text(data.broadcastForPlatform)
+          form.registerAgainAfterTime = num(data.registerAgainAfterTime)
+          form.registerKeepIntDialog = bool(data.registerKeepIntDialog)
+          form.autoRegisterPlatform = bool(data.autoRegisterPlatform)
+          form.sendPositionOnDemand = bool(data.sendPositionOnDemand)
+          // 报警控制
           form.alarmCatchSize = num(data.alarmCatchSize)
-          form.alarmKeepDays = num(data.alarmKeepDays)
           form.alarmSnapByStream = bool(data.alarmSnapByStream)
-          form.snapAsync = bool(data.snapAsync)
           form.allowedAlarmType = list(data.allowedAlarmType)
+          form.alarmKeepDays = num(data.alarmKeepDays)
 
           this.listText = {
             interfaceAuthenticationExcludes: form.interfaceAuthenticationExcludes.join('\n'),

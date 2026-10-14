@@ -74,9 +74,12 @@ media:
 
 # [根据业务需求配置]
 user-settings:
+    # ---- 视频播放 ----
+    auto-apply-play: true
+    # ---- 推流控制 ----
     # 推流直播是否录制
     record-push-live: true
-    auto-apply-play: true
+    # ---- 国标服务 ----
     # 设备注册时间列表最大保留条数，默认100，设置为0则不限制
     device-register-time-max-count: 100
     # 设备注册时间列表过期时间（小时），默认3，设置为0则永不过期

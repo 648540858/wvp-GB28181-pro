@@ -35,6 +35,38 @@
           >
             刷新
           </el-button>
+          <el-button
+            v-if="activeTab === 'webService'"
+            size="mini"
+            icon="el-icon-refresh"
+            @click="refreshWebServer"
+          >
+            刷新
+          </el-button>
+          <el-button
+            v-if="activeTab === 'sipService'"
+            size="mini"
+            icon="el-icon-refresh"
+            @click="refreshSipServer"
+          >
+            刷新
+          </el-button>
+          <el-button
+            v-if="activeTab === 'jtService'"
+            size="mini"
+            icon="el-icon-refresh"
+            @click="refreshJtServer"
+          >
+            刷新
+          </el-button>
+          <el-button
+            v-if="activeTab === 'globalPolicy'"
+            size="mini"
+            icon="el-icon-refresh"
+            @click="refreshGlobalPolicy"
+          >
+            刷新
+          </el-button>
         </div>
       </header>
 
@@ -175,6 +207,11 @@
         </el-card>
       </template>
 
+      <web-server-config v-else-if="activeTab === 'webService'" ref="webServer" />
+      <sip-server-config v-else-if="activeTab === 'sipService'" ref="sipServer" />
+      <jt-server-config v-else-if="activeTab === 'jtService'" ref="jtServer" />
+      <global-policy-config v-else-if="activeTab === 'globalPolicy'" ref="globalPolicy" />
+
       <el-card v-else shadow="never" class="section-card placeholder-card">
         <i class="placeholder-icon" :class="currentItem.icon" />
         <h4>{{ currentTitle }}</h4>
@@ -194,10 +231,14 @@
 
 <script>
 import ConfigViewer from './ConfigViewer.vue'
+import WebServerConfig from './WebServerConfig.vue'
+import SipServerConfig from './SipServerConfig.vue'
+import JtServerConfig from './JtServerConfig.vue'
+import GlobalPolicyConfig from './GlobalPolicyConfig.vue'
 
 export default {
   name: 'SettingIndex',
-  components: { ConfigViewer },
+  components: { ConfigViewer, WebServerConfig, SipServerConfig, JtServerConfig, GlobalPolicyConfig },
   data() {
     return {
       activeTab: 'profile',
@@ -213,7 +254,7 @@ export default {
           key: 'webService',
           title: 'WEB服务',
           icon: 'el-icon-monitor',
-          desc: 'WEB 服务相关配置项(端口、上下文路径、静态资源目录等)。'
+          desc: 'WEB 服务相关配置项(端口、HTTPS 证书等)。'
         },
         {
           key: 'sipService',
@@ -279,6 +320,26 @@ export default {
   methods: {
     handleSelect(key) {
       this.activeTab = key
+    },
+    refreshWebServer() {
+      if (this.$refs.webServer) {
+        this.$refs.webServer.reload()
+      }
+    },
+    refreshSipServer() {
+      if (this.$refs.sipServer) {
+        this.$refs.sipServer.reload()
+      }
+    },
+    refreshJtServer() {
+      if (this.$refs.jtServer) {
+        this.$refs.jtServer.reload()
+      }
+    },
+    refreshGlobalPolicy() {
+      if (this.$refs.globalPolicy) {
+        this.$refs.globalPolicy.reload()
+      }
     },
     selectProfile(item) {
       if (!this.switchable) {

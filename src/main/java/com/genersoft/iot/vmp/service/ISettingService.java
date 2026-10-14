@@ -1,8 +1,14 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 系统设置相关业务
@@ -35,4 +41,96 @@ public interface ISettingService {
      * @return 配置文件文本内容
      */
     String readProfileContent(String profileId);
+
+    /**
+     * 查询 WEB服务(server)配置
+     * <p>
+     * 返回当前生效配置文件中的 server 配置项(可编辑), 以及运行中实际生效的值(只读)
+     */
+    WebServerConfig queryWebServerConfig();
+
+    /**
+     * 保存 WEB服务(server)配置到当前生效的配置文件
+     * <p>
+     * 修改后需要重启服务才能生效
+     *
+     * @param config WEB服务配置
+     * @return 被修改的配置文件路径
+     */
+    String saveWebServerConfig(WebServerConfig config);
+
+    /**
+     * 查询国标(GB28181) SIP 服务配置
+     * <p>
+     * 返回当前生效配置文件中的 sip 配置项(可编辑), 以及运行中实际生效的值(只读)
+     */
+    SipServerConfig querySipServerConfig();
+
+    /**
+     * 保存国标(GB28181) SIP 服务配置到当前生效的配置文件
+     * <p>
+     * 修改后需要重启服务才能生效
+     *
+     * @param config 国标SIP服务配置
+     * @return 被修改的配置文件路径
+     */
+    String saveSipServerConfig(SipServerConfig config);
+
+    /**
+     * 查询部标(JT/T 1078)服务配置
+     * <p>
+     * 返回当前生效配置文件中的 ftp / jt1078 配置项(可编辑), 以及运行中实际生效的值(只读)
+     */
+    JtServerConfig queryJtServerConfig();
+
+    /**
+     * 保存部标(JT/T 1078)服务配置到当前生效的配置文件
+     * <p>
+     * 修改后需要重启服务才能生效
+     *
+     * @param config 部标服务配置
+     * @return 被修改的配置文件路径
+     */
+    String saveJtServerConfig(JtServerConfig config);
+
+    /**
+     * 查询全局策略-流媒体(media)配置
+     * <p>
+     * 返回当前生效配置文件中的 media 配置项(可编辑), 以及运行中实际生效的值(只读)
+     */
+    MediaServerConfig queryMediaServerConfig();
+
+    /**
+     * 保存全局策略-流媒体(media)配置到当前生效的配置文件
+     * <p>
+     * 修改后需要重启服务才能生效
+     *
+     * @param config 流媒体配置
+     * @return 被修改的配置文件路径
+     */
+    String saveMediaServerConfig(MediaServerConfig config);
+
+    /**
+     * 查询全局策略-平台策略(user-settings)配置
+     * <p>
+     * 返回当前生效配置文件中的 user-settings 配置项(可编辑)
+     */
+    UserSettingConfig queryUserSettingConfig();
+
+    /**
+     * 保存全局策略-平台策略(user-settings)配置到当前生效的配置文件
+     * <p>
+     * 修改后需要重启服务才能生效
+     *
+     * @param config 平台策略配置
+     * @return 被修改的配置文件路径
+     */
+    String saveUserSettingConfig(UserSettingConfig config);
+
+    /**
+     * 查询可用的报警订阅类型列表
+     *
+     * @return 报警类型列表, 每项包含 name(枚举名) 与 description(描述)
+     */
+    List<Map<String, String>> queryAlarmTypes();
 }

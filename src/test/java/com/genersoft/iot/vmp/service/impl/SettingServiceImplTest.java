@@ -1,6 +1,11 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -513,5 +519,573 @@ class SettingServiceImplTest {
 
         List<ProfileInfo> profiles = service.queryProfiles();
         assertEquals(2, profiles.size());
+    }
+
+    /**
+     * 查询 WEB服务配置: 应读取当前生效 profile 文件中的 server / ssl 配置
+     */
+    @Test
+    void queryWebServerConfig_readsServerAndSsl() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "server:\n"
+                        + "  port: 18080\n"
+                        + "  ssl:\n"
+                        + "    enabled: true\n"
+                        + "    certificate: /home/lin/文档/局域网使用https/100.pem\n"
+                        + "    certificate-private-key: /home/lin/文档/局域网使用https/100.pem.key\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        WebServerConfig config = service.queryWebServerConfig();
+
+        assertEquals(18080, config.getPort());
+        assertEquals(Boolean.TRUE, config.getSslEnabled());
+        assertEquals("/home/lin/文档/局域网使用https/100.pem", config.getSslCertificate());
+        assertEquals("/home/lin/文档/局域网使用https/100.pem.key", config.getSslCertificatePrivateKey());
+        assertEquals("dev", config.getProfileId());
+        assertTrue(config.isWritable(), "外部配置文件应可写");
+        assertNotNull(config.getFilePath());
+        assertTrue(config.getFilePath().endsWith("application-dev.yml"));
+    }
+
+    /**
+     * 保存 WEB服务配置: 应更新端口与 ssl 各项, 并保留行尾注释与其他配置
+     */
+    @Test
+    void saveWebServerConfig_updatesValuesAndKeepsComments() throws IOException {
+        Path cert = Files.createFile(configDir.resolve("server.pem"));
+        Path key = Files.createFile(configDir.resolve("server.key"));
+
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "# WEB 服务\n"
+                        + "server:\n"
+                        + "  port: 18080   # 端口\n"
+                        + "  ssl:\n"
+                        + "    enabled: false\n"
+                        + "    certificate: /old/cert.pem\n"
+                        + "    certificate-private-key: /old/cert.key\n"
+                        + "sip:\n"
+                        + "  port: 5060\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        WebServerConfig config = new WebServerConfig();
+        config.setPort(18443);
+        config.setSslEnabled(true);
+        config.setSslCertificate(cert.toAbsolutePath().toString());
+        config.setSslCertificatePrivateKey(key.toAbsolutePath().toString());
+        service.saveWebServerConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("port: 18443"), "端口应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("enabled: true"), "ssl.enabled 应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("certificate: " + cert.toAbsolutePath()), "证书路径应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("certificate-private-key: " + key.toAbsolutePath()), "私钥路径应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("# WEB 服务"), "应保留头部注释");
+        assertTrue(updated.contains("# 端口"), "应保留行尾注释");
+        assertTrue(updated.contains("sip:\n  port: 5060"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存 WEB服务配置: 缺少 ssl 块时应自动创建
+     */
+    @Test
+    void saveWebServerConfig_createsMissingSslBlock() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\nsip:\n  port: 5060\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        WebServerConfig config = new WebServerConfig();
+        config.setPort(18080);
+        config.setSslEnabled(false);
+        service.saveWebServerConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("ssl:"), "应创建 ssl 块, 实际:\n" + updated);
+        assertTrue(updated.contains("enabled: false"), "应写入 ssl.enabled, 实际:\n" + updated);
+        assertTrue(updated.contains("sip:\n  port: 5060"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存 WEB服务配置: 开启HTTPS但缺少证书文件时应报错
+     */
+    @Test
+    void saveWebServerConfig_sslWithoutCertificate_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        WebServerConfig config = new WebServerConfig();
+        config.setPort(18080);
+        config.setSslEnabled(true);
+        assertThrows(Exception.class, () -> service.saveWebServerConfig(config));
+    }
+
+    /**
+     * 保存 WEB服务配置: 端口非法时应报错
+     */
+    @Test
+    void saveWebServerConfig_invalidPort_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        WebServerConfig config = new WebServerConfig();
+        config.setPort(70000);
+        config.setSslEnabled(false);
+        assertThrows(Exception.class, () -> service.saveWebServerConfig(config));
+    }
+
+    // ------------------------------------------------------------------
+    // 国标服务(sip)
+    // ------------------------------------------------------------------
+
+    /**
+     * 查询国标服务配置: 应读取当前生效 profile 文件中的 sip 配置
+     */
+    @Test
+    void querySipServerConfig_readsSipBlock() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "sip:\n"
+                        + "  ip: 0.0.0.0\n"
+                        + "  show-ip: 192.168.1.3\n"
+                        + "  port: 5060\n"
+                        + "  domain: 4101050000\n"
+                        + "  id: 41010500002000000001\n"
+                        + "  password: admin123\n"
+                        + "  register-time-interval: 60\n"
+                        + "  ptz-speed: 50\n"
+                        + "  alarm: false\n"
+                        + "  timeout: 1000\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        SipServerConfig config = service.querySipServerConfig();
+
+        assertEquals("0.0.0.0", config.getIp());
+        assertEquals("192.168.1.3", config.getShowIp());
+        assertEquals(5060, config.getPort());
+        assertEquals("4101050000", config.getDomain());
+        assertEquals("41010500002000000001", config.getId());
+        assertEquals("admin123", config.getPassword());
+        assertEquals(60, config.getRegisterTimeInterval());
+        assertEquals(50, config.getPtzSpeed());
+        assertEquals(Boolean.FALSE, config.getAlarm());
+        assertEquals(1000L, config.getTimeout());
+        assertEquals("dev", config.getProfileId());
+        assertTrue(config.isWritable());
+        assertTrue(config.getFilePath().endsWith("application-dev.yml"));
+    }
+
+    /**
+     * 保存国标服务配置: 应更新各项并保留注释与其他配置项
+     */
+    @Test
+    void saveSipServerConfig_updatesValuesAndKeepsComments() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "# SIP 服务\n"
+                        + "sip:\n"
+                        + "  port: 5060   # 端口\n"
+                        + "  id: 41010500002000000001\n"
+                        + "server:\n"
+                        + "  port: 18080\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        SipServerConfig config = new SipServerConfig();
+        config.setPort(5061);
+        config.setId("41010500002000000002");
+        config.setDomain("4101050000");
+        config.setPassword("admin123");
+        config.setIp("0.0.0.0");
+        config.setShowIp("192.168.1.3");
+        config.setRegisterTimeInterval(60);
+        config.setPtzSpeed(50);
+        config.setAlarm(false);
+        config.setTimeout(1000L);
+        service.saveSipServerConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("port: 5061"), "端口应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("id: 41010500002000000002"), "国标编号应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("domain: 4101050000"), "国标域应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("register-time-interval: 60"), "应写入注册重试间隔, 实际:\n" + updated);
+        assertTrue(updated.contains("timeout: 1000"), "应写入超时时间, 实际:\n" + updated);
+        assertTrue(updated.contains("# SIP 服务"), "应保留头部注释");
+        assertTrue(updated.contains("# 端口"), "应保留行尾注释");
+        assertTrue(updated.contains("server:\n  port: 18080"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存国标服务配置: 国标编号非法时应报错
+     */
+    @Test
+    void saveSipServerConfig_invalidId_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "sip:\n  port: 5060\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        SipServerConfig config = new SipServerConfig();
+        config.setPort(5060);
+        config.setId("123");
+        assertThrows(Exception.class, () -> service.saveSipServerConfig(config));
+    }
+
+    // ------------------------------------------------------------------
+    // 部标服务(ftp / jt1078)
+    // ------------------------------------------------------------------
+
+    /**
+     * 查询部标服务配置: 应读取 ftp / jt1078 配置
+     */
+    @Test
+    void queryJtServerConfig_readsBlocks() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "ftp:\n"
+                        + "  enable: true\n"
+                        + "  port: 2121\n"
+                        + "  passive-ports: 10000-10500\n"
+                        + "jt1078:\n"
+                        + "  enable: true\n"
+                        + "  port: 18088\n"
+                        + "  password: admin123\n"
+                        + "  record: false\n"
+                        + "  reader-idle-time: 20\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        JtServerConfig config = service.queryJtServerConfig();
+
+        assertEquals(Boolean.TRUE, config.getFtpEnable());
+        assertEquals(2121, config.getFtpPort());
+        assertEquals("10000-10500", config.getFtpPassivePorts());
+        assertEquals(Boolean.TRUE, config.getJt1078Enable());
+        assertEquals(18088, config.getJt1078Port());
+        assertEquals("admin123", config.getJt1078Password());
+        assertEquals(Boolean.FALSE, config.getJt1078Record());
+        assertEquals(20, config.getJt1078ReaderIdleTime());
+        assertTrue(config.isWritable());
+    }
+
+    /**
+     * 保存部标服务配置: 应更新各项并保留其他配置
+     */
+    @Test
+    void saveJtServerConfig_updatesValues() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "# 部标\n"
+                        + "ftp:\n"
+                        + "  enable: true\n"
+                        + "  port: 2121\n"
+                        + "jt1078:\n"
+                        + "  enable: true\n"
+                        + "  port: 18088\n"
+                        + "sip:\n"
+                        + "  port: 5060\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        JtServerConfig config = new JtServerConfig();
+        config.setFtpEnable(false);
+        config.setFtpPort(2122);
+        config.setFtpPassivePorts("11000-11500");
+        config.setJt1078Enable(true);
+        config.setJt1078Port(18089);
+        config.setJt1078Password("pass123");
+        config.setJt1078Record(true);
+        config.setJt1078ReaderIdleTime(30);
+        service.saveJtServerConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("port: 2122"), "FTP端口应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("passive-ports: 11000-11500"), "被动端口应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("port: 18089"), "jt1078端口应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("password: pass123"), "jt1078密码应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("reader-idle-time: 30"), "IDLE超时时间应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("# 部标"), "应保留头部注释");
+        assertTrue(updated.contains("sip:\n  port: 5060"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存部标服务配置: 被动端口格式非法时应报错
+     */
+    @Test
+    void saveJtServerConfig_invalidPassivePorts_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "ftp:\n  enable: true\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        JtServerConfig config = new JtServerConfig();
+        config.setFtpPassivePorts("abc");
+        assertThrows(Exception.class, () -> service.saveJtServerConfig(config));
+    }
+
+    // ------------------------------------------------------------------
+    // 全局策略-流媒体(media)
+    // ------------------------------------------------------------------
+
+    /**
+     * 查询流媒体配置: 应读取 media 配置
+     */
+    @Test
+    void queryMediaServerConfig_readsMediaBlock() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "media:\n"
+                        + "  id: XwFtVZrtZbHJq4UV\n"
+                        + "  ip: 192.168.1.3\n"
+                        + "  wan_ip: 1.2.3.4\n"
+                        + "  hook-ip: 127.0.0.1\n"
+                        + "  http-port: 7082\n"
+                        + "  secret: abcdef\n"
+                        + "  auto-config: true\n"
+                        + "  record-day: 10\n"
+                        + "  record-path: ./www/record\n"
+                        + "  rtp:\n"
+                        + "    enable: true\n"
+                        + "    port-range: 30000,40000\n"
+                        + "    send-port-range: 40200,50005\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        MediaServerConfig config = service.queryMediaServerConfig();
+
+        assertEquals("XwFtVZrtZbHJq4UV", config.getId());
+        assertEquals("192.168.1.3", config.getIp());
+        assertEquals("1.2.3.4", config.getWanIp());
+        assertEquals("127.0.0.1", config.getHookIp());
+        assertEquals(7082, config.getHttpPort());
+        assertEquals("abcdef", config.getSecret());
+        assertEquals(Boolean.TRUE, config.getAutoConfig());
+        assertEquals(10, config.getRecordDay());
+        assertEquals(Boolean.TRUE, config.getRtpEnable());
+        assertEquals("30000,40000", config.getRtpPortRange());
+        assertEquals("40200,50005", config.getRtpSendPortRange());
+    }
+
+    /**
+     * 保存流媒体配置: 应更新各项并创建缺失的 rtp 块
+     */
+    @Test
+    void saveMediaServerConfig_updatesValues() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "# 流媒体\n"
+                        + "media:\n"
+                        + "  id: old-id\n"
+                        + "  ip: 192.168.1.3\n"
+                        + "  secret: old-secret\n"
+                        + "  rtp:\n"
+                        + "    enable: false\n"
+                        + "sip:\n"
+                        + "  port: 5060\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        MediaServerConfig config = new MediaServerConfig();
+        config.setId("new-id");
+        config.setIp("192.168.1.4");
+        config.setSecret("new-secret");
+        config.setHttpPort(7082);
+        config.setRecordDay(7);
+        config.setRtpEnable(true);
+        config.setRtpPortRange("30000,40000");
+        service.saveMediaServerConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("id: new-id"), "媒体ID应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("ip: 192.168.1.4"), "媒体IP应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("secret: new-secret"), "密钥应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("http-port: 7082"), "HTTP端口应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("record-day: 7"), "录像天数应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("port-range: 30000,40000"), "收流端口应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("# 流媒体"), "应保留头部注释");
+        assertTrue(updated.contains("sip:\n  port: 5060"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存流媒体配置: 缺少ID/IP/密钥时应报错
+     */
+    @Test
+    void saveMediaServerConfig_missingRequired_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "media:\n  id: a\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        MediaServerConfig config = new MediaServerConfig();
+        config.setId("a");
+        assertThrows(Exception.class, () -> service.saveMediaServerConfig(config));
+    }
+
+    // ------------------------------------------------------------------
+    // 全局策略-平台策略(user-settings)
+    // ------------------------------------------------------------------
+
+    /**
+     * 查询平台策略配置: 文件中的值优先, 缺失时回退到默认值
+     */
+    @Test
+    void queryUserSettingConfig_readsAndFallsBackToDefaults() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "user-settings:\n"
+                        + "  sip-log: true\n"
+                        + "  server-id: \"765250\"\n"
+                        + "  gb-device-online: 1\n"
+                        + "  allowed-origins:\n"
+                        + "    - http://localhost:8008\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSettingConfig config = service.queryUserSettingConfig();
+
+        assertEquals("765250", config.getServerId());
+        assertEquals(Boolean.TRUE, config.getSipLog());
+        assertEquals(1, config.getGbDeviceOnline());
+        assertEquals(List.of("http://localhost:8008"), config.getAllowedOrigins());
+        // 文件中缺失的项回退到默认值
+        assertEquals(Boolean.FALSE, config.getSqlLog());
+        assertEquals(Boolean.TRUE, config.getPushAuthority());
+        assertNotNull(config.getPlayTimeout());
+    }
+
+    /**
+     * 保存平台策略配置: 应写入标量与列表配置项, 并保留其他配置
+     */
+    @Test
+    void saveUserSettingConfig_writesScalarsAndLists() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "# 平台策略\n"
+                        + "user-settings:\n"
+                        + "  sip-log: false   # 日志\n"
+                        + "server:\n"
+                        + "  port: 18080\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSettingConfig config = new UserSettingConfig();
+        config.setSipLog(true);
+        config.setServerId("765250");
+        config.setGbDeviceOnline(0);
+        config.setInterfaceAuthenticationExcludes(List.of("/api/sy/**", "/api/common/**"));
+        config.setAllowedOrigins(List.of("http://a.com", "http://b.com"));
+        config.setAllowedAlarmType(List.of("IntrusionDetection", "VideoLoss"));
+        service.saveUserSettingConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("sip-log: true"), "布尔配置应被更新, 实际:\n" + updated);
+        assertTrue(updated.contains("server-id: \"765250\""), "字符串配置应被写入(必要时加引号), 实际:\n" + updated);
+        assertTrue(updated.contains("gb-device-online: 0"), "数字配置应被写入, 实际:\n" + updated);
+        assertTrue(updated.contains("interface-authentication-excludes:\n    - /api/sy/**\n    - /api/common/**"),
+                "应写入鉴权例外列表, 实际:\n" + updated);
+        assertTrue(updated.contains("allowed-origins:\n    - http://a.com\n    - http://b.com"),
+                "应写入跨域列表, 实际:\n" + updated);
+        assertTrue(updated.contains("allowed-alarm-type:\n    - IntrusionDetection\n    - VideoLoss"),
+                "应写入报警类型列表, 实际:\n" + updated);
+        assertTrue(updated.contains("# 平台策略"), "应保留头部注释");
+        assertTrue(updated.contains("# 日志"), "应保留行尾注释");
+        assertTrue(updated.contains("server:\n  port: 18080"), "应保留其他配置项");
+    }
+
+    /**
+     * 保存平台策略配置: 应替换已有列表并保留同级配置项
+     */
+    @Test
+    void saveUserSettingConfig_replacesExistingList_keepsSiblings() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml",
+                "user-settings:\n"
+                        + "  server-id: \"000000\"\n"
+                        + "  interface-authentication-excludes:\n"
+                        + "    - /api/old/**\n"
+                        + "  doc-enable: true\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSettingConfig config = new UserSettingConfig();
+        config.setInterfaceAuthenticationExcludes(List.of("/api/new/**", "/api/other/**"));
+        service.saveUserSettingConfig(config);
+
+        String updated = Files.readString(configDir.resolve("application-dev.yml"));
+        assertTrue(updated.contains("interface-authentication-excludes:\n    - /api/new/**\n    - /api/other/**"),
+                "应替换原有列表, 实际:\n" + updated);
+        assertFalse(updated.contains("/api/old/**"), "旧列表项应被移除, 实际:\n" + updated);
+        assertTrue(updated.contains("doc-enable: true"), "应保留后续同级配置, 实际:\n" + updated);
+        assertTrue(updated.contains("server-id: \"000000\""), "应保留原引号字符串, 实际:\n" + updated);
+    }
+
+    /**
+     * 保存平台策略配置: 非法的报警类型应被拒绝
+     */
+    @Test
+    void saveUserSettingConfig_invalidAlarmType_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "user-settings:\n  sip-log: true\n");
+
+        MockEnvironment environment = envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/");
+        environment.setActiveProfiles("dev");
+        inject(environment);
+
+        UserSettingConfig config = new UserSettingConfig();
+        config.setAllowedAlarmType(List.of("NotAnAlarm"));
+        assertThrows(Exception.class, () -> service.saveUserSettingConfig(config));
+    }
+
+    /**
+     * 查询报警类型列表
+     */
+    @Test
+    void queryAlarmTypes_returnsAll() {
+        List<Map<String, String>> types = service.queryAlarmTypes();
+        assertFalse(types.isEmpty());
+        assertTrue(types.stream().anyMatch(item -> "IntrusionDetection".equals(item.get("name"))));
+        assertTrue(types.stream().anyMatch(item -> item.get("description") != null));
     }
 }

@@ -1,10 +1,18 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.ISettingService;
+import com.genersoft.iot.vmp.service.bean.AlarmType;
 import com.genersoft.iot.vmp.service.bean.ConfigEntry;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.MediaServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
+import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -36,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 系统设置业务实现
@@ -97,6 +106,18 @@ public class SettingServiceImpl implements ISettingService {
 
     @Autowired
     private ConfigurableEnvironment environment;
+
+    /**
+     * 运行中的 SIP 配置, 用于回显实际生效的值(单元测试中可能未注入)
+     */
+    @Autowired(required = false)
+    private SipConfig sipConfig;
+
+    /**
+     * 运行中的平台策略配置, 用于回显默认值(单元测试中可能未注入)
+     */
+    @Autowired(required = false)
+    private UserSetting userSetting;
 
     @Override
     public List<ProfileInfo> queryProfiles() {
@@ -210,6 +231,1108 @@ public class SettingServiceImpl implements ISettingService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "配置文件过大, 不支持在线查看");
         }
         return new String(entry.getContent(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public WebServerConfig queryWebServerConfig() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        Map<String, Object> root = loadYaml(entry.getContent());
+
+        WebServerConfig config = new WebServerConfig();
+        Integer port = toInteger(readNested(root, "server", "port"));
+        config.setPort(port != null ? port : readRuntimePort());
+        config.setSslEnabled(toBoolean(readNested(root, "server", "ssl", "enabled")));
+        config.setSslCertificate(toStringValue(readNested(root, "server", "ssl", "certificate")));
+        config.setSslCertificatePrivateKey(toStringValue(readNested(root, "server", "ssl", "certificate-private-key")));
+
+        config.setRuntimePort(readRuntimePort());
+        config.setRuntimeSslEnabled(environment.getProperty("server.ssl.enabled", Boolean.class));
+
+        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
+        config.setFilePath(entry.getPath());
+        config.setWritable(entry.isWritable());
+        return config;
+    }
+
+    @Override
+    public String saveWebServerConfig(WebServerConfig config) {
+        if (config == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        validateWebServerConfig(config);
+
+        ConfigEntry entry = resolveTargetConfigEntry();
+        if (!entry.isWritable() || entry.getFile() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "当前配置文件位于jar内部或不可写, 无法修改。请使用 --spring.config.location 指定外部配置目录");
+        }
+
+        writeServerConfig(entry.getFile(), config);
+        log.info("[系统设置] WEB服务配置已保存: {}", entry.getPath());
+        return entry.getPath();
+    }
+
+    // ------------------------------------------------------------------
+    // 国标服务(sip)
+    // ------------------------------------------------------------------
+
+    @Override
+    public SipServerConfig querySipServerConfig() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        Map<String, Object> root = loadYaml(entry.getContent());
+
+        SipServerConfig config = new SipServerConfig();
+        config.setIp(toStringValue(readNested(root, "sip", "ip")));
+        config.setShowIp(toStringValue(readNested(root, "sip", "show-ip")));
+        Integer port = toInteger(readNested(root, "sip", "port"));
+        config.setPort(port != null ? port : readRuntimeSipPort());
+        config.setDomain(toStringValue(readNested(root, "sip", "domain")));
+        config.setId(toStringValue(readNested(root, "sip", "id")));
+        config.setPassword(toStringValue(readNested(root, "sip", "password")));
+        config.setRegisterTimeInterval(toInteger(readNested(root, "sip", "register-time-interval")));
+        config.setPtzSpeed(toInteger(readNested(root, "sip", "ptz-speed")));
+        config.setAlarm(toBoolean(readNested(root, "sip", "alarm")));
+        config.setTimeout(toLong(readNested(root, "sip", "timeout")));
+
+        if (sipConfig != null) {
+            config.setRuntimePort(sipConfig.getPort());
+            config.setRuntimeIp(sipConfig.getIp());
+            config.setRuntimeShowIp(sipConfig.getShowIp());
+            config.setRuntimeMonitorIps(sipConfig.getMonitorIps());
+        }
+
+        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
+        config.setFilePath(entry.getPath());
+        config.setWritable(entry.isWritable());
+        return config;
+    }
+
+    @Override
+    public String saveSipServerConfig(SipServerConfig config) {
+        if (config == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        validateSipServerConfig(config);
+        File file = resolveWritableConfigFile();
+        List<String> lines = readConfigLines(file);
+
+        setYamlScalar(lines, new String[]{"sip", "port"}, String.valueOf(config.getPort()));
+        if (config.getId() != null) {
+            setYamlScalar(lines, new String[]{"sip", "id"}, config.getId().trim());
+        }
+        if (config.getDomain() != null) {
+            setYamlScalar(lines, new String[]{"sip", "domain"}, config.getDomain().trim());
+        }
+        if (config.getPassword() != null) {
+            setYamlScalar(lines, new String[]{"sip", "password"}, config.getPassword());
+        }
+        if (config.getIp() != null) {
+            setYamlScalar(lines, new String[]{"sip", "ip"}, config.getIp().trim());
+        }
+        if (config.getShowIp() != null) {
+            setYamlScalar(lines, new String[]{"sip", "show-ip"}, config.getShowIp().trim());
+        }
+        if (config.getRegisterTimeInterval() != null) {
+            setYamlScalar(lines, new String[]{"sip", "register-time-interval"},
+                    String.valueOf(config.getRegisterTimeInterval()));
+        }
+        if (config.getPtzSpeed() != null) {
+            setYamlScalar(lines, new String[]{"sip", "ptz-speed"}, String.valueOf(config.getPtzSpeed()));
+        }
+        if (config.getAlarm() != null) {
+            setYamlScalar(lines, new String[]{"sip", "alarm"}, String.valueOf(config.getAlarm()));
+        }
+        if (config.getTimeout() != null) {
+            setYamlScalar(lines, new String[]{"sip", "timeout"}, String.valueOf(config.getTimeout()));
+        }
+
+        writeConfigLines(file, lines);
+        log.info("[系统设置] 国标服务配置已保存: {}", file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
+    // ------------------------------------------------------------------
+    // 部标服务(ftp / jt1078)
+    // ------------------------------------------------------------------
+
+    @Override
+    public JtServerConfig queryJtServerConfig() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        Map<String, Object> root = loadYaml(entry.getContent());
+
+        JtServerConfig config = new JtServerConfig();
+        config.setFtpEnable(toBoolean(readNested(root, "ftp", "enable")));
+        config.setFtpPort(toInteger(readNested(root, "ftp", "port")));
+        config.setFtpPassivePorts(toStringValue(readNested(root, "ftp", "passive-ports")));
+        config.setJt1078Enable(toBoolean(readNested(root, "jt1078", "enable")));
+        config.setJt1078Port(toInteger(readNested(root, "jt1078", "port")));
+        config.setJt1078Password(toStringValue(readNested(root, "jt1078", "password")));
+        config.setJt1078Record(toBoolean(readNested(root, "jt1078", "record")));
+        config.setJt1078ReaderIdleTime(toInteger(readNested(root, "jt1078", "reader-idle-time")));
+        config.setRuntimeFtpEnable(environment.getProperty("ftp.enable", Boolean.class));
+        config.setRuntimeJt1078Enable(environment.getProperty("jt1078.enable", Boolean.class));
+
+        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
+        config.setFilePath(entry.getPath());
+        config.setWritable(entry.isWritable());
+        return config;
+    }
+
+    @Override
+    public String saveJtServerConfig(JtServerConfig config) {
+        if (config == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        validateJtServerConfig(config);
+        File file = resolveWritableConfigFile();
+        List<String> lines = readConfigLines(file);
+
+        if (config.getFtpEnable() != null) {
+            setYamlScalar(lines, new String[]{"ftp", "enable"}, String.valueOf(config.getFtpEnable()));
+        }
+        if (config.getFtpPort() != null) {
+            setYamlScalar(lines, new String[]{"ftp", "port"}, String.valueOf(config.getFtpPort()));
+        }
+        if (config.getFtpPassivePorts() != null) {
+            setYamlScalar(lines, new String[]{"ftp", "passive-ports"}, config.getFtpPassivePorts().trim());
+        }
+        if (config.getJt1078Enable() != null) {
+            setYamlScalar(lines, new String[]{"jt1078", "enable"}, String.valueOf(config.getJt1078Enable()));
+        }
+        if (config.getJt1078Port() != null) {
+            setYamlScalar(lines, new String[]{"jt1078", "port"}, String.valueOf(config.getJt1078Port()));
+        }
+        if (config.getJt1078Password() != null) {
+            setYamlScalar(lines, new String[]{"jt1078", "password"}, config.getJt1078Password());
+        }
+        if (config.getJt1078Record() != null) {
+            setYamlScalar(lines, new String[]{"jt1078", "record"}, String.valueOf(config.getJt1078Record()));
+        }
+        if (config.getJt1078ReaderIdleTime() != null) {
+            setYamlScalar(lines, new String[]{"jt1078", "reader-idle-time"},
+                    String.valueOf(config.getJt1078ReaderIdleTime()));
+        }
+
+        writeConfigLines(file, lines);
+        log.info("[系统设置] 部标服务配置已保存: {}", file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
+    // ------------------------------------------------------------------
+    // 全局策略-流媒体(media)
+    // ------------------------------------------------------------------
+
+    @Override
+    public MediaServerConfig queryMediaServerConfig() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        Map<String, Object> root = loadYaml(entry.getContent());
+
+        MediaServerConfig config = new MediaServerConfig();
+        config.setId(toStringValue(readNested(root, "media", "id")));
+        config.setIp(toStringValue(readNested(root, "media", "ip")));
+        config.setWanIp(toStringValue(readNested(root, "media", "wan_ip")));
+        config.setStreamIp(toStringValue(readNested(root, "media", "stream-ip")));
+        config.setSdpIp(toStringValue(readNested(root, "media", "sdp-ip")));
+        config.setHookIp(toStringValue(readNested(root, "media", "hook-ip")));
+        config.setHttpPort(toInteger(readNested(root, "media", "http-port")));
+        config.setSecret(toStringValue(readNested(root, "media", "secret")));
+        config.setAutoConfig(toBoolean(readNested(root, "media", "auto-config")));
+        config.setRtpEnable(toBoolean(readNested(root, "media", "rtp", "enable")));
+        config.setRtpPortRange(toStringValue(readNested(root, "media", "rtp", "port-range")));
+        config.setRtpSendPortRange(toStringValue(readNested(root, "media", "rtp", "send-port-range")));
+        config.setRecordAssistPort(toInteger(readNested(root, "media", "record-assist-port")));
+        config.setRecordDay(toInteger(readNested(root, "media", "record-day")));
+        config.setRecordPath(toStringValue(readNested(root, "media", "record-path")));
+        config.setType(toStringValue(readNested(root, "media", "type")));
+
+        config.setRuntimeId(environment.getProperty("media.id"));
+        config.setRuntimeIp(environment.getProperty("media.ip"));
+        config.setRuntimeHttpPort(environment.getProperty("media.http-port", Integer.class));
+
+        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
+        config.setFilePath(entry.getPath());
+        config.setWritable(entry.isWritable());
+        return config;
+    }
+
+    @Override
+    public String saveMediaServerConfig(MediaServerConfig config) {
+        if (config == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        validateMediaServerConfig(config);
+        File file = resolveWritableConfigFile();
+        List<String> lines = readConfigLines(file);
+
+        if (config.getId() != null) {
+            setYamlScalar(lines, new String[]{"media", "id"}, config.getId().trim());
+        }
+        if (config.getIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "ip"}, config.getIp().trim());
+        }
+        if (config.getWanIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "wan_ip"}, config.getWanIp().trim());
+        }
+        if (config.getStreamIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "stream-ip"}, config.getStreamIp().trim());
+        }
+        if (config.getSdpIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "sdp-ip"}, config.getSdpIp().trim());
+        }
+        if (config.getHookIp() != null) {
+            setYamlScalar(lines, new String[]{"media", "hook-ip"}, config.getHookIp().trim());
+        }
+        if (config.getHttpPort() != null) {
+            setYamlScalar(lines, new String[]{"media", "http-port"}, String.valueOf(config.getHttpPort()));
+        }
+        if (config.getSecret() != null) {
+            setYamlScalar(lines, new String[]{"media", "secret"}, config.getSecret());
+        }
+        if (config.getAutoConfig() != null) {
+            setYamlScalar(lines, new String[]{"media", "auto-config"}, String.valueOf(config.getAutoConfig()));
+        }
+        if (config.getRtpEnable() != null) {
+            setYamlScalar(lines, new String[]{"media", "rtp", "enable"}, String.valueOf(config.getRtpEnable()));
+        }
+        if (config.getRtpPortRange() != null) {
+            setYamlScalar(lines, new String[]{"media", "rtp", "port-range"}, config.getRtpPortRange().trim());
+        }
+        if (config.getRtpSendPortRange() != null) {
+            setYamlScalar(lines, new String[]{"media", "rtp", "send-port-range"}, config.getRtpSendPortRange().trim());
+        }
+        if (config.getRecordAssistPort() != null) {
+            setYamlScalar(lines, new String[]{"media", "record-assist-port"},
+                    String.valueOf(config.getRecordAssistPort()));
+        }
+        if (config.getRecordDay() != null) {
+            setYamlScalar(lines, new String[]{"media", "record-day"}, String.valueOf(config.getRecordDay()));
+        }
+        if (config.getRecordPath() != null) {
+            setYamlScalar(lines, new String[]{"media", "record-path"}, config.getRecordPath());
+        }
+        if (config.getType() != null) {
+            setYamlScalar(lines, new String[]{"media", "type"}, config.getType().trim());
+        }
+
+        writeConfigLines(file, lines);
+        log.info("[系统设置] 流媒体服务配置已保存: {}", file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
+    // ------------------------------------------------------------------
+    // 全局策略-平台策略(user-settings)
+    // ------------------------------------------------------------------
+
+    @Override
+    public UserSettingConfig queryUserSettingConfig() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        Map<String, Object> root = loadYaml(entry.getContent());
+        UserSetting defaults = userSettingOrDefaults();
+
+        UserSettingConfig config = new UserSettingConfig();
+        config.setServerId(readString(root, new String[]{"user-settings", "server-id"}, defaults.getServerId()));
+        config.setBroadcastForPlatform(readString(root, new String[]{"user-settings", "broadcast-for-platform"},
+                defaults.getBroadcastForPlatform()));
+        config.setCivilCodeFile(readString(root, new String[]{"user-settings", "civil-code-file"},
+                defaults.getCivilCodeFile()));
+        config.setJwkFile(readString(root, new String[]{"user-settings", "jwk-file"}, defaults.getJwkFile()));
+        config.setDocEnable(readBoolean(root, new String[]{"user-settings", "doc-enable"}, defaults.getDocEnable()));
+        config.setLoginTimeout(readLongValue(root, new String[]{"user-settings", "login-timeout"},
+                defaults.getLoginTimeout()));
+        config.setAutoRegisterPlatform(readBoolean(root, new String[]{"user-settings", "auto-register-platform"},
+                defaults.isAutoRegisterPlatform()));
+        config.setUseAliasForGroupSync(readBoolean(root, new String[]{"user-settings", "use-alias-for-group-sync"},
+                defaults.isUseAliasForGroupSync()));
+        config.setGroupSyncDeviceTemplate(readString(root, new String[]{"user-settings", "group-sync-device-template"},
+                defaults.getGroupSyncDeviceTemplate()));
+        config.setDeviceIdStrict(readBoolean(root, new String[]{"user-settings", "device-id-strict"},
+                defaults.isDeviceIdStrict()));
+
+        config.setInterfaceAuthentication(readBoolean(root, new String[]{"user-settings", "interface-authentication"},
+                defaults.getInterfaceAuthentication()));
+        config.setInterfaceAuthenticationExcludes(readStringList(root,
+                new String[]{"user-settings", "interface-authentication-excludes"},
+                defaults.getInterfaceAuthenticationExcludes()));
+        config.setAllowedOrigins(readStringList(root, new String[]{"user-settings", "allowed-origins"},
+                defaults.getAllowedOrigins()));
+
+        config.setGbDeviceOnline(readInteger(root, new String[]{"user-settings", "gb-device-online"},
+                defaults.getGbDeviceOnline()));
+        config.setRegisterAgainAfterTime(readInteger(root, new String[]{"user-settings", "register-again-after-time"},
+                defaults.getRegisterAgainAfterTime()));
+        config.setRegisterKeepIntDialog(readBoolean(root, new String[]{"user-settings", "register-keep-int-dialog"},
+                defaults.isRegisterKeepIntDialog()));
+        config.setSipUseSourceIpAsRemoteAddress(readBoolean(root,
+                new String[]{"user-settings", "sip-use-source-ip-as-remote-address"},
+                defaults.getSipUseSourceIpAsRemoteAddress()));
+        config.setSipCacheServerConnections(readBoolean(root,
+                new String[]{"user-settings", "sip-cache-server-connections"}, defaults.isSipCacheServerConnections()));
+        config.setDisableDateHeader(readBoolean(root, new String[]{"user-settings", "disable-date-header"},
+                defaults.isDisableDateHeader()));
+        config.setDeviceRegisterTimeMaxCount(readInteger(root,
+                new String[]{"user-settings", "device-register-time-max-count"},
+                defaults.getDeviceRegisterTimeMaxCount()));
+        config.setDeviceRegisterTimeTtlHours(readInteger(root,
+                new String[]{"user-settings", "device-register-time-ttl-hours"},
+                defaults.getDeviceRegisterTimeTtlHours()));
+        config.setDeviceKeepaliveTimeMaxCount(readInteger(root,
+                new String[]{"user-settings", "device-keepalive-time-max-count"},
+                defaults.getDeviceKeepaliveTimeMaxCount()));
+        config.setDeviceKeepaliveTimeTtlHours(readInteger(root,
+                new String[]{"user-settings", "device-keepalive-time-ttl-hours"},
+                defaults.getDeviceKeepaliveTimeTtlHours()));
+
+        config.setSyncChannelOnDeviceOnline(readBoolean(root,
+                new String[]{"user-settings", "sync-channel-on-device-online"}, defaults.getSyncChannelOnDeviceOnline()));
+        config.setSubscribeMobilePosition(readBoolean(root, new String[]{"user-settings", "subscribe-mobile-position"},
+                defaults.isSubscribeMobilePosition()));
+        config.setSavePositionHistory(readBoolean(root, new String[]{"user-settings", "save-position-history"},
+                defaults.getSavePositionHistory()));
+        config.setSendPositionOnDemand(readBoolean(root, new String[]{"user-settings", "send-position-on-demand"},
+                defaults.isSendPositionOnDemand()));
+
+        config.setPlayTimeout(readInteger(root, new String[]{"user-settings", "play-timeout"},
+                defaults.getPlayTimeout()));
+        config.setRecordInfoTimeout(readInteger(root, new String[]{"user-settings", "record-info-timeout"},
+                defaults.getRecordInfoTimeout()));
+        config.setPlatformPlayTimeout(readInteger(root, new String[]{"user-settings", "platform-play-timeout"},
+                defaults.getPlatformPlayTimeout()));
+        config.setAutoApplyPlay(readBoolean(root, new String[]{"user-settings", "auto-apply-play"},
+                defaults.getAutoApplyPlay()));
+        config.setStreamOnDemand(readBoolean(root, new String[]{"user-settings", "stream-on-demand"},
+                defaults.getStreamOnDemand()));
+        config.setPushAuthority(readBoolean(root, new String[]{"user-settings", "push-authority"},
+                defaults.getPushAuthority()));
+        config.setSeniorSdp(readBoolean(root, new String[]{"user-settings", "senior-sdp"}, defaults.getSeniorSdp()));
+        config.setUsePushingAsStatus(readBoolean(root, new String[]{"user-settings", "use-pushing-as-status"},
+                defaults.getUsePushingAsStatus()));
+        config.setUseSourceIpAsStreamIp(readBoolean(root, new String[]{"user-settings", "use-source-ip-as-stream-ip"},
+                defaults.getUseSourceIpAsStreamIp()));
+        config.setUseCustomSsrcForParentInvite(readBoolean(root,
+                new String[]{"user-settings", "use-custom-ssrc-for-parent-invite"},
+                defaults.getUseCustomSsrcForParentInvite()));
+        config.setSsrcRandom(readBoolean(root, new String[]{"user-settings", "ssrc-random"},
+                defaults.getSsrcRandom()));
+
+        config.setRecordPushLive(readBoolean(root, new String[]{"user-settings", "record-push-live"},
+                defaults.getRecordPushLive()));
+        config.setRecordSip(readBoolean(root, new String[]{"user-settings", "record-sip"}, defaults.getRecordSip()));
+
+        config.setSipLog(readBoolean(root, new String[]{"user-settings", "sip-log"}, defaults.getSipLog()));
+        config.setSqlLog(readBoolean(root, new String[]{"user-settings", "sql-log"}, defaults.getSqlLog()));
+
+        config.setDeviceStatusNotify(readBoolean(root, new String[]{"user-settings", "device-status-notify"},
+                defaults.getDeviceStatusNotify()));
+        config.setSendToPlatformsWhenIdLost(readBoolean(root,
+                new String[]{"user-settings", "send-to-platforms-when-id-lost"},
+                defaults.getSendToPlatformsWhenIdLost()));
+        config.setRefuseChannelStatusChannelFormNotify(readBoolean(root,
+                new String[]{"user-settings", "refuse-channel-status-channel-form-notify"},
+                defaults.getRefuseChannelStatusChannelFormNotify()));
+        config.setMaxNotifyCountQueue(readInteger(root, new String[]{"user-settings", "max-notify-count-queue"},
+                defaults.getMaxNotifyCountQueue()));
+
+        config.setAlarmCatchSize(readLongValue(root, new String[]{"user-settings", "alarm-catch-size"},
+                defaults.getAlarmCatchSize()));
+        config.setAlarmKeepDays(readInteger(root, new String[]{"user-settings", "alarm-keep-days"},
+                defaults.getAlarmKeepDays()));
+        config.setAlarmSnapByStream(readBoolean(root, new String[]{"user-settings", "alarm-snap-by-stream"},
+                defaults.isAlarmSnapByStream()));
+        config.setSnapAsync(readBoolean(root, new String[]{"user-settings", "snap-async"},
+                defaults.isSnapAsync()));
+        config.setAllowedAlarmType(readStringList(root, new String[]{"user-settings", "allowed-alarm-type"},
+                alarmTypeNames(defaults.getAllowedAlarmType())));
+
+        config.setProfileId(isMainConfig(entry) ? null : entry.getId());
+        config.setFilePath(entry.getPath());
+        config.setWritable(entry.isWritable());
+        return config;
+    }
+
+    @Override
+    public String saveUserSettingConfig(UserSettingConfig config) {
+        if (config == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        validateUserSettingConfig(config);
+        File file = resolveWritableConfigFile();
+        List<String> lines = readConfigLines(file);
+
+        String prefix = "user-settings";
+        putYamlScalar(lines, prefix, "server-id", config.getServerId());
+        putYamlScalar(lines, prefix, "broadcast-for-platform", config.getBroadcastForPlatform());
+        putYamlScalar(lines, prefix, "civil-code-file", config.getCivilCodeFile());
+        putYamlScalar(lines, prefix, "jwk-file", config.getJwkFile());
+        putYamlScalar(lines, prefix, "doc-enable", config.getDocEnable());
+        putYamlScalar(lines, prefix, "login-timeout", config.getLoginTimeout());
+        putYamlScalar(lines, prefix, "auto-register-platform", config.getAutoRegisterPlatform());
+        putYamlScalar(lines, prefix, "use-alias-for-group-sync", config.getUseAliasForGroupSync());
+        putYamlScalar(lines, prefix, "group-sync-device-template", config.getGroupSyncDeviceTemplate());
+        putYamlScalar(lines, prefix, "device-id-strict", config.getDeviceIdStrict());
+
+        putYamlScalar(lines, prefix, "interface-authentication", config.getInterfaceAuthentication());
+        putYamlList(lines, new String[]{prefix, "interface-authentication-excludes"},
+                config.getInterfaceAuthenticationExcludes());
+        putYamlList(lines, new String[]{prefix, "allowed-origins"}, config.getAllowedOrigins());
+
+        putYamlScalar(lines, prefix, "gb-device-online", config.getGbDeviceOnline());
+        putYamlScalar(lines, prefix, "register-again-after-time", config.getRegisterAgainAfterTime());
+        putYamlScalar(lines, prefix, "register-keep-int-dialog", config.getRegisterKeepIntDialog());
+        putYamlScalar(lines, prefix, "sip-use-source-ip-as-remote-address",
+                config.getSipUseSourceIpAsRemoteAddress());
+        putYamlScalar(lines, prefix, "sip-cache-server-connections", config.getSipCacheServerConnections());
+        putYamlScalar(lines, prefix, "disable-date-header", config.getDisableDateHeader());
+        putYamlScalar(lines, prefix, "device-register-time-max-count", config.getDeviceRegisterTimeMaxCount());
+        putYamlScalar(lines, prefix, "device-register-time-ttl-hours", config.getDeviceRegisterTimeTtlHours());
+        putYamlScalar(lines, prefix, "device-keepalive-time-max-count", config.getDeviceKeepaliveTimeMaxCount());
+        putYamlScalar(lines, prefix, "device-keepalive-time-ttl-hours", config.getDeviceKeepaliveTimeTtlHours());
+
+        putYamlScalar(lines, prefix, "sync-channel-on-device-online", config.getSyncChannelOnDeviceOnline());
+        putYamlScalar(lines, prefix, "subscribe-mobile-position", config.getSubscribeMobilePosition());
+        putYamlScalar(lines, prefix, "save-position-history", config.getSavePositionHistory());
+        putYamlScalar(lines, prefix, "send-position-on-demand", config.getSendPositionOnDemand());
+
+        putYamlScalar(lines, prefix, "play-timeout", config.getPlayTimeout());
+        putYamlScalar(lines, prefix, "record-info-timeout", config.getRecordInfoTimeout());
+        putYamlScalar(lines, prefix, "platform-play-timeout", config.getPlatformPlayTimeout());
+        putYamlScalar(lines, prefix, "auto-apply-play", config.getAutoApplyPlay());
+        putYamlScalar(lines, prefix, "stream-on-demand", config.getStreamOnDemand());
+        putYamlScalar(lines, prefix, "push-authority", config.getPushAuthority());
+        putYamlScalar(lines, prefix, "senior-sdp", config.getSeniorSdp());
+        putYamlScalar(lines, prefix, "use-pushing-as-status", config.getUsePushingAsStatus());
+        putYamlScalar(lines, prefix, "use-source-ip-as-stream-ip", config.getUseSourceIpAsStreamIp());
+        putYamlScalar(lines, prefix, "use-custom-ssrc-for-parent-invite",
+                config.getUseCustomSsrcForParentInvite());
+        putYamlScalar(lines, prefix, "ssrc-random", config.getSsrcRandom());
+
+        putYamlScalar(lines, prefix, "record-push-live", config.getRecordPushLive());
+        putYamlScalar(lines, prefix, "record-sip", config.getRecordSip());
+
+        putYamlScalar(lines, prefix, "sip-log", config.getSipLog());
+        putYamlScalar(lines, prefix, "sql-log", config.getSqlLog());
+
+        putYamlScalar(lines, prefix, "device-status-notify", config.getDeviceStatusNotify());
+        putYamlScalar(lines, prefix, "send-to-platforms-when-id-lost", config.getSendToPlatformsWhenIdLost());
+        putYamlScalar(lines, prefix, "refuse-channel-status-channel-form-notify",
+                config.getRefuseChannelStatusChannelFormNotify());
+        putYamlScalar(lines, prefix, "max-notify-count-queue", config.getMaxNotifyCountQueue());
+
+        putYamlScalar(lines, prefix, "alarm-catch-size", config.getAlarmCatchSize());
+        putYamlScalar(lines, prefix, "alarm-keep-days", config.getAlarmKeepDays());
+        putYamlScalar(lines, prefix, "alarm-snap-by-stream", config.getAlarmSnapByStream());
+        putYamlScalar(lines, prefix, "snap-async", config.getSnapAsync());
+        putYamlList(lines, new String[]{prefix, "allowed-alarm-type"}, config.getAllowedAlarmType());
+
+        writeConfigLines(file, lines);
+        log.info("[系统设置] 平台策略配置已保存: {}", file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
+    @Override
+    public List<Map<String, String>> queryAlarmTypes() {
+        List<Map<String, String>> result = new ArrayList<>();
+        for (AlarmType type : AlarmType.values()) {
+            Map<String, String> item = new LinkedHashMap<>();
+            item.put("name", type.name());
+            item.put("description", type.getDescription());
+            result.add(item);
+        }
+        return result;
+    }
+
+    /**
+     * 定位当前生效的配置文件(application-{profile}.yml), 未找到时回退到主配置文件
+     */
+    private ConfigEntry resolveTargetConfigEntry() {
+        ConfigSource source = resolveConfigSource();
+        if (source.isNone()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "未找到可用的配置文件, 请使用 --spring.config.location 指定配置目录");
+        }
+        ConfigEntry mainConfig = resolveMainConfig(source);
+        String activeId = resolveActiveProfileId(mainConfig);
+        if (!ObjectUtils.isEmpty(activeId)) {
+            ConfigEntry entry = findById(listProfileEntries(source), activeId);
+            if (entry != null) {
+                return entry;
+            }
+            log.warn("[系统设置] 未找到当前生效的配置文件: application-{}.yml", activeId);
+        }
+        if (mainConfig != null) {
+            return mainConfig;
+        }
+        throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                "未找到当前生效的配置文件, 请使用 --spring.config.location 指定配置目录");
+    }
+
+    private boolean isMainConfig(ConfigEntry entry) {
+        if (entry == null || entry.getFileName() == null) {
+            return false;
+        }
+        for (String name : MAIN_CONFIG_NAMES) {
+            if (name.equalsIgnoreCase(entry.getFileName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 读取运行中实际生效的服务端口, 未配置时按 Spring Boot 默认值 8080
+     */
+    private Integer readRuntimePort() {
+        Integer port = environment.getProperty("server.port", Integer.class);
+        return port != null ? port : 8080;
+    }
+
+    /**
+     * 按路径读取嵌套的配置值
+     */
+    @SuppressWarnings("unchecked")
+    private Object readNested(Map<String, Object> root, String... path) {
+        if (root == null) {
+            return null;
+        }
+        Object current = root;
+        for (String key : path) {
+            if (!(current instanceof Map)) {
+                return null;
+            }
+            current = ((Map<String, Object>) current).get(key);
+        }
+        return current;
+    }
+
+    private Integer toInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.valueOf(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Boolean toBoolean(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        return Boolean.valueOf(value.toString().trim());
+    }
+
+    private String toStringValue(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        try {
+            return Long.valueOf(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 读取运行中实际生效的 SIP 端口
+     */
+    private Integer readRuntimeSipPort() {
+        if (sipConfig != null) {
+            return sipConfig.getPort();
+        }
+        return environment.getProperty("sip.port", Integer.class);
+    }
+
+    private Boolean readBoolean(Map<String, Object> root, String[] path, Boolean fallback) {
+        Boolean value = toBoolean(readNested(root, path));
+        return value != null ? value : fallback;
+    }
+
+    private Integer readInteger(Map<String, Object> root, String[] path, Integer fallback) {
+        Integer value = toInteger(readNested(root, path));
+        return value != null ? value : fallback;
+    }
+
+    private Long readLongValue(Map<String, Object> root, String[] path, Long fallback) {
+        Long value = toLong(readNested(root, path));
+        return value != null ? value : fallback;
+    }
+
+    private String readString(Map<String, Object> root, String[] path, String fallback) {
+        String value = toStringValue(readNested(root, path));
+        return value != null ? value : fallback;
+    }
+
+    /**
+     * 读取列表值, 支持 YAML 列表与逗号分隔的字符串
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> readStringList(Map<String, Object> root, String[] path, List<String> fallback) {
+        Object value = readNested(root, path);
+        if (value instanceof List) {
+            List<String> result = new ArrayList<>();
+            for (Object item : (List<Object>) value) {
+                if (item != null) {
+                    result.add(item.toString());
+                }
+            }
+            return result;
+        }
+        if (value instanceof String) {
+            List<String> result = new ArrayList<>();
+            for (String item : ((String) value).split(",")) {
+                if (!item.trim().isEmpty()) {
+                    result.add(item.trim());
+                }
+            }
+            return result;
+        }
+        return fallback != null ? fallback : new ArrayList<>();
+    }
+
+    private List<String> alarmTypeNames(List<AlarmType> types) {
+        if (types == null) {
+            return new ArrayList<>();
+        }
+        return types.stream().map(Enum::name).collect(Collectors.toList());
+    }
+
+    private UserSetting userSettingOrDefaults() {
+        return userSetting != null ? userSetting : new UserSetting();
+    }
+
+    /**
+     * 校验 WEB服务配置
+     */
+    private void validateWebServerConfig(WebServerConfig config) {
+        Integer port = config.getPort();
+        if (port == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "服务端口不能为空");
+        }
+        if (port < 1 || port > 65535) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "服务端口必须在 1-65535 之间");
+        }
+        if (Boolean.TRUE.equals(config.getSslEnabled())) {
+            if (ObjectUtils.isEmpty(config.getSslCertificate())) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(), "开启HTTPS时必须指定PEM证书文件");
+            }
+            if (ObjectUtils.isEmpty(config.getSslCertificatePrivateKey())) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(), "开启HTTPS时必须指定私钥文件");
+            }
+            File certificate = new File(config.getSslCertificate());
+            if (!certificate.isFile() || !certificate.canRead()) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                        "证书文件不存在或不可读: " + config.getSslCertificate());
+            }
+            File privateKey = new File(config.getSslCertificatePrivateKey());
+            if (!privateKey.isFile() || !privateKey.canRead()) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                        "私钥文件不存在或不可读: " + config.getSslCertificatePrivateKey());
+            }
+        }
+    }
+
+    /**
+     * 校验国标 SIP 服务配置
+     */
+    private void validateSipServerConfig(SipServerConfig config) {
+        Integer port = config.getPort();
+        if (port == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "SIP服务端口不能为空");
+        }
+        if (port < 1 || port > 65535) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "SIP服务端口必须在 1-65535 之间");
+        }
+        if (ObjectUtils.isEmpty(config.getId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标编号不能为空");
+        }
+        if (!config.getId().trim().matches("\\d{20}")) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标编号必须为20位数字");
+        }
+        if (!ObjectUtils.isEmpty(config.getDomain()) && !config.getDomain().trim().matches("\\d{10}")) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标域必须为10位数字");
+        }
+        if (config.getRegisterTimeInterval() != null && config.getRegisterTimeInterval() < 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "注册失败重试间隔不能小于0");
+        }
+        if (config.getPtzSpeed() != null && (config.getPtzSpeed() < 0 || config.getPtzSpeed() > 255)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "云台控制速度必须在 0-255 之间");
+        }
+        if (config.getTimeout() != null && config.getTimeout() <= 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "命令超时时间必须大于0");
+        }
+    }
+
+    /**
+     * 校验部标服务配置
+     */
+    private void validateJtServerConfig(JtServerConfig config) {
+        validatePort(config.getFtpPort(), "FTP服务端口");
+        validatePort(config.getJt1078Port(), "JT1078服务端口");
+        if (config.getFtpPassivePorts() != null && !config.getFtpPassivePorts().trim().isEmpty()) {
+            String value = config.getFtpPassivePorts().trim();
+            for (String item : value.split(",")) {
+                if (!item.trim().matches("\\d+(-\\d+)?")) {
+                    throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                            "FTP被动模式端口范围格式不正确, 应为 10000-10500");
+                }
+            }
+        }
+        if (config.getJt1078ReaderIdleTime() != null && config.getJt1078ReaderIdleTime() < 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "IDLE超时时间不能小于0");
+        }
+    }
+
+    /**
+     * 校验流媒体配置
+     */
+    private void validateMediaServerConfig(MediaServerConfig config) {
+        if (ObjectUtils.isEmpty(config.getId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器ID不能为空");
+        }
+        if (ObjectUtils.isEmpty(config.getIp())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器IP不能为空");
+        }
+        if (ObjectUtils.isEmpty(config.getSecret())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体服务器密钥不能为空");
+        }
+        validatePort(config.getHttpPort(), "流媒体HTTP端口", true);
+        validatePort(config.getRecordAssistPort(), "录像辅助服务端口", true);
+        if (config.getRecordDay() != null && config.getRecordDay() < 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "录像保存天数不能小于0");
+        }
+    }
+
+    /**
+     * 校验平台策略配置
+     */
+    private void validateUserSettingConfig(UserSettingConfig config) {
+        validatePositive(config.getLoginTimeout(), "登录超时时间");
+        validatePositive(config.getPlayTimeout(), "点播等待超时时间");
+        validatePositive(config.getRecordInfoTimeout(), "录像查询超时时间");
+        validatePositive(config.getPlatformPlayTimeout(), "上级点播等待超时时间");
+        validateNotNegative(config.getRegisterAgainAfterTime(), "级联重注册间隔");
+        validateNotNegative(config.getMaxNotifyCountQueue(), "notify缓存队列长度");
+        validateNotNegative(config.getAlarmCatchSize(), "报警通道缓存大小");
+        validateNotNegative(config.getAlarmKeepDays(), "报警记录保留天数");
+        validateNotNegative(config.getDeviceRegisterTimeMaxCount(), "设备注册时间最大条数");
+        validateNotNegative(config.getDeviceRegisterTimeTtlHours(), "设备注册时间过期时间");
+        validateNotNegative(config.getDeviceKeepaliveTimeMaxCount(), "设备心跳时间最大条数");
+        validateNotNegative(config.getDeviceKeepaliveTimeTtlHours(), "设备心跳时间过期时间");
+        if (config.getGbDeviceOnline() != null && config.getGbDeviceOnline() != 0 && config.getGbDeviceOnline() != 1) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备离线上线策略只能是 0 或 1");
+        }
+        if (!ObjectUtils.isEmpty(config.getBroadcastForPlatform())) {
+            String mode = config.getBroadcastForPlatform().trim();
+            if (!"UDP".equalsIgnoreCase(mode) && !"TCP-ACTIVE".equalsIgnoreCase(mode)
+                    && !"TCP-PASSIVE".equalsIgnoreCase(mode)) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                        "喊话发流模式只能是 UDP / TCP-ACTIVE / TCP-PASSIVE");
+            }
+        }
+        if (config.getAllowedAlarmType() != null) {
+            for (String name : config.getAllowedAlarmType()) {
+                if (ObjectUtils.isEmpty(name)) {
+                    continue;
+                }
+                try {
+                    AlarmType.valueOf(name.trim());
+                } catch (IllegalArgumentException e) {
+                    throw new ControllerException(ErrorCode.ERROR400.getCode(), "非法的报警类型: " + name);
+                }
+            }
+        }
+    }
+
+    private void validatePort(Integer port, String name) {
+        validatePort(port, name, false);
+    }
+
+    private void validatePort(Integer port, String name, boolean allowZero) {
+        if (port == null) {
+            return;
+        }
+        int min = allowZero ? 0 : 1;
+        if (port < min || port > 65535) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                    name + "必须在 " + min + "-65535 之间");
+        }
+    }
+
+    private void validatePositive(Number value, String name) {
+        if (value != null && value.longValue() <= 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), name + "必须大于0");
+        }
+    }
+
+    private void validateNotNegative(Number value, String name) {
+        if (value != null && value.longValue() < 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), name + "不能小于0");
+        }
+    }
+
+    /**
+     * 定位当前生效的配置文件并要求其可写
+     */
+    private File resolveWritableConfigFile() {
+        ConfigEntry entry = resolveTargetConfigEntry();
+        if (!entry.isWritable() || entry.getFile() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "当前配置文件位于jar内部或不可写, 无法修改。请使用 --spring.config.location 指定外部配置目录");
+        }
+        return entry.getFile();
+    }
+
+    private List<String> readConfigLines(File file) {
+        try {
+            return Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置文件失败: " + e.getMessage());
+        }
+    }
+
+    private void writeConfigLines(File file, List<String> lines) {
+        try {
+            Files.write(file.toPath(), lines, StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入配置文件失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 写入单个配置项(值为 null 时跳过)
+     */
+    private void putYamlScalar(List<String> lines, String prefix, String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof String) {
+            setYamlScalar(lines, new String[]{prefix, key}, quoteYamlString((String) value));
+        } else {
+            setYamlScalar(lines, new String[]{prefix, key}, String.valueOf(value));
+        }
+    }
+
+    /**
+     * 对可能被 YAML 解析为非字符串(数字/布尔/null)或含特殊字符的字符串值加双引号
+     */
+    private String quoteYamlString(String value) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+            return value;
+        }
+        boolean ambiguous = value.matches("(?i)true|false|null|~|yes|no|on|off")
+                || value.matches("[-+]?(\\d[\\d_]*)(\\.\\d+)?")
+                || value.matches("[-+]?\\.(inf|nan)")
+                || value.matches("0[xX][0-9a-fA-F_]+")
+                || value.matches("0[oO]?[0-7_]+");
+        boolean special = value.matches(".*[:#\\[\\]{},&*!|>'\"%@`].*")
+                || !value.equals(value.trim());
+        if (ambiguous || special) {
+            return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        }
+        return value;
+    }
+
+    /**
+     * 写入列表配置项(值为 null 时跳过)
+     */
+    private void putYamlList(List<String> lines, String[] path, List<String> values) {
+        if (values == null) {
+            return;
+        }
+        setYamlList(lines, path, values);
+    }
+
+    /**
+     * 将 WEB服务配置写入当前生效的配置文件, 保留原有注释与格式
+     */
+    private void writeServerConfig(File file, WebServerConfig config) {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置文件失败: " + e.getMessage());
+        }
+
+        setYamlScalar(lines, new String[]{"server", "port"}, String.valueOf(config.getPort()));
+        setYamlScalar(lines, new String[]{"server", "ssl", "enabled"},
+                String.valueOf(Boolean.TRUE.equals(config.getSslEnabled())));
+        if (!ObjectUtils.isEmpty(config.getSslCertificate())) {
+            setYamlScalar(lines, new String[]{"server", "ssl", "certificate"}, config.getSslCertificate());
+        }
+        if (!ObjectUtils.isEmpty(config.getSslCertificatePrivateKey())) {
+            setYamlScalar(lines, new String[]{"server", "ssl", "certificate-private-key"},
+                    config.getSslCertificatePrivateKey());
+        }
+
+        try {
+            Files.write(file.toPath(), lines, StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入配置文件失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 在 YAML 行集合中设置嵌套键的值(保留注释与缩进), 键或所在的块不存在时自动创建
+     *
+     * @param lines 行集合(原地修改)
+     * @param path  键路径, 如 [server, ssl, enabled]
+     * @param value 值(原样写入, 不做转义)
+     */
+    private void setYamlScalar(List<String> lines, String[] path, String value) {
+        int parentIndent = -2;
+        int rangeStart = 0;
+        int rangeEnd = lines.size();
+        for (int i = 0; i < path.length; i++) {
+            String key = path[i];
+            boolean last = i == path.length - 1;
+            int keyIndent = parentIndent + 2;
+
+            int found = findKeyLine(lines, rangeStart, rangeEnd, key, keyIndent);
+            if (last) {
+                String rendered = renderYamlScalar(key, value);
+                if (found >= 0) {
+                    String comment = extractTrailingComment(lines.get(found));
+                    lines.set(found, repeatSpace(keyIndent) + rendered + comment);
+                } else {
+                    lines.add(rangeEnd, repeatSpace(keyIndent) + rendered);
+                }
+                return;
+            }
+
+            if (found >= 0) {
+                int childEnd = findBlockEnd(lines, found, rangeEnd, keyIndent);
+                parentIndent = keyIndent;
+                rangeStart = found + 1;
+                rangeEnd = childEnd;
+            } else {
+                lines.add(rangeEnd, repeatSpace(keyIndent) + key + ":");
+                parentIndent = keyIndent;
+                rangeStart = rangeEnd + 1;
+                rangeEnd = rangeEnd + 1;
+            }
+        }
+    }
+
+    /**
+     * 在 YAML 行集合中设置列表键的值(保留注释与缩进), 键或所在的块不存在时自动创建
+     *
+     * @param lines  行集合(原地修改)
+     * @param path   键路径, 如 [user-settings, allowed-origins]
+     * @param values 列表值
+     */
+    private void setYamlList(List<String> lines, String[] path, List<String> values) {
+        int parentIndent = -2;
+        int rangeStart = 0;
+        int rangeEnd = lines.size();
+        for (int i = 0; i < path.length - 1; i++) {
+            String parentKey = path[i];
+            int keyIndent = parentIndent + 2;
+            int found = findKeyLine(lines, rangeStart, rangeEnd, parentKey, keyIndent);
+            if (found >= 0) {
+                rangeEnd = findBlockEnd(lines, found, rangeEnd, keyIndent);
+                rangeStart = found + 1;
+            } else {
+                lines.add(rangeEnd, repeatSpace(keyIndent) + parentKey + ":");
+                rangeStart = rangeEnd + 1;
+                rangeEnd = rangeStart;
+            }
+            parentIndent = keyIndent;
+        }
+
+        String key = path[path.length - 1];
+        int keyIndent = parentIndent + 2;
+        int found = findKeyLine(lines, rangeStart, rangeEnd, key, keyIndent);
+
+        List<String> replacement = new ArrayList<>();
+        if (values.isEmpty()) {
+            replacement.add(repeatSpace(keyIndent) + key + ": []");
+        } else {
+            replacement.add(repeatSpace(keyIndent) + key + ":");
+            for (String value : values) {
+                replacement.add(repeatSpace(keyIndent + 2) + "- " + value);
+            }
+        }
+
+        if (found >= 0) {
+            String comment = extractTrailingComment(lines.get(found));
+            int childEnd = findBlockEnd(lines, found, rangeEnd, keyIndent);
+            lines.set(found, replacement.get(0) + comment);
+            if (childEnd > found + 1) {
+                lines.subList(found + 1, childEnd).clear();
+            }
+            if (replacement.size() > 1) {
+                lines.addAll(found + 1, replacement.subList(1, replacement.size()));
+            }
+        } else {
+            lines.addAll(rangeEnd, replacement);
+        }
+    }
+
+    /**
+     * 渲染单个配置项的文本, 空值时输出 "key:"
+     */
+    private String renderYamlScalar(String key, String value) {
+        if (value == null || value.isEmpty()) {
+            return key + ":";
+        }
+        return key + ": " + value;
+    }
+
+    /**
+     * 在[rangeStart, rangeEnd)范围内查找指定缩进且键名匹配的行
+     */
+    private int findKeyLine(List<String> lines, int rangeStart, int rangeEnd, String key, int keyIndent) {
+        String prefix = key + ":";
+        for (int i = rangeStart; i < rangeEnd; i++) {
+            String content = stripComment(lines.get(i));
+            if (content.trim().isEmpty()) {
+                continue;
+            }
+            int indent = countIndent(content);
+            if (indent < keyIndent) {
+                break;
+            }
+            if (indent == keyIndent && content.trim().startsWith(prefix)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 计算块内容的结束位置(不包含块尾部的空行/注释行)
+     */
+    private int findBlockEnd(List<String> lines, int blockLine, int rangeEnd, int blockIndent) {
+        int lastContent = blockLine;
+        for (int i = blockLine + 1; i < rangeEnd; i++) {
+            String content = stripComment(lines.get(i));
+            if (content.trim().isEmpty()) {
+                continue;
+            }
+            if (countIndent(content) <= blockIndent) {
+                break;
+            }
+            lastContent = i;
+        }
+        return lastContent + 1;
     }
 
     /**

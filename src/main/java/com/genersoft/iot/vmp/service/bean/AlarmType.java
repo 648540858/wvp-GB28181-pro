@@ -66,4 +66,8 @@ public enum AlarmType {
     AlarmType(String description) {
         this.description = description;
     }
+
+    public String getDescription() {
+        return description;
+    }
 }

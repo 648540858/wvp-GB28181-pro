@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -32,6 +33,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+
+    /**
+     * 内存中点播等待回调的发起时间，用于兜底清理长时间未结束的点播请求，
+     * 防止某条释放路径断裂后没有任何线程调用call()导致"已有请求在途"永久残留
+     */
+    private final Map<String, Long> inviteErrorCallbackCreateTimeMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -261,6 +268,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         AtomicBoolean first = new AtomicBoolean(false);
         inviteErrorCallbackMap.computeIfAbsent(key, k -> {
             first.set(true);
+            inviteErrorCallbackCreateTimeMap.put(k, System.currentTimeMillis());
             List<ErrorCallback<StreamInfo>> callbacks = new CopyOnWriteArrayList<>();
             callbacks.add(callback);
             return callbacks;
@@ -319,7 +327,14 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public void call(InviteSessionType type, Integer channelId, String stream, int code, String msg, StreamInfo data) {
-        String key = buildSubStreamKey(type, channelId, stream);
+        notifyAndRemove(buildSubStreamKey(type, channelId, stream), code, msg, data);
+    }
+
+    /**
+     * 移除指定点播请求的等待回调，并通知所有等待者
+     */
+    private void notifyAndRemove(String key, int code, String msg, StreamInfo data) {
+        inviteErrorCallbackCreateTimeMap.remove(key);
         List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.remove(key);
         if (callbacks == null || callbacks.isEmpty()) {
             return;
@@ -327,6 +342,28 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         for (ErrorCallback<StreamInfo> callback : callbacks) {
             if (callback != null) {
                 callback.run(code, msg, data);
+            }
+        }
+    }
+
+    /**
+     * 兜底清理长时间未结束的点播等待回调，防止"已有请求在途"永久残留：
+     * 正常流程下点播结束(成功/失败/超时)都会调用call()释放回调，若某条释放路径断裂
+     * (例如收流超时看门狗因为任务key复用没能注册上)，就没有任何线程调用call()，
+     * 点播认领会永久残留，该通道之后的点播一直返回"已有请求在途"。
+     * 这里在超过 playTimeout*3 后释放认领并通知等待者，保证后续点播能够重新发起
+     */
+    private void cleanExpiredInviteCallbacks() {
+        if (inviteErrorCallbackCreateTimeMap.isEmpty()) {
+            return;
+        }
+        long expireTime = (long) userSetting.getPlayTimeout() * 3;
+        long currentTime = System.currentTimeMillis();
+        for (Map.Entry<String, Long> entry : inviteErrorCallbackCreateTimeMap.entrySet()) {
+            if (currentTime - entry.getValue() > expireTime) {
+                log.warn("[点播等待超时] 释放长时间未结束的点播请求: {}", entry.getKey());
+                notifyAndRemove(entry.getKey(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(),
+                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
             }
         }
     }
@@ -374,6 +411,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Scheduled(fixedRate = 10000)   //定时检测,清理错误的redis数据,防止因为错误数据导致的点播不可用
     public void execute(){
+        cleanExpiredInviteCallbacks();
         String key = VideoManagerConstants.INVITE_PREFIX;
         if(redisTemplate.opsForHash().size(key) == 0) {
             return;

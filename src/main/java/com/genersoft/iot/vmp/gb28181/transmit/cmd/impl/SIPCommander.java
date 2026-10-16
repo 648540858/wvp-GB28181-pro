@@ -573,9 +573,10 @@ public class SIPCommander implements ISIPCommander {
         }
 
         log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
-        sessionManager.removeByCallId(ssrcTransaction.getCallId());
         Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+        // 发送成功后再清理事务，避免构造/发送失败时事务已丢失，导致后续无法重试发送 BYE
+        sessionManager.removeByCallId(ssrcTransaction.getCallId());
     }
 
     @Override

@@ -125,6 +125,8 @@ user-settings:
     record-sip: ${RecordSip:false}
     stream-on-demand: true
     interface-authentication: true
+    # [可选] 级联录像查询(RecordInfo)回复的每页记录数量, 默认1000, 不分页请设为0或负数
+    # record-info-page-size: ${RecordInfoPageSize:1000}
     broadcast-for-platform: TCP-PASSIVE
     push-stream-after-ack: true
     send-to-platforms-when-id-lost: true

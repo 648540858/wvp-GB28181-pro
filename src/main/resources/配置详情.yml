@@ -214,6 +214,11 @@ user-settings:
     # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
     interface-authentication-excludes:
         - /api/v1/**
+    # [可选] 媒体服务器 hook 回调鉴权密钥。为空(默认)时不校验、推送给媒体服务器的 hook 地址也不带 secret(保持原行为)。
+    # 配置后 wvp 会把 ?secret=xxx 追加到下发给媒体服务器(如 ZLM)的 hook 地址上, 并拒绝未携带该参数的 /index/hook/** 请求。
+    # 注意: 配置或修改后需要媒体服务器重新下发一次 hook 配置(重启媒体服务器)才生效; 手工在媒体服务器上配过 hook 地址的部署需要重新下发。
+    # 生成示例: openssl rand -hex 16
+    hook-secret:
     # 推流直播是否录制
     record-push-live: true
     # 国标是否录制

@@ -172,28 +172,6 @@ class ChannelProviderTest {
                 "should build WKT via CONCAT with bind variables");
     }
 
-    // ========== queryListInCircleForKingBase ==========
-
-    @Test
-    void queryListInCircleForKingBase_shouldUseBindVariablesForGeometry() {
-        Map<String, Object> params = new HashMap<>();
-        CameraGroup cg = new CameraGroup();
-        cg.setDeviceId("CIRCLE002");
-        params.put("groupList", Collections.singletonList(cg));
-        params.put("centerLongitude", 121.473);
-        params.put("centerLatitude", 31.230);
-        params.put("radius", 500);
-
-        String sql = provider.queryListInCircleForKingBase(params);
-        assertTrue(sql.contains("#{centerLongitude}"), "should use #{centerLongitude}");
-        assertTrue(sql.contains("#{centerLatitude}"), "should use #{centerLatitude}");
-        assertTrue(sql.contains("#{radius}"), "should use #{radius}");
-        assertFalse(sql.contains("121.473"), "should not contain raw longitude");
-        assertFalse(sql.contains("31.230"), "should not contain raw latitude");
-        assertTrue(sql.contains("CONCAT('point(', #{centerLongitude}, ' ', #{centerLatitude}, ')')"),
-                "should build WKT via CONCAT with bind variables");
-    }
-
     // ========== queryListInPolygonForMysql ==========
 
     @Test
@@ -222,30 +200,6 @@ class ChannelProviderTest {
         assertFalse(sql.contains("116.0"), "should not contain raw lng");
         assertFalse(sql.contains("117.0"), "should not contain raw lat");
         assertTrue(sql.contains("CONCAT('POLYGON(('"), "should use CONCAT to build polygon WKT");
-    }
-
-    // ========== queryListInPolygonForKingBase ==========
-
-    @Test
-    void queryListInPolygonForKingBase_shouldUseBindVariablesForPoints() {
-        Map<String, Object> params = new HashMap<>();
-        CameraGroup cg = new CameraGroup();
-        cg.setDeviceId("POLY002");
-        params.put("groupList", Collections.singletonList(cg));
-
-        List<Point> points = new ArrayList<>();
-        Point p1 = new Point();
-        p1.setLng(116.0);
-        p1.setLat(39.0);
-        points.add(p1);
-        params.put("pointList", points);
-
-        String sql = provider.queryListInPolygonForKingBase(params);
-        assertTrue(sql.contains("#{pointList[0].lng}"), "should use #{pointList[0].lng}");
-        assertTrue(sql.contains("#{pointList[0].lat}"), "should use #{pointList[0].lat}");
-        assertFalse(sql.contains("116.0"), "should not contain raw lng");
-        assertFalse(sql.contains("39.0"), "should not contain raw lat");
-        assertTrue(sql.contains("ST_MakePoint"), "should use KingBase specific function");
     }
 
     // ========== queryListInCircleForMysql with injection attempt ==========

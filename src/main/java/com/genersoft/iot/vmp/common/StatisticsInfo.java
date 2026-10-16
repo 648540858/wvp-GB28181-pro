@@ -66,7 +66,7 @@ public class StatisticsInfo {
     private String sqlVersion;
 
     /**
-     * sql数据库类型， mysql/postgresql/金仓等
+     * sql数据库类型， mysql
      */
     private String sqlType;
 

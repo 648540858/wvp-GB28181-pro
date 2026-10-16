@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.service.bean.AlarmType;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
-import org.apache.ibatis.mapping.DatabaseIdProvider;
-import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.type.EnumOrdinalTypeHandler;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -13,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
 import javax.sql.DataSource;
-import java.util.Properties;
 
 /**
  * 配置mybatis
@@ -26,31 +23,7 @@ public class MybatisConfig {
     private UserSetting userSetting;
 
     @Bean
-    public DatabaseIdProvider databaseIdProvider() {
-        VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
-        Properties properties = new Properties();
-        properties.setProperty("Oracle", "oracle");
-        properties.setProperty("MySQL", "mysql");
-        properties.setProperty("DB2", "db2");
-        properties.setProperty("Derby", "derby");
-        properties.setProperty("H2", "h2");
-        properties.setProperty("HSQL", "hsql");
-        properties.setProperty("Informix", "informix");
-        properties.setProperty("MS-SQL", "ms-sql");
-        properties.setProperty("PostgreSQL", "postgresql");
-        properties.setProperty("Sybase", "sybase");
-        properties.setProperty("Hana", "hana");
-        // 达梦(DM8)：JDBC getDatabaseProductName() 返回 "DM DBMS"，此处做等名字匹配；另保留 "DM" 兼容别名
-        properties.setProperty("DM DBMS", "dm");
-        properties.setProperty("DM", "dm");
-        properties.setProperty("KingbaseES", "kingbase");
-        properties.setProperty("KingBase8", "kingbase");
-        databaseIdProvider.setProperties(properties);
-        return databaseIdProvider;
-    }
-
-    @Bean
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, DatabaseIdProvider databaseIdProvider) throws Exception {
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
        final SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setDataSource(dataSource);
         org.apache.ibatis.session.Configuration config = new org.apache.ibatis.session.Configuration();
@@ -60,7 +33,6 @@ public class MybatisConfig {
         config.setMapUnderscoreToCamelCase(true);
         config.getTypeHandlerRegistry().register(AlarmType.class, EnumOrdinalTypeHandler.class);
         sqlSessionFactory.setConfiguration(config);
-        sqlSessionFactory.setDatabaseIdProvider(databaseIdProvider);
         return sqlSessionFactory.getObject();
     }
 

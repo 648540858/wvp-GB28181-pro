@@ -43,25 +43,6 @@ spring:
             poolMaxWait: 5
     # [必选] jdbc数据库配置
     datasource:
-        # kingbase配置
-        #        type: com.zaxxer.hikari.HikariDataSource
-        #        driver-class-name: com.kingbase8.Driver
-        #        url: jdbc:kingbase8://192.168.1.55:54321/wvp?useUnicode=true&characterEncoding=utf8
-        #        username: system
-        #        password:
-        # postgresql配置
-        #    type: com.zaxxer.hikari.HikariDataSource
-        #    driver-class-name: org.postgresql.Driver
-        #    url: jdbc:postgresql://192.168.1.242:3306/242wvp
-        #    username: root
-        #    password:
-        # 达梦数据库(DM8)配置
-        #    type: com.zaxxer.hikari.HikariDataSource
-        #    driver-class-name: dm.jdbc.driver.DmDriver
-        #    url: jdbc:dm://192.168.1.238:5236?keyWords=(model,owner,block,status,secret,type,enable,self,alias,snap,start,stop)
-        #    username: SYSDBA
-        #    # [必须修改] 达梦数据库密码，由用户手动填写
-        #    password:
         # mysql配置
         type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
@@ -77,10 +58,6 @@ spring:
             max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 
 
-
-# 修改分页插件为 postgresql， 数据库类型为mysql不需要
-#pagehelper:
-#    helper-dialect: postgresql
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:

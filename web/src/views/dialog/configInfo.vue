@@ -12,6 +12,16 @@
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-descriptions v-if="(!key || key === 'sip') && configInfoData.sip" title="国标服务信息" :span="2">
+          <template slot="extra">
+            <el-button
+              v-clipboard="copySipJson"
+              v-clipboard:success="onCopySuccess"
+              v-clipboard:error="onCopyError"
+              size="mini"
+              icon="el-icon-document-copy"
+              title="点击拷贝"
+            >复制</el-button>
+          </template>
           <el-descriptions-item label="编号">{{ configInfoData.sip.id }}</el-descriptions-item>
           <el-descriptions-item label="域">{{ configInfoData.sip.domain }}</el-descriptions-item>
           <el-descriptions-item label="IP">{{ configInfoData.sip.showIp }}</el-descriptions-item>
@@ -49,9 +59,19 @@ export default {
       }
     }
   },
-  computed: {},
+  computed: {
+    copySipJson() {
+      return JSON.stringify(this.configInfoData.sip || {}, null, 2)
+    }
+  },
   created() {},
   methods: {
+    onCopySuccess() {
+      this.$message({ type: 'success', message: '平台信息已复制到剪贴板' })
+    },
+    onCopyError() {
+      this.$message({ type: 'error', message: '复制失败，请手动复制' })
+    },
     openDialog: function(data, key) {
       console.log(data)
       this.showDialog = true

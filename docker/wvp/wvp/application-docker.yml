@@ -115,7 +115,7 @@ media:
     send-port-range: 50502,50506 
 
   record-path: /opt/media/bin/www/record/
-  record-day: 7
+  record-day: 30
   record-assist-port: 0
 user-settings:
     auto-apply-play: true

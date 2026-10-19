@@ -43,6 +43,12 @@ spring:
             poolMaxWait: 5
     # [必选] jdbc数据库配置
     datasource:
+        # kingbase配置
+        #        type: com.zaxxer.hikari.HikariDataSource
+        #        driver-class-name: com.kingbase8.Driver
+        #        url: jdbc:kingbase8://192.168.1.55:54321/wvp?useUnicode=true&characterEncoding=utf8
+        #        username: system
+        #        password:
         # mysql配置
         type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver

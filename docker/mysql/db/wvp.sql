@@ -467,8 +467,8 @@ drop table IF EXISTS wvp_record_plan_item;
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key,
-    start           int,
-    stop            int,
+    start_time      int,
+    stop_time       int,
     week_day        int,
     plan_id         int,
     create_time     character varying(50),

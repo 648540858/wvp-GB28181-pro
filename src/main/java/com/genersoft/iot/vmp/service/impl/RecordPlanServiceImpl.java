@@ -207,7 +207,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         if (plan.getPlanItemList() != null && !plan.getPlanItemList().isEmpty()){
             List<RecordPlanItem> planItemList = new ArrayList<>();
             for (RecordPlanItem recordPlanItem : plan.getPlanItemList()) {
-                if (recordPlanItem.getStart() == null || recordPlanItem.getStop() == null || recordPlanItem.getWeekDay() == null){
+                if (recordPlanItem.getStartTime() == null || recordPlanItem.getStopTime() == null || recordPlanItem.getWeekDay() == null){
                     continue;
                 }
                 if (recordPlanItem.getPlanId() == null) {

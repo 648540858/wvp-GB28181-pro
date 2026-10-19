@@ -176,8 +176,8 @@ export default {
         const item = planList[i]
         console.log(item)
         this.planArray[item.weekDay - 1].data.push({
-          start: item.start,
-          end: item.stop
+          start: item.startTime,
+          end: item.stopTime
         })
       }
     },
@@ -189,8 +189,8 @@ export default {
         for (let j = 0; j < item.data.length; j++) {
           const itemData = item.data[j]
           dataArray.push({
-            start: Math.floor(itemData.start),
-            stop: Math.floor(itemData.end),
+            startTime: Math.floor(itemData.start),
+            stopTime: Math.floor(itemData.end),
             weekDay: i + 1,
             planId: this.id
           })

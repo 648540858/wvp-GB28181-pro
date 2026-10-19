@@ -11,10 +11,10 @@ public class RecordPlanItem {
     private int id;
 
     @Schema(description = "计划开始时间的序号， 从0点开始，每半个小时增加1")
-    private Integer start;
+    private Integer startTime;
 
     @Schema(description = "计划结束时间的序号， 从0点开始，每半个小时增加1")
-    private Integer stop;
+    private Integer stopTime;
 
     @Schema(description = "计划周几执行")
     private Integer weekDay;

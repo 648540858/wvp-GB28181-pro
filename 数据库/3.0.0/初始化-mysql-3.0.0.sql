@@ -477,8 +477,8 @@ drop table IF EXISTS wvp_record_plan_item;
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key COMMENT '主键ID',
-    start           int COMMENT '开始时间（分钟）',
-    stop            int COMMENT '结束时间（分钟）',
+    start_time      int COMMENT '开始时间（分钟）',
+    stop_time       int COMMENT '结束时间（分钟）',
     week_day        int COMMENT '星期（0-6）',
     plan_id         int COMMENT '所属录像计划ID',
     create_time     character varying(50) COMMENT '创建时间',

@@ -26,13 +26,13 @@ public interface RecordPlanMapper {
 
     @Insert(" <script>" +
             "INSERT INTO wvp_record_plan_item (" +
-            "start," +
-            "stop, " +
+            "start_time," +
+            "stop_time, " +
             "week_day," +
             "plan_id) " +
             "VALUES" +
             "<foreach collection='planItemList' index='index' item='item' separator=','> " +
-            "(#{item.start}, #{item.stop}, #{item.weekDay},#{planId})" +
+            "(#{item.startTime}, #{item.stopTime}, #{item.weekDay},#{planId})" +
             "</foreach> " +
             " </script>")
     void batchAddItem(@Param("planId") int planId, List<RecordPlanItem> planItemList);
@@ -61,7 +61,7 @@ public interface RecordPlanMapper {
 
     @Select(" <script>" +
             " select wdc.id from wvp_device_channel wdc left join wvp_record_plan_item wrpi on wrpi.plan_id = wdc.record_plan_id " +
-            " where  wrpi.week_day = #{week} and wrpi.start &lt;= #{index} and stop &gt;= #{index} group by wdc.id" +
+            " where  wrpi.week_day = #{week} and wrpi.start_time &lt;= #{index} and wrpi.stop_time &gt;= #{index} group by wdc.id" +
             " </script>")
     List<Integer> queryRecordIng(@Param("week") int week, @Param("index") int index);
 }

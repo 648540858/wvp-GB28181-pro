@@ -691,14 +691,13 @@ COMMENT ON COLUMN wvp_cloud_record.time_len IS '时长';
 drop table IF EXISTS wvp_user;
 create table IF NOT EXISTS wvp_user
 (
-    id               serial primary key,
-    username         character varying(255),
-    password         character varying(255),
-    role_id          integer,
-    create_time      character varying(50),
-    update_time      character varying(50),
-    push_key         character varying(50),
-    default_password bool default false,
+    id          serial primary key,
+    username    character varying(255),
+    password    character varying(255),
+    role_id     integer,
+    create_time character varying(50),
+    update_time character varying(50),
+    push_key    character varying(50),
     constraint uk_user_username unique (username)
 );
 COMMENT ON TABLE wvp_user IS '平台用户信息';
@@ -709,7 +708,6 @@ COMMENT ON COLUMN wvp_user.role_id IS '角色ID';
 COMMENT ON COLUMN wvp_user.create_time IS '创建时间';
 COMMENT ON COLUMN wvp_user.update_time IS '更新时间';
 COMMENT ON COLUMN wvp_user.push_key IS '推送密钥';
-COMMENT ON COLUMN wvp_user.default_password IS '是否使用默认密码';
 
 
 drop table IF EXISTS wvp_user_role;
@@ -756,9 +754,9 @@ COMMENT ON COLUMN wvp_user_api_key.update_time IS '更新时间';
 
 
 /*初始数据*/
-INSERT INTO wvp_user (id, username, password, role_id, create_time, update_time, push_key, default_password)
+INSERT INTO wvp_user
 VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57', '2021-04-13 14:14:57',
-        '3e80d1762a324d5b0ff636e0bd16f1e3', TRUE);
+        '3e80d1762a324d5b0ff636e0bd16f1e3');
 INSERT INTO wvp_user_role
 VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

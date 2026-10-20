@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.security.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import lombok.Getter;
@@ -45,6 +46,7 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         return null;
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return user.getPassword();

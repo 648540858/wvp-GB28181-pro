@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.storager.dao.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
+@Data
 public class User {
 
     private int id;
@@ -16,68 +18,4 @@ public class User {
      * 是否使用默认密码（首次登录需强制修改密码）
      */
     private boolean defaultPassword = false;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(String updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public String getPushKey() {
-        return pushKey;
-    }
-
-    public void setPushKey(String pushKey) {
-        this.pushKey = pushKey;
-    }
-
-    public boolean isDefaultPassword() {
-        return defaultPassword;
-    }
-
-    public void setDefaultPassword(boolean defaultPassword) {
-        this.defaultPassword = defaultPassword;
-    }
 }

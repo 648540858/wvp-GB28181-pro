@@ -43,6 +43,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -281,7 +282,7 @@ public class SIPCommander implements ISIPCommander {
 
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
+            sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
@@ -290,7 +291,7 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     callId,ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
-            sessionManager.put(ssrcTransaction);
+            registerTransaction(device, channel, ssrcTransaction);
             okEvent.response(e);
         }, timeout);
     }
@@ -384,10 +385,10 @@ public class SIPCommander implements ISIPCommander {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(),
-                    channel.getId(), sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),
-                            device.getTransport()).getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc(),
-                    mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
-            sessionManager.put(ssrcTransaction);
+                    channel.getId(), response.getCallIdHeader().getCallId(), ssrcInfo.getApp(),
+                    ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
+                    InviteSessionType.PLAYBACK);
+            registerTransaction(device, channel, ssrcTransaction);
             okEvent.response(event);
         }, timeout);
     }
@@ -480,7 +481,7 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     response.getCallIdHeader().getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrc,
                     mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
-            sessionManager.put(ssrcTransaction);
+            registerTransaction(device, channel, ssrcTransaction);
             okEvent.response(event);
         }, timeout);
     }
@@ -539,16 +540,61 @@ public class SIPCommander implements ISIPCommander {
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(),
                 SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ySsrc, callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            sessionManager.removeByStream(sendRtpItem.getApp(), sendRtpItem.getStream());
+            sessionManager.removeByStreamIfSsrc(sendRtpItem.getApp(), sendRtpItem.getStream(),
+                    sendRtpItem.getSsrc());
             errorEvent.response(e);
         }), e -> {
-            // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), MediaStreamUtil.GB28181_TALK,sendRtpItem.getApp(), stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
-            sessionManager.put(ssrcTransaction);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(),
+                    channel.getId(), response.getCallIdHeader().getCallId(), sendRtpItem.getApp(),
+                    stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response,
+                    InviteSessionType.TALK);
+            registerTransaction(device, channel, ssrcTransaction);
             okEvent.response(e);
         }, timeout);
+    }
+
+    /**
+     * 注册新事务。如果同一个 stream 上还有旧 Dialog，先给旧 Dialog 发 BYE，
+     * 避免重复点播时旧 Dialog 一直残留。
+     */
+    private void registerTransaction(Device device, DeviceChannel channel, SsrcTransaction newTransaction) {
+        if (newTransaction == null) {
+            return;
+        }
+        SsrcTransaction oldTransaction = sessionManager.getSsrcTransactionByStream(
+                newTransaction.getApp(), newTransaction.getStream());
+        if (oldTransaction != null && oldTransaction.getPlatformId() == null
+                && !sameDialog(oldTransaction, newTransaction)) {
+            if (oldTransaction.getSipTransactionInfo() != null) {
+                try {
+                    if (InviteSessionType.BROADCAST.equals(oldTransaction.getType())) {
+                        streamByeCmdForDeviceInvite(device, channel.getDeviceId(),
+                                oldTransaction.getSipTransactionInfo(), null);
+                    } else {
+                        streamByeCmd(device, channel.getDeviceId(),
+                                oldTransaction.getSipTransactionInfo(), null);
+                    }
+                    sessionManager.removeByCallId(oldTransaction.getCallId());
+                } catch (Exception e) {
+                    log.warn("[注册SIP事务] 旧 Dialog BYE 失败，保留事务等待后续清理, callId={}",
+                            oldTransaction.getCallId(), e);
+                }
+            } else {
+                log.warn("[注册SIP事务] 旧事务缺少 SipTransactionInfo，无法主动 BYE, callId={}",
+                        oldTransaction.getCallId());
+            }
+        }
+        sessionManager.put(newTransaction);
+    }
+
+    private boolean sameDialog(SsrcTransaction left, SsrcTransaction right) {
+        String leftCallId = left.getSipTransactionInfo() != null
+                ? left.getSipTransactionInfo().getCallId() : left.getCallId();
+        String rightCallId = right.getSipTransactionInfo() != null
+                ? right.getSipTransactionInfo().getCallId() : right.getCallId();
+        return Objects.equals(leftCallId, rightCallId);
     }
 
     /**
@@ -573,9 +619,14 @@ public class SIPCommander implements ISIPCommander {
         }
 
         log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
-        sessionManager.removeByCallId(ssrcTransaction.getCallId());
         Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+        // 发送成功后再清理事务，避免构造/发送失败时事务已丢失，导致后续无法重试发送 BYE
+        String removeCallId = ssrcTransaction.getCallId();
+        if (removeCallId == null && ssrcTransaction.getSipTransactionInfo() != null) {
+            removeCallId = ssrcTransaction.getSipTransactionInfo().getCallId();
+        }
+        sessionManager.removeByCallId(removeCallId);
     }
 
     @Override

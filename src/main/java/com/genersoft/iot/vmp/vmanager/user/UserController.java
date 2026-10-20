@@ -238,7 +238,10 @@ public class UserController {
         if (userInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        User user = userService.getUser(userInfo.getUsername(), userInfo.getPassword());
+        User user = userService.getUserByUsername(userInfo.getUsername());
+        if (user == null) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
         return new LoginUser(user, LocalDateTime.now());
     }
 }

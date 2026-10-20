@@ -43,6 +43,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -651,6 +652,39 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(platform.getDeviceIp(),byeRequest);
     }
 
+    private void registerPlatformTransaction(Platform platform, CommonGBChannel channel,
+                                              SsrcTransaction newTransaction) {
+        if (newTransaction == null) {
+            return;
+        }
+        SsrcTransaction oldTransaction = sessionManager.getSsrcTransactionByStream(
+                newTransaction.getApp(), newTransaction.getStream());
+        if (oldTransaction != null && oldTransaction.getPlatformId() != null
+                && !sameDialog(oldTransaction, newTransaction)) {
+            if (oldTransaction.getSipTransactionInfo() != null) {
+                try {
+                    streamByeCmd(platform, channel, oldTransaction.getSipTransactionInfo(), null);
+                    sessionManager.removeByCallId(oldTransaction.getCallId());
+                } catch (Exception e) {
+                    log.warn("[注册平台SIP事务] 旧 Dialog BYE 失败，保留事务等待后续清理, callId={}",
+                            oldTransaction.getCallId(), e);
+                }
+            } else {
+                log.warn("[注册平台SIP事务] 旧事务缺少 SipTransactionInfo，无法主动 BYE, callId={}",
+                        oldTransaction.getCallId());
+            }
+        }
+        sessionManager.put(newTransaction);
+    }
+
+    private boolean sameDialog(SsrcTransaction left, SsrcTransaction right) {
+        String leftCallId = left.getSipTransactionInfo() != null
+                ? left.getSipTransactionInfo().getCallId() : left.getCallId();
+        String rightCallId = right.getSipTransactionInfo() != null
+                ? right.getSipTransactionInfo().getCallId() : right.getCallId();
+        return Objects.equals(leftCallId, rightCallId);
+    }
+
     @Override
     public void streamByeCmd(Platform platform, CommonGBChannel channel, String app, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
 
@@ -664,9 +698,24 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
             throw new SsrcTransactionNotFoundException(platform.getServerGBId(), channel.getGbDeviceId(), callId, stream);
         }
 
-        sessionManager.removeByStream(ssrcTransaction.getApp(), ssrcTransaction.getStream());
-
         Request byteRequest = headerProviderPlatformProvider.createByteRequest(platform, channel.getGbDeviceId(), ssrcTransaction.getSipTransactionInfo());
+        sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), byteRequest, null, okEvent);
+        String removeCallId = ssrcTransaction.getCallId();
+        if (removeCallId == null && ssrcTransaction.getSipTransactionInfo() != null) {
+            removeCallId = ssrcTransaction.getSipTransactionInfo().getCallId();
+        }
+        sessionManager.removeByCallId(removeCallId);
+    }
+
+    @Override
+    public void streamByeCmd(Platform platform, CommonGBChannel channel,
+                             SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent)
+            throws InvalidArgumentException, SipException, ParseException {
+        if (platform == null || channel == null || sipTransactionInfo == null) {
+            return;
+        }
+        Request byteRequest = headerProviderPlatformProvider.createByteRequest(
+                platform, channel.getGbDeviceId(), sipTransactionInfo);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), byteRequest, null, okEvent);
     }
 
@@ -742,14 +791,14 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(),  ssrcInfo.getSsrc(),
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
-            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
+            sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForPlatform(platform.getServerGBId(), channel.getGbId(),
                     callIdHeader.getCallId(), ssrcInfo.getApp(),  stream, ssrcInfo.getSsrc(), mediaServer.getId(), response, InviteSessionType.BROADCAST);
-            sessionManager.put(ssrcTransaction);
+            registerPlatformTransaction(platform, channel, ssrcTransaction);
             okEvent.response(e);
         });
     }

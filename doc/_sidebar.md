@@ -4,6 +4,8 @@
     * [编译](_content/introduction/compile.md)
     * [配置](_content/introduction/config.md)
     * [部署](_content/introduction/deployment.md)
+* **开发规范**
+    * [编程规范](编程规范.md)
 * **功能与使用**
     * [接入设备](_content/ability/device.md)
     * [国标设备](_content/ability/device_use.md)

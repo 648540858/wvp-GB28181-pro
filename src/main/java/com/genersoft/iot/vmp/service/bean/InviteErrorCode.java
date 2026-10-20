@@ -19,6 +19,8 @@ public enum InviteErrorCode {
     ERROR_FOR_ASSIST_NOT_READY(-11, "没有可用的assist服务"),
     ERROR_FOR_PARAMETER_ERROR(-13, "参数异常"),
     ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR(-14, "TCP主动连接失败"),
+    /** 兜底清理时使用：点播/回放/下载等待回调长时间未结束 */
+    ERROR_FOR_INVITE_TIMEOUT(-15, "点播等待超时"),
     ERROR_FOR_FINISH(-20, "已结束"),
     ;
 

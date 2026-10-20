@@ -32,13 +32,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
-    private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+    /**
+     * 点播等待回调。key = {@code type:channelId[:stream]}，value 同时保存回调列表和认领信息。
+     *
+     * <p>这里刻意把“等待回调”和“认领创建时间”放在同一个 Holder 里，而不是拆成两个 Map。
+     * 因为两者本来就是同一条逻辑记录：只要回调还在，就说明这个点播请求还处于“在途”状态；
+     * 一旦回调被移除，对应的时间记录也必须一起消失。拆成两个 Map 时，任何一处只清理了其中一个，
+     * 就会留下“回调没了但时间还在”或“时间没了但回调还在”的脏数据，兜底逻辑也会因此失效。</p>
+     */
+    private final Map<String, InviteCallbackHolder> inviteCallbackMap = new ConcurrentHashMap<>();
 
     /**
-     * 内存中点播等待回调的发起时间，用于兜底清理长时间未结束的点播请求，
-     * 防止某条释放路径断裂后没有任何线程调用call()导致"已有请求在途"永久残留
+     * 一次点播等待的上下文：认领时间、归属信息、所有等待中的回调。
+     *
+     * <p>归属信息（type/channelId/stream）用于兜底清理时回收残留的 Redis 点播信息和通道播放状态。</p>
      */
-    private final Map<String, Long> inviteErrorCallbackCreateTimeMap = new ConcurrentHashMap<>();
+    private static final class InviteCallbackHolder {
+
+        /** 认领时间（首次注册回调的时间），用于判断是否已经等待过久 */
+        private final long createTime;
+        /** 归属信息，仅用于兜底清理 */
+        private final InviteSessionType type;
+        private final Integer channelId;
+        private final String stream;
+        /** 等待本次点播结果的所有回调，并发请求会不断加入 */
+        private final List<ErrorCallback<StreamInfo>> callbacks = new CopyOnWriteArrayList<>();
+
+        private InviteCallbackHolder(InviteSessionType type, Integer channelId, String stream) {
+            this.createTime = System.currentTimeMillis();
+            this.type = type;
+            this.channelId = channelId;
+            this.stream = stream;
+        }
+    }
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -225,6 +251,11 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public void removeInviteInfo(InviteSessionType type, Integer channelId, String stream) {
+        // 注意：这里刻意不清理 inviteCallbackMap。
+        // updateInviteInfoForSSRC() / updateInviteInfoForStream() 这类“更新”流程会先调用本方法，
+        // 再把 InviteInfo 重新写回 Redis。如果在这里清理等待回调，单端口设备 200OK 中
+        // SSRC 与请求不一致等场景会把仍在等待的请求丢掉，造成点播实际成功但 HTTP 请求超时。
+        // 等待认领的释放统一由 call() 和兜底清理（cleanExpiredInviteCallbacks）负责。
         String key = VideoManagerConstants.INVITE_PREFIX;
         if (type == null && channelId == null && stream == null) {
             redisTemplate.delete(key);
@@ -257,30 +288,46 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public void once(InviteSessionType type, Integer channelId, String stream, ErrorCallback<StreamInfo> callback) {
-        String key = buildKey(type, channelId, stream);
-        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>());
-        callbacks.add(callback);
-
+        registerCallback(type, channelId, stream, callback, null);
     }
 
     @Override
     public boolean onceAndFirst(InviteSessionType type, Integer channelId, String stream, ErrorCallback<StreamInfo> callback) {
-        String key = buildKey(type, channelId, stream);
         AtomicBoolean first = new AtomicBoolean(false);
-        inviteErrorCallbackMap.computeIfAbsent(key, k -> {
-            first.set(true);
-            inviteErrorCallbackCreateTimeMap.put(k, System.currentTimeMillis());
-            List<ErrorCallback<StreamInfo>> callbacks = new CopyOnWriteArrayList<>();
-            callbacks.add(callback);
-            return callbacks;
-        });
-        if (!first.get()) {
-            List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
-            if (callbacks != null) {
-                callbacks.add(callback);
-            }
-        }
+        registerCallback(type, channelId, stream, callback, first);
         return first.get();
+    }
+
+    /**
+     * 注册一个等待回调。
+     *
+     * <p>并发边界：这里使用 {@link ConcurrentHashMap#compute}，而不是
+     * {@code computeIfAbsent} + 手动 {@code get(key).add(callback)}。
+     * compute 对同一个 key 是原子的，只有两种结果：</p>
+     * <ul>
+     *     <li>key 不存在：创建 Holder（相当于“认领”本次点播），并把回调放进去；</li>
+     *     <li>key 已存在：直接把回调追加到已有 Holder 上。</li>
+     * </ul>
+     * <p>如果拆成两步，可能出现：线程 A 通过 computeIfAbsent 拿到了回调列表，
+     * 但在 add 之前，线程 B 已经通过 call()/兜底清理把整个 key 移除。
+     * 此时 A 的回调会被加到一个已经不在 map 里的列表上，永远收不到通知，
+     * 对应的 HTTP 请求只能等自己的 DeferredResult 超时。compute 不会出现这个窗口。</p>
+     *
+     * @param first 不为 null 时，用于回填“本次调用是否创建了新的认领（即是否是第一个请求）”
+     */
+    private void registerCallback(InviteSessionType type, Integer channelId, String stream,
+                                  ErrorCallback<StreamInfo> callback, AtomicBoolean first) {
+        String key = buildKey(type, channelId, stream);
+        inviteCallbackMap.compute(key, (k, holder) -> {
+            if (holder == null) {
+                holder = new InviteCallbackHolder(type, channelId, stream);
+                if (first != null) {
+                    first.set(true);
+                }
+            }
+            holder.callbacks.add(callback);
+            return holder;
+        });
     }
 
     private String buildKey(InviteSessionType type, Integer channelId, String stream) {
@@ -328,21 +375,47 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public void call(InviteSessionType type, Integer channelId, String stream, int code, String msg, StreamInfo data) {
-        notifyAndRemove(buildSubStreamKey(type, channelId, stream), code, msg, data);
+        notifyAndRemove(buildKey(type, channelId, stream), code, msg, data);
     }
 
     /**
-     * 移除指定点播请求的等待回调，并通知所有等待者
+     * 移除指定点播请求的等待上下文，并通知所有等待者。
+     *
+     * <p>并发边界：call() 和兜底清理可能同时处理同一个 key。
+     * 这里通过 {@code map.remove(key)} 的返回值来裁决“谁负责通知”：
+     * 只有成功从 map 中移除 Holder 的一方才继续通知，另一方拿到的必然是 null，
+     * 因此同一个 Holder 不会被通知两次（一次成功、一次超时）。</p>
      */
     private void notifyAndRemove(String key, int code, String msg, StreamInfo data) {
-        inviteErrorCallbackCreateTimeMap.remove(key);
-        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.remove(key);
-        if (callbacks == null || callbacks.isEmpty()) {
+        InviteCallbackHolder holder = inviteCallbackMap.remove(key);
+        if (holder == null) {
             return;
         }
-        for (ErrorCallback<StreamInfo> callback : callbacks) {
-            if (callback != null) {
+        notifyCallbacks(key, holder, code, msg, data);
+    }
+
+    /**
+     * 通知 Holder 中的所有等待者。
+     *
+     * <p>并发边界：等待回调来自业务方（Controller / RPC），执行过程中可能抛异常，
+     * 也可能耗时较长。这里逐个回调 try/catch，保证：</p>
+     * <ul>
+     *     <li>一个回调异常不会影响其他等待同一结果的请求；</li>
+     *     <li>异常不会向上传播到 SIP 事件线程或定时清理线程，导致后续清理逻辑被中断。</li>
+     * </ul>
+     */
+    private void notifyCallbacks(String key, InviteCallbackHolder holder, int code, String msg, StreamInfo data) {
+        if (holder.callbacks.isEmpty()) {
+            return;
+        }
+        for (ErrorCallback<StreamInfo> callback : holder.callbacks) {
+            if (callback == null) {
+                continue;
+            }
+            try {
                 callback.run(code, msg, data);
+            } catch (Exception e) {
+                log.error("[点播回调] 执行异常，已跳过该回调: key={}, code={}", key, code, e);
             }
         }
     }
@@ -352,30 +425,84 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
      * 正常流程下点播结束(成功/失败/超时)都会调用call()释放回调，若某条释放路径断裂
      * (例如收流超时看门狗因为任务key复用没能注册上)，就没有任何线程调用call()，
      * 点播认领会永久残留，该通道之后的点播一直返回"已有请求在途"。
-     * 这里在超过 playTimeout*3 后释放认领并通知等待者，保证后续点播能够重新发起
+     * 这里在超过 playTimeout*3 后释放认领并通知等待者，保证后续点播能够重新发起。
+     *
+     * <p>为什么是 playTimeout*3：HTTP 接口的 DeferredResult 等待超时就是 playTimeout，
+     * 兜底必须明显晚于它，避免用户还在等待时后台就提前释放认领、导致同一通道被重复 INVITE。
+     * 也就是说，这个清理只处理“所有等待者都已经超时之后仍然没人调用 call()”的异常残留。</p>
+     *
+     * <p>并发边界：</p>
+     * <ul>
+     *     <li>ConcurrentHashMap 的迭代是弱一致的，迭代期间 call() 可能已经移除某个 Holder，
+     *         因此用 {@code remove(key, holder)} 比较后删除，只有删除成功的一方才负责通知，
+     *         避免 call() 和兜底清理对同一个 Holder 重复通知；</li>
+     *     <li>释放认领后同一通道可能立刻有新的点播进来，回收旧状态前会先判断 InviteInfo
+     *         的创建时间，避免误伤新会话。</li>
+     * </ul>
+     *
+     * @param now 当前时间，参数化是为了便于单元测试，生产环境由定时任务传入
      */
-    private void cleanExpiredInviteCallbacks() {
-        if (inviteErrorCallbackCreateTimeMap.isEmpty()) {
+    void cleanExpiredInviteCallbacks(long now) {
+        if (inviteCallbackMap.isEmpty()) {
             return;
         }
-        long expireTime = (long) userSetting.getPlayTimeout() * 3;
-        long currentTime = System.currentTimeMillis();
-        for (Map.Entry<String, Long> entry : inviteErrorCallbackCreateTimeMap.entrySet()) {
-            if (currentTime - entry.getValue() > expireTime) {
-                log.warn("[点播等待超时] 释放长时间未结束的点播请求: {}", entry.getKey());
-                notifyAndRemove(entry.getKey(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(),
-                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+        Integer playTimeout = userSetting.getPlayTimeout();
+        long expireTime = (playTimeout == null ? 10000L : playTimeout) * 3L;
+        for (Map.Entry<String, InviteCallbackHolder> entry : inviteCallbackMap.entrySet()) {
+            InviteCallbackHolder holder = entry.getValue();
+            long waited = now - holder.createTime;
+            if (waited <= expireTime) {
+                continue;
             }
+            // 比较后删除：如果 call() 已经先一步移除了这个 Holder，这里会返回 false，
+            // 说明结果已经通知过了，当前线程不再重复通知。
+            if (!inviteCallbackMap.remove(entry.getKey(), holder)) {
+                continue;
+            }
+            log.warn("[点播等待超时] 释放长时间未结束的点播请求: type={}, channelId={}, stream={}, 已等待={}ms",
+                    holder.type, holder.channelId, holder.stream, waited);
+            // 先回收旧会话状态，再通知等待者：
+            // 等待者的回调里可能会立刻发起重试，如果先通知再回收，可能把重试产生的新会话状态误删。
+            cleanupStaleInviteState(holder, now);
+            notifyCallbacks(entry.getKey(), holder,
+                    InviteErrorCode.ERROR_FOR_INVITE_TIMEOUT.getCode(),
+                    InviteErrorCode.ERROR_FOR_INVITE_TIMEOUT.getMsg(), null);
         }
     }
 
-
-    private String buildSubStreamKey(InviteSessionType type, Integer channelId, String stream) {
-        String key = type + ":" + channelId;
-        if (stream != null) {
-            key += (":" + stream);
+    /**
+     * 兜底释放认领后，尽量回收这次点播遗留的状态。
+     *
+     * <p>只清理“确认属于旧会话”的数据：</p>
+     * <ul>
+     *     <li>大多数情况下 InviteInfo 已经不存在（定时任务在 playTimeout*2 时已经清理过），
+     *         此时直接跳过，不去动通道状态，避免误清同一通道上刚开始的新点播；</li>
+     *     <li>如果 InviteInfo 的 createTime 不早于 now，说明释放认领之后已经有新请求接管，
+     *         属于新会话，同样不能清理。</li>
+     * </ul>
+     *
+     * <p>这里不主动关闭 RTP 端口/释放 SSRC：等到兜底执行时，InviteInfo 通常已经被清理，
+     * 无法可靠拿到 mediaServerId/app/stream；而“看门狗注册失败”这个根因已经由 DynamicTask
+     * 的修复解决。兜底只负责把卡死的认领和可确认的脏状态释放掉。</p>
+     */
+    private void cleanupStaleInviteState(InviteCallbackHolder holder, long now) {
+        if (holder.channelId == null) {
+            return;
         }
-        return key;
+        try {
+            InviteInfo inviteInfo = getInviteInfo(holder.type, holder.channelId, holder.stream);
+            if (inviteInfo == null || inviteInfo.getCreateTime() == null
+                    || inviteInfo.getCreateTime() >= now) {
+                return;
+            }
+            removeInviteInfo(holder.type, holder.channelId, holder.stream);
+            deviceChannelMapper.stopPlayById(holder.channelId);
+            log.info("[点播等待超时] 已回收残留点播状态: type={}, channelId={}, stream={}",
+                    holder.type, holder.channelId, holder.stream);
+        } catch (Exception e) {
+            log.error("[点播等待超时] 回收残留点播状态失败: type={}, channelId={}, stream={}",
+                    holder.type, holder.channelId, holder.stream, e);
+        }
     }
 
     @Override
@@ -412,7 +539,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Scheduled(fixedRate = 10000)   //定时检测,清理错误的redis数据,防止因为错误数据导致的点播不可用
     public void execute(){
-        cleanExpiredInviteCallbacks();
+        // 先做内存认领的兜底清理，再做 Redis 数据清理：
+        // 即使下面的 Redis 操作异常，也不会影响“卡死的点播认领被释放”这个最关键的动作。
+        cleanExpiredInviteCallbacks(System.currentTimeMillis());
         String key = VideoManagerConstants.INVITE_PREFIX;
         if(redisTemplate.opsForHash().size(key) == 0) {
             return;

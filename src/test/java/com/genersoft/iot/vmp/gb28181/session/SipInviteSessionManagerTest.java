@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,19 +11,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +50,9 @@ class SipInviteSessionManagerTest {
 
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
+
+    @Mock
+    private RedisOperations<String, Object> redisOperations;
 
     /** 用内存 Map 模拟 Redis Hash，便于断言键是否真的被删除 */
     private final Map<String, Map<Object, Object>> store = new HashMap<>();
@@ -67,6 +78,18 @@ class SipInviteSessionManagerTest {
         lenient().when(hashOperations.delete(anyString(), any())).thenAnswer(invocation -> {
             bucket(invocation.getArgument(0)).remove(invocation.getArgument(1));
             return 1L;
+        });
+        lenient().when(hashOperations.values(anyString())).thenAnswer(invocation ->
+                new ArrayList<>(bucket(invocation.getArgument(0)).values()));
+
+        lenient().when(redisOperations.opsForHash()).thenReturn(hashOperations);
+        lenient().when(redisOperations.exec()).thenReturn(Collections.emptyList());
+        lenient().doNothing().when(redisOperations).multi();
+        lenient().doNothing().when(redisOperations).watch(anyString());
+        lenient().doNothing().when(redisOperations).unwatch();
+        lenient().when(redisTemplate.execute(any(SessionCallback.class))).thenAnswer(invocation -> {
+            SessionCallback<?> callback = invocation.getArgument(0);
+            return callback.execute(redisOperations);
         });
     }
 
@@ -125,5 +148,57 @@ class SipInviteSessionManagerTest {
         assertFalse(SipInviteSessionManager.isStreamIndexOwnedBy(transaction(OLD_CALL_ID), null));
         assertFalse(SipInviteSessionManager.isStreamIndexOwnedBy(transaction(NEW_CALL_ID), OLD_CALL_ID));
         assertTrue(SipInviteSessionManager.isStreamIndexOwnedBy(transaction(OLD_CALL_ID), OLD_CALL_ID));
+    }
+
+    @Test
+    void getSsrcTransactionByCallId_shouldFallbackToSipTransactionInfoCallId() {
+        SsrcTransaction transaction = transaction(OLD_CALL_ID);
+        SipTransactionInfo sipTransactionInfo = new SipTransactionInfo();
+        sipTransactionInfo.setCallId(NEW_CALL_ID);
+        transaction.setSipTransactionInfo(sipTransactionInfo);
+        sessionManager.put(transaction);
+
+        assertNotNull(sessionManager.getSsrcTransactionByCallId(NEW_CALL_ID));
+
+        assertTrue(sessionManager.removeByCallId(NEW_CALL_ID));
+        assertNull(sessionManager.getSsrcTransactionByCallId(NEW_CALL_ID));
+        assertNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+    }
+
+    @Test
+    void getSsrcTransactionsByDeviceChannel_shouldFilterByDeviceChannelAndType() {
+        SsrcTransaction first = transaction(OLD_CALL_ID);
+        first.setDeviceId("device-1");
+        first.setChannelId(1);
+        first.setType(InviteSessionType.PLAY);
+        sessionManager.put(first);
+
+        SsrcTransaction second = transaction(NEW_CALL_ID);
+        second.setDeviceId("device-1");
+        second.setChannelId(2);
+        second.setType(InviteSessionType.PLAY);
+        sessionManager.put(second);
+
+        assertEquals(1, sessionManager.getSsrcTransactionsByDeviceChannel(
+                "device-1", 1, InviteSessionType.PLAY).size());
+        assertEquals(0, sessionManager.getSsrcTransactionsByDeviceChannel(
+                "device-1", 1, InviteSessionType.PLAYBACK).size());
+    }
+
+    @Test
+    void removeByStreamIfSsrc_shouldNotDeleteNewerTransaction() {
+        SsrcTransaction oldTransaction = transaction(OLD_CALL_ID);
+        oldTransaction.setSsrc("old-ssrc");
+        sessionManager.put(oldTransaction);
+
+        SsrcTransaction newTransaction = transaction(NEW_CALL_ID);
+        newTransaction.setSsrc("new-ssrc");
+        sessionManager.put(newTransaction);
+
+        assertFalse(sessionManager.removeByStreamIfSsrc(APP, STREAM, "old-ssrc"));
+        assertEquals(NEW_CALL_ID, sessionManager.getSsrcTransactionByStream(APP, STREAM).getCallId());
+
+        assertTrue(sessionManager.removeByStreamIfSsrc(APP, STREAM, "new-ssrc"));
+        assertNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
     }
 }

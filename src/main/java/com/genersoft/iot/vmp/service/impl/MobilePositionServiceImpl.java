@@ -105,7 +105,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             return;
         }
         List<MobilePosition> mobilePositionList = handlerCatchDataList.stream().filter(
-                mobilePosition -> mobilePosition.getChannelId() != 0).toList();
+                mobilePosition -> mobilePosition.getChannelId() != null && mobilePosition.getChannelId() != 0).toList();
         // 发送通知，方便国标级联转发给上级
         Thread.startVirtualThread(() -> platformChannelService.notifyMobilePosition(mobilePositionList));
 

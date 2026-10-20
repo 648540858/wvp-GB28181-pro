@@ -624,7 +624,6 @@ public class PlatformServiceImpl implements IPlatformService {
                             } finally {
                                 timeoutCallback.run(1, "收流超时");
                                 receiveRtpServerService.closeRTPServer(mediaServerItem, data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
-                                sessionManager.removeByStream(data.getSsrcInfo().getApp(), data.getSsrcInfo().getStream());
                             }
                         }
                     }
@@ -708,7 +707,6 @@ public class PlatformServiceImpl implements IPlatformService {
                             log.error("[命令发送失败] 停止播放， 发送BYE: {}", e.getMessage());
                         } finally {
                             receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
-                            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
                             callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                                     "下级自定义了ssrc,重新设置收流信息失败", null);
@@ -753,7 +751,6 @@ public class PlatformServiceImpl implements IPlatformService {
                     if (ssrcTransaction == null) {
                         return;
                     }
-                    sessionManager.removeByStream(ssrcInfo.getApp(), inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
 
                     ssrcTransaction.setPlatformId(platform.getServerGBId());
@@ -801,7 +798,7 @@ public class PlatformServiceImpl implements IPlatformService {
         } catch (SdpException e) {
             log.error("[TCP主动连接对方] serverGbId: {}, channelId: {}, 解析200OK的SDP信息失败", platform.getServerGBId(), channel.getGbDeviceId(), e);
             receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo.getApp(), ssrcInfo.getStream());
-            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
+            sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc());
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
@@ -814,6 +811,7 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public void stopBroadcast(Platform platform, CommonGBChannel channel, String app, String stream, boolean sendBye, MediaServer mediaServerItem) {
 
+        SsrcTransaction transaction = sessionManager.getSsrcTransactionByStream(app, stream);
         try {
             if (sendBye) {
                 commanderForPlatform.streamByeCmd(platform, channel, app, stream, null, null);
@@ -826,7 +824,9 @@ public class PlatformServiceImpl implements IPlatformService {
             if (inviteInfo != null) {
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
-            sessionManager.removeByStream(app, stream);
+            if (!sendBye && transaction != null) {
+                sessionManager.removeByCallId(transaction.getCallId());
+            }
         }
     }
 

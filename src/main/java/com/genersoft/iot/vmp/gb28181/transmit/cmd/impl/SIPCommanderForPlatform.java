@@ -555,18 +555,21 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
     @Override
     public void recordInfo(CommonGBChannel deviceChannel, Platform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException {
-        if ( parentPlatform ==null) {
-            return ;
+        if (parentPlatform ==null || deviceChannel == null || ObjectUtils.isEmpty(deviceChannel.getGbDeviceId())) {
+            log.warn("[国标级联] 录像查询回复缺少平台/通道信息, 无法回复, platform: {}, channelId: {}",
+                    parentPlatform != null ? parentPlatform.getServerGBId(): null, recordInfo.getChannelId());
+            return;
         }
         log.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
         String characterSet = parentPlatform.getCharacterSet();
-        String gbDeviceId = deviceChannel == null ? null : deviceChannel.getGbDeviceId();
+        String gbDeviceId = deviceChannel.getGbDeviceId();
         List<RecordItem> recordList = recordInfo.getRecordList() == null ? new ArrayList<>() : recordInfo.getRecordList();
-        // 按"每页数量"切分: 配置小于等于 0 时不分页(与历史行为一致)
+        // SumNum 取实际发送条数, 保证与各页 RecordList Num 之和一致, 避免上级按 SumNum 聚合时提前结束或超时
+        int sumNum = recordList.size();
+        // 按"每页数量"切分: 配置小于等于 0 时不分页
         List<List<RecordItem>> pages = partitionRecordItems(recordList, userSetting.getRecordInfoPageSize());
         for (int i = 0; i < pages.size(); i++) {
-            String recordXml = buildRecordInfoXml(characterSet, recordInfo.getSn(), gbDeviceId,
-                    recordInfo.getSumNum(), pages.get(i));
+            String recordXml = buildRecordInfoXml(characterSet, recordInfo.getSn(), gbDeviceId, sumNum, pages.get(i));
             log.debug("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页, 内容： {}",
                     recordInfo.getChannelId(), i + 1, pages.size(), recordXml);
             // callid
@@ -575,9 +578,17 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
             Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml, fromTag, SipUtils.getNewViaTag(), callIdHeader);
             int pageNo = i + 1;
             int pageCount = pages.size();
-            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
-                log.info("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页发送成功", recordInfo.getChannelId(), pageNo, pageCount);
-            });
+            try {
+                sipSender.transmitRequest(parentPlatform.getDeviceIp(), request,
+                        errorEvent -> log.warn("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页发送失败, 状态码: {}, 原因: {}, 类型: {}",
+                                recordInfo.getChannelId(), pageNo, pageCount, errorEvent.statusCode, errorEvent.msg, errorEvent.type),
+                        eventResult -> log.info("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页发送成功",
+                                recordInfo.getChannelId(), pageNo, pageCount));
+            } catch (SipException e) {
+                // 单页发送异常不中断后续页的发送
+                log.warn("[国标级联] 发送录像数据通道：{}, 第 {}/{} 页发送异常: {}",
+                        recordInfo.getChannelId(), pageNo, pageCount, e.getMessage(), e);
+            }
         }
     }
 

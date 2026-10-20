@@ -53,7 +53,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema()) && MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
-            if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
+            if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY
+                    || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 if (isStaleStreamDeparture(inviteInfo, event.getCreateStamp())) {
                     log.info("[流离开] 流实例创建时间早于当前会话，判定为旧会话的迟到注销事件，跳过清理: stream={}, deviceId={}, channelId={}",
                             event.getStream(), inviteInfo.getDeviceId(), inviteInfo.getChannelId());

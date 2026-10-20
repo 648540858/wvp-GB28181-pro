@@ -145,6 +145,13 @@ public interface ISIPCommanderForPlatform {
 
     void streamByeCmd(Platform platform, CommonGBChannel channel, String app, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
+    /**
+     * 使用事务中的 SipTransactionInfo 直接向上级平台发送 BYE。
+     * 不查询 Redis，由调用方负责事务删除。
+     */
+    void streamByeCmd(Platform platform, CommonGBChannel channel, SipTransactionInfo sipTransactionInfo,
+                      SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+
     void broadcastInviteCmd(Platform platform, CommonGBChannel channel, String sourceId,  MediaServer mediaServerItem,
                             SSRCInfo ssrcInfo, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException;
 

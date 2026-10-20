@@ -88,6 +88,9 @@
               <el-form-item label="SECRET" prop="secret">
                 <el-input v-if="currentStep === 2" v-model="mediaServerForm.secret" :disabled="configReadOnly" />
                 <el-input v-if="currentStep === 3" v-model="mediaServerForm.secret" :disabled="configReadOnly" />
+                <div v-if="currentStep === 3" style="color: #999; font-size: 12px; line-height: 18px;">
+                  当前 SECRET 已隐藏，保持 ****** 表示不修改；输入新值可修改
+                </div>
               </el-form-item>
               <el-form-item label="自动配置媒体服务">
                 <el-switch v-model="mediaServerForm.autoConfig" :disabled="configReadOnly" />

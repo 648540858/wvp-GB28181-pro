@@ -30,6 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -53,6 +54,7 @@ import java.util.*;
 @RequestMapping("/api/server")
 public class ServerController {
 
+    private static final String SECRET_MASK = "******";
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -103,21 +105,28 @@ public class ServerController {
     @ResponseBody
     @Operation(summary = "流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServer> getMediaServerList() {
-        List<MediaServer> list = mediaServerService.getAll();
+        List<MediaServer> mediaServers = mediaServerService.getAll();
         boolean writable = settingService.isActiveConfigWritable();
-        for (MediaServer item : list) {
-            if (item.isDefaultServer()) {
-                item.setConfigWritable(writable);
+        List<MediaServer> result = new ArrayList<>(mediaServers.size());
+        for (MediaServer mediaServer : mediaServers) {
+            if (mediaServer.isDefaultServer()) {
+                mediaServer.setConfigWritable(writable);
             }
+            result.add(maskSecret(mediaServer));
         }
-        return list;
+        return result;
     }
 
     @GetMapping(value = "/media_server/online/list")
     @ResponseBody
     @Operation(summary = "在线流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServer> getOnlineMediaServerList() {
-        return mediaServerService.getAllOnline();
+        List<MediaServer> mediaServers = mediaServerService.getAllOnline();
+        List<MediaServer> result = new ArrayList<>(mediaServers.size());
+        for (MediaServer mediaServer : mediaServers) {
+            result.add(maskSecret(mediaServer));
+        }
+        return result;
     }
 
     @GetMapping(value = "/media_server/one/{id}")
@@ -125,7 +134,17 @@ public class ServerController {
     @Operation(summary = "停止视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "流媒体服务ID", required = true)
     public MediaServer getMediaServer(@PathVariable String id) {
-        return mediaServerService.getOne(id);
+        return maskSecret(mediaServerService.getOne(id));
+    }
+
+    private MediaServer maskSecret(MediaServer source) {
+        if (source == null) {
+            return null;
+        }
+        MediaServer target = new MediaServer();
+        BeanUtils.copyProperties(source, target);
+        target.setSecret(SECRET_MASK);
+        return target;
     }
 
     @Operation(summary = "测试流媒体服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -158,8 +177,20 @@ public class ServerController {
         MediaServer mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServer.getId());
         boolean isNew = mediaServerItemInDatabase == null;
         if (isNew) {
+            if (StringUtils.isBlank(mediaServer.getSecret())
+                    || SECRET_MASK.equals(mediaServer.getSecret())) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体服务SECRET不能为空");
+            }
             mediaServerService.add(mediaServer);
+            // 发送事件
+            MediaServerChangeEvent event = new MediaServerChangeEvent(this);
+            event.setMediaServerItemList(mediaServer);
+            applicationEventPublisher.publishEvent(event);
         } else {
+            if (StringUtils.isBlank(mediaServer.getSecret())
+                    || SECRET_MASK.equals(mediaServer.getSecret())) {
+                mediaServer.setSecret(mediaServerItemInDatabase.getSecret());
+            }
             mediaServerService.update(mediaServer);
         }
 

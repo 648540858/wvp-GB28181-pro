@@ -160,18 +160,22 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             serverById.putIfAbsent(serverId, streamInfo.getMediaServer());
         }
         for (Map.Entry<String, List<Integer>> entry : channelIdsByServerId.entrySet()) {
-            Set<String> onlineStreams = new HashSet<>();
+            List<StreamInfo> mediaList;
             try {
-                List<StreamInfo> mediaList = mediaServerService.getMediaList(serverById.get(entry.getKey()), null, null, null);
-                if (mediaList != null) {
-                    for (StreamInfo info : mediaList) {
-                        onlineStreams.add(info.getApp() + "/" + info.getStream());
-                    }
-                }
+                mediaList = mediaServerService.getMediaList(serverById.get(entry.getKey()), null, null, null);
             } catch (Exception e) {
-                // 节点查询失败时跳过该节点本轮对账, 防止误删记录
-                log.error("[录像] 对账获取流列表失败, 跳过该节点本轮对账, 节点: {}", entry.getKey(), e);
+                // 节点查询异常时跳过该节点本轮对账, 防止误删记录
+                log.error("[录像] 对账获取流列表异常, 跳过该节点本轮对账, 节点: {}", entry.getKey(), e);
                 continue;
+            }
+            if (mediaList == null) {
+                // null 表示查询失败, 不能当成"没有流"处理
+                log.warn("[录像] 对账获取流列表失败, 跳过该节点本轮对账, 节点: {}", entry.getKey());
+                continue;
+            }
+            Set<String> onlineStreams = new HashSet<>();
+            for (StreamInfo info : mediaList) {
+                onlineStreams.add(info.getApp() + "/" + info.getStream());
             }
             for (Integer channelId : entry.getValue()) {
                 StreamInfo streamInfo = recordStreamMap.get(channelId);

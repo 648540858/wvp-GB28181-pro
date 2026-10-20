@@ -267,6 +267,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
 
         List<StreamInfo> streamInfoList = mediaServerService.getMediaList(mediaServer, null, null, null);
+        if (streamInfoList == null) {
+            log.warn("[zlmServerOnline] 获取流列表失败, 跳过本次代理流状态同步, mediaServer: {}", mediaServer.getId());
+            return;
+        }
 
         List<CommonGBChannel> channelListForOnline = new ArrayList<>();
         for (StreamInfo streamInfo : streamInfoList) {

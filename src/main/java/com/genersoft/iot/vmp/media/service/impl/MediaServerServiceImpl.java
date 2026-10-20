@@ -597,8 +597,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            log.info("[getMediaList] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
-            return new ArrayList<>();
+            log.warn("[getMediaList] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return null;
         }
         return mediaNodeServerService.getMediaList(mediaServer, app, stream, callId);
     }

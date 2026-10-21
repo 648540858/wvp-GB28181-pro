@@ -23,16 +23,17 @@ public class MessageSubscribe {
 
     @Scheduled(fixedDelay = 200)   //每200毫秒执行
     public void execute(){
-        while (!delayQueue.isEmpty()) {
+        MessageEvent<?> take;
+        while ((take = delayQueue.poll()) != null) {
             try {
-                MessageEvent<?> take = delayQueue.take();
                 // 出现超时异常
                 if(take.getCallback() != null) {
                     take.getCallback().run(ErrorCode.ERROR486.getCode(), "消息超时未回复", null);
                 }
-                subscribes.remove(take.getKey());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                log.error("[消息订阅到期] 回调处理异常", e);
+            } finally {
+                subscribes.remove(take.getKey(), take);
             }
         }
     }

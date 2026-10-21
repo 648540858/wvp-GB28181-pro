@@ -40,35 +40,25 @@ public class PlatformStatusTaskRunner {
     // 订阅过期检查
     @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void expirationCheckForRegister(){
-        while (!registerDelayQueue.isEmpty()) {
-            PlatformRegisterTask take = null;
+        PlatformRegisterTask take;
+        while ((take = registerDelayQueue.poll()) != null) {
             try {
-                take = registerDelayQueue.take();
-                try {
-                    removeRegisterTask(take.getPlatformServerId());
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[平台注册到期] ", e);
+                removeRegisterTask(take.getPlatformServerId());
+                take.expired();
+            }catch (Exception e) {
+                log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
             }
         }
     }
     @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void expirationCheckForKeepalive(){
-        while (!keepaliveTaskDelayQueue.isEmpty()) {
-            PlatformKeepaliveTask take = null;
+        PlatformKeepaliveTask take;
+        while ((take = keepaliveTaskDelayQueue.poll()) != null) {
             try {
-                take = keepaliveTaskDelayQueue.take();
-                try {
-                    removeKeepAliveTask(take.getPlatformServerId());
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[平台心跳到期] ", e);
+                removeKeepAliveTask(take.getPlatformServerId());
+                take.expired();
+            }catch (Exception e) {
+                log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
             }
         }
     }

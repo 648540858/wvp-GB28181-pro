@@ -156,18 +156,14 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     // 处理过期的缓存
     @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            MessageResponseTask<Preset> take = null;
+        MessageResponseTask<Preset> take;
+        while ((take = delayQueue.poll()) != null) {
             try {
-                take = delayQueue.take();
-                try {
-                    responseMessageHandler.handMessageEvent(take.getElement(), take.getData());
-                    mesageMap.remove(take.getKey());
-                }catch (Exception e) {
-                    log.error("[预置位查询到期] {} 到期处理时出现异常", take.getKey());
-                }
-            } catch (InterruptedException e) {
-                log.error("[设备订阅任务] ", e);
+                responseMessageHandler.handMessageEvent(take.getElement(), take.getData());
+            }catch (Exception e) {
+                log.error("[预置位查询到期] {} 到期处理时出现异常", take.getKey(), e);
+            } finally {
+                mesageMap.remove(take.getKey(), take);
             }
         }
     }

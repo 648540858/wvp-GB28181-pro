@@ -36,18 +36,13 @@ public class SubscribeTaskRunner{
     // 订阅过期检查
     @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            SubscribeTask take = null;
+        SubscribeTask take;
+        while ((take = delayQueue.poll()) != null) {
             try {
-                take = delayQueue.take();
-                try {
-                    removeSubscribe(take.getKey());
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[设备订阅任务] ", e);
+                removeSubscribe(take.getKey());
+                take.expired();
+            } catch (Exception e) {
+                log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
             }
         }
     }

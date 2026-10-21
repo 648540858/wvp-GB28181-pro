@@ -26,13 +26,9 @@ public class FtpDownloadManager {
     // 下载过期检查
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     public void downloadCatchCheck(){
-        while (!downloadCatchQueue.isEmpty()) {
-            try {
-                JTRecordDownloadCatch take = downloadCatchQueue.take();
-                downloadCatchMap.remove(take.getPath());
-            } catch (InterruptedException e) {
-                log.error("[下载过期] ", e);
-            }
+        JTRecordDownloadCatch take;
+        while ((take = downloadCatchQueue.poll()) != null) {
+            downloadCatchMap.remove(take.getPath(), take);
         }
     }
 

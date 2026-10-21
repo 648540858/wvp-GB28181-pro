@@ -32,9 +32,9 @@ public class SipSubscribe {
 
     @Scheduled(fixedDelay = 200)   //每200毫秒执行
     public void execute(){
-        while (!delayQueue.isEmpty()) {
+        SipEvent take;
+        while ((take = delayQueue.poll()) != null) {
             try {
-                SipEvent take = delayQueue.take();
                 // 出现超时异常
                 if(take.getErrorEvent() != null) {
                     EventResult<Object> eventResult = new EventResult<>();
@@ -43,9 +43,10 @@ public class SipSubscribe {
                     eventResult.statusCode = -1024;
                     take.getErrorEvent().response(eventResult);
                 }
-                subscribes.remove(take.getKey());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                log.error("[SIP订阅到期] 回调处理异常", e);
+            } finally {
+                subscribes.remove(take.getKey(), take);
             }
         }
     }

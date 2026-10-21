@@ -68,7 +68,7 @@ public interface IDeviceChannelService {
 
     PageInfo<DeviceChannel> queryChannels(String query, Boolean queryParent, Boolean channelType, Boolean online, Boolean hasStream, int page, int count);
 
-    List<Device> queryDeviceWithAsMessageChannel();
+    List<Device> queryDeviceWithAsMessageChannel(String serverId);
 
     DeviceChannel getRawChannel(int id);
 

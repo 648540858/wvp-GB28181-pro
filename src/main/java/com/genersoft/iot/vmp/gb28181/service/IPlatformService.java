@@ -77,6 +77,13 @@ public interface IPlatformService {
 
     List<Platform> queryEnablePlatformList(String serverId);
 
+    /**
+     * 查询指定服务负责的、作为消息通道的启用上级平台
+     * @param serverId 服务ID
+     * @return 平台列表
+     */
+    List<Platform> queryEnablePlatformListWithAsMessageChannel(String serverId);
+
     boolean delete(Integer platformId);
 
     List<Platform> queryAll(String serverId);

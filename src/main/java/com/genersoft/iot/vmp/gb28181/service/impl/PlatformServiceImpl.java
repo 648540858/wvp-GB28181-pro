@@ -841,6 +841,11 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
+    public List<Platform> queryEnablePlatformListWithAsMessageChannel(String serverId) {
+        return platformMapper.queryEnablePlatformListWithAsMessageChannel(serverId);
+    }
+
+    @Override
     @Transactional
     public boolean delete(Integer platformId) {
         Platform platform = platformMapper.query(platformId);

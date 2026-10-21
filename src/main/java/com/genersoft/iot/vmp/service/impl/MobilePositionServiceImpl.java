@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.dao.MobilePositionMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceOtherService;
@@ -34,8 +32,6 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
 
     private final IPlatformChannelService platformChannelService;
 
-    private final PlatformMapper platformMapper;
-
     /**
      * 查询移动位置轨迹
      */
@@ -50,11 +46,6 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             endTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
         }
         return mobilePositionMapper.queryPositionByDeviceIdAndTime(channelId, startTimestamp, endTimestamp);
-    }
-
-    @Override
-    public List<Platform> queryEnablePlatformListWithAsMessageChannel() {
-        return platformMapper.queryEnablePlatformListWithAsMessageChannel();
     }
 
     /**

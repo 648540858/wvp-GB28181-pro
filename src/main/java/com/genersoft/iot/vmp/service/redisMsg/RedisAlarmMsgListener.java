@@ -12,7 +12,6 @@ import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +48,6 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     @Autowired
     private IDeviceChannelService channelService;
-
-    @Autowired
-    private IMobilePositionService mobilePositionService;
 
     @Autowired
     private IPlatformService platformService;
@@ -122,7 +118,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                         }
                     } else {
                         // 获取开启了消息推送的设备和平台
-                        List<Platform> parentPlatforms = mobilePositionService.queryEnablePlatformListWithAsMessageChannel();
+                        List<Platform> parentPlatforms = platformService.queryEnablePlatformListWithAsMessageChannel(userSetting.getServerId());
                         if (!parentPlatforms.isEmpty()) {
                             for (Platform parentPlatform : parentPlatforms) {
                                 try {
@@ -135,7 +131,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                         }
                     }
                     // 获取开启了消息推送的设备和平台
-                    List<Device> devices = channelService.queryDeviceWithAsMessageChannel();
+                    List<Device> devices = channelService.queryDeviceWithAsMessageChannel(userSetting.getServerId());
                     if (!devices.isEmpty()) {
                         for (Device device : devices) {
                             try {

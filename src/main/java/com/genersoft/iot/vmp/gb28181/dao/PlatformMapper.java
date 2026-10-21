@@ -80,8 +80,8 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE server_id=#{serverId} and enable=#{enable} ")
     List<Platform> queryEnableParentPlatformListByServerId(@Param("serverId") String serverId, @Param("enable") boolean enable);
 
-    @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")
-    List<Platform> queryEnablePlatformListWithAsMessageChannel();
+    @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true and server_id=#{serverId}")
+    List<Platform> queryEnablePlatformListWithAsMessageChannel(@Param("serverId") String serverId);
 
     @Select("SELECT * FROM wvp_platform WHERE server_gb_id=#{platformGbId}")
     Platform getParentPlatByServerGBId(String platformGbId);

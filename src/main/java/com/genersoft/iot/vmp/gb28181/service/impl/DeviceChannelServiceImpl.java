@@ -517,8 +517,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public List<Device> queryDeviceWithAsMessageChannel() {
-        return deviceMapper.queryDeviceWithAsMessageChannel();
+    public List<Device> queryDeviceWithAsMessageChannel(String serverId) {
+        return deviceMapper.queryDeviceWithAsMessageChannel(serverId);
     }
 
     @Override

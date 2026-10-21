@@ -326,8 +326,8 @@ public interface DeviceMapper {
     @Select("select * FROM wvp_device")
     List<Device> getAll();
 
-    @Select("select * FROM wvp_device where  as_message_channel = true")
-    List<Device> queryDeviceWithAsMessageChannel();
+    @Select("select * FROM wvp_device where as_message_channel = true and server_id = #{serverId}")
+    List<Device> queryDeviceWithAsMessageChannel(@Param("serverId") String serverId);
 
     @Select(" <script>" +
             "SELECT " +

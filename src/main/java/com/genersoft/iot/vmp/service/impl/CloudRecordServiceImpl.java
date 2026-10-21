@@ -64,7 +64,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
                                              String endTime, List<MediaServer> mediaServerItems, String callId, Boolean ascOrder) {
-        // 开始时间和结束时间在数据库中都是以秒为单位的
+        // 开始时间和结束时间在数据库中都是以毫秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null ) {
@@ -143,10 +143,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null) {
-            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(startTime);
         }
         if (endTime != null) {
-            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
         }
 
         List<MediaServer> mediaServers = new ArrayList<>();
@@ -186,21 +186,21 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Override
     public int changeCollect(boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId) {
-        // 开始时间和结束时间在数据库中都是以秒为单位的
+        // 开始时间和结束时间在数据库中都是以毫秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null ) {
             if (!DateUtil.verification(startTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(startTime);
 
         }
         if (endTime != null ) {
             if (!DateUtil.verification(endTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "结束时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
 
         }
 
@@ -254,7 +254,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Override
     public List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId, List<Integer> ids) {
-        // 开始时间和结束时间在数据库中都是以秒为单位的
+        // 开始时间和结束时间在数据库中都是以毫秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null ) {

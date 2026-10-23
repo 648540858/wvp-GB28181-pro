@@ -28,13 +28,25 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
 public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     private final static String TIMEOUT_TASK_KEY_PREFIX = "RTP_SERVER_TIMEOUT_TASK";
+
+    // 条带锁数量固定，避免录像区间不断变化时永久积累锁对象。
+    private final Object[] attemptLocks = IntStream.range(0, 64).mapToObj(index -> new Object()).toArray();
+    private final Map<String, RtpAttempt> attempts = new ConcurrentHashMap<>();
+
+    // 每次开启独享身份，完成标记仅在对应条带锁内读写。
+    private static final class RtpAttempt {
+        private boolean completed;
+    }
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -290,6 +302,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         ssrcInfo.setPort(rtpServerPort);
     }
 
+    // 开启收流并绑定本次身份，旧注册事件和超时任务不能清理同名的新收流会话。
     @Override
     public int openCommonRTPServer(RTPServerParam rtpServerParam, ErrorCallback<HookData> callback) {
         if (callback == null) {
@@ -301,63 +314,96 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             return -1;
         }
 
-        // 设置流超时的定时任务
-        String timeOutTaskKey = String.format("%s_%s_%s_%s", TIMEOUT_TASK_KEY_PREFIX, rtpServerParam.getMediaServer().getId(), rtpServerParam.getApp(), rtpServerParam.getStreamId());
-
+        String timeOutTaskKey = timeoutTaskKey(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), rtpServerParam.getStreamId());
         Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, rtpServerParam.getApp(), rtpServerParam.getStreamId(), rtpServerParam.getMediaServer().getId());
-        dynamicTask.startDelay(timeOutTaskKey, () -> {
-            // 收流超时
-            // 关闭收流端口
-            String closeStreamId = rtpServerParam.getMediaServer().isRtpEnable()
-                    ? String.format("%08x", rtpServerParam.getSsrc()).toUpperCase() : rtpServerParam.getStreamId();
-            mediaServerService.closeRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), closeStreamId);
-            subscribe.removeSubscribe(rtpHook);
-            callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
-        }, userSetting.getPlayTimeout());
-        // 开启流到来的监听
-        subscribe.addSubscribe(rtpHook, (hookData) -> {
+        RtpAttempt attempt = new RtpAttempt();
+        int rtpServerPort = -1;
+        synchronized (attemptLock(timeOutTaskKey)) {
+            attempts.put(timeOutTaskKey, attempt);
             dynamicTask.stop(timeOutTaskKey);
-            // hook响应
-            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
             subscribe.removeSubscribe(rtpHook);
-        });
-
-        int rtpServerPort;
-        if (rtpServerParam.getMediaServer().isRtpEnable()) {
-            String zlmStreamId;
-            long checkSsrc;
-            if (rtpServerParam.getSsrc() != null) {
-                zlmStreamId = String.format("%08x", rtpServerParam.getSsrc()).toUpperCase();
-                checkSsrc = rtpServerParam.isSsrcCheck() ? rtpServerParam.getSsrc() : 0L;
-            }else {
-                zlmStreamId = rtpServerParam.getStreamId();
-                checkSsrc = 0L;
+            try {
+                dynamicTask.startDelay(timeOutTaskKey, () -> {
+                    synchronized (attemptLock(timeOutTaskKey)) {
+                        if (attempts.get(timeOutTaskKey) != attempt || attempt.completed) {
+                            return;
+                        }
+                        attempt.completed = true;
+                        attempts.remove(timeOutTaskKey, attempt);
+                        dynamicTask.stop(timeOutTaskKey);
+                        subscribe.removeSubscribe(rtpHook);
+                        String closeStreamId = rtpServerParam.getMediaServer().isRtpEnable() && rtpServerParam.getSsrc() != null
+                                ? String.format("%08x", rtpServerParam.getSsrc()).toUpperCase() : rtpServerParam.getStreamId();
+                        mediaServerService.closeRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), closeStreamId);
+                        mediaServerService.closeStreams(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), rtpServerParam.getStreamId());
+                    }
+                    // 上层可能同时持播放会话锁等待关闭RTP，锁外回调避免形成锁顺序反转。
+                    callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+                }, userSetting.getPlayTimeout());
+                subscribe.addSubscribe(rtpHook, hookData -> {
+                    synchronized (attemptLock(timeOutTaskKey)) {
+                        if (attempts.get(timeOutTaskKey) != attempt || attempt.completed) {
+                            return;
+                        }
+                        attempt.completed = true;
+                        dynamicTask.stop(timeOutTaskKey);
+                        subscribe.removeSubscribe(rtpHook);
+                    }
+                    // 成功后保留身份直到close，已进入执行阶段的旧超时仍会被完成标记拒绝。
+                    callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
+                });
+                if (rtpServerParam.getMediaServer().isRtpEnable()) {
+                    String zlmStreamId = rtpServerParam.getSsrc() == null ? rtpServerParam.getStreamId()
+                            : String.format("%08x", rtpServerParam.getSsrc()).toUpperCase();
+                    long checkSsrc = rtpServerParam.isSsrcCheck() && rtpServerParam.getSsrc() != null ? rtpServerParam.getSsrc() : 0L;
+                    rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), zlmStreamId, checkSsrc, rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
+                            rtpServerParam.isDisableAudio(), rtpServerParam.isReUsePort(), rtpServerParam.getTcpMode());
+                } else {
+                    rtpServerPort = rtpServerParam.getMediaServer().getRtpProxyPort();
+                }
+            } catch (RuntimeException exception) {
+                log.warn("[开启RTP收流] 资源创建失败");
             }
-            rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), zlmStreamId, checkSsrc, rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
-                    rtpServerParam.isDisableAudio(), rtpServerParam.isReUsePort(), rtpServerParam.getTcpMode());
-        } else {
-            rtpServerPort = rtpServerParam.getMediaServer().getRtpProxyPort();
+            if (rtpServerPort <= 0) {
+                attempt.completed = true;
+                attempts.remove(timeOutTaskKey, attempt);
+                dynamicTask.stop(timeOutTaskKey);
+                subscribe.removeSubscribe(rtpHook);
+            }
         }
-        if (rtpServerPort == 0) {
+        if (rtpServerPort <= 0) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "开启RTPServer失败", null);
             return -1;
         }
         return rtpServerPort;
     }
 
+    // 按媒体节点、应用和流名构造与既有动态任务兼容的身份键。
+    private String timeoutTaskKey(MediaServer mediaServer, String app, String stream) {
+        return String.format("%s_%s_%s_%s", TIMEOUT_TASK_KEY_PREFIX, mediaServer.getId(), app, stream);
+    }
+
+    // 同一流的开启、关闭和回调副作用始终进入同一个固定条带锁。
+    private Object attemptLock(String key) {
+        return attemptLocks[key.hashCode() & (attemptLocks.length - 1)];
+    }
+
+    // 关闭收流时先撤销当前身份，再清理订阅、任务与实际媒体，拒绝迟到的旧回调。
     @Override
     public void closeRTPServer(MediaServer mediaServer, String app, String stream) {
         if (mediaServer == null) {
             return;
         }
-        String timeOutTaskKey = String.format("%s_%s_%s_%s", TIMEOUT_TASK_KEY_PREFIX, mediaServer.getId(), app, stream);
-        if (dynamicTask.contains(timeOutTaskKey)) {
+        String timeOutTaskKey = timeoutTaskKey(mediaServer, app, stream);
+        synchronized (attemptLock(timeOutTaskKey)) {
+            attempts.remove(timeOutTaskKey);
             dynamicTask.stop(timeOutTaskKey);
+            subscribe.removeSubscribe(Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId()));
+            if (mediaServer.isRtpEnable()) {
+                mediaServerService.closeRTPServer(mediaServer, app, stream);
+            }
+            mediaServerService.closeStreams(mediaServer, app, stream);
         }
-        if (mediaServer.isRtpEnable()) {
-            mediaServerService.closeRTPServer(mediaServer, app, stream);
-        }
-        mediaServerService.closeStreams(mediaServer, app, stream);
     }
 
     @Override

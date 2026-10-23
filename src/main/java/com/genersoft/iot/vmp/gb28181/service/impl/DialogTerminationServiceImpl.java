@@ -49,14 +49,19 @@ public class DialogTerminationServiceImpl implements IDialogTerminationService {
     @Autowired
     private IReceiveRtpServerService receiveRtpServerService;
 
+    /** 只终止匹配设备、通道、类型及流名的对话，避免停止一个播放器时清理其他会话。 */
     @Override
     public int stopDevice(Device device, DeviceChannel channel, InviteSessionType type, String stream) {
         if (device == null || channel == null) {
             return 0;
         }
         Map<String, SsrcTransaction> result = new LinkedHashMap<>();
-        addAll(result, sessionManager.getSsrcTransactionsByDeviceChannel(
-                device.getDeviceId(), channel.getId(), type));
+        for (SsrcTransaction transaction : sessionManager.getSsrcTransactionsByDeviceChannel(
+                device.getDeviceId(), channel.getId(), type)) {
+            if (matchesDevice(transaction, device, channel, type, stream)) {
+                add(result, transaction);
+            }
+        }
 
         for (SsrcTransaction transaction : sessionManager.getAllStreamIndex()) {
             if (!matchesDevice(transaction, device, channel, type, stream)) {

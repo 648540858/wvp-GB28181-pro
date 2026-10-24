@@ -45,7 +45,16 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     // 每次开启独享身份，完成标记仅在对应条带锁内读写。
     private static final class RtpAttempt {
+        private final boolean multiPort;
+        private final String receiverStreamId;
         private boolean completed;
+
+        // 在注册Hook前固定实际接收器身份，避免同步回调或配置切换丢失专属端口。
+        private RtpAttempt(RTPServerParam param) {
+            multiPort = param.getMediaServer().isRtpEnable();
+            receiverStreamId = multiPort && param.getSsrc() != null
+                    ? String.format("%08x", param.getSsrc()).toUpperCase() : param.getStreamId();
+        }
     }
 
     @Autowired
@@ -316,8 +325,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
         String timeOutTaskKey = timeoutTaskKey(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), rtpServerParam.getStreamId());
         Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, rtpServerParam.getApp(), rtpServerParam.getStreamId(), rtpServerParam.getMediaServer().getId());
-        RtpAttempt attempt = new RtpAttempt();
+        RtpAttempt attempt = new RtpAttempt(rtpServerParam);
         int rtpServerPort = -1;
+        boolean notifyResourceFailure = false;
         synchronized (attemptLock(timeOutTaskKey)) {
             attempts.put(timeOutTaskKey, attempt);
             dynamicTask.stop(timeOutTaskKey);
@@ -332,9 +342,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                         attempts.remove(timeOutTaskKey, attempt);
                         dynamicTask.stop(timeOutTaskKey);
                         subscribe.removeSubscribe(rtpHook);
-                        String closeStreamId = rtpServerParam.getMediaServer().isRtpEnable() && rtpServerParam.getSsrc() != null
-                                ? String.format("%08x", rtpServerParam.getSsrc()).toUpperCase() : rtpServerParam.getStreamId();
-                        mediaServerService.closeRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), closeStreamId);
+                        mediaServerService.closeRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), attempt.receiverStreamId);
                         mediaServerService.closeStreams(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), rtpServerParam.getStreamId());
                     }
                     // 上层可能同时持播放会话锁等待关闭RTP，锁外回调避免形成锁顺序反转。
@@ -352,11 +360,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                     // 成功后保留身份直到close，已进入执行阶段的旧超时仍会被完成标记拒绝。
                     callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
                 });
-                if (rtpServerParam.getMediaServer().isRtpEnable()) {
-                    String zlmStreamId = rtpServerParam.getSsrc() == null ? rtpServerParam.getStreamId()
-                            : String.format("%08x", rtpServerParam.getSsrc()).toUpperCase();
+                if (attempt.multiPort) {
                     long checkSsrc = rtpServerParam.isSsrcCheck() && rtpServerParam.getSsrc() != null ? rtpServerParam.getSsrc() : 0L;
-                    rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), zlmStreamId, checkSsrc, rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
+                    rtpServerPort = mediaServerService.createRTPServer(rtpServerParam.getMediaServer(), rtpServerParam.getApp(), attempt.receiverStreamId, checkSsrc, rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
                             rtpServerParam.isDisableAudio(), rtpServerParam.isReUsePort(), rtpServerParam.getTcpMode());
                 } else {
                     rtpServerPort = rtpServerParam.getMediaServer().getRtpProxyPort();
@@ -364,7 +370,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             } catch (RuntimeException exception) {
                 log.warn("[开启RTP收流] 资源创建失败");
             }
-            if (rtpServerPort <= 0) {
+            // 创建过程可能同步触发注册回调并重开同流，失败清理只能撤销仍属于本次的任务。
+            if (rtpServerPort <= 0 && attempts.get(timeOutTaskKey) == attempt) {
+                notifyResourceFailure = !attempt.completed;
                 attempt.completed = true;
                 attempts.remove(timeOutTaskKey, attempt);
                 dynamicTask.stop(timeOutTaskKey);
@@ -372,7 +380,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             }
         }
         if (rtpServerPort <= 0) {
-            callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "开启RTPServer失败", null);
+            if (notifyResourceFailure) {
+                callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "开启RTPServer失败", null);
+            }
             return -1;
         }
         return rtpServerPort;
@@ -396,11 +406,12 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
         String timeOutTaskKey = timeoutTaskKey(mediaServer, app, stream);
         synchronized (attemptLock(timeOutTaskKey)) {
-            attempts.remove(timeOutTaskKey);
+            RtpAttempt attempt = attempts.remove(timeOutTaskKey);
             dynamicTask.stop(timeOutTaskKey);
             subscribe.removeSubscribe(Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId()));
-            if (mediaServer.isRtpEnable()) {
-                mediaServerService.closeRTPServer(mediaServer, app, stream);
+            // 逻辑流名用于播放器和Hook；ZLM专属接收器必须按创建时的实际ID释放。
+            if (attempt != null ? attempt.multiPort : mediaServer.isRtpEnable()) {
+                mediaServerService.closeRTPServer(mediaServer, app, attempt == null ? stream : attempt.receiverStreamId);
             }
             mediaServerService.closeStreams(mediaServer, app, stream);
         }

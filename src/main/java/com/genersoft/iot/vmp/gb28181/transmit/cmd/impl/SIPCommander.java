@@ -44,6 +44,7 @@ import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -307,7 +308,8 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime,
-                                  SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException {
+                                  SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout,
+                                  Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException {
 
 
         log.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
@@ -388,8 +390,20 @@ public class SIPCommander implements ISIPCommander {
                     channel.getId(), response.getCallIdHeader().getCallId(), ssrcInfo.getApp(),
                     ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAYBACK);
-            registerTransaction(device, channel, ssrcTransaction);
-            okEvent.response(event);
+            // 事务注册会替换同流旧 Dialog，必须与上层身份校验共处一个临界区。
+            // 不能先注册再通知上层，否则迟到的 A 响应会先向当前 B 会话发 BYE。
+            boolean accepted = sessionGuard.test(() -> {
+                registerTransaction(device, channel, ssrcTransaction);
+                okEvent.response(event);
+            });
+            if (!accepted) {
+                // 只终止该响应自带的旧 Dialog，不查询或修改同流的新会话索引。
+                try {
+                    streamByeCmd(device, channel.getDeviceId(), ssrcTransaction.getSipTransactionInfo(), null);
+                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                    log.warn("[录像回放] 终止迟到响应对应的旧会话失败", e);
+                }
+            }
         }, timeout);
     }
 
@@ -399,7 +413,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime, int downloadSpeed,
-                                  SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException {
+                                  SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout, Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException {
 
         log.info("[发送-请求历史媒体下载-命令] 流ID： {}，节点为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
         String sdpIp;
@@ -481,8 +495,19 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     response.getCallIdHeader().getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrc,
                     mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
-            registerTransaction(device, channel, ssrcTransaction);
-            okEvent.response(event);
+            // 下载的旧 200 也可能晚于停止重下，事务替换必须在上层归属临界区内执行。
+            boolean accepted = sessionGuard.test(() -> {
+                registerTransaction(device, channel, ssrcTransaction);
+                okEvent.response(event);
+            });
+            if (!accepted) {
+                try {
+                    // 只结束该响应自身的 Dialog，不按流名查找可能已属于新下载的事务。
+                    streamByeCmd(device, channel.getDeviceId(), ssrcTransaction.getSipTransactionInfo(), null);
+                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                    log.warn("[录像下载] 终止迟到响应对应的旧会话失败", e);
+                }
+            }
         }, timeout);
     }
 

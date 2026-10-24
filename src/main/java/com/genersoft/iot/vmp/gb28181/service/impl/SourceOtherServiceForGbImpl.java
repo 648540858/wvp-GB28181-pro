@@ -45,7 +45,8 @@ public class SourceOtherServiceForGbImpl implements ISourceOtherService {
             return null;
         }
         // 国标流， 点播/录像回放/录像下载
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
+        // 保留中的下载会话与回放共用同一流名，优先取点播/回放会话
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStreamPreferPlay(stream);
         if (inviteInfo == null) {
             return null;
         }

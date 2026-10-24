@@ -17,6 +17,13 @@
         @submit.native.prevent
       >
         <el-form-item label="服务端口" prop="port">
+          <template slot="label">
+            <restart-field-label
+              text="服务端口"
+              :required="isRestartField('port')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.port"
             type="number"
@@ -29,12 +36,26 @@
         </el-form-item>
 
         <el-form-item label="开启HTTPS" prop="sslEnabled">
+          <template slot="label">
+            <restart-field-label
+              text="开启HTTPS"
+              :required="isRestartField('sslEnabled')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-switch v-model="form.sslEnabled" :disabled="!writable" />
           <span class="field-tip">开启后需使用 https:// 访问，运行中: {{ runtime.sslEnabled ? '已开启' : '未开启' }}</span>
         </el-form-item>
 
         <template v-if="form.sslEnabled">
           <el-form-item label="PEM证书文件" prop="sslCertificate">
+            <template slot="label">
+              <restart-field-label
+                text="PEM证书文件"
+                :required="isRestartField('sslCertificate')"
+                :show="showRestartTags"
+              />
+            </template>
             <el-input
               v-model="form.sslCertificate"
               :disabled="!writable"
@@ -43,6 +64,13 @@
             />
           </el-form-item>
           <el-form-item label="私钥文件" prop="sslCertificatePrivateKey">
+            <template slot="label">
+              <restart-field-label
+                text="私钥文件"
+                :required="isRestartField('sslCertificatePrivateKey')"
+                :show="showRestartTags"
+              />
+            </template>
             <el-input
               v-model="form.sslCertificatePrivateKey"
               :disabled="!writable"
@@ -87,8 +115,11 @@
 </template>
 
 <script>
+import RestartFieldLabel from './components/RestartFieldLabel.vue'
+
 export default {
   name: 'WebServerConfig',
+  components: { RestartFieldLabel },
   data() {
     const validatePort = (rule, value, callback) => {
       if (value === null || value === undefined || value === '') {
@@ -130,6 +161,8 @@ export default {
         port: null,
         sslEnabled: false
       },
+      // 后端标识的“需重启才能生效”字段
+      restartFieldKeys: [],
       rules: {
         port: [{ validator: validatePort, trigger: 'blur' }],
         sslCertificate: [{ validator: requiredWhenSsl, trigger: 'blur' }],
@@ -153,12 +186,20 @@ export default {
     // 当前表单值相对运行中生效值是否会改变访问地址(协议或端口)
     urlAffected() {
       return this.form.port !== this.runtime.port || this.form.sslEnabled !== this.runtime.sslEnabled
+    },
+    // 后端未返回字段列表时不展示重启标签
+    showRestartTags() {
+      return this.restartFieldKeys.length > 0
     }
   },
   created() {
     this.reload()
   },
   methods: {
+    // 是否属于后端标识的“需重启才能生效”字段
+    isRestartField(key) {
+      return this.restartFieldKeys.indexOf(key) >= 0
+    },
     reload() {
       this.loading = true
       this.$store.dispatch('setting/getWebServerConfig')
@@ -173,6 +214,7 @@ export default {
             port: typeof data.runtimePort === 'number' ? data.runtimePort : null,
             sslEnabled: !!data.runtimeSslEnabled
           }
+          this.restartFieldKeys = Array.isArray(data.restartRequiredFields) ? data.restartRequiredFields : []
           const form = {
             port: typeof data.port === 'number' ? data.port : null,
             sslEnabled: !!data.sslEnabled,

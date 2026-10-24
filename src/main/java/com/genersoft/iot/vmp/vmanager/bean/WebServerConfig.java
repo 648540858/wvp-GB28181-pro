@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * WEB服务(server)配置
  * <p>
@@ -40,4 +42,7 @@ public class WebServerConfig {
 
     @Schema(description = "目标配置文件是否可写")
     private boolean writable;
+
+    @Schema(description = "保存后需要重启服务才能生效的字段")
+    private List<String> restartRequiredFields;
 }

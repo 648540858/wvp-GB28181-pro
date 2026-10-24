@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
+import com.genersoft.iot.vmp.jt1078.config.JT1078Config;
 import com.genersoft.iot.vmp.service.ISettingService;
 import com.genersoft.iot.vmp.service.bean.AlarmType;
 import com.genersoft.iot.vmp.service.bean.ConfigEntry;
@@ -123,6 +125,50 @@ public class SettingServiceImpl implements ISettingService {
             "jwkFile",
             "alarmCatchSize"
     ));
+
+    /**
+     * WEB服务配置中需要重启服务才能生效的字段(camelCase, 与 {@link WebServerConfig} 属性名一致)
+     * <p>
+     * server.* 在启动阶段被 Spring Boot 读取并用于创建 WebServerFactory, 运行中修改配置文件不会改变监听端口与 HTTPS 配置。
+     */
+    private static final List<String> WEB_RESTART_REQUIRED_FIELDS = List.of(
+            "port",
+            "sslEnabled",
+            "sslCertificate",
+            "sslCertificatePrivateKey"
+    );
+
+    /**
+     * 国标服务配置中需要重启服务才能生效的字段(camelCase, 与 {@link SipServerConfig} 属性名一致)
+     * <p>
+     * sip.* 在启动阶段绑定到 {@link SipConfig} 并据此创建 SIP Stack, 运行中修改无法生效。
+     */
+    private static final List<String> SIP_RESTART_REQUIRED_FIELDS = List.of(
+            "id",
+            "domain",
+            "port",
+            "password",
+            "ip",
+            "showIp",
+            "timeout",
+            "alarm"
+    );
+
+    /**
+     * 部标服务配置中需要重启服务才能生效的字段(camelCase, 与 {@link JtServerConfig} 属性名一致)
+     * <p>
+     * ftp.* / jt1078.* 在启动阶段绑定到 {@link FtpSetting} / {@link JT1078Config} 并据此启动服务, 运行中修改无法生效。
+     */
+    private static final List<String> JT_RESTART_REQUIRED_FIELDS = List.of(
+            "ftpEnable",
+            "ftpPort",
+            "ftpPassivePorts",
+            "jt1078Enable",
+            "jt1078Port",
+            "jt1078Password",
+            "jt1078Record",
+            "jt1078ReaderIdleTime"
+    );
 
     /**
      * 未指定 spring.config.location 时, 按 Spring Boot 默认搜索路径查找 application.yml
@@ -284,6 +330,7 @@ public class SettingServiceImpl implements ISettingService {
         config.setProfileId(isMainConfig(entry) ? null : entry.getId());
         config.setFilePath(entry.getPath());
         config.setWritable(entry.isWritable());
+        config.setRestartRequiredFields(new ArrayList<>(WEB_RESTART_REQUIRED_FIELDS));
         return config;
     }
 
@@ -337,6 +384,7 @@ public class SettingServiceImpl implements ISettingService {
         config.setProfileId(isMainConfig(entry) ? null : entry.getId());
         config.setFilePath(entry.getPath());
         config.setWritable(entry.isWritable());
+        config.setRestartRequiredFields(new ArrayList<>(SIP_RESTART_REQUIRED_FIELDS));
         return config;
     }
 
@@ -401,6 +449,7 @@ public class SettingServiceImpl implements ISettingService {
         config.setProfileId(isMainConfig(entry) ? null : entry.getId());
         config.setFilePath(entry.getPath());
         config.setWritable(entry.isWritable());
+        config.setRestartRequiredFields(new ArrayList<>(JT_RESTART_REQUIRED_FIELDS));
         return config;
     }
 

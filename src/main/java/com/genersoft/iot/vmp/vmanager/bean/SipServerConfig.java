@@ -61,4 +61,7 @@ public class SipServerConfig {
 
     @Schema(description = "目标配置文件是否可写")
     private boolean writable;
+
+    @Schema(description = "保存后需要重启服务才能生效的字段")
+    private List<String> restartRequiredFields;
 }

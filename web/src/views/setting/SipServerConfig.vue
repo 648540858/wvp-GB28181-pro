@@ -17,6 +17,13 @@
         @submit.native.prevent
       >
         <el-form-item label="国标编号" prop="id">
+          <template slot="label">
+            <restart-field-label
+              text="国标编号"
+              :required="isRestartField('id')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.id"
             :disabled="!writable"
@@ -29,6 +36,13 @@
         </el-form-item>
 
         <el-form-item label="国标域" prop="domain">
+          <template slot="label">
+            <restart-field-label
+              text="国标域"
+              :required="isRestartField('domain')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.domain"
             :disabled="!writable"
@@ -41,6 +55,13 @@
         </el-form-item>
 
         <el-form-item label="端口" prop="port">
+          <template slot="label">
+            <restart-field-label
+              text="端口"
+              :required="isRestartField('port')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.port"
             type="number"
@@ -53,6 +74,13 @@
         </el-form-item>
 
         <el-form-item label="认证密码" prop="password">
+          <template slot="label">
+            <restart-field-label
+              text="认证密码"
+              :required="isRestartField('password')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.password"
             :disabled="!writable"
@@ -63,6 +91,13 @@
         </el-form-item>
 
         <el-form-item label="监听网卡IP" prop="ip">
+          <template slot="label">
+            <restart-field-label
+              text="监听网卡IP"
+              :required="isRestartField('ip')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.ip"
             :disabled="!writable"
@@ -74,6 +109,13 @@
         </el-form-item>
 
         <el-form-item label="对外展示IP" prop="showIp">
+          <template slot="label">
+            <restart-field-label
+              text="对外展示IP"
+              :required="isRestartField('showIp')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.showIp"
             :disabled="!writable"
@@ -87,6 +129,13 @@
         <el-divider content-position="left">高级配置</el-divider>
 
         <el-form-item label="命令超时时间" prop="timeout">
+          <template slot="label">
+            <restart-field-label
+              text="命令超时时间"
+              :required="isRestartField('timeout')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.timeout"
             type="number"
@@ -100,6 +149,13 @@
         </el-form-item>
 
         <el-form-item label="存储alarm信息" prop="alarm">
+          <template slot="label">
+            <restart-field-label
+              text="存储alarm信息"
+              :required="isRestartField('alarm')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-switch v-model="form.alarm" :disabled="!writable" />
         </el-form-item>
       </el-form>
@@ -130,6 +186,7 @@
 
 <script>
 import configPanelMixin from './configPanelMixin'
+import RestartFieldLabel from './components/RestartFieldLabel.vue'
 
 function emptyForm() {
   return {
@@ -146,6 +203,7 @@ function emptyForm() {
 
 export default {
   name: 'SipServerConfig',
+  components: { RestartFieldLabel },
   mixins: [configPanelMixin],
   data() {
     const requiredNumber = (rule, value, callback) => {
@@ -195,6 +253,8 @@ export default {
         showIp: ''
       },
       runtimeMonitorIps: [],
+      // 后端标识的“需重启才能生效”字段
+      restartFieldKeys: [],
       rules: {
         id: [{ validator: validId, trigger: 'blur' }],
         domain: [{ validator: validDomain, trigger: 'blur' }],
@@ -209,12 +269,20 @@ export default {
     },
     dirty() {
       return JSON.stringify(this.form) !== JSON.stringify(this.saved)
+    },
+    // 后端未返回字段列表时不展示重启标签
+    showRestartTags() {
+      return this.restartFieldKeys.length > 0
     }
   },
   created() {
     this.reload()
   },
   methods: {
+    // 是否属于后端标识的“需重启才能生效”字段
+    isRestartField(key) {
+      return this.restartFieldKeys.indexOf(key) >= 0
+    },
     reload() {
       this.loading = true
       this.$store.dispatch('setting/getSipServerConfig')
@@ -231,6 +299,7 @@ export default {
             showIp: data.runtimeShowIp || ''
           }
           this.runtimeMonitorIps = Array.isArray(data.runtimeMonitorIps) ? data.runtimeMonitorIps : []
+          this.restartFieldKeys = Array.isArray(data.restartRequiredFields) ? data.restartRequiredFields : []
           const form = {
             ip: data.ip || '',
             showIp: data.showIp || '',

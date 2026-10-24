@@ -19,11 +19,25 @@
         <el-divider content-position="left">FTP 服务</el-divider>
 
         <el-form-item label="开启FTP服务" prop="ftpEnable">
+          <template slot="label">
+            <restart-field-label
+              text="开启FTP服务"
+              :required="isRestartField('ftpEnable')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-switch v-model="form.ftpEnable" :disabled="!writable" />
           <span class="field-tip">运行中: {{ runtime.ftpEnable ? '已开启' : '未开启' }}</span>
         </el-form-item>
 
         <el-form-item label="FTP服务端口" prop="ftpPort">
+          <template slot="label">
+            <restart-field-label
+              text="FTP服务端口"
+              :required="isRestartField('ftpPort')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.ftpPort"
             type="number"
@@ -35,6 +49,13 @@
         </el-form-item>
 
         <el-form-item label="被动模式端口范围" prop="ftpPassivePorts">
+          <template slot="label">
+            <restart-field-label
+              text="被动模式端口范围"
+              :required="isRestartField('ftpPassivePorts')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.ftpPassivePorts"
             :disabled="!writable || !form.ftpEnable"
@@ -47,11 +68,25 @@
         <el-divider content-position="left">JT1078 服务</el-divider>
 
         <el-form-item label="开启JT1078服务" prop="jt1078Enable">
+          <template slot="label">
+            <restart-field-label
+              text="开启JT1078服务"
+              :required="isRestartField('jt1078Enable')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-switch v-model="form.jt1078Enable" :disabled="!writable" />
           <span class="field-tip">运行中: {{ runtime.jt1078Enable ? '已开启' : '未开启' }}</span>
         </el-form-item>
 
         <el-form-item label="设备接入端口" prop="jt1078Port">
+          <template slot="label">
+            <restart-field-label
+              text="设备接入端口"
+              :required="isRestartField('jt1078Port')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.jt1078Port"
             type="number"
@@ -63,6 +98,13 @@
         </el-form-item>
 
         <el-form-item label="设备鉴权密码" prop="jt1078Password">
+          <template slot="label">
+            <restart-field-label
+              text="设备鉴权密码"
+              :required="isRestartField('jt1078Password')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model="form.jt1078Password"
             :disabled="!writable || !form.jt1078Enable"
@@ -72,6 +114,13 @@
         </el-form-item>
 
         <el-form-item label="IDLE超时时间" prop="jt1078ReaderIdleTime">
+          <template slot="label">
+            <restart-field-label
+              text="IDLE超时时间"
+              :required="isRestartField('jt1078ReaderIdleTime')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-input
             v-model.number="form.jt1078ReaderIdleTime"
             type="number"
@@ -85,6 +134,13 @@
         </el-form-item>
 
         <el-form-item label="是否录像" prop="jt1078Record">
+          <template slot="label">
+            <restart-field-label
+              text="是否录像"
+              :required="isRestartField('jt1078Record')"
+              :show="showRestartTags"
+            />
+          </template>
           <el-switch v-model="form.jt1078Record" :disabled="!writable || !form.jt1078Enable" />
         </el-form-item>
       </el-form>
@@ -115,6 +171,7 @@
 
 <script>
 import configPanelMixin from './configPanelMixin'
+import RestartFieldLabel from './components/RestartFieldLabel.vue'
 
 function emptyForm() {
   return {
@@ -131,6 +188,7 @@ function emptyForm() {
 
 export default {
   name: 'JtServerConfig',
+  components: { RestartFieldLabel },
   mixins: [configPanelMixin],
   data() {
     const validPort = (label) => (rule, value, callback) => {
@@ -169,6 +227,8 @@ export default {
         ftpEnable: false,
         jt1078Enable: false
       },
+      // 后端标识的“需重启才能生效”字段
+      restartFieldKeys: [],
       rules: {
         ftpPort: [{ validator: validPort('FTP服务端口'), trigger: 'blur' }],
         jt1078Port: [{ validator: validPort('JT1078服务端口'), trigger: 'blur' }],
@@ -183,12 +243,20 @@ export default {
     },
     dirty() {
       return JSON.stringify(this.form) !== JSON.stringify(this.saved)
+    },
+    // 后端未返回字段列表时不展示重启标签
+    showRestartTags() {
+      return this.restartFieldKeys.length > 0
     }
   },
   created() {
     this.reload()
   },
   methods: {
+    // 是否属于后端标识的“需重启才能生效”字段
+    isRestartField(key) {
+      return this.restartFieldKeys.indexOf(key) >= 0
+    },
     reload() {
       this.loading = true
       this.$store.dispatch('setting/getJtServerConfig')
@@ -203,6 +271,7 @@ export default {
             ftpEnable: !!data.runtimeFtpEnable,
             jt1078Enable: !!data.runtimeJt1078Enable
           }
+          this.restartFieldKeys = Array.isArray(data.restartRequiredFields) ? data.restartRequiredFields : []
           const form = {
             ftpEnable: !!data.ftpEnable,
             ftpPort: typeof data.ftpPort === 'number' ? data.ftpPort : null,

@@ -551,6 +551,8 @@ class SettingServiceImplTest {
         assertTrue(config.isWritable(), "外部配置文件应可写");
         assertNotNull(config.getFilePath());
         assertTrue(config.getFilePath().endsWith("application-dev.yml"));
+        assertEquals(List.of("port", "sslEnabled", "sslCertificate", "sslCertificatePrivateKey"),
+                config.getRestartRequiredFields(), "WEB 服务配置全部字段均需重启生效");
     }
 
     /**
@@ -691,6 +693,8 @@ class SettingServiceImplTest {
         assertEquals("dev", config.getProfileId());
         assertTrue(config.isWritable());
         assertTrue(config.getFilePath().endsWith("application-dev.yml"));
+        assertEquals(List.of("id", "domain", "port", "password", "ip", "showIp", "timeout", "alarm"),
+                config.getRestartRequiredFields(), "国标服务配置全部字段均需重启生效");
     }
 
     /**
@@ -809,6 +813,9 @@ class SettingServiceImplTest {
         assertEquals(Boolean.FALSE, config.getJt1078Record());
         assertEquals(20, config.getJt1078ReaderIdleTime());
         assertTrue(config.isWritable());
+        assertEquals(List.of("ftpEnable", "ftpPort", "ftpPassivePorts", "jt1078Enable",
+                        "jt1078Port", "jt1078Password", "jt1078Record", "jt1078ReaderIdleTime"),
+                config.getRestartRequiredFields(), "部标服务配置全部字段均需重启生效");
     }
 
     /**

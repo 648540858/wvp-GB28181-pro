@@ -186,24 +186,31 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * ZLM 接口调用失败（code != 0）时返回 null；
+     * 只有 code == 0 且 data 为空时才返回空集合。
+     */
     @Override
     public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
-        List<StreamInfo> streamInfoList = new ArrayList<>();
         ZLMResult<JSONArray> zlmResult = zlmresTfulUtils.getMediaList(mediaServer, app, stream);
-        if (zlmResult != null) {
-            if (zlmResult.getCode() == 0) {
-                if (zlmResult.getData() == null) {
-                    return streamInfoList;
-                }
-                for (int i = 0; i < zlmResult.getData().size(); i++) {
-                    JSONObject mediaJSON = zlmResult.getData().getJSONObject(0);
-                    MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
-                    StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(),
-                            mediaInfo.getStream(), mediaInfo, null, callId, true);
-                    if (streamInfo != null) {
-                        streamInfoList.add(streamInfo);
-                    }
-                }
+        if (zlmResult == null || zlmResult.getCode() != 0) {
+            log.warn("[getMediaList] 获取流列表失败, mediaServer: {}, app: {}, stream: {}, result: {}",
+                    mediaServer.getId(), app, stream, zlmResult);
+            return null;
+        }
+        List<StreamInfo> streamInfoList = new ArrayList<>();
+        if (zlmResult.getData() == null) {
+            return streamInfoList;
+        }
+        for (int i = 0; i < zlmResult.getData().size(); i++) {
+            JSONObject mediaJSON = zlmResult.getData().getJSONObject(i);
+            MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, mediaInfo.getApp(),
+                    mediaInfo.getStream(), mediaInfo, null, callId, true);
+            if (streamInfo != null) {
+                streamInfoList.add(streamInfo);
             }
         }
         return streamInfoList;

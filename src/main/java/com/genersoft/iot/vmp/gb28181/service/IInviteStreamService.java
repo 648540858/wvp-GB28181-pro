@@ -19,6 +19,19 @@ public interface IInviteStreamService {
 
     void updateInviteInfo(InviteInfo inviteInfo, Long time);
 
+    /**
+     * 为缓存中的会话设置保留窗口（最早可回收时间）。
+     *
+     * <p>用于“流已经离开，但仍需保留会话信息”的场景：录像下载结束后 ZLM 会先注销流、再回调
+     * on_record_mp4，下载地址只能在钩子里写入，因此流离开时不能立即删除会话，改为保留一段时间，
+     * 到期由 {@code InviteStreamServiceImpl.execute()} 回收。保留窗口是绝对时间戳，即使 WVP 重启
+     * 也不会丢失。</p>
+     *
+     * @param inviteInfo 目标会话（使用 type/channelId/stream 定位缓存条目）
+     * @param keepTimeMs 保留时长（毫秒），小于等于 0 时不处理
+     */
+    void setInviteInfoCleanTime(InviteInfo inviteInfo, long keepTimeMs);
+
     InviteInfo updateInviteInfoForStream(InviteInfo inviteInfo, String stream);
 
     /**
@@ -50,6 +63,16 @@ public interface IInviteStreamService {
      * 获取点播的状态信息
      */
     InviteInfo getInviteInfoByStream(InviteSessionType type, String stream);
+
+    /**
+     * 按流名查询会话信息，优先返回点播/回放会话，最后才返回录像下载会话。
+     *
+     * <p>录像下载会话在流离开后会继续保留一段时间（等待写入下载地址），而下载与回放的流名格式相同
+     * （设备_通道_开始时间_结束时间），同一时间段的回放会复用同一个流名。按流名做通配查询时命中顺序
+     * 不确定，如果先命中保留中的下载会话，清理动作就会作用到错误的会话上。这个方法的查找顺序固定为
+     * PLAY → PLAYBACK → 其余类型，用于流离开、无人观看等清理/判断场景。</p>
+     */
+    InviteInfo getInviteInfoByStreamPreferPlay(String stream);
 
 
     /**

@@ -42,6 +42,13 @@ public interface IMediaNodeServerService {
 
     boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName);
 
+    /**
+     * 获取媒体节点上的流列表。
+     *
+     * @return 流列表；返回 {@code null} 表示查询失败（节点不可达、接口异常等），
+     *         返回空集合表示查询成功但节点上确实没有流。
+     *         调用方必须区分这两种情况，不能在 {@code null} 时按“没有流”处理。
+     */
     List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId);
 
     Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String app, String stream);

@@ -82,13 +82,9 @@ public class VectorTileCatch {
     // 缓存数据过期检查
     @Scheduled(fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
     public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            try {
-                VectorTileSource vectorTileSource = delayQueue.take();
-                vectorTileMap.remove(vectorTileSource.getId());
-            } catch (InterruptedException e) {
-                log.error("[清理过期的抽稀数据] ", e);
-            }
+        VectorTileSource vectorTileSource;
+        while ((vectorTileSource = delayQueue.poll()) != null) {
+            vectorTileMap.remove(vectorTileSource.getId(), vectorTileSource);
         }
     }
 

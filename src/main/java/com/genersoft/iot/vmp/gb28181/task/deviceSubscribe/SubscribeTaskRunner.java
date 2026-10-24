@@ -36,18 +36,20 @@ public class SubscribeTaskRunner{
     // 订阅过期检查
     @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            SubscribeTask take = null;
+        SubscribeTask take;
+        while ((take = delayQueue.poll()) != null) {
             try {
-                take = delayQueue.take();
-                try {
-                    removeSubscribe(take.getKey());
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
+                // 出队后、清理前可能被 updateDelay 续期，续期后的任务不属于本次到期
+                if (take.getDelay(TimeUnit.MILLISECONDS) > 0) {
+                    continue;
                 }
-            } catch (InterruptedException e) {
-                log.error("[设备订阅任务] ", e);
+                // 同 key 可能已注册新任务，或被显式移除；仅清理本次出队到的任务实例
+                if (!removeSubscribe(take.getKey(), take)) {
+                    continue;
+                }
+                take.expired();
+            } catch (Exception e) {
+                log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
             }
         }
     }
@@ -68,8 +70,7 @@ public class SubscribeTaskRunner{
         if (task == null) {
             return false;
         }
-        String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), task.getKey());
-        redisTemplate.delete(redisKey);
+        deleteSubscribeRedisKey(key);
         subscribes.remove(key);
         if (delayQueue.contains(task)) {
             boolean remove = delayQueue.remove(task);
@@ -78,6 +79,23 @@ public class SubscribeTaskRunner{
             }
         }
         return true;
+    }
+
+    /**
+     * 仅当 map 中仍是本次到期任务实例时清理，避免误删同 key 的新任务
+     */
+    private boolean removeSubscribe(String key, SubscribeTask expected) {
+        if (expected == null || !subscribes.remove(key, expected)) {
+            return false;
+        }
+        deleteSubscribeRedisKey(key);
+        delayQueue.remove(expected);
+        return true;
+    }
+
+    private void deleteSubscribeRedisKey(String key) {
+        String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), key);
+        redisTemplate.delete(redisKey);
     }
 
     public SipTransactionInfo getTransactionInfo(String key) {

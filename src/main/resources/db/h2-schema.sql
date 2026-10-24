@@ -488,3 +488,7 @@ create table IF NOT EXISTS wvp_record_plan_item
     create_time     character varying(50),
     update_time     character varying(50)
 );
+
+/* 兼容旧版本：录像计划条目表字段改名，避免使用数据库关键字 start / stop（H2 支持 IF EXISTS，新库执行时无操作） */
+ALTER TABLE wvp_record_plan_item ALTER COLUMN IF EXISTS start RENAME TO start_time;
+ALTER TABLE wvp_record_plan_item ALTER COLUMN IF EXISTS stop RENAME TO stop_time;

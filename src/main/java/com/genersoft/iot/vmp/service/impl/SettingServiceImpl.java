@@ -1737,10 +1737,30 @@ public class SettingServiceImpl implements ISettingService {
         if (dir == null && path.contains("*")) {
             dir = resolveWildcardDir(path);
         }
-        if (dir == null || !containsMainConfig(dir)) {
+        // 只指定了 application-{id}.yml 的目录同样可用：此时由当前激活的 profile 决定实际加载哪一份
+        if (dir == null || (!containsMainConfig(dir) && !containsProfileConfig(dir))) {
             return null;
         }
         return ConfigSource.ofDir(dir);
+    }
+
+    /**
+     * 目录中是否存在可切换的配置文件 application-{id}.yml
+     */
+    private boolean containsProfileConfig(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return false;
+        }
+        for (File file : files) {
+            if (file.isFile() && PROFILE_FILE_PATTERN.matcher(file.getName()).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1799,9 +1819,10 @@ public class SettingServiceImpl implements ISettingService {
             if (dir == null) {
                 continue;
             }
-            // 目录存在但没有主配置文件时继续查找下一个位置, 避免定位到错误目录后无法回退
-            if (!containsMainConfig(dir)) {
-                log.warn("[系统设置] spring.config.location 指定目录下未找到主配置文件, 跳过: {}",
+            // 目录存在但没有主配置文件时，若包含 application-{id}.yml 仍可作为配置来源，
+            // 由当前激活的 profile 决定实际加载哪一份；两者都没有才继续查找下一个位置
+            if (!containsMainConfig(dir) && !containsProfileConfig(dir)) {
+                log.warn("[系统设置] spring.config.location 指定目录下未找到配置文件, 跳过: {}",
                         dir.getAbsolutePath());
                 continue;
             }

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -15,8 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 
 import java.util.ArrayList;
@@ -137,7 +136,7 @@ class InviteStreamServiceImplTest {
     void cleanExpiredInviteCallbacks_shouldCleanStaleInviteInfoAndChannelState() {
         when(userSetting.getPlayTimeout()).thenReturn(60_000);
 
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         Cursor<Map.Entry<Object, Object>> inviteInfoCursor = mock(Cursor.class);
         Cursor<Map.Entry<Object, Object>> emptyCursor = mock(Cursor.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
@@ -188,7 +187,7 @@ class InviteStreamServiceImplTest {
         inviteInfoInDb.setChannelId(CHANNEL_ID);
         inviteInfoInDb.setStream("stream-1");
 
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         Cursor<Map.Entry<Object, Object>> inviteInfoCursor = mock(Cursor.class);
         Cursor<Map.Entry<Object, Object>> emptyCursor = mock(Cursor.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
@@ -215,7 +214,7 @@ class InviteStreamServiceImplTest {
      * 兜底清理会先查询 Redis 中的 InviteInfo，这里模拟“已经不存在”。
      */
     private void mockEmptyInviteInfoScan() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         Cursor<Map.Entry<Object, Object>> cursor = mock(Cursor.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.scan(anyString(), any(ScanOptions.class))).thenReturn(cursor);
@@ -224,7 +223,7 @@ class InviteStreamServiceImplTest {
 
     @Test
     void execute_shouldKeepDownloadInviteInfoWithinCleanTime() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.size(anyString())).thenReturn(1L);
         InviteInfo inviteInfo = downloadInviteInfo(System.currentTimeMillis() + 60_000);
@@ -240,7 +239,7 @@ class InviteStreamServiceImplTest {
 
     @Test
     void execute_shouldRemoveDownloadInviteInfoAfterCleanTime() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.size(anyString())).thenReturn(1L);
         InviteInfo inviteInfo = downloadInviteInfo(System.currentTimeMillis() - 1);
@@ -265,7 +264,7 @@ class InviteStreamServiceImplTest {
 
     @Test
     void execute_shouldNotRemoveDownloadInviteInfoOfNewSessionWithSameStream() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.size(anyString())).thenReturn(1L);
         InviteInfo expiredInviteInfo = downloadInviteInfo(System.currentTimeMillis() - 1);
@@ -290,7 +289,7 @@ class InviteStreamServiceImplTest {
 
     @Test
     void setInviteInfoCleanTime_shouldWriteCleanTimeWithKeepWindow() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
         InviteInfo inviteInfo = downloadInviteInfo(null);
         Cursor<Map.Entry<Object, Object>> inviteInfoCursor = mock(Cursor.class);
@@ -309,7 +308,7 @@ class InviteStreamServiceImplTest {
 
     @Test
     void getInviteInfoByStreamPreferPlay_shouldReturnPlaybackInsteadOfRetainedDownload() {
-        HashOperations<String, Object, Object> hashOperations = mock(HashOperations.class);
+        RedisTemplate.HashOperations hashOperations = mock(RedisTemplate.HashOperations.class);
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
 
         Cursor<Map.Entry<Object, Object>> emptyCursor = mock(Cursor.class);

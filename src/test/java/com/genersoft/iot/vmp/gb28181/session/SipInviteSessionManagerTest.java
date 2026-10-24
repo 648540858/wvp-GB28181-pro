@@ -3,40 +3,27 @@ package com.genersoft.iot.vmp.gb28181.session;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.local.InMemoryStore;
+import com.genersoft.iot.vmp.conf.local.LocalMsgBus;
+import com.genersoft.iot.vmp.conf.local.RedisTemplate;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 /**
  * 覆盖 #2216 的第 3 条根因：清理旧 Call-ID 时不得删掉已被新会话覆盖的 stream 索引。
+ *
+ * <p>测试直接使用单机模式的内存 Redis 门面（{@link InMemoryStore}），同时覆盖
+ * {@code execute(SessionCallback)} 在内存模式下的事务语义。</p>
  */
-@ExtendWith(MockitoExtension.class)
 class SipInviteSessionManagerTest {
 
     private static final String SERVER_ID = "test-server";
@@ -44,18 +31,6 @@ class SipInviteSessionManagerTest {
     private static final String STREAM = "34020000001320000001_34020000001320000001";
     private static final String OLD_CALL_ID = "old-call-id";
     private static final String NEW_CALL_ID = "new-call-id";
-
-    @Mock
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Mock
-    private HashOperations<String, Object, Object> hashOperations;
-
-    @Mock
-    private RedisOperations<String, Object> redisOperations;
-
-    /** 用内存 Map 模拟 Redis Hash，便于断言键是否真的被删除 */
-    private final Map<String, Map<Object, Object>> store = new HashMap<>();
 
     private SipInviteSessionManager sessionManager;
 
@@ -66,43 +41,9 @@ class SipInviteSessionManagerTest {
 
         sessionManager = new SipInviteSessionManager();
         ReflectionTestUtils.setField(sessionManager, "userSetting", userSetting);
-        ReflectionTestUtils.setField(sessionManager, "redisTemplate", redisTemplate);
-
-        lenient().when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        lenient().when(hashOperations.get(anyString(), any())).thenAnswer(
-                invocation -> bucket(invocation.getArgument(0)).get(invocation.getArgument(1)));
-        lenient().doAnswer(invocation -> {
-            bucket(invocation.getArgument(0)).put(invocation.getArgument(1), invocation.getArgument(2));
-            return null;
-        }).when(hashOperations).put(anyString(), any(), any());
-        lenient().when(hashOperations.delete(anyString(), any())).thenAnswer(invocation -> {
-            bucket(invocation.getArgument(0)).remove(invocation.getArgument(1));
-            return 1L;
-        });
-        lenient().when(hashOperations.values(anyString())).thenAnswer(invocation ->
-                new ArrayList<>(bucket(invocation.getArgument(0)).values()));
-
-        lenient().when(redisOperations.opsForHash()).thenReturn(hashOperations);
-        lenient().when(redisOperations.exec()).thenReturn(Collections.emptyList());
-        lenient().doNothing().when(redisOperations).multi();
-        lenient().doNothing().when(redisOperations).watch(anyString());
-        lenient().doNothing().when(redisOperations).unwatch();
-        lenient().when(redisTemplate.execute(any(SessionCallback.class))).thenAnswer(invocation -> {
-            SessionCallback<?> callback = invocation.getArgument(0);
-            return callback.execute(redisOperations);
-        });
-    }
-
-    private Map<Object, Object> bucket(String key) {
-        return store.computeIfAbsent(key, k -> new HashMap<>());
-    }
-
-    private String streamKey() {
-        return VideoManagerConstants.SIP_INVITE_SESSION_STREAM + SERVER_ID;
-    }
-
-    private String callIdKey() {
-        return VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + SERVER_ID;
+        // 未配置 Redis 时使用内存门面，覆盖 execute(SessionCallback) 的内存实现
+        ReflectionTestUtils.setField(sessionManager, "redisTemplate",
+                new RedisTemplate<String, Object>(new InMemoryStore(), new LocalMsgBus(), null));
     }
 
     private static SsrcTransaction transaction(String callId) {
@@ -128,7 +69,6 @@ class SipInviteSessionManagerTest {
         assertNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
         assertEquals(NEW_CALL_ID, sessionManager.getSsrcTransactionByCallId(NEW_CALL_ID).getCallId());
         assertEquals(NEW_CALL_ID, sessionManager.getSsrcTransactionByStream(APP, STREAM).getCallId());
-        assertTrue(bucket(streamKey()).containsKey(APP + STREAM));
     }
 
     @Test
@@ -139,7 +79,6 @@ class SipInviteSessionManagerTest {
 
         assertNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
         assertNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
-        assertFalse(bucket(streamKey()).containsKey(APP + STREAM));
     }
 
     @Test

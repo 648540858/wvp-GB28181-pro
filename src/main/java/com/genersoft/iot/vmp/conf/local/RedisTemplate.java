@@ -2,11 +2,16 @@ package com.genersoft.iot.vmp.conf.local;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.SessionCallback;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +43,105 @@ public class RedisTemplate<K, V> {
 
     public boolean isRedisMode() {
         return delegate != null;
+    }
+
+    /**
+     * 执行 Redis 事务回调。
+     *
+     * <p>redis 模式直接委托给 spring-data-redis，MULTI/WATCH/EXEC 行为与旧版一致；
+     * 内存模式在 {@link InMemoryStore#executeAtomically(java.util.function.Supplier)} 的写锁内执行回调，
+     * 让“先 watch 读取、再判断、最后提交”整个过程不被其他线程的写操作插入。</p>
+     *
+     * <p>内存模式只实现业务当前用到的命令（multi/exec/watch/unwatch/discard/opsForHash），
+     * 其他命令直接抛异常，避免出现“看似执行成功、实际未生效”的静默问题。</p>
+     */
+    public <T> T execute(SessionCallback<T> action) {
+        if (delegate != null) {
+            return delegate.execute(action);
+        }
+        return store.executeAtomically(() -> action.execute(memoryRedisOperations()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private RedisOperations<String, Object> memoryRedisOperations() {
+        return (RedisOperations<String, Object>) Proxy.newProxyInstance(
+                RedisOperations.class.getClassLoader(),
+                new Class<?>[]{RedisOperations.class},
+                this::invokeMemoryOperations);
+    }
+
+    private Object invokeMemoryOperations(Object proxy, Method method, Object[] args) {
+        if (method.getDeclaringClass() == Object.class) {
+            return invokeObjectMethod(proxy, method, args);
+        }
+        switch (method.getName()) {
+            case "multi":
+            case "watch":
+            case "unwatch":
+            case "discard":
+                // 回调本身已持有写锁，其他线程无法插入写操作，无需额外记录 watch 版本
+                return null;
+            case "exec":
+                return Collections.emptyList();
+            case "opsForHash":
+                return memoryHashOperations();
+            default:
+                throw new UnsupportedOperationException("内存模式暂不支持 RedisOperations." + method.getName());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private org.springframework.data.redis.core.HashOperations<String, Object, Object> memoryHashOperations() {
+        return (org.springframework.data.redis.core.HashOperations<String, Object, Object>) Proxy.newProxyInstance(
+                org.springframework.data.redis.core.HashOperations.class.getClassLoader(),
+                new Class<?>[]{org.springframework.data.redis.core.HashOperations.class},
+                this::invokeMemoryHashOperations);
+    }
+
+    private Object invokeMemoryHashOperations(Object proxy, Method method, Object[] args) {
+        if (method.getDeclaringClass() == Object.class) {
+            return invokeObjectMethod(proxy, method, args);
+        }
+        String key = args == null || args.length == 0 ? null : String.valueOf(args[0]);
+        switch (method.getName()) {
+            case "put":
+                store.hPut(key, args[1], args[2]);
+                return null;
+            case "putAll":
+                store.hPutAll(key, (Map<?, ?>) args[1]);
+                return null;
+            case "get":
+                return store.hGet(key, args[1]);
+            case "delete":
+                return store.hDelete(key, (Object[]) args[1]);
+            case "values":
+                return store.hValues(key);
+            case "entries":
+                return store.hEntries(key);
+            case "size":
+                return store.hSize(key);
+            case "multiGet":
+                return store.hMultiGet(key, (Collection<?>) args[1]);
+            case "scan":
+                ScanOptions scanOptions = (ScanOptions) args[1];
+                String pattern = scanOptions.getPattern() == null ? "*" : scanOptions.getPattern();
+                return new MemoryCursor(store.hScan(key, pattern), 0L);
+            default:
+                throw new UnsupportedOperationException("内存模式暂不支持 HashOperations." + method.getName());
+        }
+    }
+
+    private Object invokeObjectMethod(Object proxy, Method method, Object[] args) {
+        switch (method.getName()) {
+            case "equals":
+                return proxy == args[0];
+            case "hashCode":
+                return System.identityHashCode(proxy);
+            case "toString":
+                return "MemoryRedisOperations";
+            default:
+                return null;
+        }
     }
 
     public Object getConnectionFactory() {

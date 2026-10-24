@@ -34,11 +34,12 @@ services:
       WVP_HTTP_PORT: 18978
       # SIP 监听与展示
       SIP_IP: 0.0.0.0
-      SIP_ShowIP: ${SIP_ShowIP:-127.0.0.1}
-      SIP_Port: ${SIP_Port:-8116}
-      SIP_Domain: ${SIP_Domain:-3502000000}
-      SIP_Id: ${SIP_Id:-35020000002000000001}
-      SIP_Password: ${SIP_Password:-wvp_sip_password}
+      # 以下变量名需与 application-default.yml 中的占位符一致，值继续兼容旧的 .env 写法
+      SIP_SHOW_IP: ${SIP_ShowIP:-127.0.0.1}
+      SIP_PORT: ${SIP_Port:-8116}
+      SIP_DOMAIN: ${SIP_Domain:-3502000000}
+      SIP_ID: ${SIP_Id:-35020000002000000001}
+      SIP_PASSWORD: ${SIP_Password:-wvp_sip_password}
       # 播流/SDP 中使用的 IP，外部访问时改成本机对外 IP
       STREAM_IP: ${Stream_IP:-127.0.0.1}
       SDP_IP: ${SDP_IP:-127.0.0.1}

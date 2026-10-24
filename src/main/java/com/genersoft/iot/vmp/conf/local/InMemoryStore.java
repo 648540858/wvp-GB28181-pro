@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -29,6 +31,28 @@ public class InMemoryStore {
 
     private final Map<String, Entry> store = new ConcurrentHashMap<>();
 
+    /**
+     * 内存模式下的写锁。
+     *
+     * <p>单机模式没有 Redis 服务端事务，通过让所有写操作与 {@link #executeAtomically(Supplier)}
+     * 共用同一把可重入锁，模拟 MULTI/EXEC 的隔离效果：事务回调执行期间（先 watch 读取、再判断、
+     * 最后提交）不会插入其他线程的写操作，从而保留 {@code SipInviteSessionManager} 依赖的
+     * “仅当索引仍属于旧 Call-ID 时才删除”语义。</p>
+     */
+    private final ReentrantLock writeLock = new ReentrantLock();
+
+    /**
+     * 在写锁内执行一段逻辑，供 Redis 门面的事务回调使用。
+     */
+    public <T> T executeAtomically(Supplier<T> action) {
+        writeLock.lock();
+        try {
+            return action.get();
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     // ==================== key 操作 ====================
 
     public boolean hasKey(String key) {
@@ -37,9 +61,14 @@ public class InMemoryStore {
     }
 
     public void expire(String key, long timeout, TimeUnit unit) {
-        Entry entry = store.get(key);
-        if (entry != null && timeout > 0) {
-            entry.expireAt = System.currentTimeMillis() + unit.toMillis(timeout);
+        writeLock.lock();
+        try {
+            Entry entry = store.get(key);
+            if (entry != null && timeout > 0) {
+                entry.expireAt = System.currentTimeMillis() + unit.toMillis(timeout);
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -53,34 +82,49 @@ public class InMemoryStore {
     }
 
     public boolean delete(String key) {
-        purge(key);
-        return store.remove(key) != null;
+        writeLock.lock();
+        try {
+            purge(key);
+            return store.remove(key) != null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public long delete(Collection<String> keys) {
-        long count = 0;
-        for (String key : keys) {
-            if (store.remove(key) != null) {
-                count++;
+        writeLock.lock();
+        try {
+            long count = 0;
+            for (String key : keys) {
+                if (store.remove(key) != null) {
+                    count++;
+                }
             }
+            return count;
+        } finally {
+            writeLock.unlock();
         }
-        return count;
     }
 
     public Set<String> keys(String pattern) {
-        Pattern regex = globToRegex(pattern);
-        Set<String> result = new HashSet<>();
-        long now = System.currentTimeMillis();
-        for (Map.Entry<String, Entry> entry : store.entrySet()) {
-            if (entry.getValue().expireAt != NO_EXPIRE && entry.getValue().expireAt <= now) {
-                store.remove(entry.getKey());
-                continue;
+        writeLock.lock();
+        try {
+            Pattern regex = globToRegex(pattern);
+            Set<String> result = new HashSet<>();
+            long now = System.currentTimeMillis();
+            for (Map.Entry<String, Entry> entry : store.entrySet()) {
+                if (entry.getValue().expireAt != NO_EXPIRE && entry.getValue().expireAt <= now) {
+                    store.remove(entry.getKey());
+                    continue;
+                }
+                if (regex.matcher(entry.getKey()).matches()) {
+                    result.add(entry.getKey());
+                }
             }
-            if (regex.matcher(entry.getKey()).matches()) {
-                result.add(entry.getKey());
-            }
+            return result;
+        } finally {
+            writeLock.unlock();
         }
-        return result;
     }
 
     public List<String> scan(String pattern) {
@@ -88,8 +132,13 @@ public class InMemoryStore {
     }
 
     public void purgeExpired() {
-        long now = System.currentTimeMillis();
-        store.entrySet().removeIf(entry -> entry.getValue().expireAt != NO_EXPIRE && entry.getValue().expireAt <= now);
+        writeLock.lock();
+        try {
+            long now = System.currentTimeMillis();
+            store.entrySet().removeIf(entry -> entry.getValue().expireAt != NO_EXPIRE && entry.getValue().expireAt <= now);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     private void purge(String key) {
@@ -107,15 +156,25 @@ public class InMemoryStore {
     // ==================== string 操作 ====================
 
     public void set(String key, Object value) {
-        Entry entry = entry(key);
-        entry.data = value;
+        writeLock.lock();
+        try {
+            Entry entry = entry(key);
+            entry.data = value;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public void set(String key, Object value, long timeout, TimeUnit unit) {
-        Entry entry = entry(key);
-        entry.data = value;
-        if (timeout > 0) {
-            entry.expireAt = System.currentTimeMillis() + unit.toMillis(timeout);
+        writeLock.lock();
+        try {
+            Entry entry = entry(key);
+            entry.data = value;
+            if (timeout > 0) {
+                entry.expireAt = System.currentTimeMillis() + unit.toMillis(timeout);
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -125,11 +184,16 @@ public class InMemoryStore {
     }
 
     public Long increment(String key, long delta) {
-        Entry entry = entry(key);
-        synchronized (entry) {
-            long oldValue = entry.data instanceof Number number ? number.longValue() : 0L;
-            entry.data = oldValue + delta;
-            return (Long) entry.data;
+        writeLock.lock();
+        try {
+            Entry entry = entry(key);
+            synchronized (entry) {
+                long oldValue = entry.data instanceof Number number ? number.longValue() : 0L;
+                entry.data = oldValue + delta;
+                return (Long) entry.data;
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -145,7 +209,12 @@ public class InMemoryStore {
     }
 
     public void hPut(String key, Object hashKey, Object value) {
-        hash(key).put(hashKey, value);
+        writeLock.lock();
+        try {
+            hash(key).put(hashKey, value);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public Object hGet(String key, Object hashKey) {
@@ -158,17 +227,22 @@ public class InMemoryStore {
 
     @SuppressWarnings("unchecked")
     public long hDelete(String key, Object... hashKeys) {
-        Entry entry = entry(key);
-        if (!(entry.data instanceof Map)) {
-            return 0L;
-        }
-        long count = 0;
-        for (Object hashKey : hashKeys) {
-            if (((Map<Object, Object>) entry.data).remove(hashKey) != null) {
-                count++;
+        writeLock.lock();
+        try {
+            Entry entry = entry(key);
+            if (!(entry.data instanceof Map)) {
+                return 0L;
             }
+            long count = 0;
+            for (Object hashKey : hashKeys) {
+                if (((Map<Object, Object>) entry.data).remove(hashKey) != null) {
+                    count++;
+                }
+            }
+            return count;
+        } finally {
+            writeLock.unlock();
         }
-        return count;
     }
 
     public List<Object> hValues(String key) {
@@ -189,7 +263,12 @@ public class InMemoryStore {
     }
 
     public void hPutAll(String key, Map<?, ?> map) {
-        hash(key).putAll(map);
+        writeLock.lock();
+        try {
+            hash(key).putAll(map);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public long hSize(String key) {
@@ -219,8 +298,13 @@ public class InMemoryStore {
     }
 
     public boolean zAdd(String key, Object member, double score) {
-        zset(key).put(member, score);
-        return true;
+        writeLock.lock();
+        try {
+            zset(key).put(member, score);
+            return true;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public Double zScore(String key, Object member) {
@@ -250,36 +334,51 @@ public class InMemoryStore {
     }
 
     public Double zIncrementScore(String key, Object member, double delta) {
-        Map<Object, Double> map = zset(key);
-        synchronized (map) {
-            Double oldValue = map.get(member);
-            double newValue = (oldValue == null ? 0D : oldValue) + delta;
-            map.put(member, newValue);
-            return newValue;
+        writeLock.lock();
+        try {
+            Map<Object, Double> map = zset(key);
+            synchronized (map) {
+                Double oldValue = map.get(member);
+                double newValue = (oldValue == null ? 0D : oldValue) + delta;
+                map.put(member, newValue);
+                return newValue;
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 
     public long zRemove(String key, Object... members) {
-        Map<Object, Double> map = zset(key);
-        long count = 0;
-        for (Object member : members) {
-            if (map.remove(member) != null) {
-                count++;
+        writeLock.lock();
+        try {
+            Map<Object, Double> map = zset(key);
+            long count = 0;
+            for (Object member : members) {
+                if (map.remove(member) != null) {
+                    count++;
+                }
             }
+            return count;
+        } finally {
+            writeLock.unlock();
         }
-        return count;
     }
 
     public long zRemoveRangeByScore(String key, double min, double max) {
-        Map<Object, Double> map = zset(key);
-        long count = 0;
-        for (Map.Entry<Object, Double> entry : new ArrayList<>(map.entrySet())) {
-            if (entry.getValue() >= min && entry.getValue() <= max) {
-                map.remove(entry.getKey());
-                count++;
+        writeLock.lock();
+        try {
+            Map<Object, Double> map = zset(key);
+            long count = 0;
+            for (Map.Entry<Object, Double> entry : new ArrayList<>(map.entrySet())) {
+                if (entry.getValue() >= min && entry.getValue() <= max) {
+                    map.remove(entry.getKey());
+                    count++;
+                }
             }
+            return count;
+        } finally {
+            writeLock.unlock();
         }
-        return count;
     }
 
     public long zCard(String key) {
@@ -314,23 +413,43 @@ public class InMemoryStore {
     }
 
     public long lPush(String key, Object value) {
-        Deque<Object> deque = list(key);
-        deque.addFirst(value);
-        return deque.size();
+        writeLock.lock();
+        try {
+            Deque<Object> deque = list(key);
+            deque.addFirst(value);
+            return deque.size();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public long rPush(String key, Object value) {
-        Deque<Object> deque = list(key);
-        deque.addLast(value);
-        return deque.size();
+        writeLock.lock();
+        try {
+            Deque<Object> deque = list(key);
+            deque.addLast(value);
+            return deque.size();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public Object lPop(String key) {
-        return list(key).pollFirst();
+        writeLock.lock();
+        try {
+            return list(key).pollFirst();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public Object rPop(String key) {
-        return list(key).pollLast();
+        writeLock.lock();
+        try {
+            return list(key).pollLast();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     public long lSize(String key) {
@@ -342,10 +461,15 @@ public class InMemoryStore {
     }
 
     public void lTrim(String key, long start, long end) {
-        Deque<Object> deque = list(key);
-        List<Object> kept = slice(new ArrayList<>(deque), start, end);
-        deque.clear();
-        deque.addAll(kept);
+        writeLock.lock();
+        try {
+            Deque<Object> deque = list(key);
+            List<Object> kept = slice(new ArrayList<>(deque), start, end);
+            deque.clear();
+            deque.addAll(kept);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     // ==================== 通用工具 ====================

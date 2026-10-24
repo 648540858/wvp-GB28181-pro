@@ -43,7 +43,10 @@ public class PlatformStatusTaskRunner {
         PlatformRegisterTask take;
         while ((take = registerDelayQueue.poll()) != null) {
             try {
-                removeRegisterTask(take.getPlatformServerId());
+                // 同 id 可能已注册新任务，或被显式移除；仅清理本次出队到的任务实例
+                if (!removeRegisterTask(take.getPlatformServerId(), take)) {
+                    continue;
+                }
                 take.expired();
             }catch (Exception e) {
                 log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
@@ -55,7 +58,10 @@ public class PlatformStatusTaskRunner {
         PlatformKeepaliveTask take;
         while ((take = keepaliveTaskDelayQueue.poll()) != null) {
             try {
-                removeKeepAliveTask(take.getPlatformServerId());
+                // 同 id 可能已注册新任务，或被显式移除；仅清理本次出队到的任务实例
+                if (!removeKeepAliveTask(take.getPlatformServerId(), take)) {
+                    continue;
+                }
                 take.expired();
             }catch (Exception e) {
                 log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
@@ -79,8 +85,7 @@ public class PlatformStatusTaskRunner {
         if (task != null) {
             registerSubscribes.remove(platformServerId);
         }
-        String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), platformServerId);
-        redisTemplate.delete(redisKey);
+        deleteRegisterRedisKey(platformServerId);
         if (registerDelayQueue.contains(task)) {
             boolean remove = registerDelayQueue.remove(task);
             if (!remove) {
@@ -88,6 +93,23 @@ public class PlatformStatusTaskRunner {
             }
         }
         return true;
+    }
+
+    /**
+     * 仅当 map 中仍是本次到期任务实例时清理，避免误删同 id 的新任务
+     */
+    private boolean removeRegisterTask(String platformServerId, PlatformRegisterTask expected) {
+        if (expected == null || !registerSubscribes.remove(platformServerId, expected)) {
+            return false;
+        }
+        deleteRegisterRedisKey(platformServerId);
+        registerDelayQueue.remove(expected);
+        return true;
+    }
+
+    private void deleteRegisterRedisKey(String platformServerId) {
+        String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), platformServerId);
+        redisTemplate.delete(redisKey);
     }
 
     public SipTransactionInfo getRegisterTransactionInfo(String platformServerId) {
@@ -126,6 +148,17 @@ public class PlatformStatusTaskRunner {
                 log.info("[移除平台心跳任务] 从延时队列内移除失败： {}", platformServerId);
             }
         }
+        return true;
+    }
+
+    /**
+     * 仅当 map 中仍是本次到期任务实例时清理，避免误删同 id 的新任务
+     */
+    private boolean removeKeepAliveTask(String platformServerId, PlatformKeepaliveTask expected) {
+        if (expected == null || !keepaliveSubscribes.remove(platformServerId, expected)) {
+            return false;
+        }
+        keepaliveTaskDelayQueue.remove(expected);
         return true;
     }
 

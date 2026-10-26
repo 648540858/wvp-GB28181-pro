@@ -283,7 +283,15 @@ export default {
         })
     },
     showDetail(row) {
-      this.$router.push(`/cloudRecord/detail/${row.app}/${row.stream}`)
+      // 携带具体录像信息，详情页进入后可直接定位到该录像
+      this.$router.push({
+        name: 'CloudRecordDetail',
+        params: { app: row.app, stream: row.stream },
+        query: {
+          recordId: row.id,
+          startTime: row.startTime
+        }
+      })
     },
     deleteRecord() {
       this.$confirm(`确定删除选中的${this.multipleSelection.length}个文件?`, '提示', {

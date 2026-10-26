@@ -78,6 +78,8 @@ class CloudRecordSessionServiceImplTest {
         node.setSecret("synthetic-node-secret");
         lenient().when(mapper.queryOne(RECORD)).thenReturn(record);
         lenient().when(settings.getServerId()).thenReturn(SERVER);
+        lenient().when(settings.getCloudRecordSessionMax()).thenReturn(1024);
+        lenient().when(settings.getCloudRecordSessionPauseRetentionMs()).thenReturn(120_000L);
         lenient().when(media.getOne(node.getId())).thenReturn(node);
         lenient().doReturn(result(0)).when(zlm)
                 .loadMP4File(eq(node), eq(APP), anyString(), eq(FILE), anyLong());
@@ -452,6 +454,52 @@ class CloudRecordSessionServiceImplTest {
         verifyNoMoreInteractions(mapper);
         assertCode(404, () -> service.get(USER, a.getSessionId()));
         assertCode(404, () -> service.get(USER, b.getSessionId()));
+    }
+
+    /** 达到配置容量后返回429，关闭释放容量后可以继续创建。 */
+    @Test
+    void capacityLimitReturns429AndReleasesAfterClose() {
+        when(settings.getCloudRecordSessionMax()).thenReturn(1);
+        CloudRecordSessionServiceImpl limited =
+                new CloudRecordSessionServiceImpl(mapper, media, zlm, settings, clock);
+        CloudRecordSessionContent created = limited.create(USER, RECORD, 0, null);
+
+        assertCode(429, () -> limited.create(USER, RECORD, 0, null));
+        verify(zlm, times(1)).loadMP4File(node, APP, created.getPlayback().getStream(), FILE, 0L);
+
+        limited.close(USER, created.getSessionId());
+        assertDoesNotThrow(() -> limited.create(USER, RECORD, 0, null));
+        verify(zlm, times(2)).loadMP4File(eq(node), eq(APP), anyString(), eq(FILE), eq(0L));
+    }
+
+    /** 暂停保留时长来自配置，过期边界按配置生效而不是固定120秒。 */
+    @Test
+    void pauseRetentionUsesConfiguredDuration() {
+        when(settings.getCloudRecordSessionPauseRetentionMs()).thenReturn(1_000L);
+        CloudRecordSessionServiceImpl custom =
+                new CloudRecordSessionServiceImpl(mapper, media, zlm, settings, clock);
+        CloudRecordSessionContent created = custom.create(USER, RECORD, 0, null);
+        CloudRecordSessionContent paused = custom.pause(USER, created.getSessionId(), 1_000L);
+
+        assertEquals(clock.millis() + 1_000L, paused.getExpiresAt());
+        clock.advance(999L);
+        assertEquals(paused.getExpiresAt(), custom.get(USER, created.getSessionId()).getExpiresAt());
+        clock.advance(1L);
+        assertCode(404, () -> custom.get(USER, created.getSessionId()));
+    }
+
+    /** 会话关闭后索引同步清理，旧流离开事件不能影响新会话。 */
+    @Test
+    void departureAfterCloseDoesNotAffectNewSession() {
+        CloudRecordSessionContent first = service.create(USER, RECORD, 0, null);
+        String firstStream = first.getPlayback().getStream();
+        service.close(USER, first.getSessionId());
+        CloudRecordSessionContent second = service.create(USER, RECORD, 0, null);
+
+        service.onMediaDeparture(departure(node, APP, firstStream, "rtsp"));
+
+        assertEquals(second.getPlayback().getStream(),
+                service.get(USER, second.getSessionId()).getPlayback().getStream());
     }
 
     /** 创建可配置返回码的媒体响应，避免在断言中依赖原始错误字符串。 */

@@ -36,9 +36,9 @@ import java.util.concurrent.Semaphore;
 @Slf4j
 @Service
 public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService {
-    private static final long RETENTION_MS = 120_000L;
+    private static final long DEFAULT_RETENTION_MS = 120_000L;
     private static final long MAX_SEEK_MS = 0xffff_ffffL;
-    private static final int MAX_SESSIONS = 1024;
+    private static final int DEFAULT_MAX_SESSIONS = 1024;
     private static final String APP = MediaStreamUtil.LOAD_MP4_APP;
 
     private final CloudRecordServiceMapper recordMapper;
@@ -46,8 +46,10 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
     private final ZLMRESTfulUtils zlm;
     private final UserSetting userSetting;
     private final Clock clock;
+    private final long retentionMs;
     private final ConcurrentMap<String, Session> sessions = new ConcurrentHashMap<>();
-    private final Semaphore capacity = new Semaphore(MAX_SESSIONS);
+    private final ConcurrentMap<String, Session> sessionsByStream = new ConcurrentHashMap<>();
+    private final Semaphore capacity;
 
     /** 使用现有录像索引、媒体节点和ZLM客户端，不增加数据库表或设备控制链。 */
     @Autowired
@@ -66,6 +68,11 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
         this.zlm = zlm;
         this.userSetting = userSetting;
         this.clock = clock;
+        Integer maxSessions = userSetting.getCloudRecordSessionMax();
+        this.capacity = new Semaphore(maxSessions == null || maxSessions <= 0
+                ? DEFAULT_MAX_SESSIONS : maxSessions);
+        Long retention = userSetting.getCloudRecordSessionPauseRetentionMs();
+        this.retentionMs = retention == null || retention <= 0 ? DEFAULT_RETENTION_MS : retention;
     }
 
     /** 校验录像归属后只在原节点加载文件，节点不可用时不盲目切换文件路径。 */
@@ -91,13 +98,15 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
         Session session = new Session(userId, record, node, streamHost);
         validatePosition(session, positionMs);
         if (!capacity.tryAcquire()) {
-            throw new ControllerException(ErrorCode.ERROR486);
+            throw new ControllerException(ErrorCode.ERROR429);
         }
         synchronized (session) {
             // 先持有会话锁再发布，防止清扫器抢先看到尚未初始化的过期时间。
             sessions.put(session.id, session);
             try {
                 load(session, positionMs);
+                log.info("[云录像会话] 创建, session={}, recordId={}, positionMs={}",
+                        session.id, cloudRecordId, positionMs);
                 return content(session);
             } catch (RuntimeException error) {
                 // 加载失败仍保留未确认关闭的流身份，清扫器可再次精确清理。
@@ -130,7 +139,7 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
             validatePosition(session, positionMs);
             if (session.paused) {
                 session.positionMs = positionMs;
-                session.expiresAt = clock.millis() + RETENTION_MS;
+                session.expiresAt = clock.millis() + retentionMs;
             } else {
                 stopMedia(session);
                 load(session, positionMs);
@@ -149,7 +158,7 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
             stopMedia(session);
             session.positionMs = positionMs;
             session.paused = true;
-            session.expiresAt = clock.millis() + RETENTION_MS;
+            session.expiresAt = clock.millis() + retentionMs;
             return content(session);
         }
     }
@@ -179,6 +188,7 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
             if (sessions.get(sessionId) == session) {
                 stopMedia(session);
                 remove(session);
+                log.info("[云录像会话] 关闭, session={}", sessionId);
             }
         }
     }
@@ -187,20 +197,22 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
     @Async
     @EventListener
     public void onMediaDeparture(MediaDepartureEvent event) {
-        if (!APP.equals(event.getApp()) || event.getMediaServer() == null
+        if (!APP.equals(event.getApp()) || event.getMediaServer() == null || event.getStream() == null
                 || (event.getSchema() != null && !"rtsp".equals(event.getSchema()))) {
             return;
         }
-        for (Session session : sessions.values()) {
-            synchronized (session) {
-                if (event.getStream().equals(session.stream)
-                        && event.getMediaServer().getId().equals(session.node.getId())) {
-                    session.stream = null;
-                    session.playback = null;
-                    remove(session);
-                    return;
-                }
+        Session session = sessionsByStream.get(streamKey(event.getMediaServer(), event.getStream()));
+        if (session == null) {
+            return;
+        }
+        synchronized (session) {
+            if (!event.getStream().equals(session.stream)
+                    || !event.getMediaServer().getId().equals(session.node.getId())) {
+                return;
             }
+            remove(session);
+            session.stream = null;
+            session.playback = null;
         }
     }
 
@@ -214,7 +226,8 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
                         stopMedia(session);
                         remove(session);
                     } catch (RuntimeException error) {
-                        log.warn("[云录像会话] 过期清理未完成，将重试，session={}", session.id);
+                        log.warn("[云录像会话] 过期清理未完成，将重试，session={}, reason={}",
+                                session.id, reason(error));
                     }
                 }
             }
@@ -228,7 +241,7 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
             try {
                 close(session.userId, session.id);
             } catch (RuntimeException error) {
-                log.warn("[云录像会话] 停机清理未完成，session={}", session.id);
+                log.warn("[云录像会话] 停机清理未完成，session={}, reason={}", session.id, reason(error));
             }
         }
     }
@@ -240,7 +253,8 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
         session.playback = null;
         session.paused = true;
         session.positionMs = positionMs;
-        session.expiresAt = clock.millis() + RETENTION_MS;
+        session.expiresAt = clock.millis() + retentionMs;
+        sessionsByStream.put(streamKey(session.node, stream), session);
         try {
             checkResult(zlm.loadMP4File(session.node, APP, stream, session.record.getFilePath(), positionMs));
             StreamInfo info = mediaService.getStreamInfoByAppAndStream(session.node, APP, stream,
@@ -251,8 +265,10 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
             info.setDuration((double) session.durationMs);
             session.playback = new StreamContent(info);
             session.paused = false;
-            session.expiresAt = clock.millis() + session.durationMs - positionMs + RETENTION_MS;
+            session.expiresAt = clock.millis() + session.durationMs - positionMs + retentionMs;
         } catch (RuntimeException error) {
+            log.warn("[云录像会话] 加载失败, session={}, recordId={}, stream={}, reason={}",
+                    session.id, session.record.getId(), stream, reason(error));
             try {
                 stopMedia(session);
             } catch (RuntimeException cleanupError) {
@@ -265,10 +281,18 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
 
     /** 只关闭服务端生成的精确app和stream；成功前保留身份，禁止通配关闭。 */
     private void stopMedia(Session session) {
-        if (session.stream == null) {
+        String stream = session.stream;
+        if (stream == null) {
             return;
         }
-        checkResult(zlm.closeStreams(session.node, APP, session.stream));
+        try {
+            checkResult(zlm.closeStreams(session.node, APP, stream));
+        } catch (RuntimeException error) {
+            log.warn("[云录像会话] 关闭媒体源失败, session={}, stream={}, reason={}",
+                    session.id, stream, reason(error));
+            throw error;
+        }
+        sessionsByStream.remove(streamKey(session.node, stream), session);
         session.stream = null;
         session.playback = null;
     }
@@ -318,9 +342,25 @@ public class CloudRecordSessionServiceImpl implements ICloudRecordSessionService
 
     /** 条件删除只释放一次容量，迟到事件不能重复释放或删除替代会话。 */
     private void remove(Session session) {
-        if (sessions.remove(session.id, session)) {
+        boolean removed = sessions.remove(session.id, session);
+        String stream = session.stream;
+        if (stream != null) {
+            sessionsByStream.remove(streamKey(session.node, stream), session);
+        }
+        if (removed) {
             capacity.release();
         }
+    }
+
+    /** 媒体流索引由节点、应用和流名组成，迟到事件只能命中当前源。 */
+    private static String streamKey(MediaServer node, String stream) {
+        return node.getId() + "/" + APP + "/" + stream;
+    }
+
+    /** 对外错误只保留业务分类，避免ZLM路径或响应体进入日志。 */
+    private static String reason(RuntimeException error) {
+        return error instanceof ControllerException controllerError
+                ? controllerError.getMsg() : error.getClass().getSimpleName();
     }
 
     /** 显式构造安全响应，只复用已有StreamContent媒体地址契约。 */

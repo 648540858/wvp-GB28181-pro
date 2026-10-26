@@ -44,42 +44,42 @@ public class CloudRecordSessionController {
     /** 查询会话而不延长暂停或失联会话的生存时间。 */
     @GetMapping("/{sessionId}")
     @Operation(summary = "查询独立观看会话")
-    @Parameter(name = "sessionId", description = "创建时返回的会话ID", required = true)
-    public CloudRecordSessionContent get(@PathVariable String sessionId) {
+    public CloudRecordSessionContent get(
+            @Parameter(description = "创建时返回的会话ID", required = true) @PathVariable String sessionId) {
         return sessionService.get(currentUserId(), sessionId);
     }
 
     /** 定位当前会话，播放中返回新媒体地址，暂停中仅改变保存的位置。 */
     @PostMapping("/{sessionId}/seek")
     @Operation(summary = "定位独立观看会话")
-    @Parameter(name = "sessionId", description = "创建时返回的会话ID", required = true)
-    public CloudRecordSessionContent seek(@PathVariable String sessionId,
-                                          @RequestBody CloudRecordSessionRequest param) {
+    public CloudRecordSessionContent seek(
+            @Parameter(description = "创建时返回的会话ID", required = true) @PathVariable String sessionId,
+            @RequestBody CloudRecordSessionRequest param) {
         return sessionService.seek(currentUserId(), sessionId, requiredPosition(param));
     }
 
     /** 使用调用方实际播放位置暂停，不把媒体倍速零当作暂停协议。 */
     @PostMapping("/{sessionId}/pause")
     @Operation(summary = "保存实际播放位置并暂停独立会话")
-    @Parameter(name = "sessionId", description = "创建时返回的会话ID", required = true)
-    public CloudRecordSessionContent pause(@PathVariable String sessionId,
-                                           @RequestBody CloudRecordSessionRequest param) {
+    public CloudRecordSessionContent pause(
+            @Parameter(description = "创建时返回的会话ID", required = true) @PathVariable String sessionId,
+            @RequestBody CloudRecordSessionRequest param) {
         return sessionService.pause(currentUserId(), sessionId, requiredPosition(param));
     }
 
     /** 从暂停位置重新加载同一文件，只为当前会话建立媒体源。 */
     @PostMapping("/{sessionId}/resume")
     @Operation(summary = "恢复独立观看会话")
-    @Parameter(name = "sessionId", description = "创建时返回的会话ID", required = true)
-    public CloudRecordSessionContent resume(@PathVariable String sessionId) {
+    public CloudRecordSessionContent resume(
+            @Parameter(description = "创建时返回的会话ID", required = true) @PathVariable String sessionId) {
         return sessionService.resume(currentUserId(), sessionId);
     }
 
     /** 幂等释放当前观看会话，不调用设备BYE或删除录像文件。 */
     @DeleteMapping("/{sessionId}")
     @Operation(summary = "关闭独立观看会话")
-    @Parameter(name = "sessionId", description = "创建时返回的会话ID", required = true)
-    public void close(@PathVariable String sessionId) {
+    public void close(
+            @Parameter(description = "创建时返回的会话ID", required = true) @PathVariable String sessionId) {
         sessionService.close(currentUserId(), sessionId);
     }
 

@@ -746,12 +746,15 @@ public class ZLMRESTfulUtils {
         }
     }
 
-    /** 保持既有文件加载参数，仅独立会话入口启用定位和自动关闭选项。 */
+    /** 保持既有文件加载参数，仅独立会话入口启用定位和资源控制选项。 */
     public ZLMResult<?> loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
         return loadMP4File(mediaServer, app, stream, datePath, null);
     }
 
-    /** 为独立文件会话在创建时定位，并关闭无人观看和重复录制的资源占用。 */
+    /**
+     * 为独立文件会话在创建时定位，并禁用重复生成MP4。
+     * 无人观看自动关闭由ZLM对该接口固定开启，不通过参数控制。
+     */
     public ZLMResult<?> loadMP4File(MediaServer mediaServer, String app, String stream, String datePath,
                                    Long positionMs) {
         Map<String, Object> param = new HashMap<>(1);
@@ -762,7 +765,6 @@ public class ZLMRESTfulUtils {
         param.put("file_repeat", "0");
         if (positionMs != null) {
             param.put("seek_ms", positionMs);
-            param.put("auto_close", "1");
             param.put("enable_mp4", "0");
             param.put("enable_rtsp", "1");
             param.put("enable_fmp4", "1");

@@ -6,6 +6,9 @@
         <span v-if="!writable" class="card-tip">
           <i class="el-icon-warning-outline" /> 当前配置文件不可写，仅可查看
         </span>
+        <div class="header-actions">
+          <restart-tag-toggle v-model="restartTagVisible" :disabled="restartFieldKeys.length === 0" />
+        </div>
       </div>
 
       <el-form
@@ -116,10 +119,11 @@
 
 <script>
 import RestartFieldLabel from './components/RestartFieldLabel.vue'
+import RestartTagToggle from './components/RestartTagToggle.vue'
 
 export default {
   name: 'WebServerConfig',
-  components: { RestartFieldLabel },
+  components: { RestartFieldLabel, RestartTagToggle },
   data() {
     const validatePort = (rule, value, callback) => {
       if (value === null || value === undefined || value === '') {
@@ -163,6 +167,7 @@ export default {
       },
       // 后端标识的“需重启才能生效”字段
       restartFieldKeys: [],
+      restartTagVisible: false,
       rules: {
         port: [{ validator: validatePort, trigger: 'blur' }],
         sslCertificate: [{ validator: requiredWhenSsl, trigger: 'blur' }],
@@ -187,9 +192,9 @@ export default {
     urlAffected() {
       return this.form.port !== this.runtime.port || this.form.sslEnabled !== this.runtime.sslEnabled
     },
-    // 后端未返回字段列表时不展示重启标签
+    // 后端未返回字段列表或不显示重启标识时不展示重启标签
     showRestartTags() {
-      return this.restartFieldKeys.length > 0
+      return this.restartFieldKeys.length > 0 && this.restartTagVisible
     }
   },
   created() {
@@ -375,6 +380,10 @@ export default {
 .card-tip {
   font-size: 12px;
   color: #e6a23c;
+}
+
+.header-actions {
+  margin-left: auto;
 }
 
 .meta-row {

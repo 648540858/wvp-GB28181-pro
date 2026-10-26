@@ -7,6 +7,7 @@
           <i class="el-icon-warning-outline" /> 当前配置文件不可写，仅可查看
         </span>
         <div class="header-actions">
+          <restart-tag-toggle v-model="restartTagVisible" :disabled="restartFieldKeys.length === 0" />
           <el-button size="mini" @click="toggleAll">{{ allExpanded ? '全部收起' : '全部展开' }}</el-button>
         </div>
       </div>
@@ -16,15 +17,11 @@
           <el-form label-width="240px" class="config-form" @submit.native.prevent>
             <el-form-item v-for="field in group.fields" :key="field.key" :label="field.label">
               <template slot="label">
-                <span>{{ field.label }}</span>
-                <el-tag
-                  v-if="restartFieldKeys.length"
-                  size="mini"
-                  class="restart-tag"
-                  :type="isRestartField(field.key) ? 'warning' : 'success'"
-                >
-                  {{ isRestartField(field.key) ? '重启' : '即时' }}
-                </el-tag>
+                <restart-field-label
+                  :text="field.label"
+                  :required="isRestartField(field.key)"
+                  :show="showRestartTags"
+                />
               </template>
               <el-switch
                 v-if="field.type === 'switch'"
@@ -115,6 +112,8 @@
 <script>
 import configPanelMixin from './configPanelMixin'
 import TagListInput from './components/TagListInput.vue'
+import RestartFieldLabel from './components/RestartFieldLabel.vue'
+import RestartTagToggle from './components/RestartTagToggle.vue'
 
 function emptyForm() {
   return {
@@ -180,7 +179,7 @@ function emptyForm() {
 
 export default {
   name: 'UserSettingConfig',
-  components: { TagListInput },
+  components: { TagListInput, RestartFieldLabel, RestartTagToggle },
   mixins: [configPanelMixin],
   data() {
     return {
@@ -194,6 +193,7 @@ export default {
       saved: emptyForm(),
       alarmTypes: [],
       restartFieldKeys: [],
+      restartTagVisible: false,
       activeGroups: ['基础配置'],
       groups: [
         {
@@ -289,6 +289,10 @@ export default {
     },
     allExpanded() {
       return this.activeGroups.length === this.groups.length
+    },
+    // 后端未返回字段列表或不显示重启标识时不展示重启标签
+    showRestartTags() {
+      return this.restartFieldKeys.length > 0 && this.restartTagVisible
     }
   },
   created() {
@@ -503,6 +507,9 @@ export default {
 }
 
 .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
 }
 
@@ -535,15 +542,6 @@ export default {
   margin-left: 12px;
   font-size: 12px;
   color: #909399;
-}
-
-.restart-tag {
-  margin-left: 6px;
-  padding: 0 4px;
-  height: 16px;
-  line-height: 16px;
-  font-size: 10px;
-  border-radius: 3px;
 }
 
 .save-bar {

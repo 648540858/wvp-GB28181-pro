@@ -6,6 +6,9 @@
         <span v-if="!writable" class="card-tip">
           <i class="el-icon-warning-outline" /> 当前配置文件不可写，仅可查看
         </span>
+        <div class="header-actions">
+          <restart-tag-toggle v-model="restartTagVisible" :disabled="restartFieldKeys.length === 0" />
+        </div>
       </div>
 
       <el-form
@@ -187,6 +190,7 @@
 <script>
 import configPanelMixin from './configPanelMixin'
 import RestartFieldLabel from './components/RestartFieldLabel.vue'
+import RestartTagToggle from './components/RestartTagToggle.vue'
 
 function emptyForm() {
   return {
@@ -203,7 +207,7 @@ function emptyForm() {
 
 export default {
   name: 'SipServerConfig',
-  components: { RestartFieldLabel },
+  components: { RestartFieldLabel, RestartTagToggle },
   mixins: [configPanelMixin],
   data() {
     const requiredNumber = (rule, value, callback) => {
@@ -255,6 +259,7 @@ export default {
       runtimeMonitorIps: [],
       // 后端标识的“需重启才能生效”字段
       restartFieldKeys: [],
+      restartTagVisible: false,
       rules: {
         id: [{ validator: validId, trigger: 'blur' }],
         domain: [{ validator: validDomain, trigger: 'blur' }],
@@ -270,9 +275,9 @@ export default {
     dirty() {
       return JSON.stringify(this.form) !== JSON.stringify(this.saved)
     },
-    // 后端未返回字段列表时不展示重启标签
+    // 后端未返回字段列表或不显示重启标识时不展示重启标签
     showRestartTags() {
-      return this.restartFieldKeys.length > 0
+      return this.restartFieldKeys.length > 0 && this.restartTagVisible
     }
   },
   created() {
@@ -404,6 +409,10 @@ export default {
 .card-tip {
   font-size: 12px;
   color: #e6a23c;
+}
+
+.header-actions {
+  margin-left: auto;
 }
 
 .meta-row {

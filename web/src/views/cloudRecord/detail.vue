@@ -23,7 +23,7 @@
             <!--            <el-button :disabled="!mediaServerId" size="mini" type="primary" icon="fa fa-cloud-download" style="margin: auto; margin-left: 12px " title="裁剪合并" @click="drawerOpen"></el-button>-->
           </div>
           <div class="record-list-box" style="height: calc(100vh - 170px); overflow: auto">
-            <ul v-if="detailFiles.length >0" v-infinite-scroll="infiniteScroll" class="infinite-list record-list">
+            <ul v-if="detailFiles.length >0" v-infinite-scroll="infiniteScroll" ref="recordList" class="infinite-list record-list">
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item">
                 <el-tag v-if="chooseFileIndex !== index" @click="chooseFile(index)">
                   <i class="el-icon-video-camera" />
@@ -47,7 +47,8 @@
       </div>
       <div id="playerBox" :style="playBoxStyle">
         <cloudRecordPlayer ref="cloudRecordPlayer" :showListCallback="sidebarControl" :showNextCallback="playNext"
-                             :showLastCallback="playLast" :lastDiable="lastBtnDiable" :nextDiable="nextBtnDiable" ></cloudRecordPlayer>
+                             :showLastCallback="playLast" :initial-show-sidebar="showSidebar"
+                             :lastDiable="lastBtnDiable" :nextDiable="nextBtnDiable" ></cloudRecordPlayer>
       </div>
     </div>
   </div>
@@ -69,7 +70,8 @@ export default {
   },
   data() {
     return {
-      showSidebar: false,
+      // 从具体录像的"详情"进入时默认展开左侧分段列表
+      showSidebar: !!this.$route.query.recordId,
       app: this.$route.params.app,
       stream: this.$route.params.stream,
       mediaServerId: null,
@@ -86,6 +88,9 @@ export default {
       playSpeed: 1,
       chooseFileIndex: null,
       queryDate: new Date(),
+      // 从列表"详情"跳转携带的录像信息，用于进入后直接定位
+      initRecordId: this.$route.query.recordId ? Number(this.$route.query.recordId) : null,
+      initStartTime: this.$route.query.startTime ? Number(this.$route.query.startTime) : null,
       currentPage: 1,
       count: 1000000, // TODO 分页导致滑轨视频有效值无法获取完全
       total: 0,
@@ -133,17 +138,16 @@ export default {
     }
   },
   created() {
+    this._locateKey = null
     document.addEventListener('mousemove', this.timeProcessMousemove)
     document.addEventListener('mouseup', this.timeProcessMouseup)
   },
   mounted() {
-    // 查询当年有视频的日期
-    this.getDateInYear(() => {
-      if (Object.values(this.dateFilesObj).length > 0) {
-        this.chooseDate = Object.values(this.dateFilesObj)[Object.values(this.dateFilesObj).length - 1]
-        this.dateChange()
-      }
-    })
+    this.applyLocateParams()
+  },
+  activated() {
+    // 页面会被 KeepAlive 缓存，同一路流再次进入时不会重新 mounted，只会触发 activated
+    this.applyLocateParams()
   },
   destroyed() {
     this.$destroy('recordVideoPlayer')
@@ -157,6 +161,78 @@ export default {
     },
     sidebarControl(status) {
       this.showSidebar = status
+    },
+    applyLocateParams() {
+      // 从云端录像列表点击"详情"进入时，携带 recordId/startTime，直接定位到对应录像
+      const key = `${this.$route.query.recordId || ''}|${this.$route.query.startTime || ''}|${this.$route.fullPath}`
+      if (this._locateKey === key) {
+        return
+      }
+      this._locateKey = key
+      if (!this.initRecordId && !this.initStartTime) {
+        // 非具体录像进入：保持原有逻辑，展示当月最后一天
+        this.initDefaultDate()
+        return
+      }
+      this.initLocateDate()
+    },
+    initDefaultDate() {
+      // 查询当年有视频的日期
+      this.getDateInYear(() => {
+        if (Object.values(this.dateFilesObj).length > 0) {
+          this.chooseDate = Object.values(this.dateFilesObj)[Object.values(this.dateFilesObj).length - 1]
+          this.dateChange()
+        }
+      })
+    },
+    initLocateDate() {
+      const target = new Date(this.initStartTime)
+      // 定位进入时展开左侧分段列表（复用缓存实例时 data 初始值不会重算，需要显式设置）
+      this.showSidebar = true
+      if (this.$refs.cloudRecordPlayer) {
+        this.$refs.cloudRecordPlayer.stopPLay()
+      }
+      this.streamInfo = null
+      this.chooseFileIndex = null
+      this.detailFiles = []
+      this.currentPage = 1
+      // 定位到的录像可能不在当前查询月份，需要先切到对应月份再刷新"有录像的日期"
+      if (target.getFullYear() !== this.queryDate.getFullYear() ||
+        target.getMonth() !== this.queryDate.getMonth()) {
+        this.queryDate = target
+      }
+      this.chooseDate = moment(this.initStartTime).format('YYYY-MM-DD')
+      this.getDateInYear(() => {
+        this.queryRecordDetails(() => {
+          this.locateRecord()
+        })
+      })
+    },
+    locateRecord() {
+      if (this.detailFiles.length === 0) {
+        this.$message.warning({ showClose: true, message: '未找到该录像，可能已被删除' })
+        return
+      }
+      let index = -1
+      if (this.initRecordId) {
+        index = this.detailFiles.findIndex(item => item.id === this.initRecordId)
+      }
+      // 按 id 未命中时用开始时间兜底
+      if (index === -1 && this.initStartTime) {
+        index = this.detailFiles.findIndex(item => Number(item.startTime) === this.initStartTime)
+      }
+      if (index === -1) {
+        this.$message.warning({ showClose: true, message: '未找到该录像，可能已被删除' })
+        return
+      }
+      this.chooseFile(index)
+      // 左侧列表滚动到定位的分段
+      this.$nextTick(() => {
+        const list = this.$refs.recordList
+        if (list && list.children && list.children[index]) {
+          list.children[index].scrollIntoView({ block: 'nearest' })
+        }
+      })
     },
     snap() {
       this.$refs.recordVideoPlayer.screenshot()
@@ -243,7 +319,7 @@ export default {
           this.total = data.total
           this.detailFiles = this.detailFiles.concat(data.list)
           const temp = new Set()
-          this.initTime = Number.parseInt(this.detailFiles[0].startTime)
+          this.initTime = this.detailFiles.length > 0 ? Number.parseInt(this.detailFiles[0].startTime) : null
           for (let i = 0; i < this.detailFiles.length; i++) {
             temp.add(this.detailFiles[i].mediaServerId)
             this.timeSegments.push({
@@ -270,6 +346,8 @@ export default {
     },
     chooseFile(index) {
       this.chooseFileIndex = index
+      this.lastBtnDiable = index - 1 <= 0
+      this.nextBtnDiable = index >= this.detailFiles.length - 1
       this.playRecord()
     },
     playRecord() {

@@ -12,6 +12,7 @@
     * [推流列表](_content/ability/push.md)
     * [拉流代理](_content/ability/proxy.md)
     * [云端录像](_content/ability/cloud_record.md)
+    * [云录像独立会话](_content/ability/cloud_record_sessions.md)
     * [节点管理](_content/ability/node_manager.md)
     * [通道管理](_content/ability/channel.md)
     * [国标级联](_content/ability/cascade2.md)

@@ -56,6 +56,16 @@ public class UserSetting {
     private String serverId = "000000";
 
     /**
+     * 云录像独立观看会话上限，按WVP实例计算，默认1024
+     */
+    private Integer cloudRecordSessionMax = 1024;
+
+    /**
+     * 云录像会话暂停后的保留时长，单位毫秒，默认120000
+     */
+    private Long cloudRecordSessionPauseRetentionMs = 120_000L;
+
+    /**
      * 行政区划信息文件,系统启动时会加载到系统里
      */
     private String civilCodeFile = "classpath:civilCode.csv";

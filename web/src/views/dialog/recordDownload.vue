@@ -116,7 +116,7 @@ export default {
           const progress = Number.parseFloat(streamInfo.progress)
           this.percentage = Number.isFinite(progress) ? Math.max(0, Math.min(99.9, Number((progress * 100).toFixed(1)))) : 0
           const duration = Number(streamInfo.downloadedDuration)
-          this.downloadedDuration = streamInfo.downloadedDuration != null && Number.isFinite(duration) && duration >= 0 ? duration : null
+          this.downloadedDuration = streamInfo.downloadedDuration !== null && streamInfo.downloadedDuration !== undefined && Number.isFinite(duration) && duration >= 0 ? duration : null
           const path = streamInfo.downLoadFilePath
           const file = path && (location.protocol === 'https:' ? path.httpsPath : path.httpPath)
           // 未带状态的旧版本继续按旧成品契约展示；新版本必须明确声明 completed。

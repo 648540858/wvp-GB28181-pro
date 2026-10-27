@@ -28,6 +28,9 @@ public interface IDialogTerminationService {
      */
     int stopDeviceByStream(Device device, DeviceChannel channel, String app, String stream);
 
+    /** 设备主动BYE仅确认原Call-ID的结束记录，不发送BYE或按逻辑流清理其他会话。 */
+    boolean confirmDeviceBye(String callId);
+
     /**
      * 停止平台侧事务。
      *

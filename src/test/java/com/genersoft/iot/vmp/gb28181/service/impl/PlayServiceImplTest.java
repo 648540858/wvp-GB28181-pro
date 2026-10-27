@@ -74,6 +74,7 @@ class PlayServiceImplTest {
     @InjectMocks
     private PlayServiceImpl playService;
 
+    /** 已注册下载确认媒体消失后结束原对话，但保留成品回调需要的Invite与保留期限。 */
     @Test
     void downloadDepartureShouldKeepInviteInfoUntilDownloadAddressIsReady() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -96,6 +97,7 @@ class PlayServiceImplTest {
                 eq(MediaStreamUtil.RTP_APP), eq(STREAM));
     }
 
+    /** 实时点播流注销仍立即清除Invite，不改为录像下载的保留语义。 */
     @Test
     void playDepartureShouldRemoveInviteInfoImmediately() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -112,6 +114,7 @@ class PlayServiceImplTest {
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
     }
 
+    /** 新下载尚未注册时，旧注销事件不能终止当前pending下载或删除其缓存。 */
     @Test
     void downloadDepartureWithoutStreamShouldPreservePendingInviteInfo() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -130,6 +133,7 @@ class PlayServiceImplTest {
                 dialogTerminationService, receiveRtpServerService);
     }
 
+    /** 同名下载被保留时，已注册回放确认无媒体仍必须结束回放，不误删下载。 */
     @Test
     void departureShouldCleanPlaybackSessionWhenDownloadIsRetainedWithSameStream() {
         InviteInfo playbackInviteInfo = downloadInviteInfo();
@@ -149,6 +153,7 @@ class PlayServiceImplTest {
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
     }
 
+    /** 创建时间已证明属于旧实例的注销不触发任何结束或保留窗口更新。 */
     @Test
     void staleDepartureShouldBeSkipped() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -163,6 +168,7 @@ class PlayServiceImplTest {
         verify(dialogTerminationService, never()).stopDeviceByStream(any(), any(), anyString(), anyString());
     }
 
+    /** 构造带当前创建时间的主协议注销事件。 */
     private MediaDepartureEvent departureEvent() {
         MediaDepartureEvent event = new MediaDepartureEvent(this);
         event.setApp(MediaStreamUtil.RTP_APP);
@@ -172,6 +178,7 @@ class PlayServiceImplTest {
         return event;
     }
 
+    /** 构造已建立媒体的下载会话，避免用pending掩盖已注册清理路径。 */
     private InviteInfo downloadInviteInfo() {
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(DEVICE_ID, CHANNEL_ID, STREAM, null, "mediaServer",
                 null, null, "UDP", InviteSessionType.DOWNLOAD, InviteSessionStatus.ok);

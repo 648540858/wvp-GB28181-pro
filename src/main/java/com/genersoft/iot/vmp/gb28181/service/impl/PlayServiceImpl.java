@@ -1053,7 +1053,12 @@ public class PlayServiceImpl implements IPlayService {
 
     /** 释放已注册或仍在等待注册的会话接收器，避免取消后留下超时任务和同名媒体。 */
     private void closeInviteReceiver(InviteInfo inviteInfo) {
-        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+        closeInviteReceiver(inviteInfo, false);
+    }
+
+    /** 正常下载结束须保留本轮MP4订阅；取消或失败才撤销它，不能把两种关闭混为一谈。 */
+    private void closeInviteReceiver(InviteInfo inviteInfo, boolean preserveDownloadCompletion) {
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && !preserveDownloadCompletion) {
             downloadAttempts.remove(inviteInfo.getStream());
             subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP,
                     inviteInfo.getStream(), inviteInfo.getMediaServerId()));
@@ -1068,7 +1073,7 @@ public class PlayServiceImpl implements IPlayService {
         if (mediaServer != null) {
             receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, inviteInfo.getStream());
         }
-        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && !preserveDownloadCompletion) {
             inviteStreamService.call(InviteSessionType.DOWNLOAD, inviteInfo.getChannelId(), inviteInfo.getStream(),
                     InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
         }
@@ -1327,10 +1332,26 @@ public class PlayServiceImpl implements IPlayService {
                                             || record.getStartTime() / 1000 < inviteInfo.getCreateTime() / 1000) {
                                         return;
                                     }
+                                    long requestedDuration = DateUtil.getDifference(startTime, endTime);
+                                    if (record.getTimeLen() < requestedDuration) {
+                                        List<StreamInfo> media = mediaServerService.getMediaList(mediaServer,
+                                                MediaStreamUtil.RTP_APP, stream, null);
+                                        if (media == null || !media.isEmpty()) {
+                                            // 媒体仍在发送或状态未知时，短切片不能使业务提前认定整次下载完成。
+                                            return;
+                                        }
+                                    }
                                     DownloadFileInfo path = mediaServerService.getDownloadFilePath(mediaServer, record);
                                     current.getStreamInfo().setDownLoadFilePath(path);
                                     current.getStreamInfo().setProgress(1.0);
                                     inviteStreamService.updateInviteInfo(current, java.util.concurrent.TimeUnit.MINUTES.toMillis(15));
+                                    inviteStreamService.setInviteInfoCleanTime(current, DOWNLOAD_INVITE_KEEP_MS);
+                                    // 一个MP4钩子可能只是切片；只有本文件实际媒体时长覆盖请求区间才主动收口设备。
+                                    if (record.getTimeLen() >= requestedDuration) {
+                                        dialogTerminationService.stopDeviceByStream(device, channel,
+                                                MediaStreamUtil.RTP_APP, stream);
+                                        receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, stream);
+                                    }
                                     downloadAttempts.remove(stream, attempt);
                                     subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, mediaServer.getId()));
                                 }
@@ -1454,10 +1475,17 @@ public class PlayServiceImpl implements IPlayService {
             BigDecimal totalCount = new BigDecimal((end - start) * 1000);
             BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
             double process = divide.doubleValue();
-            if (process > 0.999) {
-                process = 1.0;
+            // 时长到达边界仍需等待MP4封装，不能仅凭四舍五入的100%宣称文件已就绪。
+            inviteInfo.getStreamInfo().setProgress(Math.min(process, 0.99));
+            inviteStreamService.updateInviteInfo(inviteInfo);
+            if (duration >= (end - start) * 1000 && end > start) {
+                // 有足够媒体后主动结束原设备会话，促使持续连接的设备释放名额并封装MP4。
+                inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+                dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+                closeInviteReceiver(inviteInfo, true);
+                InviteInfo current = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+                return current != null && current.getStreamInfo() != null ? current.getStreamInfo() : inviteInfo.getStreamInfo();
             }
-            inviteInfo.getStreamInfo().setProgress(process);
         }
         inviteStreamService.updateInviteInfo(inviteInfo);
         return inviteInfo.getStreamInfo();
@@ -1489,6 +1517,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
+    /** 媒体节点离线时按原会话归属结束设备及平台对话，录像结束仍等待协议确认。 */
     @Override
     public void zlmServerOffline(MediaServer mediaServer) {
         // 处理正在向上推流的上级平台
@@ -1532,6 +1561,13 @@ public class PlayServiceImpl implements IPlayService {
                     }
                     DeviceChannel deviceChannel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
                     if (deviceChannel == null) {
+                        continue;
+                    }
+                    if (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD
+                            || ssrcTransaction.getType() == InviteSessionType.PLAYBACK) {
+                        // 媒体节点离线也必须保留设备终止凭据，不能走无确认的旧清理旁路。
+                        dialogTerminationService.stopDevice(device, deviceChannel,
+                                ssrcTransaction.getType(), ssrcTransaction.getStream());
                         continue;
                     }
                     cmder.streamByeCmd(device, deviceChannel.getDeviceId(),
@@ -1965,6 +2001,7 @@ public class PlayServiceImpl implements IPlayService {
         });
     }
 
+    /** 点播通道后读取媒体截图，并将播放或抓图结果传给调用方。 */
     @Override
     public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> errorCallback) {
         // 2016协议不支持直接获取国标通道的抓图， 只能通过点播的方式获取
@@ -2016,6 +2053,42 @@ public class PlayServiceImpl implements IPlayService {
 
 
 
+    /** 设备主动BYE已由协议入口确认；只关闭精确本轮录像，不再次向设备发送BYE。 */
+    @Override
+    public void handleDeviceRecordBye(SsrcTransaction transaction) {
+        if (transaction == null || transaction.getStream() == null
+                || (transaction.getType() != InviteSessionType.DOWNLOAD
+                && transaction.getType() != InviteSessionType.PLAYBACK)) {
+            return;
+        }
+        synchronized (playbackLifecycleLock(transaction.getStream())) {
+            SsrcTransaction current = sessionManager.getSsrcTransactionByStream(
+                    transaction.getApp(), transaction.getStream());
+            if (current == null || current.getSipTransactionInfo() == null
+                    || transaction.getSipTransactionInfo() == null
+                    || !Objects.equals(current.getSipTransactionInfo().getCallId(),
+                    transaction.getSipTransactionInfo().getCallId())) {
+                return;
+            }
+            InviteInfo invite = inviteStreamService.getInviteInfo(transaction.getType(),
+                    transaction.getChannelId(), transaction.getStream());
+            if (invite == null || invite.getSsrcInfo() == null
+                    || !Objects.equals(invite.getDeviceId(), transaction.getDeviceId())
+                    || !Objects.equals(invite.getMediaServerId(), transaction.getMediaServerId())
+                    || !Objects.equals(invite.getSsrcInfo().getSsrc(), transaction.getSsrc())) {
+                return;
+            }
+            if (transaction.getType() == InviteSessionType.DOWNLOAD) {
+                // MP4封装回调可能晚于设备BYE；接收器可以关闭，完成订阅与缓存不能提前撤销。
+                inviteStreamService.setInviteInfoCleanTime(invite, DOWNLOAD_INVITE_KEEP_MS);
+                closeInviteReceiver(invite, true);
+            } else {
+                inviteStreamService.removeInviteInfo(invite);
+                closeInviteReceiver(invite);
+            }
+        }
+    }
+
     /** 停止指定会话，终止 SIP 对话并释放尚未完成注册的媒体接收器。 */
     @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
@@ -2037,7 +2110,13 @@ public class PlayServiceImpl implements IPlayService {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
             int failed = dialogTerminationService.stopDevice(device, channel, type, stream);
             if (inviteInfo != null) {
-                inviteStreamService.removeInviteInfo(inviteInfo);
+                if (type == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null
+                        && inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                    // 完成结果独立于设备终止：SDK停止确认不得抹掉已经可下载的文件信息。
+                    inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+                } else {
+                    inviteStreamService.removeInviteInfo(inviteInfo);
+                }
             }
             if (type == InviteSessionType.PLAY) {
                 deviceChannelService.stopPlay(channel.getId());
@@ -2092,12 +2171,17 @@ public class PlayServiceImpl implements IPlayService {
 
         int failed = dialogTerminationService.stopDevice(device, channel,
                 inviteInfo.getType(), inviteInfo.getStream());
-        inviteStreamService.removeInviteInfo(inviteInfo);
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null) {
+            // MediaStatus 121先到、MP4完成钩子后到时，保留本轮结果等待文件封装，BYE仍立即发起。
+            inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+        } else {
+            inviteStreamService.removeInviteInfo(inviteInfo);
+        }
 
         if (inviteInfo.getType() == InviteSessionType.PLAY) {
             deviceChannelService.stopPlay(channel.getId());
         }
-        closeInviteReceiver(inviteInfo);
+        closeInviteReceiver(inviteInfo, inviteInfo.getType() == InviteSessionType.DOWNLOAD);
         if (failed > 0) {
             log.warn("[停止点播/回放/下载] {}/{} 有 {} 个 BYE 发送失败",
                     device.getDeviceId(), channel.getDeviceId(), failed);

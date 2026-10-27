@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.SipException;
+import javax.sip.ClientTransaction;
 import javax.sip.header.*;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
@@ -31,6 +32,9 @@ import java.text.ParseException;
 @Slf4j
 @Component
 public class SIPSender {
+
+    // 默认T1为500毫秒时，非INVITE事务Timer F约32秒；应用不能先于协议重传窗口遗忘BYE。
+    private static final long BYE_RESPONSE_TIMEOUT_MILLIS = 35_000L;
 
     @Autowired
     private SipLayer sipLayer;
@@ -56,7 +60,9 @@ public class SIPSender {
         transmitRequest(ip, message, errorEvent, okEvent, null);
     }
 
+    // BYE交给JAIN客户端事务重传和收尾，其余消息沿用原发送行为及应用超时。
     public void transmitRequest(String ip, Message message, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout) throws SipException {
+        boolean reliableBye = message instanceof Request && Request.BYE.equals(((Request) message).getMethod());
         ViaHeader viaHeader = (ViaHeader) message.getHeader(ViaHeader.NAME);
         String transport = "UDP";
         if (viaHeader == null) {
@@ -77,6 +83,11 @@ public class SIPSender {
         if (okEvent != null || errorEvent != null) {
 
             FromHeader fromHeader = (FromHeader) message.getHeader(FromHeader.NAME);
+            long responseTimeout = timeout == null ? sipConfig.getTimeout() : timeout;
+            if (reliableBye) {
+                // 自定义更长T1的部署仍可传更长timeout；这里只覆盖JAIN默认Timer F，不改全局SIP时钟。
+                responseTimeout = Math.max(responseTimeout, BYE_RESPONSE_TIMEOUT_MILLIS);
+            }
             SipEvent sipEvent = SipEvent.getInstance(key, eventResult -> {
                 sipSubscribe.removeSubscribe(key);
                 if(okEvent != null) {
@@ -87,7 +98,7 @@ public class SIPSender {
                 if (errorEvent != null) {
                     errorEvent.response(eventResult);
                 }
-            }), timeout == null ? sipConfig.getTimeout() : timeout);
+            }), responseTimeout);
             SipTransactionInfo sipTransactionInfo = new SipTransactionInfo();
             sipTransactionInfo.setFromTag(fromHeader.getTag());
             sipTransactionInfo.setCallId(callIdHeader.getCallId());
@@ -115,10 +126,18 @@ public class SIPSender {
                 SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
                 if (tcpSipProvider == null) {
                     log.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
+                    if (reliableBye) {
+                        throw new SipException("BYE发送失败，未找到TCP监听器");
+                    }
                     return;
                 }
                 if (message instanceof Request) {
-                    tcpSipProvider.sendRequest((Request) message);
+                    if (reliableBye) {
+                        ClientTransaction transaction = tcpSipProvider.getNewClientTransaction((Request) message);
+                        transaction.sendRequest();
+                    } else {
+                        tcpSipProvider.sendRequest((Request) message);
+                    }
                 } else if (message instanceof Response) {
                     tcpSipProvider.sendResponse((Response) message);
                 }
@@ -127,13 +146,24 @@ public class SIPSender {
                 SipProviderImpl sipProvider = sipLayer.getUdpSipProvider(ip);
                 if (sipProvider == null) {
                     log.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
+                    if (reliableBye) {
+                        throw new SipException("BYE发送失败，未找到UDP监听器");
+                    }
                     return;
                 }
                 if (message instanceof Request) {
-                    sipProvider.sendRequest((Request) message);
+                    if (reliableBye) {
+                        // 同一请求只建立一次事务；UDP重发由JAIN复用原Call-ID、CSeq和Via branch。
+                        ClientTransaction transaction = sipProvider.getNewClientTransaction((Request) message);
+                        transaction.sendRequest();
+                    } else {
+                        sipProvider.sendRequest((Request) message);
+                    }
                 } else if (message instanceof Response) {
                     sipProvider.sendResponse((Response) message);
                 }
+            } else if (reliableBye) {
+                throw new SipException("BYE发送失败，不支持的信令传输方式：" + transport);
             }
         }catch (SipException e) {
             sipSubscribe.removeSubscribe(key);

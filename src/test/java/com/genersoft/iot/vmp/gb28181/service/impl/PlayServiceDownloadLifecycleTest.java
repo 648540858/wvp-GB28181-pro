@@ -25,9 +25,12 @@ import com.genersoft.iot.vmp.media.event.hook.HookData;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -70,6 +73,7 @@ class PlayServiceDownloadLifecycleTest {
     @Mock private HookSubscribe subscribe;
     @Mock private UserSetting userSetting;
     @Mock private IRedisCatchStorage redisCatchStorage;
+    @Mock private ICloudRecordService cloudRecordService;
     @Mock private ErrorCallback<StreamInfo> callback;
     @Spy @InjectMocks private PlayServiceImpl playService;
 
@@ -222,6 +226,169 @@ class PlayServiceDownloadLifecycleTest {
         record.response(recordData(System.currentTimeMillis()));
         assertSame(file, current.getStreamInfo().getDownLoadFilePath());
         verify(dialogTerminationService).stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, STREAM);
+    }
+
+    /** 上游提前断流后封装的短文件只能作为部分结果，不能因媒体消失而变成成功。 */
+    @Test
+    void partialMp4AfterDepartureIsInterruptedAndRemainsReadable() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        record.response(partial);
+
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertTrue(result.getProgress() < 1);
+        assertSame(file, result.getDownLoadFilePath());
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+    }
+
+    /** 媒体正常覆盖申请区间且文件已封装时，才对外确认完整完成。 */
+    @Test
+    void completeMp4HasExplicitCompletedStatus() throws Exception {
+        startAndPublish().response(recordData(System.currentTimeMillis()));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(60.0, result.getDownloadedDuration());
+        assertEquals(1.0, result.getProgress());
+    }
+
+    /** 缓存过期后数据库中的短成品仍然是不完整结果，不能恢复成100%。 */
+    @Test
+    void storedPartialFileCannotBecomeCompletedAfterCacheLoss() throws Exception {
+        startAndPublish();
+        cache.clear();
+        stubStoredFile(27_392);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertTrue(result.getProgress() < 1);
+        assertSame(file, result.getDownLoadFilePath());
+        assertEquals(START, result.getStartTime());
+        assertEquals(END, result.getEndTime());
+    }
+
+    /** 缓存丢失不影响完整文件读取，数据库元数据足以重新验证覆盖范围。 */
+    @Test
+    void storedCompleteFileRemainsCompletedAfterCacheLoss() throws Exception {
+        startAndPublish();
+        cache.clear();
+        stubStoredFile(60_000);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(1.0, result.getProgress());
+    }
+
+    /** 升级前缓存里的旧100%必须纠正并持久化，后续轮询不能再误报完成。 */
+    @Test
+    void legacyCachedSuccessIsRevalidatedAgainstStoredFile() throws Exception {
+        startAndPublish();
+        StreamInfo old = cache.get(STREAM).getStreamInfo();
+        old.setDownloadStatus(null);
+        old.setProgress(1);
+        old.setDownLoadFilePath(file);
+        stubStoredFile(27_392);
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+        assertEquals("interrupted", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+    }
+
+    /** 不完整结果允许重新申请，上一轮迟到的完整文件不能覆盖新的接收会话。 */
+    @Test
+    void interruptedDownloadCanRestartWithoutReusingPartialFile() throws Exception {
+        HookSubscribe.Event oldRecord = startAndPublish();
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        oldRecord.response(partial);
+        startAndPublish();
+        StreamInfo replacement = cache.get(STREAM).getStreamInfo();
+        oldRecord.response(recordData(System.currentTimeMillis()));
+        assertEquals("downloading", replacement.getDownloadStatus());
+        assertNull(replacement.getDownLoadFilePath());
+        verify(cmder, times(2)).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1), any(), any(), eq(1000L), any());
+    }
+
+    /** Redis每次返回独立对象时，旧成功缓存的校验结果仍必须决定本轮是否重新发起。 */
+    @Test
+    void legacyRetryUsesRevalidatedRedisSnapshot() throws Exception {
+        startAndPublish();
+        StreamInfo old = cache.get(STREAM).getStreamInfo();
+        old.setDownloadStatus(null);old.setProgress(1);old.setDownLoadFilePath(file);
+        stubStoredFile(27_392);
+        doAnswer(invocation -> {
+            InviteInfo stored = cache.get(STREAM);
+            if (stored == null) return null;
+            InviteInfo copy = new InviteInfo();
+            org.springframework.beans.BeanUtils.copyProperties(stored, copy);
+            if (stored.getStreamInfo() != null) copy.setStreamInfo(stored.getStreamInfo().clone());
+            return copy;
+        }).when(invites).getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), STREAM);
+        startAndPublish();
+        assertEquals("downloading", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+        assertNull(cache.get(STREAM).getStreamInfo().getDownLoadFilePath());
+        verify(cmder, times(2)).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1), any(), any(), eq(1000L), any());
+    }
+
+    /** 少量封装误差只在源已经结束后容忍，活动源的短切片不能提前收口。 */
+    @Test
+    void nearBoundaryFileIsAcceptedOnlyAfterMediaEnds() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData nearEnd = recordData(System.currentTimeMillis());
+        nearEnd.getRecordInfo().setTimeLen(59_600);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(cache.get(STREAM).getStreamInfo()), List.of());
+        record.response(nearEnd);
+        assertNull(cache.get(STREAM).getStreamInfo().getDownLoadFilePath());
+        MediaDepartureEvent departure = new MediaDepartureEvent(this);
+        departure.setApp(MediaStreamUtil.RTP_APP);departure.setStream(STREAM);departure.setSchema("rtsp");departure.setMediaServer(media);
+        playService.onApplicationEvent(departure);
+        assertEquals("completed", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+    }
+
+    /** 部分MP4先于注销且只通知一次时，注销仍能生成可读取的不完整结果。 */
+    @Test
+    void partialFileBeforeDepartureIsRetainedWithoutDuplicateHook() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(cache.get(STREAM).getStreamInfo()), List.of());
+        record.response(partial);
+        MediaDepartureEvent departure = new MediaDepartureEvent(this);
+        departure.setApp(MediaStreamUtil.RTP_APP);departure.setStream(STREAM);departure.setSchema("rtsp");departure.setMediaServer(media);
+        playService.onApplicationEvent(departure);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertSame(file, result.getDownLoadFilePath());
+        assertEquals(27.392, result.getDownloadedDuration());
+    }
+
+    /** 不可信媒体钩子的非有限时长不能进入成功状态或输出非JSON数值。 */
+    @Test
+    void nonFiniteFileDurationCannotCompleteDownload() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData invalid = recordData(System.currentTimeMillis());
+        invalid.getRecordInfo().setTimeLen(Double.NaN);
+        record.response(invalid);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(0.0, result.getDownloadedDuration());
+        assertEquals(0.0, result.getProgress());
+    }
+
+    /** 模拟同一Call-ID持久化的单个MP4，保留毫秒单位和独立媒体节点归属。 */
+    private void stubStoredFile(double durationMillis) {
+        StreamAuthorityInfo authority = new StreamAuthorityInfo();
+        authority.setCallId("stored-download-call");
+        when(redisCatchStorage.getStreamAuthorityInfo(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(authority);
+        CloudRecordItem item = new CloudRecordItem();
+        item.setApp(MediaStreamUtil.RTP_APP);item.setStream(STREAM);item.setTimeLen(durationMillis);
+        item.setFileSize(100_000);item.setMediaServerId(media.getId());
+        when(cloudRecordService.getAllList(null, MediaStreamUtil.RTP_APP, STREAM, null, null, null, authority.getCallId(), null)).thenReturn(List.of(item));
+        when(mediaServerService.getOne(media.getId())).thenReturn(media);
     }
 
     /** 真实媒体时长覆盖区间后主动收口，文件钩子到来前进度不能假报完成。 */

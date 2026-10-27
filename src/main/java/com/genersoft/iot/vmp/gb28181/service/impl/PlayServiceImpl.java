@@ -75,8 +75,13 @@ public class PlayServiceImpl implements IPlayService {
     private final java.util.concurrent.ConcurrentMap<String, Object> playbackAttempts =
             new java.util.concurrent.ConcurrentHashMap<>();
     // 下载完成前保留本次身份；固定重启时间槽避免同秒 MP4 事件被挂到下一轮下载。
-    private final java.util.concurrent.ConcurrentMap<String, Object> downloadAttempts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentMap<String, DownloadAttempt> downloadAttempts = new java.util.concurrent.ConcurrentHashMap<>();
     private final long[] downloadRestartAfter = new long[64];
+
+    /** 同一轮下载的身份及提前到达的文件候选，仅在同流生命周期锁内访问。 */
+    private static class DownloadAttempt {
+        private RecordInfo pendingRecord;
+    }
 
     /**
      * 录像下载会话在流离开后的保留窗口（毫秒）。
@@ -295,6 +300,13 @@ public class PlayServiceImpl implements IPlayService {
                 if (isRetainedDownloadSession(inviteInfo)) {
                     // 录像下载：保留会话信息，等待 on_record_mp4 钩子写入下载地址。
                     // 提前删除会导致钩子取不到 InviteInfo，前端查询下载进度时拿不到 downLoadFilePath。
+                    markDownloadFinalizing(inviteInfo);
+                    DownloadAttempt attempt = downloadAttempts.get(event.getStream());
+                    if (attempt != null && attempt.pendingRecord != null) {
+                        // 单次MP4钩子可能先于注销到达；不能依赖媒体节点重复通知才能留下部分结果。
+                        finishDownloadFile(inviteInfo, attempt.pendingRecord, device, channel,
+                                inviteInfo.getStreamInfo().getMediaServer(), attempt);
+                    }
                     inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
                     log.info("[流离开] 录像下载会话保留 {} 分钟，等待写入下载地址: stream={}, deviceId={}, channelId={}",
                             DOWNLOAD_INVITE_KEEP_MS / (60 * 1000), event.getStream(),
@@ -1246,7 +1258,17 @@ public class PlayServiceImpl implements IPlayService {
         // 认领成功后二次确认，下载刚完成(已写入redis)时本线程直接复用，避免重复发起invite
         InviteInfo inviteInfoForConfirm = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
-                && InviteSessionStatus.ok.equals(inviteInfoForConfirm.getStatus())) {
+                && inviteInfoForConfirm.getStreamInfo().getDownloadStatus() == null
+                && (inviteInfoForConfirm.getStreamInfo().getDownLoadFilePath() != null
+                    || inviteInfoForConfirm.getStreamInfo().getProgress() == 1)) {
+            // 老版本缓存须先重新判定，否则用户重试仍会复用旧的短文件。
+            readDownloadInfo(device, channel, stream);
+            // Redis每次读取均可能反序列化为新对象，后续判断必须重新取得已纠正的快照。
+            inviteInfoForConfirm = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+        }
+        if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
+                && InviteSessionStatus.ok.equals(inviteInfoForConfirm.getStatus())
+                && !"interrupted".equals(inviteInfoForConfirm.getStreamInfo().getDownloadStatus())) {
             inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
                     InviteErrorCode.SUCCESS.getCode(),
                     InviteErrorCode.SUCCESS.getMsg(),
@@ -1256,7 +1278,14 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
-        Object attempt = new Object();
+        if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
+                && "interrupted".equals(inviteInfoForConfirm.getStreamInfo().getDownloadStatus())) {
+            // 已终止的部分结果不能挡住用户重试；同流锁和下一轮身份仍保护迟到钩子。
+            inviteStreamService.removeInviteInfo(inviteInfoForConfirm);
+            downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] =
+                    (System.currentTimeMillis() / 1000 + 1) * 1000;
+        }
+        DownloadAttempt attempt = new DownloadAttempt();
         downloadAttempts.put(stream, attempt);
         try {
             long restartDelay = downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] - System.currentTimeMillis();
@@ -1338,22 +1367,11 @@ public class PlayServiceImpl implements IPlayService {
                                                 MediaStreamUtil.RTP_APP, stream, null);
                                         if (media == null || !media.isEmpty()) {
                                             // 媒体仍在发送或状态未知时，短切片不能使业务提前认定整次下载完成。
+                                            attempt.pendingRecord = record;
                                             return;
                                         }
                                     }
-                                    DownloadFileInfo path = mediaServerService.getDownloadFilePath(mediaServer, record);
-                                    current.getStreamInfo().setDownLoadFilePath(path);
-                                    current.getStreamInfo().setProgress(1.0);
-                                    inviteStreamService.updateInviteInfo(current, java.util.concurrent.TimeUnit.MINUTES.toMillis(15));
-                                    inviteStreamService.setInviteInfoCleanTime(current, DOWNLOAD_INVITE_KEEP_MS);
-                                    // 一个MP4钩子可能只是切片；只有本文件实际媒体时长覆盖请求区间才主动收口设备。
-                                    if (record.getTimeLen() >= requestedDuration) {
-                                        dialogTerminationService.stopDeviceByStream(device, channel,
-                                                MediaStreamUtil.RTP_APP, stream);
-                                        receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, stream);
-                                    }
-                                    downloadAttempts.remove(stream, attempt);
-                                    subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, mediaServer.getId()));
+                                    finishDownloadFile(current, record, device, channel, mediaServer, attempt);
                                 }
                             };
                             Hook hook = Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, ssrcInfo.getStream(), mediaServer.getId());
@@ -1412,31 +1430,7 @@ public class PlayServiceImpl implements IPlayService {
     private StreamInfo readDownloadInfo(Device device, DeviceChannel channel, String stream) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfo == null) {
-            String app = MediaStreamUtil.RTP_APP;
-            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-            if (streamAuthorityInfo != null) {
-                List<CloudRecordItem> allList = cloudRecordService.getAllList(null, app, stream, null, null, null, streamAuthorityInfo.getCallId(), null);
-                if (allList.isEmpty()) {
-                    log.warn("[获取下载进度] 未查询到录像下载的信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                    return null;
-                }
-
-                String mediaServerId = allList.get(0).getMediaServerId();
-                MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
-                if (mediaServer == null) {
-                    log.warn("[获取下载进度] 未查询到录像下载的节点信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                    return null;
-                }
-                log.warn("[获取下载进度] 发现下载已经结束，直接从数据库获取到文件 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                DownloadFileInfo downloadFileInfo = mediaServerService.getDownloadFilePath(mediaServer, RecordInfo.getInstance(allList.get(0)));
-                StreamInfo streamInfo = new StreamInfo();
-                streamInfo.setDownLoadFilePath(downloadFileInfo);
-                streamInfo.setApp(app);
-                streamInfo.setStream(stream);
-                streamInfo.setServerId(mediaServerId);
-                streamInfo.setProgress(1.0);
-                return streamInfo;
-            }
+            return readStoredDownloadResult(device, channel, stream);
         }
 
         if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
@@ -1446,8 +1440,22 @@ public class PlayServiceImpl implements IPlayService {
 
         if (inviteInfo.getStreamInfo().getProgress() == 1
                 || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
-            // 下载已经结束（进度到 100% 或已拿到下载地址），直接返回缓存中的结果，
-            // 不再向媒体节点查询进度，避免流注销后进度被重置
+            if (inviteInfo.getStreamInfo().getDownloadStatus() == null) {
+                // 升级前的缓存缺少完整性证据，重新读取文件元数据，不能保留旧版假成功。
+                StreamInfo stored = readStoredDownloadResult(device, channel, stream);
+                if (stored != null) {
+                    inviteInfo.getStreamInfo().setDownloadStatus(stored.getDownloadStatus());
+                    inviteInfo.getStreamInfo().setDownloadedDuration(stored.getDownloadedDuration());
+                    inviteInfo.getStreamInfo().setProgress(stored.getProgress());
+                    inviteInfo.getStreamInfo().setDownLoadFilePath(stored.getDownLoadFilePath());
+                    inviteStreamService.updateInviteInfo(inviteInfo);
+                    return inviteInfo.getStreamInfo();
+                }
+                inviteInfo.getStreamInfo().setDownloadStatus("interrupted");
+                inviteInfo.getStreamInfo().setProgress(Math.min(inviteInfo.getStreamInfo().getProgress(), 0.99));
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
+            // 部分结果同样保留文件地址与终态，不因接收器消失而回落到零。
             return inviteInfo.getStreamInfo();
         }
 
@@ -1477,9 +1485,11 @@ public class PlayServiceImpl implements IPlayService {
             double process = divide.doubleValue();
             // 时长到达边界仍需等待MP4封装，不能仅凭四舍五入的100%宣称文件已就绪。
             inviteInfo.getStreamInfo().setProgress(Math.min(process, 0.99));
+            inviteInfo.getStreamInfo().setDownloadedDuration(duration / 1000.0);
             inviteStreamService.updateInviteInfo(inviteInfo);
             if (duration >= (end - start) * 1000 && end > start) {
                 // 有足够媒体后主动结束原设备会话，促使持续连接的设备释放名额并封装MP4。
+                markDownloadFinalizing(inviteInfo);
                 inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
                 dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
                 closeInviteReceiver(inviteInfo, true);
@@ -1491,10 +1501,94 @@ public class PlayServiceImpl implements IPlayService {
         return inviteInfo.getStreamInfo();
     }
 
+    /** 封装结束结果统一收口，MP4与注销任意先后顺序都只能处理本轮文件。 */
+    private void finishDownloadFile(InviteInfo current, RecordInfo record, Device device, DeviceChannel channel,
+                                    MediaServer media, DownloadAttempt attempt) {
+        String stream = current.getStream();
+        if (downloadAttempts.get(stream) != attempt || media == null) {
+            return;
+        }
+        StreamInfo info = current.getStreamInfo();
+        info.setDownLoadFilePath(mediaServerService.getDownloadFilePath(media, record));
+        applyDownloadFileResult(info, record, DateUtil.getDifference(info.getStartTime(), info.getEndTime()));
+        inviteStreamService.updateInviteInfo(current, DOWNLOAD_INVITE_KEEP_MS);
+        inviteStreamService.setInviteInfoCleanTime(current, DOWNLOAD_INVITE_KEEP_MS);
+        if ("completed".equals(info.getDownloadStatus()) && device != null && channel != null) {
+            dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+            receiveRtpServerService.closeRTPServer(media, MediaStreamUtil.RTP_APP, stream);
+        }
+        downloadAttempts.remove(stream, attempt);
+        subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, media.getId()));
+    }
+
+    /** 只有文件覆盖申请时长才能完成，封装边界误差最多两秒且不超过申请时长的1%。 */
+    private void applyDownloadFileResult(StreamInfo info, RecordInfo record, long requestedMillis) {
+        double actual = Double.isFinite(record.getTimeLen()) ? Math.max(0, record.getTimeLen()) : 0;
+        double tolerance = Math.min(2000, Math.max(0, requestedMillis) * 0.01);
+        boolean complete = requestedMillis > 0 && actual > 0 && record.getFileSize() > 0
+                && actual >= requestedMillis - tolerance;
+        info.setDownloadedDuration(actual / 1000.0);
+        info.setDownloadStatus(complete ? "completed" : "interrupted");
+        info.setProgress(complete ? 1 : requestedMillis > 0 ? Math.min(0.99, actual / requestedMillis) : 0);
+    }
+
+    /** 缓存丢失时依据本次Call-ID的单个成品恢复，不能把多个短切片拼算成一个完整文件。 */
+    private StreamInfo readStoredDownloadResult(Device device, DeviceChannel channel, String stream) {
+        String app = MediaStreamUtil.RTP_APP;
+        StreamAuthorityInfo authority = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+        if (authority == null || authority.getCallId() == null) {
+            return null;
+        }
+        List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, null, authority.getCallId(), null);
+        if (records == null || records.isEmpty()) {
+            return null;
+        }
+        CloudRecordItem item = records.get(0);
+        MediaServer media = mediaServerService.getOne(item.getMediaServerId());
+        if (media == null) {
+            return null;
+        }
+        StreamInfo info = new StreamInfo();
+        info.setApp(app);
+        info.setStream(stream);
+        info.setServerId(item.getMediaServerId());
+        RecordInfo record = RecordInfo.getInstance(item);
+        info.setDownLoadFilePath(mediaServerService.getDownloadFilePath(media, record));
+        long requestedMillis = 0;
+        String prefix = device.getDeviceId() + "_" + channel.getDeviceId() + "_";
+        if (stream.startsWith(prefix)) {
+            String[] interval = stream.substring(prefix.length()).split("_", -1);
+            if (interval.length == 2 && interval[0].matches("[0-9]{14}") && interval[1].matches("[0-9]{14}")) {
+                try {
+                    info.setStartTime(DateUtil.urlToyyyy_MM_dd_HH_mm_ss(interval[0]));
+                    info.setEndTime(DateUtil.urlToyyyy_MM_dd_HH_mm_ss(interval[1]));
+                    requestedMillis = DateUtil.getDifference(info.getStartTime(), info.getEndTime());
+                } catch (RuntimeException ex) {
+                    // 未知历史流名只能提供部分结果，不能凭文件存在宣称完整完成。
+                    requestedMillis = 0;
+                }
+            }
+        }
+        applyDownloadFileResult(info, record, requestedMillis);
+        return info;
+    }
+
+    /** 结束接收与文件封装是不同阶段，等待钩子时保留当前进度并标明封装中。 */
+    private void markDownloadFinalizing(InviteInfo invite) {
+        StreamInfo info = invite.getStreamInfo();
+        if (info != null && !"completed".equals(info.getDownloadStatus()) && !"interrupted".equals(info.getDownloadStatus())) {
+            info.setDownloadStatus("finalizing");
+            inviteStreamService.updateInviteInfo(invite);
+        }
+    }
+
+    /** 首次媒体到达时初始化下载状态和录像区间，供进度及成品判定共同使用。 */
     private StreamInfo onPublishHandlerForDownload(MediaServer mediaServerItemInuse, MediaInfo mediaInfo, Device device, DeviceChannel channel, String startTime, String endTime) {
         StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, mediaInfo, device, channel);
         if (streamInfo != null) {
             streamInfo.setProgress(0);
+            streamInfo.setDownloadStatus("downloading");
+            streamInfo.setDownloadedDuration(0.0);
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), streamInfo.getStream());
@@ -2079,6 +2173,7 @@ public class PlayServiceImpl implements IPlayService {
             }
             if (transaction.getType() == InviteSessionType.DOWNLOAD) {
                 // MP4封装回调可能晚于设备BYE；接收器可以关闭，完成订阅与缓存不能提前撤销。
+                markDownloadFinalizing(invite);
                 inviteStreamService.setInviteInfoCleanTime(invite, DOWNLOAD_INVITE_KEEP_MS);
                 closeInviteReceiver(invite, true);
             } else {
@@ -2172,6 +2267,7 @@ public class PlayServiceImpl implements IPlayService {
                 inviteInfo.getType(), inviteInfo.getStream());
         if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null) {
             // MediaStatus 121先到、MP4完成钩子后到时，保留本轮结果等待文件封装，BYE仍立即发起。
+            markDownloadFinalizing(inviteInfo);
             inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
         } else {
             inviteStreamService.removeInviteInfo(inviteInfo);

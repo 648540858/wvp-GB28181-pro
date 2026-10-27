@@ -83,6 +83,10 @@ public class StreamInfo implements Serializable, Cloneable{
     private Double duration;
     @Schema(description = "进度（录像下载使用）")
     private double progress;
+    @Schema(description = "录像下载状态：downloading、finalizing、completed、interrupted；文件存在不代表完整")
+    private String downloadStatus;
+    @Schema(description = "已接收或已封装的录像时长，单位秒")
+    private Double downloadedDuration;
     @Schema(description = "文件下载地址（录像下载使用）")
     private DownloadFileInfo downLoadFilePath;
     @Schema(description = "点播请求的callId")

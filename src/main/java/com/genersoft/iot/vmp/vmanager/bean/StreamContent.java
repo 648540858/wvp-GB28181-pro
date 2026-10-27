@@ -108,12 +108,19 @@ public class StreamContent {
 
     private double progress;
 
+    @Schema(description = "录像下载状态：downloading、finalizing、completed、interrupted")
+    private String downloadStatus;
+
+    @Schema(description = "已接收或已封装的录像时长，单位秒")
+    private Double downloadedDuration;
+
     @Schema(description = "拉流代理返回的KEY")
     private String key;
 
     @Schema(description = "使用的WVP ID")
     private String serverId;
 
+    /** 转换公开流信息，并保留下载完整性状态，避免HTTP出口只剩文件地址而误报成功。 */
     public StreamContent(StreamInfo streamInfo) {
         if (streamInfo == null) {
             return;
@@ -191,6 +198,8 @@ public class StreamContent {
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
+        this.downloadStatus = streamInfo.getDownloadStatus();
+        this.downloadedDuration = streamInfo.getDownloadedDuration();
         this.duration = streamInfo.getDuration();
         this.key = streamInfo.getKey();
         this.serverId = streamInfo.getServerId();

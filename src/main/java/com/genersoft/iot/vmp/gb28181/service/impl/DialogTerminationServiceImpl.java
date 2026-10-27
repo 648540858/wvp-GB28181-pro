@@ -227,6 +227,25 @@ public class DialogTerminationServiceImpl implements IDialogTerminationService {
         return failed;
     }
 
+    /** 节点离线只结束已识别的原Call-ID，不能把同流已迁到其他节点的新对话也纳入。 */
+    @Override
+    public boolean stopDeviceDialog(Device device, DeviceChannel channel, SsrcTransaction transaction) {
+        if (device == null || channel == null || transaction == null
+                || !matchesDevice(transaction, device, channel, null, null)
+                || !isRecordSession(transaction) || transaction.getSipTransactionInfo() == null
+                || (transaction.getSipTransactionInfo().getCallId() == null && transaction.getCallId() == null)) {
+            return false;
+        }
+        if (!requestRecordClose(device, channel.getDeviceId(), transaction)) {
+            return false;
+        }
+        String storedCallId = transaction.getCallId() == null
+                ? transaction.getSipTransactionInfo().getCallId() : transaction.getCallId();
+        sessionManager.removeByCallId(storedCallId, transaction);
+        // 本入口只终止精确Dialog；离线节点的按stream媒体清理由原媒体owner处理，不能触及替代接收器。
+        return true;
+    }
+
     /** 下载与录像回放的设备名额需要单独确认，不能把媒体关闭当作释放完成。 */
     private boolean isRecordSession(SsrcTransaction transaction) {
         return transaction.getType() == InviteSessionType.DOWNLOAD

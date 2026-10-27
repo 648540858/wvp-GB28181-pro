@@ -296,9 +296,27 @@ class PlayServiceDownloadLifecycleTest {
         when(deviceChannelService.getOneById(channel.getId())).thenReturn(channel);
         clearInvocations(cmder, sessionManager);
         playService.zlmServerOffline(media);
-        verify(dialogTerminationService).stopDevice(device, channel, InviteSessionType.DOWNLOAD, STREAM);
+        verify(dialogTerminationService).stopDeviceDialog(device, channel, transaction);
         verifyNoInteractions(cmder);
         verify(sessionManager, never()).removeByCallId(anyString());
+    }
+
+    /** 旧节点离线不能按共享流名扩大收集范围，另一节点上的替代Call必须继续播放。 */
+    @Test
+    void mediaOfflineCannotExpandIntoReplacementOnAnotherNode() throws Exception {
+        startAndPublish();
+        SsrcTransaction original = downloadTransaction("old-call");
+        SsrcTransaction replacement = downloadTransaction("replacement-call");
+        replacement.setMediaServerId("replacement-media");
+        when(sessionManager.getAll()).thenReturn(List.of(original, replacement));
+        when(deviceChannelService.getOneById(channel.getId())).thenReturn(channel);
+        clearInvocations(cmder, sessionManager);
+        playService.zlmServerOffline(media);
+        verify(dialogTerminationService, never()).stopDevice(any(), any(), any(), any());
+        verify(dialogTerminationService).stopDeviceDialog(device, channel, original);
+        verify(dialogTerminationService, never()).stopDeviceDialog(device, channel, replacement);
+        verifyNoInteractions(cmder);
+        verify(sessionManager, never()).removeByCallId("replacement-call");
     }
 
     /** 构造带原始对话身份的下载快照，流名相同也能区分不同请求轮次。 */

@@ -284,6 +284,31 @@ class RecordDialogTerminationTest {
         assertTrue(sessions.active.containsKey("dialog"));
     }
 
+    /** 精确结束旧节点的对话不能扫描并终止另一节点同stream的新Call。 */
+    @Test
+    void exactDialogClosePreservesReplacementOnAnotherNode() {
+        SsrcTransaction replacement = new SsrcTransaction();
+        replacement.setCallId("replacement");
+        replacement.setDeviceId(transaction.getDeviceId());
+        replacement.setChannelId(transaction.getChannelId());
+        replacement.setApp(transaction.getApp());
+        replacement.setStream(transaction.getStream());
+        replacement.setType(transaction.getType());
+        replacement.setMediaServerId("replacement-media");
+        SipTransactionInfo sip = new SipTransactionInfo();
+        sip.setCallId("replacement");
+        replacement.setSipTransactionInfo(sip);
+        sessions.active.put("replacement", replacement);
+        assertTrue(service.stopDeviceDialog(device, channel, transaction));
+        assertEquals(1, dialogs.size());
+        assertEquals("dialog", dialogs.getFirst().getCallId());
+        assertSame(replacement, sessions.active.get("replacement"));
+        assertFalse(sessions.active.containsKey("dialog"));
+        respond(0, 200);
+        assertSame(replacement, sessions.active.get("replacement"));
+        assertTrue(sessions.pending.isEmpty());
+    }
+
     /** 仅模拟存储协议，不替代生产关闭状态机；真实Redis合并和CAS由独立仓储用例验证。 */
     private static final class MemorySessions extends SipInviteSessionManager {
         final Map<String, SsrcTransaction> active = new LinkedHashMap<>();

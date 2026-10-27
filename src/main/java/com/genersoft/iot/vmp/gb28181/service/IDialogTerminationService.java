@@ -5,12 +5,13 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 
 /**
  * SIP Dialog 终止服务。
  *
  * 统一负责从 CALL_ID/STREAM 两个 Hash 中收集事务、按方向和类型发送 BYE，
- * 并在发送成功后删除事务，避免各业务入口重复实现。
+ * 录像事务在持久化结束凭据后释放活动索引，协议确认后再删除结束记录。
  */
 public interface IDialogTerminationService {
 
@@ -27,6 +28,9 @@ public interface IDialogTerminationService {
      * 按流停止设备侧事务，用于媒体流离开事件。
      */
     int stopDeviceByStream(Device device, DeviceChannel channel, String app, String stream);
+
+    /** 结束已确定归属的单个录像对话，不按流名扩收集或关闭其他轮次的接收器。 */
+    boolean stopDeviceDialog(Device device, DeviceChannel channel, SsrcTransaction transaction);
 
     /** 设备主动BYE仅确认原Call-ID的结束记录，不发送BYE或按逻辑流清理其他会话。 */
     boolean confirmDeviceBye(String callId);

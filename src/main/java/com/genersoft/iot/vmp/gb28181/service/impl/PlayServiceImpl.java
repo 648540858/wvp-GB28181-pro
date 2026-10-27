@@ -1566,8 +1566,7 @@ public class PlayServiceImpl implements IPlayService {
                     if (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD
                             || ssrcTransaction.getType() == InviteSessionType.PLAYBACK) {
                         // 媒体节点离线也必须保留设备终止凭据，不能走无确认的旧清理旁路。
-                        dialogTerminationService.stopDevice(device, deviceChannel,
-                                ssrcTransaction.getType(), ssrcTransaction.getStream());
+                        dialogTerminationService.stopDeviceDialog(device, deviceChannel, ssrcTransaction);
                         continue;
                     }
                     cmder.streamByeCmd(device, deviceChannel.getDeviceId(),

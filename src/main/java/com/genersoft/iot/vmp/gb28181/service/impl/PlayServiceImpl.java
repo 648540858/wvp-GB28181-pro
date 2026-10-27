@@ -78,6 +78,14 @@ public class PlayServiceImpl implements IPlayService {
     private final java.util.concurrent.ConcurrentMap<String, Object> downloadAttempts = new java.util.concurrent.ConcurrentHashMap<>();
     private final long[] downloadRestartAfter = new long[64];
 
+    /**
+     * 录像下载会话在流离开后的保留窗口（毫秒）。
+     *
+     * <p>ZLM 停止推流时会先发 on_stream_changed(regist=false)，再回调 on_record_mp4，
+     * 而下载地址只在 on_record_mp4 钩子里写入 InviteInfo。因此流离开时不能立即删除下载会话，
+     * 需要保留到钩子执行完成；这里给一个足够宽的窗口，到期由 InviteStreamServiceImpl 的定时清理回收。</p>
+     */
+    private static final long DOWNLOAD_INVITE_KEEP_MS = 15 * 60 * 1000L;
 
     @Autowired
     private ISIPCommander cmder;
@@ -248,7 +256,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }else if (MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             synchronized (playbackLifecycleLock(event.getStream())) {
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStreamPreferPlay(event.getStream());
             if (inviteInfo != null) {
                 if (inviteStreamService.isStaleStreamDeparture(inviteInfo, event.getCreateStamp())) {
                     log.info("[流离开] 流实例创建时间早于当前会话，判定为旧会话的迟到注销事件，跳过BYE: stream={}, deviceId={}, channelId={}",
@@ -284,13 +292,16 @@ public class PlayServiceImpl implements IPlayService {
                     dialogTerminationService.stopDeviceByStream(device, channel,
                             event.getApp(), event.getStream());
                 }
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null) {
-                    // MP4 完成通知可能晚于流注销，保留本轮缓存直到成品回调写入路径。
-                    receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(),
-                            MediaStreamUtil.RTP_APP, event.getStream());
-                    return;
+                if (isRetainedDownloadSession(inviteInfo)) {
+                    // 录像下载：保留会话信息，等待 on_record_mp4 钩子写入下载地址。
+                    // 提前删除会导致钩子取不到 InviteInfo，前端查询下载进度时拿不到 downLoadFilePath。
+                    inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+                    log.info("[流离开] 录像下载会话保留 {} 分钟，等待写入下载地址: stream={}, deviceId={}, channelId={}",
+                            DOWNLOAD_INVITE_KEEP_MS / (60 * 1000), event.getStream(),
+                            inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                } else {
+                    inviteStreamService.removeInviteInfo(inviteInfo);
                 }
-                inviteStreamService.removeInviteInfo(inviteInfo);
                 if (inviteInfo.getType() == InviteSessionType.PLAY) {
                     deviceChannelService.stopPlay(inviteInfo.getChannelId());
                 }
@@ -315,6 +326,16 @@ public class PlayServiceImpl implements IPlayService {
             }
             }
         }
+    }
+
+    /**
+     * 是否为「流已建立、需要保留会话信息」的录像下载会话。
+     *
+     * <p>只有已经发布过流（streamInfo 不为空）的下载才有下载地址需要在随后的 on_record_mp4 钩子里写入；
+     * 未建立流就失败的下载没有地址可写，维持原有的立即清理。</p>
+     */
+    private boolean isRetainedDownloadSession(InviteInfo inviteInfo) {
+        return inviteInfo.getType() == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null;
     }
 
     /**
@@ -1402,7 +1423,10 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
 
-        if (inviteInfo.getStreamInfo().getProgress() == 1) {
+        if (inviteInfo.getStreamInfo().getProgress() == 1
+                || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+            // 下载已经结束（进度到 100% 或已拿到下载地址），直接返回缓存中的结果，
+            // 不再向媒体节点查询进度，避免流注销后进度被重置
             return inviteInfo.getStreamInfo();
         }
 
@@ -1415,7 +1439,10 @@ public class PlayServiceImpl implements IPlayService {
         String app = MediaStreamUtil.RTP_APP;
         Long duration  = mediaServerService.updateDownloadProcess(mediaServerItem, app, stream);
         if (duration == null || duration == 0) {
-            inviteInfo.getStreamInfo().setProgress(0);
+            // 流已注销时媒体节点查不到进度，此时保留上一次的进度，不回落为 0，
+            // 避免「流刚离开、on_record_mp4 还没写入下载地址」这段时间进度从 100% 跳回 0%
+            log.debug("[获取下载进度] 媒体节点未返回进度，保留上次进度: stream={}, progress={}",
+                    stream, inviteInfo.getStreamInfo().getProgress());
         } else {
             String startTime = inviteInfo.getStreamInfo().getStartTime();
             String endTime = inviteInfo.getStreamInfo().getEndTime();

@@ -152,6 +152,16 @@ public class UserSetting {
      */
     private String serverId = "000000";
 
+    /**
+     * 云录像独立观看会话上限，按WVP实例计算，默认1024
+     */
+    private Integer cloudRecordSessionMax = 1024;
+
+    /**
+     * 云录像会话暂停后的保留时长，单位毫秒，默认120000
+     */
+    private Long cloudRecordSessionPauseRetentionMs = 120_000L;
+
 
     /**
      * 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式

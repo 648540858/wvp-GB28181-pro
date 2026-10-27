@@ -35,7 +35,8 @@ export default {
       taskId: null,
       getProgressRun: false,
       timer: null,
-      downloadFile: null
+      downloadFile: null,
+      progressFailCount: 0
     }
   },
   created() {
@@ -55,6 +56,7 @@ export default {
       this.getProgressRun = true
       this.percentage = 0.0
       this.downloadFile = null
+      this.progressFailCount = 0
       this.getProgressTimer()
     },
     getProgressTimer: function() {
@@ -74,6 +76,13 @@ export default {
         this.deviceId, this.channelId, this.stream
       ])
         .then(streamInfo => {
+          // 请求失败时错误拦截器不会 reject，而是给出一次提示并返回空值；
+          // 这里不能抛异常，否则轮询会永远停止，下载地址再也拿不到
+          if (!streamInfo) {
+            this.progressFailCount++
+            return
+          }
+          this.progressFailCount = 0
           this.streamInfo = streamInfo
           if (parseFloat(streamInfo.progress) === 1) {
             this.percentage = 100
@@ -89,6 +98,20 @@ export default {
             this.percentage = 100
             this.getProgressRun = false
             this.downloadFileClientEvent()
+          }
+        })
+        .catch(() => {
+          this.progressFailCount++
+        })
+        .finally(() => {
+          // 连续失败多次说明下载信息已不可用（例如保留窗口到期、录像被清理），停止轮询避免持续提示
+          if (this.progressFailCount >= 3) {
+            this.getProgressRun = false
+            this.$message.warning({ showClose: true, message: '未获取到录像下载信息，请稍后在云端录像中查看' })
+            return
+          }
+          if (this.downloadFile) {
+            return
           }
           if (callback)callback()
         })
@@ -128,7 +151,7 @@ export default {
       // })
     },
     close: function() {
-      if (this.streamInfo.progress < 1) {
+      if (this.streamInfo && this.streamInfo.progress < 1) {
         this.stopDownloadRecord()
       }
 

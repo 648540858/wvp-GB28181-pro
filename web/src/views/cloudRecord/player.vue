@@ -89,10 +89,11 @@ momentDurationFormatSetup(moment)
 export default {
   name: 'CloudRecordPlayer',
   components: { playerTabs },
-  props: ['showListCallback', 'showNextCallback', 'showLastCallback', 'lastDiable', 'nextDiable'],
+  props: ['showListCallback', 'showNextCallback', 'showLastCallback', 'lastDiable', 'nextDiable', 'initialShowSidebar'],
   data() {
     return {
-      showSidebar: false,
+      // 与父组件初始展开状态保持一致，避免"列表"图标首次点击状态不同步
+      showSidebar: !!this.initialShowSidebar,
       streamInfo: null,
       timeLen: null,
       startTime: null,
@@ -150,6 +151,12 @@ export default {
   created() {
     document.addEventListener('mousemove', this.timeProcessMousemove)
     document.addEventListener('mouseup', this.timeProcessMouseup)
+  },
+  watch: {
+    // 父组件（详情页缓存复用）后续改变展开状态时保持同步
+    initialShowSidebar(val) {
+      this.showSidebar = val
+    }
   },
   mounted() {
     this.updatePlayerList()

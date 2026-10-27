@@ -135,10 +135,15 @@ class DialogTerminationServiceImplTest {
         MediaServer media = new MediaServer();
         when(mediaServerService.getOne("media-node")).thenReturn(media);
 
+        when(sessionManager.updatePendingDialogClose(anyString(), isNull(), any())).thenReturn(true);
         assertEquals(0, service.stopDevice(device, channel, InviteSessionType.PLAYBACK, "playback-first"));
 
-        verify(commander).streamByeCmd(device, "channel-1", first.getSipTransactionInfo(), null);
-        verify(commander, never()).streamByeCmd(device, "channel-1", second.getSipTransactionInfo(), null);
+        verify(commander).streamByeCmd(any(Device.class), org.mockito.ArgumentMatchers.eq("channel-1"),
+                org.mockito.ArgumentMatchers.eq(first.getSipTransactionInfo()),
+                any(com.genersoft.iot.vmp.gb28181.event.SipSubscribe.Event.class),
+                any(com.genersoft.iot.vmp.gb28181.event.SipSubscribe.Event.class));
+        verify(commander, never()).streamByeCmd(any(Device.class), org.mockito.ArgumentMatchers.eq("channel-1"),
+                org.mockito.ArgumentMatchers.eq(second.getSipTransactionInfo()), any(), any());
         verify(sessionManager).removeByCallId("call-first");
         verify(sessionManager, never()).removeByCallId("call-second");
         verify(receiveRtpServerService).closeRTPServer(media, "rtp", "playback-first");

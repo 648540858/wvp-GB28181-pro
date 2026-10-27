@@ -101,6 +101,10 @@ public interface ISIPCommander {
 
 	void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
+	/** 按精确Dialog发送BYE，并将设备确认或超时失败交回终止流程。 */
+	void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo,
+                      SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
+
 	/**
 	 * 回放暂停
 	 */
@@ -131,6 +135,10 @@ public interface ISIPCommander {
 
 
     void streamByeCmdForDeviceInvite(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
+
+    /** 按设备发起的Dialog方向发送BYE，并保留明确的确认和失败结果。 */
+    void streamByeCmdForDeviceInvite(Device device, String channelId, SipTransactionInfo sipTransactionInfo,
+                                     SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
     /**
 	 * /**

@@ -350,7 +350,7 @@ class PlayServicePlaybackLifecycleTest {
     // 只提供事件入口所需的流与回放缓存，不创建级联发送或其他点播状态。
     private void prepareDeparture(InviteInfo invite) {
         when(sendRtpServerService.queryByStream(STREAM)).thenReturn(List.of());
-        when(inviteStreamService.getInviteInfoByStream(null, STREAM)).thenReturn(invite);
+        when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(invite);
     }
 
     // 构造缺少旧实例精确时间的注销事件，验证真实媒体查询提供的防误清理边界。

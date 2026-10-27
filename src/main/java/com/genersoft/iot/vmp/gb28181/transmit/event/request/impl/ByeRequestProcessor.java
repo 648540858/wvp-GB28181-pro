@@ -90,6 +90,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private IReceiveRtpServerService receiveRtpServerService;
 
+	@Autowired
+	private IDialogTerminationService dialogTerminationService;
+
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -187,6 +190,12 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		if (ssrcTransaction == null) {
 			return;
 		}
+		if (ssrcTransaction.getPlatformId() == null
+				&& (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD
+				|| ssrcTransaction.getType() == InviteSessionType.PLAYBACK)) {
+			handleDeviceRecordBye(request, ssrcTransaction, callIdHeader.getCallId());
+			return;
+		}
 		log.info("[收到bye] 来自：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
 		// TODO 结束点播 避免等待
 
@@ -280,5 +289,47 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			sessionManager.removeByCallId(removeCallId);
 		}
+	}
+
+	/** 设备录像BYE先结束原ledger；只有活动stream仍属于原Call时才交媒体owner收口。 */
+	private void handleDeviceRecordBye(SIPRequest request, SsrcTransaction transaction, String callId) {
+		if (!matchesDeviceRecordDialog(request, transaction, callId)) {
+			log.warn("[收到录像BYE] Dialog身份不匹配，忽略媒体清理, callId={}", callId);
+			return;
+		}
+		if (dialogTerminationService.confirmDeviceBye(callId)) {
+			// closing影子可能与新播放器同stream，确认原Call后不得再按流关闭当前媒体。
+			return;
+		}
+		String storedCallId = transaction.getCallId() == null ? callId : transaction.getCallId();
+		SsrcTransaction indexed = sessionManager.getSsrcTransactionByStream(transaction.getApp(), transaction.getStream());
+		if (indexed == null || !Objects.equals(callId, deviceDialogCallId(indexed))) {
+			// 迟到旧BYE只清原Call-ID；条件删除保护新Call已占用的stream指针。
+			sessionManager.removeByCallId(storedCallId, transaction);
+			return;
+		}
+		try {
+			// 由原播放锁串行核对SSRC和节点；DOWNLOAD必须保留随后到达的MP4完成上下文。
+			playService.handleDeviceRecordBye(transaction);
+		} finally {
+			sessionManager.removeByCallId(storedCallId, transaction);
+		}
+	}
+
+	/** 记录回放由平台发起，设备BYE的From/To与原应答相反；已有标签不能被其他Dialog复用。 */
+	private boolean matchesDeviceRecordDialog(SIPRequest request, SsrcTransaction transaction, String callId) {
+		if (!Objects.equals(callId, deviceDialogCallId(transaction))) {
+			return false;
+		}
+		SipTransactionInfo dialog = transaction.getSipTransactionInfo();
+		// 历史事务若未保存标签，仍沿用原有Call-ID兼容路径；已有标签则必须精确匹配。
+		return dialog == null || ((dialog.getToTag() == null || Objects.equals(dialog.getToTag(), request.getFromTag()))
+				&& (dialog.getFromTag() == null || Objects.equals(dialog.getFromTag(), request.getToTag())));
+	}
+
+	/** 优先使用真正的SIP Call-ID，兼容历史Hash字段与Dialog标识不一致的事务。 */
+	private String deviceDialogCallId(SsrcTransaction transaction) {
+		SipTransactionInfo dialog = transaction.getSipTransactionInfo();
+		return dialog != null && dialog.getCallId() != null ? dialog.getCallId() : transaction.getCallId();
 	}
 }

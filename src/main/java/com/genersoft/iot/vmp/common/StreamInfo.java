@@ -87,8 +87,10 @@ public class StreamInfo implements Serializable, Cloneable{
     private String downloadStatus;
     @Schema(description = "已接收或已封装的录像时长，单位秒")
     private Double downloadedDuration;
-    @Schema(description = "文件下载地址（录像下载使用）")
+    @Schema(description = "完整文件下载地址（录像下载使用）；只有验证完整的成品才能设置")
     private DownloadFileInfo downLoadFilePath;
+    @Schema(description = "未覆盖申请区间的部分录像文件地址，仅用于手动保存，不代表下载完成")
+    private DownloadFileInfo partialDownloadFilePath;
     @Schema(description = "点播请求的callId")
     private String callId;
 

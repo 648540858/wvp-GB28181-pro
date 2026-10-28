@@ -11,6 +11,8 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.*;
+import com.genersoft.iot.vmp.gb28181.service.download.NativeDownloadGateway;
+import com.genersoft.iot.vmp.gb28181.service.download.SegmentedDownloadService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
@@ -67,7 +69,7 @@ import java.util.Vector;
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
 @Service("playService")
-public class PlayServiceImpl implements IPlayService {
+public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
 
     // RPC 会将同一设备路由到所属 WVP；固定条带锁只串行同名回放或下载的本机创建、停止与回调。
     private final Object[] playbackLifecycleLocks = java.util.stream.IntStream.range(0, 64)
@@ -81,6 +83,8 @@ public class PlayServiceImpl implements IPlayService {
     /** 同一轮下载的身份及提前到达的文件候选，仅在同流生命周期锁内访问。 */
     private static class DownloadAttempt {
         private RecordInfo pendingRecord;
+        private java.util.function.Consumer<SsrcTransaction> dialogReady;
+        private boolean sipAttempted;
     }
 
     /**
@@ -157,6 +161,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
+    private org.springframework.beans.factory.ObjectProvider<SegmentedDownloadService> segmentedDownloads;
 
     /**
      * 流到来的处理
@@ -1096,6 +1103,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
+    /** 区分直播通道认领与按时间区间认领的录像，保持等待回调使用同一键。 */
     private String getCallStream(InviteSessionType inviteSessionType, InviteInfo inviteInfo) {
         // 点播(PLAY)认领时stream为null，回放/下载认领时stream为确定性的时间段key
         if (inviteSessionType == InviteSessionType.PLAY) {
@@ -1104,6 +1112,7 @@ public class PlayServiceImpl implements IPlayService {
         return inviteInfo.getStream();
     }
 
+    /** 按原INVITE应答校正SSRC和连接方式，不改变下载原Dialog的归属。 */
     private void InviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, MediaServer mediaServerItem,
                                  Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
@@ -1208,6 +1217,58 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
+    /** 子段固定到同一媒体节点，复用原生创建锁及旧响应身份隔离。 */
+    @Override
+    public Boolean startNativeDownload(MediaServer media, Device device, DeviceChannel channel, String start, String end,
+                                    int speed, java.util.function.Consumer<SsrcTransaction> dialogReady,
+                                    ErrorCallback<StreamInfo> callback) {
+        String stream = receiveRtpServerService.getPlaybackStream(device, channel, start, end);
+        synchronized (playbackLifecycleLock(stream)) {
+            InviteInfo previous = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+            if (previous != null && previous.getStreamInfo() != null
+                    && previous.getStreamInfo().getDownLoadFilePath() != null
+                    && sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream) == null
+                    && isNativeDownloadMediaGone(media, stream)) {
+                // 新父任务重新建自己的 Dialog，不复用缺少本轮关闭凭据的旧文件缓存。
+                inviteStreamService.removeInviteInfo(previous);
+            }
+            DownloadAttempt attempt = startDownload(media, device, channel, start, end, speed, stream, dialogReady, callback);
+            // 只能根据本轮实际控制流给出“未发送”凭据，不能把超时或空事务列表当作凭据。
+            return attempt == null ? null : attempt.sipAttempted;
+        }
+    }
+
+    /** 内部子段读取不经过父任务投影，避免同区间小任务递归调度。 */
+    @Override
+    public StreamInfo getNativeDownloadInfo(Device device, DeviceChannel channel, String stream) {
+        synchronized (playbackLifecycleLock(stream)) {
+            return readDownloadInfo(device, channel, stream);
+        }
+    }
+
+    /** 精确结束已登记的原 Dialog；新轮次的接收器不可被旧关闭回调删除。 */
+    @Override
+    public void stopNativeDownload(Device device, DeviceChannel channel, SsrcTransaction dialog) {
+        synchronized (playbackLifecycleLock(dialog.getStream())) {
+            dialogTerminationService.stopDeviceDialog(device, channel, dialog);
+            SsrcTransaction current = sessionManager.getSsrcTransactionByStream(dialog.getApp(), dialog.getStream());
+            if (current == null || Objects.equals(dialog.getCallId(), current.getCallId())) {
+                MediaServer media = mediaServerService.getOne(dialog.getMediaServerId());
+                if (media != null) {
+                    receiveRtpServerService.closeRTPServer(media, dialog.getApp(), dialog.getStream());
+                }
+            }
+        }
+    }
+
+    /** 只有成功的空媒体列表才放行后续子段，未知状态保持占用。 */
+    @Override
+    public boolean isNativeDownloadMediaGone(MediaServer media, String stream) {
+        List<StreamInfo> streams = mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, stream, null);
+        return streams != null && streams.isEmpty();
+    }
+
+    /** 先路由到设备所属节点，显式启用时编排分段，其余设备复用原生下载。 */
     @Override
     public void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
 
@@ -1224,6 +1285,11 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (segmented != null && segmented.isEnabled(device.getDeviceId())) {
+            segmented.start(device, channel, newMediaServerItem, startTime, endTime, downloadSpeed, callback);
+            return;
+        }
         download(newMediaServerItem, device, channel, startTime, endTime, downloadSpeed, callback);
     }
 
@@ -1240,19 +1306,19 @@ public class PlayServiceImpl implements IPlayService {
         String stream = receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime);
 
         synchronized (playbackLifecycleLock(stream)) {
-            startDownload(mediaServer, device, channel, startTime, endTime, downloadSpeed, stream, callback);
+            startDownload(mediaServer, device, channel, startTime, endTime, downloadSpeed, stream, null, callback);
         }
     }
 
     // 认领单次下载并保护异步回调，旧请求只能清理自己的结果和媒体。
-    private void startDownload(MediaServer mediaServer, Device device, DeviceChannel channel, String startTime,
-                               String endTime, int downloadSpeed, String stream, ErrorCallback<StreamInfo> callback) {
+    private DownloadAttempt startDownload(MediaServer mediaServer, Device device, DeviceChannel channel, String startTime,
+                               String endTime, int downloadSpeed, String stream, java.util.function.Consumer<SsrcTransaction> dialogReady, ErrorCallback<StreamInfo> callback) {
         // 原子认领下载发起权，并发请求只有一个能发起invite，其余等待结果
         boolean first = inviteStreamService.onceAndFirst(InviteSessionType.DOWNLOAD, channel.getId(), stream, callback);
         if (!first) {
             log.info("[录像下载] 已有请求在途，等待结果， deviceId: {}, channelId({}): {}, 开始时间: {}, 结束时间： {}",
                     device.getDeviceId(), channel.getDeviceId(), channel.getId(), startTime, endTime);
-            return;
+            return null;
         }
 
         // 认领成功后二次确认，下载刚完成(已写入redis)时本线程直接复用，避免重复发起invite
@@ -1275,7 +1341,7 @@ public class PlayServiceImpl implements IPlayService {
                     inviteInfoForConfirm.getStreamInfo());
             log.info("[录像下载] 已存在，直接返回， deviceId: {}, channelId({}): {}, 开始时间: {}, 结束时间： {}",
                     device.getDeviceId(), channel.getDeviceId(), channel.getId(), startTime, endTime);
-            return;
+            return null;
         }
 
         if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
@@ -1286,6 +1352,7 @@ public class PlayServiceImpl implements IPlayService {
                     (System.currentTimeMillis() / 1000 + 1) * 1000;
         }
         DownloadAttempt attempt = new DownloadAttempt();
+        attempt.dialogReady = dialogReady;
         downloadAttempts.put(stream, attempt);
         try {
             long restartDelay = downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] - System.currentTimeMillis();
@@ -1319,7 +1386,7 @@ public class PlayServiceImpl implements IPlayService {
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(),
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(),
                         null);
-                return;
+                return attempt;
             }
             log.info("[录像下载] deviceId: {}, channelId: {}, 开始时间： {}, 结束时间： {}， 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}({}), SSRC校验：{}",
                     device.getDeviceId(), channel.getDeviceId(), startTime, endTime, downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(),
@@ -1333,6 +1400,7 @@ public class PlayServiceImpl implements IPlayService {
             inviteInfo.setCreateTime(System.currentTimeMillis());
             inviteStreamService.updateInviteInfo(inviteInfo);
             try {
+                attempt.sipAttempted = true;
                 cmder.downloadStreamCmd(mediaServer, ssrcInfo, device, channel, startTime, endTime, downloadSpeed,
                         eventResult -> {
                             synchronized (playbackLifecycleLock(stream)) {
@@ -1340,6 +1408,24 @@ public class PlayServiceImpl implements IPlayService {
                                         InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg());
                             }
                         }, eventResult ->{
+                            // 注册原 Dialog 后立即持久化父任务凭据，不能等到首包或 MP4 回调才找身份。
+                            if (attempt.dialogReady != null) {
+                                SsrcTransaction transaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream);
+                                if (transaction == null) {
+                                    failDownload(mediaServer, device, channel, stream, attempt,
+                                            InviteErrorCode.FAIL.getCode(), "原下载对话身份缺失");
+                                    return;
+                                }
+                                try {
+                                    attempt.dialogReady.accept(transaction);
+                                } catch (RuntimeException ex) {
+                                    // 父任务凭据无法落盘时只收口原会话，不能让媒体继续占用设备名额。
+                                    dialogTerminationService.stopDeviceDialog(device, channel, transaction);
+                                    failDownload(mediaServer, device, channel, stream, attempt,
+                                            InviteErrorCode.FAIL.getCode(), "下载对话凭据持久化失败");
+                                    return;
+                                }
+                            }
                             // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                             InviteOKHandler(eventResult, ssrcInfo, mediaServer, device, channel,
                                      callback, inviteInfo, InviteSessionType.DOWNLOAD);
@@ -1400,6 +1486,7 @@ public class PlayServiceImpl implements IPlayService {
             failDownload(mediaServer, device, channel, stream, attempt,
                     InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg());
         }
+        return attempt;
     }
 
     // 仅清理本次失败下载的资源，释放认领后新请求才能开始，旧失败不能影响下一轮。
@@ -1421,6 +1508,10 @@ public class PlayServiceImpl implements IPlayService {
     // 串行读取下载进度与 MP4 完成写入，防止旧进度轮询覆盖已经完成的文件路径。
     @Override
     public StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream) {
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (segmented != null && segmented.owns(device, channel, stream)) {
+            return segmented.progress(device, channel, stream);
+        }
         synchronized (playbackLifecycleLock(stream)) {
             return readDownloadInfo(device, channel, stream);
         }
@@ -1438,6 +1529,15 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
 
+        if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())) {
+            // 旧 SDK 不读取状态，任何旧完整字段中的 MP4 都会被当成成功，必须移出。
+            if (inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
+            return inviteInfo.getStreamInfo();
+        }
         if (inviteInfo.getStreamInfo().getProgress() == 1
                 || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
             if (inviteInfo.getStreamInfo().getDownloadStatus() == null) {
@@ -1448,10 +1548,13 @@ public class PlayServiceImpl implements IPlayService {
                     inviteInfo.getStreamInfo().setDownloadedDuration(stored.getDownloadedDuration());
                     inviteInfo.getStreamInfo().setProgress(stored.getProgress());
                     inviteInfo.getStreamInfo().setDownLoadFilePath(stored.getDownLoadFilePath());
+                    inviteInfo.getStreamInfo().setPartialDownloadFilePath(stored.getPartialDownloadFilePath());
                     inviteStreamService.updateInviteInfo(inviteInfo);
                     return inviteInfo.getStreamInfo();
                 }
                 inviteInfo.getStreamInfo().setDownloadStatus("interrupted");
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
                 inviteInfo.getStreamInfo().setProgress(Math.min(inviteInfo.getStreamInfo().getProgress(), 0.99));
                 inviteStreamService.updateInviteInfo(inviteInfo);
             }
@@ -1527,6 +1630,12 @@ public class PlayServiceImpl implements IPlayService {
         double tolerance = Math.min(2000, Math.max(0, requestedMillis) * 0.01);
         boolean complete = requestedMillis > 0 && actual > 0 && record.getFileSize() > 0
                 && actual >= requestedMillis - tolerance;
+        if (!complete) {
+            info.setPartialDownloadFilePath(info.getDownLoadFilePath());
+            info.setDownLoadFilePath(null);
+        } else {
+            info.setPartialDownloadFilePath(null);
+        }
         info.setDownloadedDuration(actual / 1000.0);
         info.setDownloadStatus(complete ? "completed" : "interrupted");
         info.setProgress(complete ? 1 : requestedMillis > 0 ? Math.min(0.99, actual / requestedMillis) : 0);
@@ -2186,6 +2295,11 @@ public class PlayServiceImpl implements IPlayService {
     /** 停止指定会话，终止 SIP 对话并释放尚未完成注册的媒体接收器。 */
     @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (type == InviteSessionType.DOWNLOAD && segmented != null && segmented.owns(device, channel, stream)) {
+            segmented.cancel(device, channel, stream);
+            return;
+        }
         if ((type == InviteSessionType.PLAYBACK || type == InviteSessionType.DOWNLOAD) && stream != null) {
             synchronized (playbackLifecycleLock(stream)) {
                 stopSession(type, device, channel, stream);
@@ -2205,7 +2319,8 @@ public class PlayServiceImpl implements IPlayService {
             int failed = dialogTerminationService.stopDevice(device, channel, type, stream);
             if (inviteInfo != null) {
                 if (type == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null
-                        && inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                        && (inviteInfo.getStreamInfo().getDownLoadFilePath() != null
+                            || inviteInfo.getStreamInfo().getPartialDownloadFilePath() != null)) {
                     // 完成结果独立于设备终止：SDK停止确认不得抹掉已经可下载的文件信息。
                     inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
                 } else {

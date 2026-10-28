@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.bean.PendingDialogClose;
+import com.genersoft.iot.vmp.gb28181.bean.RecordDialogCloseReceipt;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IDialogTerminationService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -362,14 +363,87 @@ public class DialogTerminationServiceImpl implements IDialogTerminationService {
         }
     }
 
-    /** 先清理活动索引，再撤销待确认记录，保证列表不存在只能发生在协议终态之后。 */
+    /** 自然BYE先由协议入口完成媒体收口，再把已确认原快照交给本owner落账，不反向发送BYE。 */
+    @Override
+    public boolean confirmDeviceRecordBye(SsrcTransaction snapshot) {
+        if (snapshot == null || snapshot.getPlatformId() != null || !isRecordSession(snapshot)) {
+            return false;
+        }
+        String callId = snapshot.getSipTransactionInfo() == null || snapshot.getSipTransactionInfo().getCallId() == null
+                ? snapshot.getCallId() : snapshot.getSipTransactionInfo().getCallId();
+        if (callId == null || callId.isBlank()) {
+            return false;
+        }
+        synchronized (closeLock(callId)) {
+            PendingDialogClose close = sessionManager.getPendingDialogClose(callId);
+            if (close != null) {
+                // 媒体收口期间其他stop可能已建ledger，同Call-ID仍须核对完整原身份才能确认。
+                SsrcTransaction original = close.getTransaction();
+                if (original == null
+                        || !RecordDialogCloseReceipt.fromSnapshot(original, 1, 200)
+                        .equals(RecordDialogCloseReceipt.fromSnapshot(snapshot, 1, 200))) {
+                    return false;
+                }
+            }
+            if (close == null || !isProtocolTerminal(close)) {
+                String expectedAttempt = close == null ? null : close.getAttemptId();
+                if (close == null) {
+                    close = new PendingDialogClose();
+                    close.setTransaction(snapshot);
+                    close.setAttemptId(UUID.randomUUID().toString());
+                    // 自然结束只补本地清理；没有发送BYE，因此不保存路由也不增加发送次数。
+                    close.setAttempts(0);
+                }
+                close.setState(PendingDialogClose.CONFIRMED);
+                close.setResponseCode(200);
+                close.setUpdatedAt(clock.millis());
+                if (!sessionManager.updatePendingDialogClose(callId, expectedAttempt, close)) {
+                    return false;
+                }
+            }
+            finishLocalClose(callId, close);
+            return true;
+        }
+    }
+
+    /** 先清理活动索引并可靠保存确认凭据，再撤销pending，写失败保留终态供下轮补清理。 */
     private void finishLocalClose(String callId, PendingDialogClose close) {
         SsrcTransaction transaction = close.getTransaction();
         if (!sessionManager.removeByCallId(transaction.getCallId() == null ? callId : transaction.getCallId(), transaction)) {
             // Redis冲突或清理未成功时继续保留已确认结果，下轮只补本地清理，不重发BYE。
             return;
         }
+        // 历史ledger可能没有完整SIP标签；协议终态仍按原语义清理，但不能制造可用于推进新任务的凭据。
+        if (RecordDialogCloseReceipt.hasCompleteIdentity(transaction)) {
+            sessionManager.saveRecordDialogCloseReceipt(callId,
+                    RecordDialogCloseReceipt.fromSnapshot(transaction, close.getUpdatedAt(), close.getResponseCode()));
+        }
         sessionManager.updatePendingDialogClose(callId, close.getAttemptId(), null);
+    }
+
+    /** 仅确认原始Dialog已获协议终态并清理，不能由空Hash推定设备内部资源已释放。 */
+    @Override
+    public boolean isDeviceRecordDialogTerminated(SsrcTransaction snapshot) {
+        if (!RecordDialogCloseReceipt.hasCompleteIdentity(snapshot)) {
+            return false;
+        }
+        String callId = snapshot.getSipTransactionInfo().getCallId();
+        synchronized (closeLock(callId)) {
+            try {
+                RecordDialogCloseReceipt receipt = sessionManager.getRecordDialogCloseReceipt(callId);
+                if (receipt == null || !receipt.matches(snapshot)
+                        || sessionManager.getPendingDialogClose(callId) != null
+                        || sessionManager.getSsrcTransactionByCallId(callId) != null) {
+                    return false;
+                }
+                // 兼容历史存储Call-ID与SIP Call-ID不同的快照，两种活动归属都必须已撤销。
+                return snapshot.getCallId() == null || Objects.equals(snapshot.getCallId(), callId)
+                        || sessionManager.getSsrcTransactionByCallId(snapshot.getCallId()) == null;
+            } catch (RuntimeException error) {
+                log.warn("[录像终止] 无法核实原对话确认凭据，callId={}", callId);
+                return false;
+            }
+        }
     }
 
     /** 已收到的协议终态不再重发BYE，只继续完成可能失败的本地索引清理。 */
@@ -398,6 +472,21 @@ public class DialogTerminationServiceImpl implements IDialogTerminationService {
     public void retryPendingRecordCloses() {
         for (PendingDialogClose close : sessionManager.getPendingDialogCloses()) {
             try {
+                if (close.getTransaction() != null && isProtocolTerminal(close)) {
+                    SsrcTransaction snapshot = close.getTransaction();
+                    String callId = snapshot.getSipTransactionInfo() == null || snapshot.getSipTransactionInfo().getCallId() == null
+                            ? snapshot.getCallId() : snapshot.getSipTransactionInfo().getCallId();
+                    if (callId != null) {
+                        synchronized (closeLock(callId)) {
+                            PendingDialogClose current = sessionManager.getPendingDialogClose(callId);
+                            if (current != null && isProtocolTerminal(current)
+                                    && Objects.equals(close.getAttemptId(), current.getAttemptId())) {
+                                finishLocalClose(callId, current);
+                            }
+                        }
+                    }
+                    continue;
+                }
                 if (close.getTransaction() != null && close.getTransaction().getSipTransactionInfo() != null) {
                     requestRecordClose(closeDevice(close), close.getChannelDeviceId(), close.getTransaction());
                 }

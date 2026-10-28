@@ -100,8 +100,11 @@ public class StreamContent {
     @Schema(description = "时长(回放时使用)")
     private Double duration;
 
-    @Schema(description = "文件下载地址（录像下载使用）")
+    @Schema(description = "完整文件下载地址（录像下载使用）；仅包含已验证完整的成品")
     private DownloadFileInfo downLoadFilePath;
+
+    @Schema(description = "不完整录像文件地址，仅供手动保存，不作为完整下载凭据")
+    private DownloadFileInfo partialDownloadFilePath;
 
     @Schema(description = "转码后的视频流")
     private StreamContent transcodeStream;
@@ -200,11 +203,17 @@ public class StreamContent {
         this.progress = streamInfo.getProgress();
         this.downloadStatus = streamInfo.getDownloadStatus();
         this.downloadedDuration = streamInfo.getDownloadedDuration();
+        this.partialDownloadFilePath = streamInfo.getPartialDownloadFilePath();
         this.duration = streamInfo.getDuration();
         this.key = streamInfo.getKey();
         this.serverId = streamInfo.getServerId();
 
-        if (streamInfo.getDownLoadFilePath() != null) {
+        if ("interrupted".equals(downloadStatus)) {
+            // 老缓存可能仍把短文件放在旧字段；公开出口也不能让忽略状态的SDK认作完整成品。
+            if (partialDownloadFilePath == null) {
+                this.partialDownloadFilePath = streamInfo.getDownLoadFilePath();
+            }
+        } else if (downloadStatus == null || "completed".equals(downloadStatus)) {
             this.downLoadFilePath = streamInfo.getDownLoadFilePath();
         }
         if (streamInfo.getTranscodeStream() != null) {

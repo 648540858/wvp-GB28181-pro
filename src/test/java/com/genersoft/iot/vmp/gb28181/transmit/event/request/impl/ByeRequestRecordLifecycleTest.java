@@ -100,7 +100,8 @@ class ByeRequestRecordLifecycleTest {
 
         verifyNoInteractions(play, receivers);
         verify(invites, never()).removeInviteInfo(current);
-        verify(sessions).removeByCallId(CALL_ID, original);
+        verify(termination).confirmDeviceRecordBye(original);
+        verify(sessions, never()).removeByCallId(CALL_ID, original);
         verify(sessions, never()).removeByCallId("synthetic-new-call");
     }
 
@@ -111,10 +112,13 @@ class ByeRequestRecordLifecycleTest {
 
         process();
 
-        verify(play).handleDeviceRecordBye(original);
+        org.mockito.InOrder order = inOrder(play, termination);
+        order.verify(play).handleDeviceRecordBye(original);
+        order.verify(termination).confirmDeviceRecordBye(original);
         verify(invites, never()).removeInviteInfo(current);
         verifyNoInteractions(receivers);
-        verify(sessions).removeByCallId(CALL_ID, original);
+        verify(termination).confirmDeviceRecordBye(original);
+        verify(sessions, never()).removeByCallId(CALL_ID, original);
     }
 
     /** 同Call-ID但From/To标签不匹配的请求不能确认旧ledger或影响活动媒体。 */

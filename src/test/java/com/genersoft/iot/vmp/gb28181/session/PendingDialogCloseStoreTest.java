@@ -53,8 +53,9 @@ class PendingDialogCloseStoreTest {
         when(operations.exec()).thenAnswer(call -> {
             transactionOpen = false;
             if (abortExecs > 0) { abortExecs--; queued.clear(); return null; }
+            int commands = queued.size();
             queued.forEach(Runnable::run); queued.clear();
-            return Collections.emptyList();
+            return Collections.nCopies(commands, Boolean.TRUE);
         });
         when(redis.execute(any(SessionCallback.class))).thenAnswer(call ->
                 ((SessionCallback<?>) call.getArgument(0)).execute(operations));

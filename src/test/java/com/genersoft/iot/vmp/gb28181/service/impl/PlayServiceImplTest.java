@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDialogTerminationService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import org.junit.jupiter.api.Test;
@@ -66,12 +67,18 @@ class PlayServiceImplTest {
     @Mock
     private IReceiveRtpServerService receiveRtpServerService;
 
+    @Mock
+    private IMediaServerService mediaServerService;
+
     @InjectMocks
     private PlayServiceImpl playService;
 
+    /** 已注册下载确认媒体消失后结束原对话，但保留成品回调需要的Invite与保留期限。 */
     @Test
     void downloadDepartureShouldKeepInviteInfoUntilDownloadAddressIsReady() {
         InviteInfo inviteInfo = downloadInviteInfo();
+        when(mediaServerService.getMediaList(inviteInfo.getStreamInfo().getMediaServer(),
+                MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(Collections.emptyList());
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(inviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(inviteInfo), any())).thenReturn(false);
@@ -89,6 +96,7 @@ class PlayServiceImplTest {
                 eq(MediaStreamUtil.RTP_APP), eq(STREAM));
     }
 
+    /** 实时点播流注销仍立即清除Invite，不改为录像下载的保留语义。 */
     @Test
     void playDepartureShouldRemoveInviteInfoImmediately() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -105,27 +113,31 @@ class PlayServiceImplTest {
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
     }
 
+    /** 新下载尚未注册时，旧注销事件不能终止当前pending下载或删除其缓存。 */
     @Test
-    void downloadDepartureWithoutStreamShouldRemoveInviteInfo() {
+    void downloadDepartureWithoutStreamShouldPreservePendingInviteInfo() {
         InviteInfo inviteInfo = downloadInviteInfo();
         inviteInfo.setStreamInfo(null);
+        inviteInfo.setStatus(InviteSessionStatus.ready);
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(inviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(inviteInfo), any())).thenReturn(false);
-        when(deviceService.getDeviceByDeviceId(DEVICE_ID)).thenReturn(new Device());
-        when(deviceChannelService.getOneForSourceById(CHANNEL_ID)).thenReturn(new DeviceChannel());
 
         playService.onApplicationEvent(departureEvent());
 
-        // 没有建立过流的下载没有下载地址可写，保持原有的立即清理
-        verify(inviteStreamService).removeInviteInfo(inviteInfo);
+        verify(inviteStreamService, never()).removeInviteInfo(any(InviteInfo.class));
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
+        org.mockito.Mockito.verifyNoInteractions(mediaServerService, deviceService, deviceChannelService,
+                dialogTerminationService, receiveRtpServerService);
     }
 
+    /** 同名下载被保留时，已注册回放确认无媒体仍必须结束回放，不误删下载。 */
     @Test
     void departureShouldCleanPlaybackSessionWhenDownloadIsRetainedWithSameStream() {
         InviteInfo playbackInviteInfo = downloadInviteInfo();
         playbackInviteInfo.setType(InviteSessionType.PLAYBACK);
+        when(mediaServerService.getMediaList(playbackInviteInfo.getStreamInfo().getMediaServer(),
+                MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(Collections.emptyList());
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(playbackInviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(playbackInviteInfo), any())).thenReturn(false);
@@ -139,6 +151,7 @@ class PlayServiceImplTest {
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
     }
 
+    /** 创建时间已证明属于旧实例的注销不触发任何结束或保留窗口更新。 */
     @Test
     void staleDepartureShouldBeSkipped() {
         InviteInfo inviteInfo = downloadInviteInfo();
@@ -153,6 +166,7 @@ class PlayServiceImplTest {
         verify(dialogTerminationService, never()).stopDeviceByStream(any(), any(), anyString(), anyString());
     }
 
+    /** 构造带当前创建时间的主协议注销事件。 */
     private MediaDepartureEvent departureEvent() {
         MediaDepartureEvent event = new MediaDepartureEvent(this);
         event.setApp(MediaStreamUtil.RTP_APP);
@@ -162,6 +176,7 @@ class PlayServiceImplTest {
         return event;
     }
 
+    /** 构造已建立媒体的下载会话，避免用pending掩盖已注册清理路径。 */
     private InviteInfo downloadInviteInfo() {
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(DEVICE_ID, CHANNEL_ID, STREAM, null, "mediaServer",
                 null, null, "UDP", InviteSessionType.DOWNLOAD, InviteSessionStatus.ok);

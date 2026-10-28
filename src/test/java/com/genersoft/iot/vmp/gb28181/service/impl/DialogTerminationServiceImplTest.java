@@ -9,6 +9,9 @@ import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +45,12 @@ class DialogTerminationServiceImplTest {
 
     @Mock
     private AudioBroadcastManager audioBroadcastManager;
+
+    @Mock
+    private IMediaServerService mediaServerService;
+
+    @Mock
+    private IReceiveRtpServerService receiveRtpServerService;
 
     @InjectMocks
     private DialogTerminationServiceImpl service;
@@ -94,6 +103,7 @@ class DialogTerminationServiceImplTest {
         verify(sessionManager, times(2)).removeByCallId(anyString());
     }
 
+    /** 广播停止仍沿用设备邀请方式的终止逻辑，不误走普通播放事务。 */
     @Test
     void stopDevice_shouldUseDeviceInviteByeForBroadcast() throws Exception {
         SsrcTransaction broadcast = transaction("broadcast-call", "ssrc-1",
@@ -110,6 +120,37 @@ class DialogTerminationServiceImplTest {
                 any(Device.class), anyString(), any(SipTransactionInfo.class), isNull());
     }
 
+    /** 停止同通道的一个独立回放，只发送其BYE并关闭其接收器，另一播放器保持运行。 */
+    @Test
+    void stopDeviceWithStreamMustLeaveOtherPlaybackDialogAndReceiverUntouched() throws Exception {
+        SsrcTransaction first = transaction("call-first", "ssrc-first", InviteSessionType.PLAYBACK);
+        first.setStream("playback-first");
+        first.setMediaServerId("media-node");
+        SsrcTransaction second = transaction("call-second", "ssrc-second", InviteSessionType.PLAYBACK);
+        second.setStream("playback-second");
+        second.setMediaServerId("media-node");
+        when(sessionManager.getSsrcTransactionsByDeviceChannel("device-1", 1, InviteSessionType.PLAYBACK))
+                .thenReturn(List.of(first, second));
+        when(sessionManager.getAllStreamIndex()).thenReturn(List.of(first, second));
+        MediaServer media = new MediaServer();
+        when(mediaServerService.getOne("media-node")).thenReturn(media);
+
+        when(sessionManager.updatePendingDialogClose(anyString(), isNull(), any())).thenReturn(true);
+        assertEquals(0, service.stopDevice(device, channel, InviteSessionType.PLAYBACK, "playback-first"));
+
+        verify(commander).streamByeCmd(any(Device.class), org.mockito.ArgumentMatchers.eq("channel-1"),
+                org.mockito.ArgumentMatchers.eq(first.getSipTransactionInfo()),
+                any(com.genersoft.iot.vmp.gb28181.event.SipSubscribe.Event.class),
+                any(com.genersoft.iot.vmp.gb28181.event.SipSubscribe.Event.class));
+        verify(commander, never()).streamByeCmd(any(Device.class), org.mockito.ArgumentMatchers.eq("channel-1"),
+                org.mockito.ArgumentMatchers.eq(second.getSipTransactionInfo()), any(), any());
+        verify(sessionManager).removeByCallId("call-first");
+        verify(sessionManager, never()).removeByCallId("call-second");
+        verify(receiveRtpServerService).closeRTPServer(media, "rtp", "playback-first");
+        verify(receiveRtpServerService, never()).closeRTPServer(media, "rtp", "playback-second");
+    }
+
+    /** 构造同一设备和通道上的独立SIP事务，供终止边界回归复用。 */
     private SsrcTransaction transaction(String callId, String ssrc, InviteSessionType type) {
         SsrcTransaction transaction = new SsrcTransaction();
         transaction.setDeviceId("device-1");

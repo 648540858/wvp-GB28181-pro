@@ -18,9 +18,10 @@ public class SourceDownloadServiceForGbImpl implements ISourceDownloadService {
     @Autowired
     private IPlayService deviceChannelPlayService;
 
+    /** RPC 与统一通道入口复用同一下载 owner，不能静默吞掉回调。 */
     @Override
     public void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback) {
-
+        deviceChannelPlayService.download(channel, startTime, stopTime, downloadSpeed, callback);
     }
 
     @Override

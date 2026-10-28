@@ -11,6 +11,8 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.*;
+import com.genersoft.iot.vmp.gb28181.service.download.NativeDownloadGateway;
+import com.genersoft.iot.vmp.gb28181.service.download.SegmentedDownloadService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SendSsrcFactory;
@@ -47,6 +49,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -59,6 +62,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -67,7 +71,23 @@ import java.util.Vector;
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
 @Service("playService")
-public class PlayServiceImpl implements IPlayService {
+public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
+
+    // RPC 会将同一设备路由到所属 WVP；固定条带锁只串行同名回放或下载的本机创建、停止与回调。
+    private final Object[] playbackLifecycleLocks = java.util.stream.IntStream.range(0, 64)
+            .mapToObj(index -> new Object()).toArray();
+    private final java.util.concurrent.ConcurrentMap<String, Object> playbackAttempts =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    // 下载完成前保留本次身份；固定重启时间槽避免同秒 MP4 事件被挂到下一轮下载。
+    private final java.util.concurrent.ConcurrentMap<String, DownloadAttempt> downloadAttempts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final long[] downloadRestartAfter = new long[64];
+
+    /** 同一轮下载的身份及提前到达的文件候选，仅在同流生命周期锁内访问。 */
+    private static class DownloadAttempt {
+        private RecordInfo pendingRecord;
+        private java.util.function.Consumer<SsrcTransaction> dialogReady;
+        private boolean sipAttempted;
+    }
 
     /**
      * 录像下载会话在流离开后的保留窗口（毫秒）。
@@ -143,6 +163,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
+    private org.springframework.beans.factory.ObjectProvider<SegmentedDownloadService> segmentedDownloads;
 
     /**
      * 流到来的处理
@@ -246,13 +269,36 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }else if (MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
-            // 下载会话在流离开后会保留一段时间，与回放共用同一流名时不能被通配查询随机命中
+            synchronized (playbackLifecycleLock(event.getStream())) {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStreamPreferPlay(event.getStream());
             if (inviteInfo != null) {
                 if (inviteStreamService.isStaleStreamDeparture(inviteInfo, event.getCreateStamp())) {
                     log.info("[流离开] 流实例创建时间早于当前会话，判定为旧会话的迟到注销事件，跳过BYE: stream={}, deviceId={}, channelId={}",
                             event.getStream(), inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                     return;
+                }
+                if (inviteInfo.getType() == InviteSessionType.PLAYBACK) {
+                    // 注销事件没有精确的请求身份；正在注册或已有同名媒体时，不允许旧事件停止新回放。
+                    if (inviteInfo.getStreamInfo() == null) {
+                        return;
+                    }
+                    List<StreamInfo> currentMedia = mediaServerService.getMediaList(
+                            inviteInfo.getStreamInfo().getMediaServer(), event.getApp(), event.getStream(), null);
+                    if (currentMedia == null || !currentMedia.isEmpty()) {
+                        return;
+                    }
+                    playbackAttempts.remove(event.getStream());
+                }
+                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                    // 旧注销也可能晚于停止重下；只回收已确认没有媒体的本轮下载。
+                    if (inviteInfo.getStreamInfo() == null) {
+                        return;
+                    }
+                    List<StreamInfo> currentMedia = mediaServerService.getMediaList(
+                            inviteInfo.getStreamInfo().getMediaServer(), event.getApp(), event.getStream(), null);
+                    if (currentMedia == null || !currentMedia.isEmpty()) {
+                        return;
+                    }
                 }
                 Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
                 DeviceChannel channel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
@@ -263,6 +309,13 @@ public class PlayServiceImpl implements IPlayService {
                 if (isRetainedDownloadSession(inviteInfo)) {
                     // 录像下载：保留会话信息，等待 on_record_mp4 钩子写入下载地址。
                     // 提前删除会导致钩子取不到 InviteInfo，前端查询下载进度时拿不到 downLoadFilePath。
+                    markDownloadFinalizing(inviteInfo);
+                    DownloadAttempt attempt = downloadAttempts.get(event.getStream());
+                    if (attempt != null && attempt.pendingRecord != null) {
+                        // 单次MP4钩子可能先于注销到达；不能依赖媒体节点重复通知才能留下部分结果。
+                        finishDownloadFile(inviteInfo, attempt.pendingRecord, device, channel,
+                                inviteInfo.getStreamInfo().getMediaServer(), attempt);
+                    }
                     inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
                     log.info("[流离开] 录像下载会话保留 {} 分钟，等待写入下载地址: stream={}, deviceId={}, channelId={}",
                             DOWNLOAD_INVITE_KEEP_MS / (60 * 1000), event.getStream(),
@@ -278,6 +331,9 @@ public class PlayServiceImpl implements IPlayService {
                             MediaStreamUtil.RTP_APP, event.getStream());
                 }
             } else {
+                if (playbackAttempts.containsKey(event.getStream())) {
+                    return;
+                }
                 // InviteInfo 可能已被清理，仍按流名解析设备/通道，清理残留事务
                 String[] streamArray = event.getStream().split("_");
                 if (streamArray.length >= 2) {
@@ -288,6 +344,7 @@ public class PlayServiceImpl implements IPlayService {
                                 event.getApp(), event.getStream());
                     }
                 }
+            }
             }
         }
     }
@@ -783,6 +840,7 @@ public class PlayServiceImpl implements IPlayService {
         return streamInfo;
     }
 
+    /** 按设备绑定或媒体节点负载选择可用的收流节点。 */
     @Override
     public MediaServer getNewMediaServerItem(Device device) {
         if (device == null) {
@@ -800,6 +858,7 @@ public class PlayServiceImpl implements IPlayService {
         return mediaServerItem;
     }
 
+    /** 根据设备归属选择本机收流或转发原有共享回放请求。 */
     @Override
     public void playBack(Device device, DeviceChannel channel, String startTime,
                          String endTime, ErrorCallback<StreamInfo> callback) {
@@ -826,12 +885,22 @@ public class PlayServiceImpl implements IPlayService {
         playBack(newMediaServerItem, device, channel, startTime, endTime, callback);
     }
 
+    /**
+     * 合并同区间回放请求，并在复用缓存或重新发起 INVITE 前核对媒体节点的真实状态。
+     */
     private void playBack(MediaServer mediaServer,
                          Device device, DeviceChannel channel, String startTime,
                          String endTime, ErrorCallback<StreamInfo> callback) {
 
         String stream = receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime);
+        synchronized (playbackLifecycleLock(stream)) {
+            startPlayback(mediaServer, device, channel, startTime, endTime, stream, callback);
+        }
+    }
 
+    /** 在同名回放的临界区内完成认领和创建，回调也必须验证本轮身份后才能改变状态。 */
+    private void startPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
+                               String startTime, String endTime, String stream, ErrorCallback<StreamInfo> callback) {
         // 原子认领回放发起权，并发请求只有一个能发起invite，其余等待结果
         boolean first = inviteStreamService.onceAndFirst(InviteSessionType.PLAYBACK, channel.getId(), stream, callback);
         if (!first) {
@@ -840,50 +909,73 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
-        // 认领成功后二次确认，回放刚完成(已写入redis)时本线程直接复用，避免重复发起invite
-        InviteInfo inviteInfoForConfirm = inviteStreamService.getInviteInfo(InviteSessionType.PLAYBACK, channel.getId(), stream);
-        if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
-                && InviteSessionStatus.ok.equals(inviteInfoForConfirm.getStatus())) {
-            inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
-                    InviteErrorCode.SUCCESS.getCode(),
-                    InviteErrorCode.SUCCESS.getMsg(),
-                    inviteInfoForConfirm.getStreamInfo());
-            log.info("[录像回放] 已存在，直接返回， deviceId: {}, channelId({}): {}, 开始时间: {}, 结束时间： {}",
-                    device.getDeviceId(), channel.getDeviceId(), channel.getId(), startTime, endTime);
-            return;
-        }
-
+        Object attempt = new Object();
+        playbackAttempts.put(stream, attempt);
         try {
-            SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForPlayback(mediaServer, device, channel, startTime, endTime, (code, msg, result) -> {
-                if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
-                    // hook响应
-                    StreamInfo streamInfo = onPublishHandlerForPlayback(result.getHookData().getMediaServer(), result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
-                    if (streamInfo == null) {
-                        log.warn("设备回放API调用失败！");
-                        inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
-                                InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
-                                InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
-                        inviteStreamService.removeInviteInfo(InviteSessionType.PLAYBACK, channel.getId(), stream);
+            InviteInfo previous = inviteStreamService.getInviteInfo(InviteSessionType.PLAYBACK, channel.getId(), stream);
+            if (previous != null) {
+                MediaServer previousMedia = previous.getStreamInfo() != null
+                        ? previous.getStreamInfo().getMediaServer() : mediaServerService.getOne(previous.getMediaServerId());
+                if (previousMedia == null) {
+                    throw new IllegalStateException("回放缓存对应的媒体节点不存在");
+                }
+                List<StreamInfo> previousStreams = mediaServerService.getMediaList(previousMedia,
+                        MediaStreamUtil.RTP_APP, stream, null);
+                if (previousStreams == null) {
+                    // 查询失败不能当成流已结束，否则会破坏仍在使用的共享回放。
+                    throw new IllegalStateException("无法确认回放媒体状态");
+                }
+                if (previous.getStreamInfo() != null && InviteSessionStatus.ok.equals(previous.getStatus())
+                        && !previousStreams.isEmpty()) {
+                    playbackAttempts.remove(stream, attempt);
+                    inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
+                            InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), previous.getStreamInfo());
+                    log.info("[录像回放] 媒体仍在线，复用会话，deviceId: {}, channelId: {}, stream: {}",
+                            device.getDeviceId(), channel.getDeviceId(), stream);
+                    return;
+                }
+                if (!previousStreams.isEmpty()) {
+                    // 会话资料不完整时不能擅自关闭正在被其他客户端使用的媒体。
+                    throw new IllegalStateException("回放会话状态与媒体状态不一致");
+                }
+                // 只清理已确认没有媒体的旧会话，由所属回放临界区保护，清理后才允许同名新会话启动。
+                dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+                receiveRtpServerService.closeRTPServer(previousMedia, MediaStreamUtil.RTP_APP, stream);
+                inviteStreamService.removeInviteInfo(previous);
+            }
+            if (!waitForPlaybackStreamClosed(mediaServer, stream)) {
+                throw new IllegalStateException("旧回放媒体尚未释放");
+            }
+            ErrorCallback<OpenRTPServerResult> receiveCallback = (code, msg, result) -> {
+                synchronized (playbackLifecycleLock(stream)) {
+                    if (playbackAttempts.get(stream) != attempt) {
                         return;
                     }
-                    inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
-                            InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                    log.info("[录像回放] 成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channel.getGbDeviceId(), startTime, endTime);
-                }else {
-                    inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream, code, msg, null);
-                    inviteStreamService.removeInviteInfo(InviteSessionType.PLAYBACK, channel.getId(), stream);
-                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream);
-                    if (ssrcTransaction != null) {
-                        try {
-                            cmder.streamByeCmd(device, channel.getDeviceId(), MediaStreamUtil.RTP_APP,  stream, null, null);
-                        } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-                            log.error("[录像回放] 发送BYE失败 {}", e.getMessage());
+                    if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
+                        StreamInfo streamInfo = onPublishHandlerForPlayback(result.getHookData().getMediaServer(), result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
+                        if (streamInfo != null) {
+                            inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
+                                    InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                            log.info("[录像回放] 成功 deviceId: {}, channelId: {}, 开始时间: {}, 结束时间: {}",
+                                    device.getDeviceId(), channel.getDeviceId(), startTime, endTime);
+                            return;
                         }
+                        code = InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode();
+                        msg = InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg();
                     }
+                    // 先终止旧资源，再释放等待者；回调可同步触发下一次播放，顺序不能倒置。
+                    dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+                    receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, stream);
+                    inviteStreamService.removeInviteInfo(InviteSessionType.PLAYBACK, channel.getId(), stream);
+                    playbackAttempts.remove(stream, attempt);
+                    inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream, code, msg, null);
                 }
-            });
+            };
+            SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForPlayback(
+                    mediaServer, device, channel, startTime, endTime, receiveCallback);
             if (ssrcInfo == null || ssrcInfo.getPort() <= 0) {
                 log.info("[回放端口/SSRC]获取失败，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channel.getDeviceId(), ssrcInfo);
+                playbackAttempts.remove(stream, attempt);
                 inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(),
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(),
@@ -904,27 +996,48 @@ public class PlayServiceImpl implements IPlayService {
             try {
                 cmder.playbackStreamCmd(mediaServer, ssrcInfo, device, channel, startTime, endTime,
                         eventResult -> {
-                            // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
-                            InviteOKHandler(eventResult, ssrcInfo, mediaServer, device, channel,
-                                    callback, inviteInfo, InviteSessionType.PLAYBACK);
+                            synchronized (playbackLifecycleLock(stream)) {
+                                if (playbackAttempts.get(stream) == attempt) {
+                                    InviteOKHandler(eventResult, ssrcInfo, mediaServer, device, channel,
+                                            callback, inviteInfo, InviteSessionType.PLAYBACK);
+                                }
+                            }
                         }, eventResult -> {
-                            log.info("[录像回放] 失败，{} {}", eventResult.statusCode, eventResult.msg);
-                            inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
-                                    eventResult.statusCode, eventResult.msg, null);
-
-                            receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo.getApp(), ssrcInfo.getStream());
-                            sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(),
-                                    ssrcInfo.getSsrc());
-                            inviteStreamService.removeInviteInfo(inviteInfo);
-                        }, userSetting.getPlayTimeout().longValue());
+                            synchronized (playbackLifecycleLock(stream)) {
+                                if (playbackAttempts.get(stream) != attempt) {
+                                    return;
+                                }
+                                log.info("[录像回放] 失败，{} {}", eventResult.statusCode, eventResult.msg);
+                                receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo.getApp(), ssrcInfo.getStream());
+                                sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(), ssrcInfo.getSsrc());
+                                inviteStreamService.removeInviteInfo(inviteInfo);
+                                playbackAttempts.remove(stream, attempt);
+                                inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
+                                        eventResult.statusCode, eventResult.msg, null);
+                            }
+                        }, userSetting.getPlayTimeout().longValue(), registration -> {
+                            synchronized (playbackLifecycleLock(stream)) {
+                                if (playbackAttempts.get(stream) != attempt) {
+                                    return false;
+                                }
+                                // SIP 事务注册会替换同名索引，必须和上层成功回调共享同一个身份门禁。
+                                registration.run();
+                                return true;
+                            }
+                        });
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error("[命令发送失败] 录像回放: {}", e.getMessage());
-                inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
-                        InviteErrorCode.FAIL.getCode(), e.getMessage(), null);
                 receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo.getApp(), ssrcInfo.getStream());
                 inviteStreamService.removeInviteInfo(inviteInfo);
+                playbackAttempts.remove(stream, attempt);
+                inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
+                        InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
             }
         } catch (Throwable e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            playbackAttempts.remove(stream, attempt);
             log.error("[录像回放] 未知异常，释放回放请求， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId(), e);
             inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream,
                     InviteErrorCode.FAIL.getCode(), "录像回放异常", null);
@@ -932,6 +1045,67 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
+    /** 返回同名回放共享的本机锁，避免无限增长的按流锁表或字符串池。 */
+    private Object playbackLifecycleLock(String stream) {
+        return playbackLifecycleLocks[Math.floorMod(stream.hashCode(), playbackLifecycleLocks.length)];
+    }
+
+    /**
+     * 在有限时间内等待同名媒体释放，避免停止接口刚返回就再次 INVITE 撞上旧媒体。
+     * 查询失败立即退出且不建流；仅观察本次录像流，不关闭没有会话归属的媒体。
+     */
+    private boolean waitForPlaybackStreamClosed(MediaServer mediaServer, String stream) throws InterruptedException {
+        long waitMillis = Math.min(Math.max(userSetting.getPlayTimeout(), 0), 5000);
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(waitMillis);
+        while (true) {
+            List<StreamInfo> streams = mediaServerService.getMediaList(mediaServer, MediaStreamUtil.RTP_APP, stream, null);
+            if (streams == null) {
+                return false;
+            }
+            if (streams.isEmpty()) {
+                return true;
+            }
+            if (System.nanoTime() >= deadline) {
+                return false;
+            }
+            Thread.sleep(50);
+        }
+    }
+
+    /** 释放已注册或仍在等待注册的会话接收器，避免取消后留下超时任务和同名媒体。 */
+    private void closeInviteReceiver(InviteInfo inviteInfo) {
+        closeInviteReceiver(inviteInfo, false);
+    }
+
+    /** 正常下载结束须保留本轮MP4订阅；取消或失败才撤销它，不能把两种关闭混为一谈。 */
+    private void closeInviteReceiver(InviteInfo inviteInfo, boolean preserveDownloadCompletion) {
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && !preserveDownloadCompletion) {
+            downloadAttempts.remove(inviteInfo.getStream());
+            subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP,
+                    inviteInfo.getStream(), inviteInfo.getMediaServerId()));
+            downloadRestartAfter[Math.floorMod(inviteInfo.getStream().hashCode(), downloadRestartAfter.length)] =
+                    (System.currentTimeMillis() / 1000 + 1) * 1000;
+        }
+        if (inviteInfo.getType() == InviteSessionType.PLAYBACK) {
+            playbackAttempts.remove(inviteInfo.getStream());
+        }
+        MediaServer mediaServer = inviteInfo.getStreamInfo() != null
+                ? inviteInfo.getStreamInfo().getMediaServer() : mediaServerService.getOne(inviteInfo.getMediaServerId());
+        if (mediaServer != null) {
+            receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, inviteInfo.getStream());
+        }
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && !preserveDownloadCompletion) {
+            inviteStreamService.call(InviteSessionType.DOWNLOAD, inviteInfo.getChannelId(), inviteInfo.getStream(),
+                    InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
+        }
+        if (inviteInfo.getType() == InviteSessionType.PLAYBACK) {
+            inviteStreamService.call(InviteSessionType.PLAYBACK, inviteInfo.getChannelId(), inviteInfo.getStream(),
+                    InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
+        }
+    }
+
+
+    /** 区分直播通道认领与按时间区间认领的录像，保持等待回调使用同一键。 */
     private String getCallStream(InviteSessionType inviteSessionType, InviteInfo inviteInfo) {
         // 点播(PLAY)认领时stream为null，回放/下载认领时stream为确定性的时间段key
         if (inviteSessionType == InviteSessionType.PLAY) {
@@ -940,6 +1114,7 @@ public class PlayServiceImpl implements IPlayService {
         return inviteInfo.getStream();
     }
 
+    /** 按原INVITE应答校正SSRC和连接方式，不改变下载原Dialog的归属。 */
     private void InviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, MediaServer mediaServerItem,
                                  Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
@@ -1044,6 +1219,58 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
+    /** 子段固定到同一媒体节点，复用原生创建锁及旧响应身份隔离。 */
+    @Override
+    public Boolean startNativeDownload(MediaServer media, Device device, DeviceChannel channel, String start, String end,
+                                    int speed, java.util.function.Consumer<SsrcTransaction> dialogReady,
+                                    ErrorCallback<StreamInfo> callback) {
+        String stream = receiveRtpServerService.getPlaybackStream(device, channel, start, end);
+        synchronized (playbackLifecycleLock(stream)) {
+            InviteInfo previous = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+            if (previous != null && previous.getStreamInfo() != null
+                    && previous.getStreamInfo().getDownLoadFilePath() != null
+                    && sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream) == null
+                    && isNativeDownloadMediaGone(media, stream)) {
+                // 新父任务重新建自己的 Dialog，不复用缺少本轮关闭凭据的旧文件缓存。
+                inviteStreamService.removeInviteInfo(previous);
+            }
+            DownloadAttempt attempt = startDownload(media, device, channel, start, end, speed, stream, dialogReady, callback);
+            // 只能根据本轮实际控制流给出“未发送”凭据，不能把超时或空事务列表当作凭据。
+            return attempt == null ? null : attempt.sipAttempted;
+        }
+    }
+
+    /** 内部子段读取不经过父任务投影，避免同区间小任务递归调度。 */
+    @Override
+    public StreamInfo getNativeDownloadInfo(Device device, DeviceChannel channel, String stream) {
+        synchronized (playbackLifecycleLock(stream)) {
+            return readDownloadInfo(device, channel, stream);
+        }
+    }
+
+    /** 精确结束已登记的原 Dialog；新轮次的接收器不可被旧关闭回调删除。 */
+    @Override
+    public void stopNativeDownload(Device device, DeviceChannel channel, SsrcTransaction dialog) {
+        synchronized (playbackLifecycleLock(dialog.getStream())) {
+            dialogTerminationService.stopDeviceDialog(device, channel, dialog);
+            SsrcTransaction current = sessionManager.getSsrcTransactionByStream(dialog.getApp(), dialog.getStream());
+            if (current == null || Objects.equals(dialog.getCallId(), current.getCallId())) {
+                MediaServer media = mediaServerService.getOne(dialog.getMediaServerId());
+                if (media != null) {
+                    receiveRtpServerService.closeRTPServer(media, dialog.getApp(), dialog.getStream());
+                }
+            }
+        }
+    }
+
+    /** 只有成功的空媒体列表才放行后续子段，未知状态保持占用。 */
+    @Override
+    public boolean isNativeDownloadMediaGone(MediaServer media, String stream) {
+        List<StreamInfo> streams = mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, stream, null);
+        return streams != null && streams.isEmpty();
+    }
+
+    /** 先路由到设备所属节点，显式启用时编排分段，其余设备复用原生下载。 */
     @Override
     public void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
 
@@ -1060,10 +1287,16 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (segmented != null && segmented.isEnabled(device.getDeviceId())) {
+            segmented.start(device, channel, newMediaServerItem, startTime, endTime, downloadSpeed, callback);
+            return;
+        }
         download(newMediaServerItem, device, channel, startTime, endTime, downloadSpeed, callback);
     }
 
 
+    // 在同流临界区内启动下载，与自然注销、成品通知和主动停止保持同一归属。
     private void download(MediaServer mediaServer, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
         if (mediaServer == null ) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
@@ -1074,65 +1307,88 @@ public class PlayServiceImpl implements IPlayService {
 
         String stream = receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime);
 
+        synchronized (playbackLifecycleLock(stream)) {
+            startDownload(mediaServer, device, channel, startTime, endTime, downloadSpeed, stream, null, callback);
+        }
+    }
+
+    // 认领单次下载并保护异步回调，旧请求只能清理自己的结果和媒体。
+    private DownloadAttempt startDownload(MediaServer mediaServer, Device device, DeviceChannel channel, String startTime,
+                               String endTime, int downloadSpeed, String stream, java.util.function.Consumer<SsrcTransaction> dialogReady, ErrorCallback<StreamInfo> callback) {
         // 原子认领下载发起权，并发请求只有一个能发起invite，其余等待结果
         boolean first = inviteStreamService.onceAndFirst(InviteSessionType.DOWNLOAD, channel.getId(), stream, callback);
         if (!first) {
             log.info("[录像下载] 已有请求在途，等待结果， deviceId: {}, channelId({}): {}, 开始时间: {}, 结束时间： {}",
                     device.getDeviceId(), channel.getDeviceId(), channel.getId(), startTime, endTime);
-            return;
+            return null;
         }
 
         // 认领成功后二次确认，下载刚完成(已写入redis)时本线程直接复用，避免重复发起invite
         InviteInfo inviteInfoForConfirm = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
-                && InviteSessionStatus.ok.equals(inviteInfoForConfirm.getStatus())) {
+                && inviteInfoForConfirm.getStreamInfo().getDownloadStatus() == null
+                && (inviteInfoForConfirm.getStreamInfo().getDownLoadFilePath() != null
+                    || inviteInfoForConfirm.getStreamInfo().getProgress() == 1)) {
+            // 老版本缓存须先重新判定，否则用户重试仍会复用旧的短文件。
+            readDownloadInfo(device, channel, stream);
+            // Redis每次读取均可能反序列化为新对象，后续判断必须重新取得已纠正的快照。
+            inviteInfoForConfirm = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+        }
+        if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
+                && InviteSessionStatus.ok.equals(inviteInfoForConfirm.getStatus())
+                && !"interrupted".equals(inviteInfoForConfirm.getStreamInfo().getDownloadStatus())) {
             inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
                     InviteErrorCode.SUCCESS.getCode(),
                     InviteErrorCode.SUCCESS.getMsg(),
                     inviteInfoForConfirm.getStreamInfo());
             log.info("[录像下载] 已存在，直接返回， deviceId: {}, channelId({}): {}, 开始时间: {}, 结束时间： {}",
                     device.getDeviceId(), channel.getDeviceId(), channel.getId(), startTime, endTime);
-            return;
+            return null;
         }
 
+        if (inviteInfoForConfirm != null && inviteInfoForConfirm.getStreamInfo() != null
+                && "interrupted".equals(inviteInfoForConfirm.getStreamInfo().getDownloadStatus())) {
+            // 已终止的部分结果不能挡住用户重试；同流锁和下一轮身份仍保护迟到钩子。
+            inviteStreamService.removeInviteInfo(inviteInfoForConfirm);
+            downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] =
+                    (System.currentTimeMillis() / 1000 + 1) * 1000;
+        }
+        DownloadAttempt attempt = new DownloadAttempt();
+        attempt.dialogReady = dialogReady;
+        downloadAttempts.put(stream, attempt);
         try {
+            long restartDelay = downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] - System.currentTimeMillis();
+            if (restartDelay > 0) {
+                Thread.sleep(Math.min(restartDelay, 1000));
+            }
             SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForDownload(mediaServer, device, channel, startTime, endTime, (code, msg, result) -> {
-                if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
-                    // hook响应
-                    StreamInfo streamInfo = onPublishHandlerForDownload(mediaServer, result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
-                    if (streamInfo == null) {
-                        log.warn("[录像下载] 获取流地址信息失败");
-                        inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
-                                InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
-                                InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
-                        inviteStreamService.removeInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+                synchronized (playbackLifecycleLock(stream)) {
+                    if (downloadAttempts.get(stream) != attempt) {
                         return;
                     }
-                    inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
-                            InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                    log.info("[录像下载] 调用成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channel.getDeviceId(), startTime, endTime);
-                }else {
-                    inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream, code, msg, null);
-                    inviteStreamService.removeInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
-                    if (result != null && result.getSsrcInfo() != null) {
-                        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(result.getSsrcInfo().getApp(), result.getSsrcInfo().getStream());
-                        if (ssrcTransaction != null) {
-                            try {
-                                cmder.streamByeCmd(device, channel.getDeviceId(), ssrcTransaction.getApp(), ssrcTransaction.getStream(), null, null);
-                            } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-                                log.error("[录像下载] 发送BYE失败 {}", e.getMessage());
-                            }
+                    if (code == InviteErrorCode.SUCCESS.getCode() && result != null && result.getHookData() != null) {
+                        StreamInfo streamInfo = onPublishHandlerForDownload(mediaServer, result.getHookData().getMediaInfo(), device, channel, startTime, endTime);
+                        if (streamInfo != null) {
+                            inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
+                                    InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                            log.info("[录像下载] 调用成功 deviceId: {}, channelId: {}, 开始时间: {}, 结束时间: {}",
+                                    device.getDeviceId(), channel.getDeviceId(), startTime, endTime);
+                            return;
                         }
+                        code = InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode();
+                        msg = InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg();
                     }
+                    failDownload(mediaServer, device, channel, stream, attempt, code, msg);
                 }
             });
             if (ssrcInfo == null || ssrcInfo.getPort() <= 0) {
+                downloadAttempts.remove(stream, attempt);
                 log.info("[录像下载端口/SSRC]获取失败，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channel.getDeviceId(), ssrcInfo);
                 inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(),
                         InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(),
                         null);
-                return;
+                return attempt;
             }
             log.info("[录像下载] deviceId: {}, channelId: {}, 开始时间： {}, 结束时间： {}， 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}({}), SSRC校验：{}",
                     device.getDeviceId(), channel.getDeviceId(), startTime, endTime, downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(),
@@ -1146,91 +1402,128 @@ public class PlayServiceImpl implements IPlayService {
             inviteInfo.setCreateTime(System.currentTimeMillis());
             inviteStreamService.updateInviteInfo(inviteInfo);
             try {
+                attempt.sipAttempted = true;
                 cmder.downloadStreamCmd(mediaServer, ssrcInfo, device, channel, startTime, endTime, downloadSpeed,
                         eventResult -> {
-                            // 对方返回错误
-                            inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
-                                    InviteErrorCode.FAIL.getCode(), String.format("录像下载失败， 错误码： %s, %s", eventResult.statusCode, eventResult.msg), null);
-                            receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo.getApp(), ssrcInfo.getStream());
-                            sessionManager.removeByStreamIfSsrc(ssrcInfo.getApp(), ssrcInfo.getStream(),
-                                    ssrcInfo.getSsrc());
-                            inviteStreamService.removeInviteInfo(inviteInfo);
+                            synchronized (playbackLifecycleLock(stream)) {
+                                failDownload(mediaServer, device, channel, stream, attempt,
+                                        InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg());
+                            }
                         }, eventResult ->{
+                            // 注册原 Dialog 后立即持久化父任务凭据，不能等到首包或 MP4 回调才找身份。
+                            if (attempt.dialogReady != null) {
+                                SsrcTransaction transaction = sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream);
+                                if (transaction == null) {
+                                    failDownload(mediaServer, device, channel, stream, attempt,
+                                            InviteErrorCode.FAIL.getCode(), "原下载对话身份缺失");
+                                    return;
+                                }
+                                try {
+                                    attempt.dialogReady.accept(transaction);
+                                } catch (RuntimeException ex) {
+                                    // 父任务凭据无法落盘时只收口原会话，不能让媒体继续占用设备名额。
+                                    dialogTerminationService.stopDeviceDialog(device, channel, transaction);
+                                    failDownload(mediaServer, device, channel, stream, attempt,
+                                            InviteErrorCode.FAIL.getCode(), "下载对话凭据持久化失败");
+                                    return;
+                                }
+                            }
                             // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                             InviteOKHandler(eventResult, ssrcInfo, mediaServer, device, channel,
                                      callback, inviteInfo, InviteSessionType.DOWNLOAD);
 
                             // 注册录像回调事件，录像下载结束后写入下载地址
-                            HookSubscribe.Event hookEventForRecord = (hookData) -> {
-                                log.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
-                                        inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
-                                log.info("[录像下载] 收到录像写入磁盘消息内容： " + hookData);
-                                RecordInfo recordInfo = hookData.getRecordInfo();
-                                DownloadFileInfo downloadFileInfo = mediaServerService.getDownloadFilePath(mediaServer, recordInfo);
-                                InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType()
-                                        , inviteInfo.getChannelId(), inviteInfo.getStream());
-                                if (inviteInfoForNew != null && inviteInfoForNew.getStreamInfo() != null) {
-                                    inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
-                                    // 不可以马上移除会导致后续接口拿不到下载地址。
-                                    // 流离开后会话由 cleanTime 保留窗口控制回收（见 PlayServiceImpl 的 DOWNLOAD_INVITE_KEEP_MS）
-                                    inviteStreamService.updateInviteInfo(inviteInfoForNew, 60*15L);
-                                } else {
-                                    // 会话已被清理（例如 WVP 重启、保留窗口到期），地址无法写入缓存，
-                                    // 此时查询下载进度会走 cloud_record 表兜底，这里留日志便于排查
-                                    log.warn("[录像下载] 下载地址写入失败，未查询到下载会话: stream={}, deviceId={}, channelId={}",
-                                            ssrcInfo.getStream(), inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                            HookSubscribe.Event hookEventForRecord = hookData -> {
+                                synchronized (playbackLifecycleLock(stream)) {
+                                    if (downloadAttempts.get(stream) != attempt) {
+                                        return;
+                                    }
+                                    InviteInfo current = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+                                    RecordInfo record = hookData.getRecordInfo();
+                                    if (current == null || current.getStreamInfo() == null || record == null || hookData.getMediaServer() == null
+                                            || !Objects.equals(current.getCreateTime(), inviteInfo.getCreateTime())
+                                            || !Objects.equals(mediaServer.getId(), hookData.getMediaServer().getId())
+                                            || !Objects.equals(stream, record.getStream())
+                                            || !MediaStreamUtil.RTP_APP.equals(record.getApp())
+                                            // ZLM 的录制起始时间只有秒精度，允许本轮创建所在秒。
+                                            || record.getStartTime() / 1000 < inviteInfo.getCreateTime() / 1000) {
+                                        return;
+                                    }
+                                    long requestedDuration = DateUtil.getDifference(startTime, endTime);
+                                    if (record.getTimeLen() < requestedDuration) {
+                                        List<StreamInfo> media = mediaServerService.getMediaList(mediaServer,
+                                                MediaStreamUtil.RTP_APP, stream, null);
+                                        if (media == null || !media.isEmpty()) {
+                                            // 媒体仍在发送或状态未知时，短切片不能使业务提前认定整次下载完成。
+                                            attempt.pendingRecord = record;
+                                            return;
+                                        }
+                                    }
+                                    finishDownloadFile(current, record, device, channel, mediaServer, attempt);
                                 }
                             };
                             Hook hook = Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, ssrcInfo.getStream(), mediaServer.getId());
                             // 设置过期时间，下载失败时自动处理订阅数据
                             hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
                             subscribe.addSubscribe(hook, hookEventForRecord);
-                        }, userSetting.getPlayTimeout().longValue());
+                        }, userSetting.getPlayTimeout().longValue(), task -> {
+                            synchronized (playbackLifecycleLock(stream)) {
+                                if (downloadAttempts.get(stream) != attempt) {
+                                    return false;
+                                }
+                                task.run();
+                                return true;
+                            }
+                        });
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error("[命令发送失败] 录像下载: {}", e.getMessage());
-                inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
-                        InviteErrorCode.FAIL.getCode(), e.getMessage(), null);
-                receiveRtpServerService.closeRTPServer(mediaServer, ssrcInfo.getApp(), ssrcInfo.getStream());
-                inviteStreamService.removeInviteInfo(inviteInfo);
+                failDownload(mediaServer, device, channel, stream, attempt,
+                        InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg());
             }
         } catch (Throwable e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             log.error("[录像下载] 未知异常，释放下载请求， deviceId: {}, channelId({}): {}", device.getDeviceId(), channel.getDeviceId(), channel.getId(), e);
-            inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
-                    InviteErrorCode.FAIL.getCode(), "录像下载异常", null);
+            failDownload(mediaServer, device, channel, stream, attempt,
+                    InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg());
+        }
+        return attempt;
+    }
+
+    // 仅清理本次失败下载的资源，释放认领后新请求才能开始，旧失败不能影响下一轮。
+    private void failDownload(MediaServer mediaServer, Device device, DeviceChannel channel, String stream,
+                              Object attempt, int code, String msg) {
+        if (downloadAttempts.get(stream) != attempt) {
+            return;
+        }
+        dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+        receiveRtpServerService.closeRTPServer(mediaServer, MediaStreamUtil.RTP_APP, stream);
+        subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, mediaServer.getId()));
+        inviteStreamService.removeInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+        downloadAttempts.remove(stream, attempt);
+        downloadRestartAfter[Math.floorMod(stream.hashCode(), downloadRestartAfter.length)] =
+                (System.currentTimeMillis() / 1000 + 1) * 1000;
+        inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream, code, msg, null);
+    }
+
+    // 串行读取下载进度与 MP4 完成写入，防止旧进度轮询覆盖已经完成的文件路径。
+    @Override
+    public StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream) {
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (segmented != null && segmented.owns(device, channel, stream)) {
+            return segmented.progress(device, channel, stream);
+        }
+        synchronized (playbackLifecycleLock(stream)) {
+            return readDownloadInfo(device, channel, stream);
         }
     }
 
-    @Override
-    public StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream) {
-
-
+    // 在同流临界区内读取缓存或既有数据库兜底，保持进度与成品状态一致。
+    private StreamInfo readDownloadInfo(Device device, DeviceChannel channel, String stream) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfo == null) {
-            String app = MediaStreamUtil.RTP_APP;
-            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-            if (streamAuthorityInfo != null) {
-                List<CloudRecordItem> allList = cloudRecordService.getAllList(null, app, stream, null, null, null, streamAuthorityInfo.getCallId(), null);
-                if (allList.isEmpty()) {
-                    log.warn("[获取下载进度] 未查询到录像下载的信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                    return null;
-                }
-
-                String mediaServerId = allList.get(0).getMediaServerId();
-                MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
-                if (mediaServer == null) {
-                    log.warn("[获取下载进度] 未查询到录像下载的节点信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                    return null;
-                }
-                log.warn("[获取下载进度] 发现下载已经结束，直接从数据库获取到文件 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
-                DownloadFileInfo downloadFileInfo = mediaServerService.getDownloadFilePath(mediaServer, RecordInfo.getInstance(allList.get(0)));
-                StreamInfo streamInfo = new StreamInfo();
-                streamInfo.setDownLoadFilePath(downloadFileInfo);
-                streamInfo.setApp(app);
-                streamInfo.setStream(stream);
-                streamInfo.setServerId(mediaServerId);
-                streamInfo.setProgress(1.0);
-                return streamInfo;
-            }
+            return readStoredDownloadResult(device, channel, stream);
         }
 
         if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
@@ -1238,10 +1531,41 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
 
+        if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())) {
+            if (inviteInfo.getStreamInfo().getDownloadedDuration() == null) {
+                // 旧版本曾因临时索引已清理而误标；只用原文件的持久证据恢复，真实短片不走此分支。
+                StreamInfo stored = readStoredDownloadResult(device, channel, stream, inviteInfo.getStreamInfo());
+                if (stored != null) {
+                    copyStoredDownloadResult(inviteInfo.getStreamInfo(), stored);
+                    inviteStreamService.updateInviteInfo(inviteInfo);
+                }
+            }
+            // 旧 SDK 不读取状态，任何旧完整字段中的 MP4 都会被当成成功，必须移出。
+            if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())
+                    && inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
+            return inviteInfo.getStreamInfo();
+        }
         if (inviteInfo.getStreamInfo().getProgress() == 1
                 || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
-            // 下载已经结束（进度到 100% 或已拿到下载地址），直接返回缓存中的结果，
-            // 不再向媒体节点查询进度，避免流注销后进度被重置
+            if (inviteInfo.getStreamInfo().getDownloadStatus() == null) {
+                // 升级前的缓存缺少完整性证据，重新读取文件元数据，不能保留旧版假成功。
+                StreamInfo stored = readStoredDownloadResult(device, channel, stream, inviteInfo.getStreamInfo());
+                if (stored != null) {
+                    copyStoredDownloadResult(inviteInfo.getStreamInfo(), stored);
+                    inviteStreamService.updateInviteInfo(inviteInfo);
+                    return inviteInfo.getStreamInfo();
+                }
+                inviteInfo.getStreamInfo().setDownloadStatus("interrupted");
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
+                inviteInfo.getStreamInfo().setProgress(Math.min(inviteInfo.getStreamInfo().getProgress(), 0.99));
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
+            // 部分结果同样保留文件地址与终态，不因接收器消失而回落到零。
             return inviteInfo.getStreamInfo();
         }
 
@@ -1269,19 +1593,185 @@ public class PlayServiceImpl implements IPlayService {
             BigDecimal totalCount = new BigDecimal((end - start) * 1000);
             BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
             double process = divide.doubleValue();
-            if (process > 0.999) {
-                process = 1.0;
+            // 时长到达边界仍需等待MP4封装，不能仅凭四舍五入的100%宣称文件已就绪。
+            inviteInfo.getStreamInfo().setProgress(Math.min(process, 0.99));
+            inviteInfo.getStreamInfo().setDownloadedDuration(duration / 1000.0);
+            inviteStreamService.updateInviteInfo(inviteInfo);
+            if (duration >= (end - start) * 1000 && end > start) {
+                // 有足够媒体后主动结束原设备会话，促使持续连接的设备释放名额并封装MP4。
+                markDownloadFinalizing(inviteInfo);
+                inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+                dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+                closeInviteReceiver(inviteInfo, true);
+                InviteInfo current = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+                return current != null && current.getStreamInfo() != null ? current.getStreamInfo() : inviteInfo.getStreamInfo();
             }
-            inviteInfo.getStreamInfo().setProgress(process);
         }
         inviteStreamService.updateInviteInfo(inviteInfo);
         return inviteInfo.getStreamInfo();
     }
 
+    /** 封装结束结果统一收口，MP4与注销任意先后顺序都只能处理本轮文件。 */
+    private void finishDownloadFile(InviteInfo current, RecordInfo record, Device device, DeviceChannel channel,
+                                    MediaServer media, DownloadAttempt attempt) {
+        String stream = current.getStream();
+        if (downloadAttempts.get(stream) != attempt || media == null) {
+            return;
+        }
+        StreamInfo info = current.getStreamInfo();
+        info.setDownLoadFilePath(mediaServerService.getDownloadFilePath(media, record));
+        applyDownloadFileResult(info, record, DateUtil.getDifference(info.getStartTime(), info.getEndTime()));
+        inviteStreamService.updateInviteInfo(current, DOWNLOAD_INVITE_KEEP_MS);
+        inviteStreamService.setInviteInfoCleanTime(current, DOWNLOAD_INVITE_KEEP_MS);
+        if ("completed".equals(info.getDownloadStatus()) && device != null && channel != null) {
+            dialogTerminationService.stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, stream);
+            receiveRtpServerService.closeRTPServer(media, MediaStreamUtil.RTP_APP, stream);
+        }
+        downloadAttempts.remove(stream, attempt);
+        subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, media.getId()));
+    }
+
+    /** 只有文件覆盖申请时长才能完成，封装边界误差最多两秒且不超过申请时长的1%。 */
+    private void applyDownloadFileResult(StreamInfo info, RecordInfo record, long requestedMillis) {
+        double actual = Double.isFinite(record.getTimeLen()) ? Math.max(0, record.getTimeLen()) : 0;
+        double tolerance = Math.min(2000, Math.max(0, requestedMillis) * 0.01);
+        boolean complete = requestedMillis > 0 && actual > 0 && record.getFileSize() > 0
+                && actual >= requestedMillis - tolerance;
+        if (!complete) {
+            info.setPartialDownloadFilePath(info.getDownLoadFilePath());
+            info.setDownLoadFilePath(null);
+        } else {
+            info.setPartialDownloadFilePath(null);
+        }
+        info.setDownloadedDuration(actual / 1000.0);
+        info.setDownloadStatus(complete ? "completed" : "interrupted");
+        info.setProgress(complete ? 1 : requestedMillis > 0 ? Math.min(0.99, actual / requestedMillis) : 0);
+    }
+
+    /** 把持久文件的完整性结果投影回原缓存，保留设备、通道和原始流身份。 */
+    private void copyStoredDownloadResult(StreamInfo target, StreamInfo stored) {
+        target.setDownloadStatus(stored.getDownloadStatus());
+        target.setDownloadedDuration(stored.getDownloadedDuration());
+        target.setProgress(stored.getProgress());
+        target.setDownLoadFilePath(stored.getDownLoadFilePath());
+        target.setPartialDownloadFilePath(stored.getPartialDownloadFilePath());
+    }
+
+    /** 无缓存时仍只依据本次Call-ID恢复，不能按同流名任意选择历史文件。 */
+    private StreamInfo readStoredDownloadResult(Device device, DeviceChannel channel, String stream) {
+        return readStoredDownloadResult(device, channel, stream, null);
+    }
+
+    /** 优先使用Call-ID；临时索引清理后的旧缓存仅恢复精确匹配的单个原文件。 */
+    private StreamInfo readStoredDownloadResult(Device device, DeviceChannel channel, String stream, StreamInfo cached) {
+        String app = MediaStreamUtil.RTP_APP;
+        StreamAuthorityInfo authority = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+        CloudRecordItem item;
+        if (authority != null && authority.getCallId() != null) {
+            List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, null, authority.getCallId(), null);
+            if (records == null || records.isEmpty()) {
+                return null;
+            }
+            item = records.get(0);
+        } else {
+            item = findCachedDownloadRecord(app, stream, cached);
+            if (item == null) {
+                return null;
+            }
+        }
+        MediaServer media = mediaServerService.getOne(item.getMediaServerId());
+        if (media == null) {
+            return null;
+        }
+        StreamInfo info = new StreamInfo();
+        info.setApp(app);
+        info.setStream(stream);
+        info.setServerId(item.getMediaServerId());
+        RecordInfo record = RecordInfo.getInstance(item);
+        info.setDownLoadFilePath(mediaServerService.getDownloadFilePath(media, record));
+        long requestedMillis = 0;
+        String prefix = device.getDeviceId() + "_" + channel.getDeviceId() + "_";
+        if (stream.startsWith(prefix)) {
+            String[] interval = stream.substring(prefix.length()).split("_", -1);
+            if (interval.length == 2 && interval[0].matches("[0-9]{14}") && interval[1].matches("[0-9]{14}")) {
+                try {
+                    info.setStartTime(DateUtil.urlToyyyy_MM_dd_HH_mm_ss(interval[0]));
+                    info.setEndTime(DateUtil.urlToyyyy_MM_dd_HH_mm_ss(interval[1]));
+                    requestedMillis = DateUtil.getDifference(info.getStartTime(), info.getEndTime());
+                } catch (RuntimeException ex) {
+                    // 未知历史流名只能提供部分结果，不能凭文件存在宣称完整完成。
+                    requestedMillis = 0;
+                }
+            }
+        }
+        applyDownloadFileResult(info, record, requestedMillis);
+        return info;
+    }
+
+    /** 媒体上线对账会删除已完成流的鉴权索引，原缓存文件与数据库唯一匹配即可证明归属。 */
+    private CloudRecordItem findCachedDownloadRecord(String app, String stream, StreamInfo cached) {
+        if (cached == null || cached.getMediaServer() == null
+                || !Objects.equals(app, cached.getApp()) || !Objects.equals(stream, cached.getStream())
+                || !StringUtils.hasText(cached.getMediaServer().getId())) {
+            return null;
+        }
+        MediaServer media = mediaServerService.getOne(cached.getMediaServer().getId());
+        if (media == null) {
+            return null;
+        }
+        DownloadFileInfo original = cached.getDownLoadFilePath() != null
+                ? cached.getDownLoadFilePath() : cached.getPartialDownloadFilePath();
+        if (original == null) {
+            return null;
+        }
+        List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, List.of(media), null, null);
+        CloudRecordItem matched = null;
+        for (CloudRecordItem record : records == null ? List.<CloudRecordItem>of() : records) {
+            String path = record == null ? null : record.getFilePath();
+            if (record == null || !Objects.equals(app, record.getApp()) || !Objects.equals(stream, record.getStream())
+                    || !Objects.equals(media.getId(), record.getMediaServerId()) || record.getFileSize() <= 0
+                    || !Double.isFinite(record.getTimeLen()) || record.getTimeLen() <= 0
+                    || !StringUtils.hasText(path) || !path.endsWith(".mp4") || path.indexOf('\0') >= 0
+                    || path.indexOf('\\') >= 0 || Arrays.asList(path.split("/")).contains("..")) {
+                continue;
+            }
+            // 地址仅由已有媒体节点与已存文件路径生成；不请求缓存URL，也不放宽可信主机或路径边界。
+            DownloadFileInfo expected = mediaServerService.getDownloadFilePath(media, RecordInfo.getInstance(record));
+            if (!sameCachedDownloadFile(original, expected)) {
+                continue;
+            }
+            if (matched != null) {
+                return null;
+            }
+            matched = record;
+        }
+        return matched;
+    }
+
+    /** 同字段的完整地址必须相等，不能仅凭同流、相同文件名或跨节点路径猜测文件身份。 */
+    private boolean sameCachedDownloadFile(DownloadFileInfo original, DownloadFileInfo expected) {
+        return expected != null && (StringUtils.hasText(original.getHttpPath()) && original.getHttpPath().equals(expected.getHttpPath())
+                || StringUtils.hasText(original.getHttpsPath()) && original.getHttpsPath().equals(expected.getHttpsPath())
+                || StringUtils.hasText(original.getHttpDomainPath()) && original.getHttpDomainPath().equals(expected.getHttpDomainPath())
+                || StringUtils.hasText(original.getHttpsDomainPath()) && original.getHttpsDomainPath().equals(expected.getHttpsDomainPath()));
+    }
+
+    /** 结束接收与文件封装是不同阶段，等待钩子时保留当前进度并标明封装中。 */
+    private void markDownloadFinalizing(InviteInfo invite) {
+        StreamInfo info = invite.getStreamInfo();
+        if (info != null && !"completed".equals(info.getDownloadStatus()) && !"interrupted".equals(info.getDownloadStatus())) {
+            info.setDownloadStatus("finalizing");
+            inviteStreamService.updateInviteInfo(invite);
+        }
+    }
+
+    /** 首次媒体到达时初始化下载状态和录像区间，供进度及成品判定共同使用。 */
     private StreamInfo onPublishHandlerForDownload(MediaServer mediaServerItemInuse, MediaInfo mediaInfo, Device device, DeviceChannel channel, String startTime, String endTime) {
         StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, mediaInfo, device, channel);
         if (streamInfo != null) {
             streamInfo.setProgress(0);
+            streamInfo.setDownloadStatus("downloading");
+            streamInfo.setDownloadedDuration(0.0);
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), streamInfo.getStream());
@@ -1304,6 +1794,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
+    /** 媒体节点离线时按原会话归属结束设备及平台对话，录像结束仍等待协议确认。 */
     @Override
     public void zlmServerOffline(MediaServer mediaServer) {
         // 处理正在向上推流的上级平台
@@ -1347,6 +1838,12 @@ public class PlayServiceImpl implements IPlayService {
                     }
                     DeviceChannel deviceChannel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
                     if (deviceChannel == null) {
+                        continue;
+                    }
+                    if (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD
+                            || ssrcTransaction.getType() == InviteSessionType.PLAYBACK) {
+                        // 媒体节点离线也必须保留设备终止凭据，不能走无确认的旧清理旁路。
+                        dialogTerminationService.stopDeviceDialog(device, deviceChannel, ssrcTransaction);
                         continue;
                     }
                     cmder.streamByeCmd(device, deviceChannel.getDeviceId(),
@@ -1780,6 +2277,7 @@ public class PlayServiceImpl implements IPlayService {
         });
     }
 
+    /** 点播通道后读取媒体截图，并将播放或抓图结果传给调用方。 */
     @Override
     public void getSnap(CommonGBChannel channel, ErrorCallback<byte[]> errorCallback) {
         // 2016协议不支持直接获取国标通道的抓图， 只能通过点播的方式获取
@@ -1831,8 +2329,62 @@ public class PlayServiceImpl implements IPlayService {
 
 
 
+    /** 设备主动BYE已由协议入口确认；只关闭精确本轮录像，不再次向设备发送BYE。 */
+    @Override
+    public void handleDeviceRecordBye(SsrcTransaction transaction) {
+        if (transaction == null || transaction.getStream() == null
+                || (transaction.getType() != InviteSessionType.DOWNLOAD
+                && transaction.getType() != InviteSessionType.PLAYBACK)) {
+            return;
+        }
+        synchronized (playbackLifecycleLock(transaction.getStream())) {
+            SsrcTransaction current = sessionManager.getSsrcTransactionByStream(
+                    transaction.getApp(), transaction.getStream());
+            if (current == null || current.getSipTransactionInfo() == null
+                    || transaction.getSipTransactionInfo() == null
+                    || !Objects.equals(current.getSipTransactionInfo().getCallId(),
+                    transaction.getSipTransactionInfo().getCallId())) {
+                return;
+            }
+            InviteInfo invite = inviteStreamService.getInviteInfo(transaction.getType(),
+                    transaction.getChannelId(), transaction.getStream());
+            if (invite == null || invite.getSsrcInfo() == null
+                    || !Objects.equals(invite.getDeviceId(), transaction.getDeviceId())
+                    || !Objects.equals(invite.getMediaServerId(), transaction.getMediaServerId())
+                    || !Objects.equals(invite.getSsrcInfo().getSsrc(), transaction.getSsrc())) {
+                return;
+            }
+            if (transaction.getType() == InviteSessionType.DOWNLOAD) {
+                // MP4封装回调可能晚于设备BYE；接收器可以关闭，完成订阅与缓存不能提前撤销。
+                markDownloadFinalizing(invite);
+                inviteStreamService.setInviteInfoCleanTime(invite, DOWNLOAD_INVITE_KEEP_MS);
+                closeInviteReceiver(invite, true);
+            } else {
+                inviteStreamService.removeInviteInfo(invite);
+                closeInviteReceiver(invite);
+            }
+        }
+    }
+
+    /** 停止指定会话，终止 SIP 对话并释放尚未完成注册的媒体接收器。 */
     @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
+        SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+        if (type == InviteSessionType.DOWNLOAD && segmented != null && segmented.owns(device, channel, stream)) {
+            segmented.cancel(device, channel, stream);
+            return;
+        }
+        if ((type == InviteSessionType.PLAYBACK || type == InviteSessionType.DOWNLOAD) && stream != null) {
+            synchronized (playbackLifecycleLock(stream)) {
+                stopSession(type, device, channel, stream);
+            }
+        } else {
+            stopSession(type, device, channel, stream);
+        }
+    }
+
+    /** 在同流临界区内终止回放或下载；其他点播类型沿用原有停止行为。 */
+    private void stopSession(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcPlayService.stop(device.getServerId(), type,  channel.getId(), stream);
         }else {
@@ -1840,14 +2392,20 @@ public class PlayServiceImpl implements IPlayService {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
             int failed = dialogTerminationService.stopDevice(device, channel, type, stream);
             if (inviteInfo != null) {
-                inviteStreamService.removeInviteInfo(inviteInfo);
+                if (type == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null
+                        && (inviteInfo.getStreamInfo().getDownLoadFilePath() != null
+                            || inviteInfo.getStreamInfo().getPartialDownloadFilePath() != null)) {
+                    // 完成结果独立于设备终止：SDK停止确认不得抹掉已经可下载的文件信息。
+                    inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+                } else {
+                    inviteStreamService.removeInviteInfo(inviteInfo);
+                }
             }
             if (type == InviteSessionType.PLAY) {
                 deviceChannelService.stopPlay(channel.getId());
             }
-            if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-                receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(),
-                        MediaStreamUtil.RTP_APP, inviteInfo.getStream());
+            if (inviteInfo != null) {
+                closeInviteReceiver(inviteInfo);
             }
             if (failed > 0) {
                 log.warn("[停止点播/回放/下载] {}/{} 有 {} 个 BYE 发送失败", device.getDeviceId(),
@@ -1856,9 +2414,21 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
+    /** 仅按当前会话身份停止点播，过期清理请求不得影响新会话。 */
     @Override
     public void stop(InviteInfo inviteInfo) {
         Assert.notNull(inviteInfo, "参数异常");
+        if (inviteInfo.getType() == InviteSessionType.PLAYBACK || inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+            synchronized (playbackLifecycleLock(inviteInfo.getStream())) {
+                stopSession(inviteInfo);
+            }
+        } else {
+            stopSession(inviteInfo);
+        }
+    }
+
+    /** 只在当前缓存仍属于请求会话时执行终止，避免旧清理任务跨过新会话。 */
+    private void stopSession(InviteInfo inviteInfo) {
         DeviceChannel channel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
         if (channel == null) {
             log.warn("[停止点播] 发现通道不存在");
@@ -1884,15 +2454,18 @@ public class PlayServiceImpl implements IPlayService {
 
         int failed = dialogTerminationService.stopDevice(device, channel,
                 inviteInfo.getType(), inviteInfo.getStream());
-        inviteStreamService.removeInviteInfo(inviteInfo);
+        if (inviteInfo.getType() == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null) {
+            // MediaStatus 121先到、MP4完成钩子后到时，保留本轮结果等待文件封装，BYE仍立即发起。
+            markDownloadFinalizing(inviteInfo);
+            inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
+        } else {
+            inviteStreamService.removeInviteInfo(inviteInfo);
+        }
 
         if (inviteInfo.getType() == InviteSessionType.PLAY) {
             deviceChannelService.stopPlay(channel.getId());
         }
-        if (inviteInfo.getStreamInfo() != null) {
-            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(),
-                    MediaStreamUtil.RTP_APP, inviteInfo.getStream());
-        }
+        closeInviteReceiver(inviteInfo, inviteInfo.getType() == InviteSessionType.DOWNLOAD);
         if (failed > 0) {
             log.warn("[停止点播/回放/下载] {}/{} 有 {} 个 BYE 发送失败",
                     device.getDeviceId(), channel.getDeviceId(), failed);

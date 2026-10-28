@@ -1,0 +1,678 @@
+package com.genersoft.iot.vmp.gb28181.service.impl;
+
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.OpenRTPServerResult;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDialogTerminationService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
+import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import gov.nist.javax.sip.message.SIPResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import javax.sip.ResponseEvent;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class PlayServiceDownloadLifecycleTest {
+
+    private static final String STREAM = "99999999999999999991_99999999999999999992_20261020100000_20261020100100";
+    private static final String START = "2026-10-20 10:00:00";
+    private static final String END = "2026-10-20 10:01:00";
+    @Mock private IReceiveRtpServerService receiver;
+    @Mock private IMediaServerService mediaServerService;
+    @Mock private IDialogTerminationService dialogTerminationService;
+    @Mock private IDeviceService deviceService;
+    @Mock private IDeviceChannelService deviceChannelService;
+    @Mock private ISendRtpServerService sendRtpServerService;
+    @Mock private SipInviteSessionManager sessionManager;
+    @Mock private ISIPCommander cmder;
+    @Mock private HookSubscribe subscribe;
+    @Mock private UserSetting userSetting;
+    @Mock private IRedisCatchStorage redisCatchStorage;
+    @Mock private ICloudRecordService cloudRecordService;
+    @Mock private ErrorCallback<StreamInfo> callback;
+    @Spy @InjectMocks private PlayServiceImpl playService;
+
+    private final Map<String, InviteInfo> cache = new ConcurrentHashMap<>();
+    private InviteStreamServiceImpl invites;
+    private Device device;
+    private DeviceChannel channel;
+    private MediaServer media;
+    private DownloadFileInfo file;
+
+    // 使用真实等待认领及内存持久化隔离网络，保留下载开始、自然结束与成品回调的顺序。
+    @BeforeEach
+    void setUp() {
+        device = new Device();device.setDeviceId("99999999999999999991");device.setServerId("synthetic-server");device.setStreamMode("UDP");
+        channel = new DeviceChannel();channel.setId(27);channel.setDataDeviceId(1);channel.setDeviceId("99999999999999999992");
+        media = new MediaServer();media.setId("synthetic-media");
+        file = new DownloadFileInfo();file.setHttpPath("http://synthetic.example/download.mp4");
+        invites = spy(new InviteStreamServiceImpl());
+        doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), STREAM);
+        lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStream(null, STREAM);
+        lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStreamPreferPlay(STREAM);
+        lenient().doAnswer(invocation -> {
+            InviteInfo current = cache.get(STREAM);
+            if (current != null) current.setCleanTime(System.currentTimeMillis() + invocation.<Long>getArgument(1));
+            return null;
+        }).when(invites).setInviteInfoCleanTime(any(), anyLong());
+        lenient().doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class));
+        lenient().doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class), anyLong());
+        lenient().doAnswer(invocation -> {cache.remove(STREAM);return null;}).when(invites).removeInviteInfo(any(InviteInfo.class));
+        lenient().doAnswer(invocation -> {cache.remove(STREAM);return null;}).when(invites).removeInviteInfo(any(InviteSessionType.class), any(), any());
+        ReflectionTestUtils.setField(playService, "inviteStreamService", invites);
+        ReflectionTestUtils.setField(playService, "receiveRtpServerService", receiver);
+        when(receiver.getPlaybackStream(device, channel, START, END)).thenReturn(STREAM);
+        lenient().when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
+                .thenReturn(new SSRCInfo(30000, "1234567890", MediaStreamUtil.RTP_APP, STREAM));
+        lenient().when(userSetting.getPlayTimeout()).thenReturn(1000);
+        lenient().when(userSetting.getServerId()).thenReturn(device.getServerId());
+        lenient().when(sendRtpServerService.queryByStream(STREAM)).thenReturn(List.of());
+        lenient().when(deviceService.getDeviceByDeviceId(device.getDeviceId())).thenReturn(device);
+        lenient().when(deviceService.getDevice(anyInt())).thenReturn(device);
+        lenient().when(deviceChannelService.getOneForSourceById(channel.getId())).thenReturn(channel);
+        lenient().when(mediaServerService.getDownloadFilePath(eq(media), any(RecordInfo.class))).thenReturn(file);
+        lenient().doAnswer(invocation -> {
+            StreamInfo info = new StreamInfo();info.setApp(MediaStreamUtil.RTP_APP);info.setStream(STREAM);info.setMediaServer(media);return info;
+        }).when(playService).onPublishHandler(eq(media), any(MediaInfo.class), eq(device), eq(channel));
+    }
+
+    /** 端口分配失败发生在SIP调用前，可明确证明没有设备副作用，不能永久占住父任务名额。 */
+    @Test
+    void nativeAllocationFailureProvesInviteWasNotSent() {
+        when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
+                .thenReturn(null);
+        Boolean attempted = playService.startNativeDownload(media, device, channel, START, END, 1,
+                ignored -> fail("未发INVITE不能产生Dialog身份"), callback);
+        assertEquals(Boolean.FALSE, attempted);
+        verifyNoInteractions(cmder);
+        verify(callback).run(eq(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode()), anyString(), isNull());
+    }
+
+    /** 真实原生适配器在SIP应答注册后、媒体回调前交出原Dialog，父任务不靠流消失猜测归属。 */
+    @Test
+    void nativeAdapterCapturesOriginalDialogBeforeFirstMedia() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<SsrcTransaction> captured = new java.util.concurrent.atomic.AtomicReference<>();
+        assertEquals(Boolean.TRUE, playService.startNativeDownload(media, device, channel, START, END, 1,
+                captured::set, callback));
+        assertNull(captured.get());
+        SsrcTransaction original = downloadTransaction("native-adapter-original");
+        when(sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(original);
+        ArgumentCaptor<SipSubscribe.Event> accepted = ArgumentCaptor.forClass(SipSubscribe.Event.class);
+        verify(cmder).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1),
+                any(), accepted.capture(), eq(1000L), any());
+        SIPResponse response = mock(SIPResponse.class);
+        when(response.getRawContent()).thenReturn("v=0\r\ny=1234567890\r\n".getBytes(StandardCharsets.UTF_8));
+        SipSubscribe.EventResult<ResponseEvent> ok = new SipSubscribe.EventResult<>();
+        ok.statusCode = 200;
+        ok.event = new ResponseEvent(this, null, null, response);
+        accepted.getValue().response(ok);
+        assertSame(original, captured.get());
+        verifyNoInteractions(callback);
+    }
+
+    // 真实现场先注销再通知 MP4；自然结束必须保留本轮结果，成品可被进度接口重复读取。
+    @Test
+    void download_departureBeforeRecord_keepsFinishedFileAvailable() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        MediaDepartureEvent departed = new MediaDepartureEvent(this);departed.setApp(MediaStreamUtil.RTP_APP);departed.setStream(STREAM);departed.setSchema("rtsp");departed.setMediaServer(media);
+
+        playService.onApplicationEvent(departed);
+        record.response(recordData(System.currentTimeMillis()));
+
+        StreamInfo finished = playService.getDownLoadInfo(device, channel, STREAM);
+        assertNotNull(finished, "自然注销不能删除仍等待 MP4 成品的下载结果");
+        assertEquals(1.0, finished.getProgress());
+        assertSame(file, finished.getDownLoadFilePath());
+        assertSame(file, playService.getDownLoadInfo(device, channel, STREAM).getDownLoadFilePath());
+    }
+
+    // 主动停止后旧 MP4 回调不得重新创建已取消的结果缓存。
+    @Test
+    void download_stoppedBeforeRecord_doesNotResurrectResult() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        playService.stop(InviteSessionType.DOWNLOAD, device, channel, STREAM);
+
+        record.response(recordData(System.currentTimeMillis()));
+
+        assertNull(cache.get(STREAM), "主动取消后旧成品不能复活下载会话");
+    }
+
+    // 相同区间停止重下后，旧 callback 不能把旧成品路径附到新会话。
+    @Test
+    void download_oldRecordCallbackAfterRestart_doesNotModifyReplacement() throws Exception {
+        HookSubscribe.Event oldRecord = startAndPublish();
+        playService.stop(InviteSessionType.DOWNLOAD, device, channel, STREAM);
+        startAndPublish();
+        InviteInfo replacement = cache.get(STREAM);
+
+        oldRecord.response(recordData(System.currentTimeMillis()));
+
+        assertSame(replacement, cache.get(STREAM));
+        assertNull(replacement.getStreamInfo().getDownLoadFilePath(), "旧 callback 不得覆盖新下载结果");
+    }
+
+    // Hook 按流名分发，进入新订阅的旧文件也需按录制起始时间拒绝，不能只检查 callback 身份。
+    @Test
+    void download_oldRecordEventDeliveredToNewSubscription_isRejected() throws Exception {
+        startAndPublish();
+        playService.stop(InviteSessionType.DOWNLOAD, device, channel, STREAM);
+        HookSubscribe.Event newRecord = startAndPublish();
+        InviteInfo replacement = cache.get(STREAM);
+
+        newRecord.response(recordData(replacement.getCreateTime() - 2000));
+
+        assertNull(replacement.getStreamInfo().getDownLoadFilePath(), "早于本轮创建的旧 MP4 不得作为新成品");
+    }
+
+    // 同流重下后收到无精确实例身份的旧注销，当前媒体在线时不能关闭新下载。
+    @Test
+    void download_oldDepartureAfterRestart_keepsNewReceiver() throws Exception {
+        startAndPublish();
+        playService.stop(InviteSessionType.DOWNLOAD, device, channel, STREAM);
+        startAndPublish();
+        InviteInfo replacement = cache.get(STREAM);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(replacement.getStreamInfo()));
+        clearInvocations(receiver, dialogTerminationService);
+        MediaDepartureEvent departed = new MediaDepartureEvent(this);departed.setApp(MediaStreamUtil.RTP_APP);departed.setStream(STREAM);departed.setSchema("rtsp");
+
+        playService.onApplicationEvent(departed);
+
+        assertSame(replacement, cache.get(STREAM));
+        verifyNoInteractions(receiver, dialogTerminationService);
+    }
+
+    /** 设备EOF先到时立即结束原对话，但必须保留本轮成品回调所需的缓存。 */
+    @Test
+    void deviceEofBeforeMp4RetainsResultAndFinishesDialog() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        InviteInfo current = cache.get(STREAM);
+        playService.stop(current);
+        assertSame(current, cache.get(STREAM));
+        assertNotNull(current.getCleanTime());
+        verify(dialogTerminationService).stopDevice(device, channel, InviteSessionType.DOWNLOAD, STREAM);
+        record.response(recordData(System.currentTimeMillis()));
+        assertSame(file, playService.getDownLoadInfo(device, channel, STREAM).getDownLoadFilePath());
+    }
+
+    /** 短切片到达且媒体仍在发送时，不得提前生成整次下载成功或停止设备。 */
+    @Test
+    void partialMp4WhileMediaActiveDoesNotCompleteOrStopDownload() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        InviteInfo current = cache.get(STREAM);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(current.getStreamInfo()));
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(10_000);
+        clearInvocations(receiver, dialogTerminationService);
+        record.response(partial);
+        assertNull(current.getStreamInfo().getDownLoadFilePath());
+        assertEquals(0, current.getStreamInfo().getProgress());
+        verifyNoInteractions(dialogTerminationService);
+        verify(receiver, never()).closeRTPServer(any(), any(), any());
+
+        record.response(recordData(System.currentTimeMillis()));
+        assertSame(file, current.getStreamInfo().getDownLoadFilePath());
+        verify(dialogTerminationService).stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, STREAM);
+    }
+
+    /** 上游提前断流后封装的短文件只能作为部分结果，不能因媒体消失而变成成功。 */
+    @Test
+    void partialMp4AfterDepartureIsInterruptedAndRemainsReadable() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        record.response(partial);
+
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertTrue(result.getProgress() < 1);
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+    }
+
+    /** 媒体正常覆盖申请区间且文件已封装时，才对外确认完整完成。 */
+    @Test
+    void completeMp4HasExplicitCompletedStatus() throws Exception {
+        startAndPublish().response(recordData(System.currentTimeMillis()));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(60.0, result.getDownloadedDuration());
+        assertEquals(1.0, result.getProgress());
+    }
+
+    /** 缓存过期后数据库中的短成品仍然是不完整结果，不能恢复成100%。 */
+    @Test
+    void storedPartialFileCannotBecomeCompletedAfterCacheLoss() throws Exception {
+        startAndPublish();
+        cache.clear();
+        stubStoredFile(27_392);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertTrue(result.getProgress() < 1);
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
+        assertEquals(START, result.getStartTime());
+        assertEquals(END, result.getEndTime());
+    }
+
+    /** 缓存丢失不影响完整文件读取，数据库元数据足以重新验证覆盖范围。 */
+    @Test
+    void storedCompleteFileRemainsCompletedAfterCacheLoss() throws Exception {
+        startAndPublish();
+        cache.clear();
+        stubStoredFile(60_000);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(1.0, result.getProgress());
+    }
+
+    /** 升级前缓存里的旧100%必须纠正并持久化，后续轮询不能再误报完成。 */
+    @Test
+    void legacyCachedSuccessIsRevalidatedAgainstStoredFile() throws Exception {
+        startAndPublish();
+        StreamInfo old = cache.get(STREAM).getStreamInfo();
+        old.setDownloadStatus(null);
+        old.setProgress(1);
+        old.setDownLoadFilePath(file);
+        stubStoredFile(27_392);
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+        assertEquals("interrupted", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+        assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+    }
+
+    /** 完成后的鉴权索引可以被正常对账清理，原文件唯一匹配时仍应恢复完整成品。 */
+    @Test
+    void legacyCompleteFileSurvivesMissingAuthorityAndCallId() throws Exception {
+        StreamInfo legacy = legacyFileCache(false);
+        stubLegacyFileRecords(List.of(legacyFileRecord(62_096)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(62.096, result.getDownloadedDuration());
+        assertEquals(1, result.getProgress());
+        assertSame(legacy, result);
+        assertEquals(file, result.getDownLoadFilePath());
+        assertNull(result.getPartialDownloadFilePath());
+    }
+
+    /** 升级后曾因证据缺失误标的缓存也能恢复，不能把未知时长的中断永久固化。 */
+    @Test
+    void unknownDurationInterruptedCacheRecoversItsExactCompleteFile() throws Exception {
+        legacyFileCache(true);
+        stubLegacyFileRecords(List.of(legacyFileRecord(62_096)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(62.096, result.getDownloadedDuration());
+        assertEquals(file, result.getDownLoadFilePath());
+        assertNull(result.getPartialDownloadFilePath());
+        assertEquals("completed", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+    }
+
+    /** 精确文件匹配仍须使用实际时长，不得把真实短片升级为完整录像。 */
+    @Test
+    void legacyShortFileWithoutAuthorityRetainsKnownPartialDuration() throws Exception {
+        legacyFileCache(false);
+        stubLegacyFileRecords(List.of(legacyFileRecord(27_392)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        assertEquals(file, result.getPartialDownloadFilePath());
+    }
+
+    /** 已有明确不足时长的中断不属于未知旧缓存，不得借其他记录重新认定成功。 */
+    @Test
+    void knownPartialDurationNeverReusesLegacyRecovery() throws Exception {
+        StreamInfo legacy = legacyFileCache(true);legacy.setDownloadedDuration(27.392);
+        clearInvocations(cloudRecordService);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        verifyNoInteractions(cloudRecordService);
+    }
+
+    /** 缺少任一文件身份或存在重复候选时均拒绝恢复，不能只靠相同URL或最长时长选文件。 */
+    @ParameterizedTest
+    @ValueSource(strings = {"app", "stream", "media", "path", "size", "nan", "infinite", "zero", "duplicate"})
+    void legacyRecoveryRejectsMismatchedOrAmbiguousRecord(String mismatch) throws Exception {
+        legacyFileCache(true);
+        CloudRecordItem item = legacyFileRecord(62_096);
+        switch (mismatch) {
+            case "app" -> item.setApp("other");
+            case "stream" -> item.setStream(STREAM + "_other");
+            case "media" -> item.setMediaServerId("other-media");
+            case "path" -> item.setFilePath("/records/other.mp4");
+            case "size" -> item.setFileSize(0);
+            case "nan" -> item.setTimeLen(Double.NaN);
+            case "infinite" -> item.setTimeLen(Double.POSITIVE_INFINITY);
+            case "zero" -> item.setTimeLen(0);
+            default -> { }
+        }
+        stubLegacyFileRecords("duplicate".equals(mismatch) ? List.of(item, legacyFileRecord(62_096)) : List.of(item));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertNull(result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        assertEquals(file, result.getPartialDownloadFilePath());
+    }
+
+    /** 建立与现场相同的旧文件缓存，不保留临时鉴权或Call-ID作为恢复前提。 */
+    private StreamInfo legacyFileCache(boolean interrupted) throws Exception {
+        startAndPublish();
+        file.setHttpPath("http://synthetic.example/index/api/downloadFile?file_path=/records/" + STREAM + "/legacy.mp4");
+        StreamInfo legacy = cache.get(STREAM).getStreamInfo();
+        legacy.setDownloadStatus(interrupted ? "interrupted" : null);
+        legacy.setDownloadedDuration(null);legacy.setProgress(interrupted ? 0.99 : 1);
+        legacy.setDownLoadFilePath(interrupted ? null : file);
+        legacy.setPartialDownloadFilePath(interrupted ? file : null);
+        return legacy;
+    }
+
+    /** 构造原文件单条持久化记录，保留媒体、应用、流和文件路径四重身份。 */
+    private CloudRecordItem legacyFileRecord(double durationMillis) {
+        CloudRecordItem item = new CloudRecordItem();item.setId(456);
+        item.setApp(MediaStreamUtil.RTP_APP);item.setStream(STREAM);item.setMediaServerId(media.getId());
+        item.setFilePath("/records/" + STREAM + "/legacy.mp4");item.setFileSize(100_000);item.setTimeLen(durationMillis);
+        return item;
+    }
+
+    /** 通过已有媒体过滤查询返回候选，可信下载地址仍由媒体服务按原路径生成。 */
+    private void stubLegacyFileRecords(List<CloudRecordItem> records) {
+        lenient().when(mediaServerService.getOne(media.getId())).thenReturn(media);
+        lenient().when(cloudRecordService.getAllList(null, MediaStreamUtil.RTP_APP, STREAM, null, null, List.of(media), null, null))
+                .thenReturn(records);
+        lenient().when(mediaServerService.getDownloadFilePath(eq(media), any(RecordInfo.class))).thenAnswer(call -> {
+            DownloadFileInfo generated = new DownloadFileInfo();
+            generated.setHttpPath("http://synthetic.example/index/api/downloadFile?file_path=" + call.<RecordInfo>getArgument(1).getFilePath());
+            return generated;
+        });
+    }
+
+    /** 不完整结果允许重新申请，上一轮迟到的完整文件不能覆盖新的接收会话。 */
+    @Test
+    void interruptedDownloadCanRestartWithoutReusingPartialFile() throws Exception {
+        HookSubscribe.Event oldRecord = startAndPublish();
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        oldRecord.response(partial);
+        startAndPublish();
+        StreamInfo replacement = cache.get(STREAM).getStreamInfo();
+        oldRecord.response(recordData(System.currentTimeMillis()));
+        assertEquals("downloading", replacement.getDownloadStatus());
+        assertNull(replacement.getDownLoadFilePath());
+        verify(cmder, times(2)).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1), any(), any(), eq(1000L), any());
+    }
+
+    /** Redis每次返回独立对象时，旧成功缓存的校验结果仍必须决定本轮是否重新发起。 */
+    @Test
+    void legacyRetryUsesRevalidatedRedisSnapshot() throws Exception {
+        startAndPublish();
+        StreamInfo old = cache.get(STREAM).getStreamInfo();
+        old.setDownloadStatus(null);old.setProgress(1);old.setDownLoadFilePath(file);
+        stubStoredFile(27_392);
+        doAnswer(invocation -> {
+            InviteInfo stored = cache.get(STREAM);
+            if (stored == null) return null;
+            InviteInfo copy = new InviteInfo();
+            org.springframework.beans.BeanUtils.copyProperties(stored, copy);
+            if (stored.getStreamInfo() != null) copy.setStreamInfo(stored.getStreamInfo().clone());
+            return copy;
+        }).when(invites).getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), STREAM);
+        startAndPublish();
+        assertEquals("downloading", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+        assertNull(cache.get(STREAM).getStreamInfo().getDownLoadFilePath());
+        verify(cmder, times(2)).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1), any(), any(), eq(1000L), any());
+    }
+
+    /** 少量封装误差只在源已经结束后容忍，活动源的短切片不能提前收口。 */
+    @Test
+    void nearBoundaryFileIsAcceptedOnlyAfterMediaEnds() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData nearEnd = recordData(System.currentTimeMillis());
+        nearEnd.getRecordInfo().setTimeLen(59_600);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(cache.get(STREAM).getStreamInfo()), List.of());
+        record.response(nearEnd);
+        assertNull(cache.get(STREAM).getStreamInfo().getDownLoadFilePath());
+        MediaDepartureEvent departure = new MediaDepartureEvent(this);
+        departure.setApp(MediaStreamUtil.RTP_APP);departure.setStream(STREAM);departure.setSchema("rtsp");departure.setMediaServer(media);
+        playService.onApplicationEvent(departure);
+        assertEquals("completed", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+    }
+
+    /** 部分MP4先于注销且只通知一次时，注销仍能生成可读取的不完整结果。 */
+    @Test
+    void partialFileBeforeDepartureIsRetainedWithoutDuplicateHook() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData partial = recordData(System.currentTimeMillis());
+        partial.getRecordInfo().setTimeLen(27_392);
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null))
+                .thenReturn(List.of(cache.get(STREAM).getStreamInfo()), List.of());
+        record.response(partial);
+        MediaDepartureEvent departure = new MediaDepartureEvent(this);
+        departure.setApp(MediaStreamUtil.RTP_APP);departure.setStream(STREAM);departure.setSchema("rtsp");departure.setMediaServer(media);
+        playService.onApplicationEvent(departure);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
+        assertEquals(27.392, result.getDownloadedDuration());
+    }
+
+    /** 不可信媒体钩子的非有限时长不能进入成功状态或输出非JSON数值。 */
+    @Test
+    void nonFiniteFileDurationCannotCompleteDownload() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        HookData invalid = recordData(System.currentTimeMillis());
+        invalid.getRecordInfo().setTimeLen(Double.NaN);
+        record.response(invalid);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(0.0, result.getDownloadedDuration());
+        assertEquals(0.0, result.getProgress());
+    }
+
+    /** 模拟同一Call-ID持久化的单个MP4，保留毫秒单位和独立媒体节点归属。 */
+    private void stubStoredFile(double durationMillis) {
+        StreamAuthorityInfo authority = new StreamAuthorityInfo();
+        authority.setCallId("stored-download-call");
+        when(redisCatchStorage.getStreamAuthorityInfo(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(authority);
+        CloudRecordItem item = new CloudRecordItem();
+        item.setApp(MediaStreamUtil.RTP_APP);item.setStream(STREAM);item.setTimeLen(durationMillis);
+        item.setFileSize(100_000);item.setMediaServerId(media.getId());
+        when(cloudRecordService.getAllList(null, MediaStreamUtil.RTP_APP, STREAM, null, null, null, authority.getCallId(), null)).thenReturn(List.of(item));
+        when(mediaServerService.getOne(media.getId())).thenReturn(media);
+    }
+
+    /** 真实媒体时长覆盖区间后主动收口，文件钩子到来前进度不能假报完成。 */
+    @Test
+    void fullMediaDurationEndsDialogWhileWaitingForFinalFile() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        when(mediaServerService.updateDownloadProcess(media, MediaStreamUtil.RTP_APP, STREAM)).thenReturn(60_000L);
+        StreamInfo waiting = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals(0.99, waiting.getProgress());
+        assertNull(waiting.getDownLoadFilePath());
+        verify(dialogTerminationService).stopDeviceByStream(device, channel, MediaStreamUtil.RTP_APP, STREAM);
+        verify(receiver).closeRTPServer(media, MediaStreamUtil.RTP_APP, STREAM);
+        record.response(recordData(System.currentTimeMillis()));
+        assertEquals(1.0, playService.getDownLoadInfo(device, channel, STREAM).getProgress());
+    }
+
+    /** 进度四舍五入接近100%但媒体尚未覆盖区间时，不得提前终止下载。 */
+    @Test
+    void roundedProgressCannotEndIncompleteDownload() throws Exception {
+        startAndPublish();
+        when(mediaServerService.updateDownloadProcess(media, MediaStreamUtil.RTP_APP, STREAM)).thenReturn(59_990L);
+        assertEquals(0.99, playService.getDownLoadInfo(device, channel, STREAM).getProgress());
+        verifyNoInteractions(dialogTerminationService);
+        verify(receiver, never()).closeRTPServer(any(), any(), any());
+    }
+
+    /** SDK在完成后确认停止不能清掉已经封装好的文件，重复读取仍可获取同一结果。 */
+    @Test
+    void stopAfterFinalFilePreservesDownloadResult() throws Exception {
+        startAndPublish().response(recordData(System.currentTimeMillis()));
+        playService.stop(InviteSessionType.DOWNLOAD, device, channel, STREAM);
+        assertSame(file, playService.getDownLoadInfo(device, channel, STREAM).getDownLoadFilePath());
+        assertNotNull(cache.get(STREAM).getCleanTime());
+    }
+
+    /** 设备主动BYE先于文件钩子时保留完成上下文，并且不重复发送平台BYE。 */
+    @Test
+    void deviceByeBeforeMp4KeepsFinalFileWithoutSendingBye() throws Exception {
+        HookSubscribe.Event record = startAndPublish();
+        SsrcTransaction transaction = downloadTransaction("current-call");
+        when(sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(transaction);
+        playService.handleDeviceRecordBye(transaction);
+        assertNotNull(cache.get(STREAM).getCleanTime());
+        verifyNoInteractions(dialogTerminationService);
+        verify(receiver).closeRTPServer(media, MediaStreamUtil.RTP_APP, STREAM);
+        verify(subscribe, never()).removeSubscribe(any());
+        record.response(recordData(System.currentTimeMillis()));
+        assertSame(file, playService.getDownLoadInfo(device, channel, STREAM).getDownLoadFilePath());
+    }
+
+    /** 旧Call-ID的迟到BYE不能凭同一录像流名关闭后续新一轮下载。 */
+    @Test
+    void oldDeviceByeCannotCloseReplacementWithSameStream() throws Exception {
+        startAndPublish();
+        SsrcTransaction old = downloadTransaction("old-call");
+        SsrcTransaction replacement = downloadTransaction("replacement-call");
+        when(sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(replacement);
+        InviteInfo current = cache.get(STREAM);
+        clearInvocations(receiver, subscribe);
+        playService.handleDeviceRecordBye(old);
+        assertSame(current, cache.get(STREAM));
+        assertNull(current.getCleanTime());
+        verifyNoInteractions(receiver, subscribe, dialogTerminationService);
+    }
+
+    /** 节点离线不能再走发送后立即忘记设备事务的旧旁路，录像必须委托可靠关闭owner。 */
+    @Test
+    void mediaOfflineUsesReliableRecordTerminationOwner() throws Exception {
+        startAndPublish();
+        SsrcTransaction transaction = downloadTransaction("current-call");
+        when(sessionManager.getAll()).thenReturn(List.of(transaction));
+        when(deviceChannelService.getOneById(channel.getId())).thenReturn(channel);
+        clearInvocations(cmder, sessionManager);
+        playService.zlmServerOffline(media);
+        verify(dialogTerminationService).stopDeviceDialog(device, channel, transaction);
+        verifyNoInteractions(cmder);
+        verify(sessionManager, never()).removeByCallId(anyString());
+    }
+
+    /** 旧节点离线不能按共享流名扩大收集范围，另一节点上的替代Call必须继续播放。 */
+    @Test
+    void mediaOfflineCannotExpandIntoReplacementOnAnotherNode() throws Exception {
+        startAndPublish();
+        SsrcTransaction original = downloadTransaction("old-call");
+        SsrcTransaction replacement = downloadTransaction("replacement-call");
+        replacement.setMediaServerId("replacement-media");
+        when(sessionManager.getAll()).thenReturn(List.of(original, replacement));
+        when(deviceChannelService.getOneById(channel.getId())).thenReturn(channel);
+        clearInvocations(cmder, sessionManager);
+        playService.zlmServerOffline(media);
+        verify(dialogTerminationService, never()).stopDevice(any(), any(), any(), any());
+        verify(dialogTerminationService).stopDeviceDialog(device, channel, original);
+        verify(dialogTerminationService, never()).stopDeviceDialog(device, channel, replacement);
+        verifyNoInteractions(cmder);
+        verify(sessionManager, never()).removeByCallId("replacement-call");
+    }
+
+    /** 构造带原始对话身份的下载快照，流名相同也能区分不同请求轮次。 */
+    private SsrcTransaction downloadTransaction(String callId) {
+        SsrcTransaction transaction = new SsrcTransaction();
+        transaction.setDeviceId(device.getDeviceId());
+        transaction.setChannelId(channel.getId());
+        transaction.setApp(MediaStreamUtil.RTP_APP);
+        transaction.setStream(STREAM);
+        transaction.setMediaServerId(media.getId());
+        transaction.setSsrc("1234567890");
+        transaction.setType(InviteSessionType.DOWNLOAD);
+        transaction.setCallId(callId);
+        SipTransactionInfo sip = new SipTransactionInfo();
+        sip.setCallId(callId);
+        transaction.setSipTransactionInfo(sip);
+        return transaction;
+    }
+
+    // 先处理真实 200 包装，再投递 RTP 到来事件，返回本轮注册的 MP4 完成订阅。
+    private HookSubscribe.Event startAndPublish() throws Exception {
+        ReflectionTestUtils.invokeMethod(playService, "download", media, device, channel, START, END, 1, callback);
+        ArgumentCaptor<SipSubscribe.Event> accepted = ArgumentCaptor.forClass(SipSubscribe.Event.class);
+        verify(cmder, atLeastOnce()).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1), any(), accepted.capture(), eq(1000L), any());
+        SIPResponse response = mock(SIPResponse.class);
+        when(response.getRawContent()).thenReturn("v=0\r\ny=1234567890\r\n".getBytes(StandardCharsets.UTF_8));
+        SipSubscribe.EventResult<ResponseEvent> ok = new SipSubscribe.EventResult<>();ok.statusCode=200;ok.event=new ResponseEvent(this,null,null,response);
+        accepted.getAllValues().getLast().response(ok);
+        ArgumentCaptor<ErrorCallback<OpenRTPServerResult>> arrival = ArgumentCaptor.forClass(ErrorCallback.class);
+        verify(receiver, atLeastOnce()).openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), arrival.capture());
+        MediaInfo info = new MediaInfo();info.setApp(MediaStreamUtil.RTP_APP);info.setStream(STREAM);info.setMediaServer(media);
+        HookData data = new HookData();data.setMediaServer(media);data.setMediaInfo(info);
+        OpenRTPServerResult opened = new OpenRTPServerResult();opened.setHookData(data);
+        arrival.getAllValues().getLast().run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), opened);
+        ArgumentCaptor<HookSubscribe.Event> record = ArgumentCaptor.forClass(HookSubscribe.Event.class);
+        verify(subscribe, atLeastOnce()).addSubscribe(any(Hook.class), record.capture());
+        return record.getAllValues().getLast();
+    }
+
+    // 使用媒体录制墙钟时间构造成品通知，避免把录像内容时间误作会话身份。
+    private HookData recordData(long recordedAt) {
+        RecordInfo record = new RecordInfo();record.setApp(MediaStreamUtil.RTP_APP);record.setStream(STREAM);record.setStartTime(recordedAt);record.setFileSize(100000);record.setTimeLen(60000);
+        HookData data = new HookData();data.setApp(MediaStreamUtil.RTP_APP);data.setStream(STREAM);data.setMediaServer(media);data.setRecordInfo(record);return data;
+    }
+}

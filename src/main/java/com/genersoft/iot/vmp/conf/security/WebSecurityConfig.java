@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -73,6 +74,7 @@ public class WebSecurityConfig {
         return provider;
     }
 
+    /** 保持现有登录边界，仅为持有有限期成品令牌的GET/HEAD开放下载入口。 */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         List<String> defaultExcludes = new ArrayList<>();
@@ -117,6 +119,9 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers(defaultExcludes.toArray(new String[0])).permitAll()
+                        // 成品令牌承担有限期读取授权，只放行该单层路径的GET/HEAD，其他方法仍需登录。
+                        .requestMatchers(HttpMethod.GET, "/record-download/*.mp4").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/record-download/*.mp4").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 异常处理器

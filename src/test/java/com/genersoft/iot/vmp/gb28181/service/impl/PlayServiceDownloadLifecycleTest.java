@@ -38,6 +38,8 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -329,6 +331,114 @@ class PlayServiceDownloadLifecycleTest {
         assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
         assertEquals("interrupted", cache.get(STREAM).getStreamInfo().getDownloadStatus());
         assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
+    }
+
+    /** 完成后的鉴权索引可以被正常对账清理，原文件唯一匹配时仍应恢复完整成品。 */
+    @Test
+    void legacyCompleteFileSurvivesMissingAuthorityAndCallId() throws Exception {
+        StreamInfo legacy = legacyFileCache(false);
+        stubLegacyFileRecords(List.of(legacyFileRecord(62_096)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(62.096, result.getDownloadedDuration());
+        assertEquals(1, result.getProgress());
+        assertSame(legacy, result);
+        assertEquals(file, result.getDownLoadFilePath());
+        assertNull(result.getPartialDownloadFilePath());
+    }
+
+    /** 升级后曾因证据缺失误标的缓存也能恢复，不能把未知时长的中断永久固化。 */
+    @Test
+    void unknownDurationInterruptedCacheRecoversItsExactCompleteFile() throws Exception {
+        legacyFileCache(true);
+        stubLegacyFileRecords(List.of(legacyFileRecord(62_096)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("completed", result.getDownloadStatus());
+        assertEquals(62.096, result.getDownloadedDuration());
+        assertEquals(file, result.getDownLoadFilePath());
+        assertNull(result.getPartialDownloadFilePath());
+        assertEquals("completed", cache.get(STREAM).getStreamInfo().getDownloadStatus());
+    }
+
+    /** 精确文件匹配仍须使用实际时长，不得把真实短片升级为完整录像。 */
+    @Test
+    void legacyShortFileWithoutAuthorityRetainsKnownPartialDuration() throws Exception {
+        legacyFileCache(false);
+        stubLegacyFileRecords(List.of(legacyFileRecord(27_392)));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        assertEquals(file, result.getPartialDownloadFilePath());
+    }
+
+    /** 已有明确不足时长的中断不属于未知旧缓存，不得借其他记录重新认定成功。 */
+    @Test
+    void knownPartialDurationNeverReusesLegacyRecovery() throws Exception {
+        StreamInfo legacy = legacyFileCache(true);legacy.setDownloadedDuration(27.392);
+        clearInvocations(cloudRecordService);
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertEquals(27.392, result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        verifyNoInteractions(cloudRecordService);
+    }
+
+    /** 缺少任一文件身份或存在重复候选时均拒绝恢复，不能只靠相同URL或最长时长选文件。 */
+    @ParameterizedTest
+    @ValueSource(strings = {"app", "stream", "media", "path", "size", "nan", "infinite", "zero", "duplicate"})
+    void legacyRecoveryRejectsMismatchedOrAmbiguousRecord(String mismatch) throws Exception {
+        legacyFileCache(true);
+        CloudRecordItem item = legacyFileRecord(62_096);
+        switch (mismatch) {
+            case "app" -> item.setApp("other");
+            case "stream" -> item.setStream(STREAM + "_other");
+            case "media" -> item.setMediaServerId("other-media");
+            case "path" -> item.setFilePath("/records/other.mp4");
+            case "size" -> item.setFileSize(0);
+            case "nan" -> item.setTimeLen(Double.NaN);
+            case "infinite" -> item.setTimeLen(Double.POSITIVE_INFINITY);
+            case "zero" -> item.setTimeLen(0);
+            default -> { }
+        }
+        stubLegacyFileRecords("duplicate".equals(mismatch) ? List.of(item, legacyFileRecord(62_096)) : List.of(item));
+        StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
+        assertEquals("interrupted", result.getDownloadStatus());
+        assertNull(result.getDownloadedDuration());
+        assertNull(result.getDownLoadFilePath());
+        assertEquals(file, result.getPartialDownloadFilePath());
+    }
+
+    /** 建立与现场相同的旧文件缓存，不保留临时鉴权或Call-ID作为恢复前提。 */
+    private StreamInfo legacyFileCache(boolean interrupted) throws Exception {
+        startAndPublish();
+        file.setHttpPath("http://synthetic.example/index/api/downloadFile?file_path=/records/" + STREAM + "/legacy.mp4");
+        StreamInfo legacy = cache.get(STREAM).getStreamInfo();
+        legacy.setDownloadStatus(interrupted ? "interrupted" : null);
+        legacy.setDownloadedDuration(null);legacy.setProgress(interrupted ? 0.99 : 1);
+        legacy.setDownLoadFilePath(interrupted ? null : file);
+        legacy.setPartialDownloadFilePath(interrupted ? file : null);
+        return legacy;
+    }
+
+    /** 构造原文件单条持久化记录，保留媒体、应用、流和文件路径四重身份。 */
+    private CloudRecordItem legacyFileRecord(double durationMillis) {
+        CloudRecordItem item = new CloudRecordItem();item.setId(456);
+        item.setApp(MediaStreamUtil.RTP_APP);item.setStream(STREAM);item.setMediaServerId(media.getId());
+        item.setFilePath("/records/" + STREAM + "/legacy.mp4");item.setFileSize(100_000);item.setTimeLen(durationMillis);
+        return item;
+    }
+
+    /** 通过已有媒体过滤查询返回候选，可信下载地址仍由媒体服务按原路径生成。 */
+    private void stubLegacyFileRecords(List<CloudRecordItem> records) {
+        lenient().when(mediaServerService.getOne(media.getId())).thenReturn(media);
+        lenient().when(cloudRecordService.getAllList(null, MediaStreamUtil.RTP_APP, STREAM, null, null, List.of(media), null, null))
+                .thenReturn(records);
+        lenient().when(mediaServerService.getDownloadFilePath(eq(media), any(RecordInfo.class))).thenAnswer(call -> {
+            DownloadFileInfo generated = new DownloadFileInfo();
+            generated.setHttpPath("http://synthetic.example/index/api/downloadFile?file_path=" + call.<RecordInfo>getArgument(1).getFilePath());
+            return generated;
+        });
     }
 
     /** 不完整结果允许重新申请，上一轮迟到的完整文件不能覆盖新的接收会话。 */

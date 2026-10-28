@@ -49,6 +49,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -61,6 +62,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -1530,8 +1532,17 @@ public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
         }
 
         if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())) {
+            if (inviteInfo.getStreamInfo().getDownloadedDuration() == null) {
+                // 旧版本曾因临时索引已清理而误标；只用原文件的持久证据恢复，真实短片不走此分支。
+                StreamInfo stored = readStoredDownloadResult(device, channel, stream, inviteInfo.getStreamInfo());
+                if (stored != null) {
+                    copyStoredDownloadResult(inviteInfo.getStreamInfo(), stored);
+                    inviteStreamService.updateInviteInfo(inviteInfo);
+                }
+            }
             // 旧 SDK 不读取状态，任何旧完整字段中的 MP4 都会被当成成功，必须移出。
-            if (inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+            if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())
+                    && inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
                 inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
                 inviteInfo.getStreamInfo().setDownLoadFilePath(null);
                 inviteStreamService.updateInviteInfo(inviteInfo);
@@ -1542,13 +1553,9 @@ public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
                 || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
             if (inviteInfo.getStreamInfo().getDownloadStatus() == null) {
                 // 升级前的缓存缺少完整性证据，重新读取文件元数据，不能保留旧版假成功。
-                StreamInfo stored = readStoredDownloadResult(device, channel, stream);
+                StreamInfo stored = readStoredDownloadResult(device, channel, stream, inviteInfo.getStreamInfo());
                 if (stored != null) {
-                    inviteInfo.getStreamInfo().setDownloadStatus(stored.getDownloadStatus());
-                    inviteInfo.getStreamInfo().setDownloadedDuration(stored.getDownloadedDuration());
-                    inviteInfo.getStreamInfo().setProgress(stored.getProgress());
-                    inviteInfo.getStreamInfo().setDownLoadFilePath(stored.getDownLoadFilePath());
-                    inviteInfo.getStreamInfo().setPartialDownloadFilePath(stored.getPartialDownloadFilePath());
+                    copyStoredDownloadResult(inviteInfo.getStreamInfo(), stored);
                     inviteStreamService.updateInviteInfo(inviteInfo);
                     return inviteInfo.getStreamInfo();
                 }
@@ -1641,18 +1648,37 @@ public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
         info.setProgress(complete ? 1 : requestedMillis > 0 ? Math.min(0.99, actual / requestedMillis) : 0);
     }
 
-    /** 缓存丢失时依据本次Call-ID的单个成品恢复，不能把多个短切片拼算成一个完整文件。 */
+    /** 把持久文件的完整性结果投影回原缓存，保留设备、通道和原始流身份。 */
+    private void copyStoredDownloadResult(StreamInfo target, StreamInfo stored) {
+        target.setDownloadStatus(stored.getDownloadStatus());
+        target.setDownloadedDuration(stored.getDownloadedDuration());
+        target.setProgress(stored.getProgress());
+        target.setDownLoadFilePath(stored.getDownLoadFilePath());
+        target.setPartialDownloadFilePath(stored.getPartialDownloadFilePath());
+    }
+
+    /** 无缓存时仍只依据本次Call-ID恢复，不能按同流名任意选择历史文件。 */
     private StreamInfo readStoredDownloadResult(Device device, DeviceChannel channel, String stream) {
+        return readStoredDownloadResult(device, channel, stream, null);
+    }
+
+    /** 优先使用Call-ID；临时索引清理后的旧缓存仅恢复精确匹配的单个原文件。 */
+    private StreamInfo readStoredDownloadResult(Device device, DeviceChannel channel, String stream, StreamInfo cached) {
         String app = MediaStreamUtil.RTP_APP;
         StreamAuthorityInfo authority = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-        if (authority == null || authority.getCallId() == null) {
-            return null;
+        CloudRecordItem item;
+        if (authority != null && authority.getCallId() != null) {
+            List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, null, authority.getCallId(), null);
+            if (records == null || records.isEmpty()) {
+                return null;
+            }
+            item = records.get(0);
+        } else {
+            item = findCachedDownloadRecord(app, stream, cached);
+            if (item == null) {
+                return null;
+            }
         }
-        List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, null, authority.getCallId(), null);
-        if (records == null || records.isEmpty()) {
-            return null;
-        }
-        CloudRecordItem item = records.get(0);
         MediaServer media = mediaServerService.getOne(item.getMediaServerId());
         if (media == null) {
             return null;
@@ -1680,6 +1706,54 @@ public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
         }
         applyDownloadFileResult(info, record, requestedMillis);
         return info;
+    }
+
+    /** 媒体上线对账会删除已完成流的鉴权索引，原缓存文件与数据库唯一匹配即可证明归属。 */
+    private CloudRecordItem findCachedDownloadRecord(String app, String stream, StreamInfo cached) {
+        if (cached == null || cached.getMediaServer() == null
+                || !Objects.equals(app, cached.getApp()) || !Objects.equals(stream, cached.getStream())
+                || !StringUtils.hasText(cached.getMediaServer().getId())) {
+            return null;
+        }
+        MediaServer media = mediaServerService.getOne(cached.getMediaServer().getId());
+        if (media == null) {
+            return null;
+        }
+        DownloadFileInfo original = cached.getDownLoadFilePath() != null
+                ? cached.getDownLoadFilePath() : cached.getPartialDownloadFilePath();
+        if (original == null) {
+            return null;
+        }
+        List<CloudRecordItem> records = cloudRecordService.getAllList(null, app, stream, null, null, List.of(media), null, null);
+        CloudRecordItem matched = null;
+        for (CloudRecordItem record : records == null ? List.<CloudRecordItem>of() : records) {
+            String path = record == null ? null : record.getFilePath();
+            if (record == null || !Objects.equals(app, record.getApp()) || !Objects.equals(stream, record.getStream())
+                    || !Objects.equals(media.getId(), record.getMediaServerId()) || record.getFileSize() <= 0
+                    || !Double.isFinite(record.getTimeLen()) || record.getTimeLen() <= 0
+                    || !StringUtils.hasText(path) || !path.endsWith(".mp4") || path.indexOf('\0') >= 0
+                    || path.indexOf('\\') >= 0 || Arrays.asList(path.split("/")).contains("..")) {
+                continue;
+            }
+            // 地址仅由已有媒体节点与已存文件路径生成；不请求缓存URL，也不放宽可信主机或路径边界。
+            DownloadFileInfo expected = mediaServerService.getDownloadFilePath(media, RecordInfo.getInstance(record));
+            if (!sameCachedDownloadFile(original, expected)) {
+                continue;
+            }
+            if (matched != null) {
+                return null;
+            }
+            matched = record;
+        }
+        return matched;
+    }
+
+    /** 同字段的完整地址必须相等，不能仅凭同流、相同文件名或跨节点路径猜测文件身份。 */
+    private boolean sameCachedDownloadFile(DownloadFileInfo original, DownloadFileInfo expected) {
+        return expected != null && (StringUtils.hasText(original.getHttpPath()) && original.getHttpPath().equals(expected.getHttpPath())
+                || StringUtils.hasText(original.getHttpsPath()) && original.getHttpsPath().equals(expected.getHttpsPath())
+                || StringUtils.hasText(original.getHttpDomainPath()) && original.getHttpDomainPath().equals(expected.getHttpDomainPath())
+                || StringUtils.hasText(original.getHttpsDomainPath()) && original.getHttpsDomainPath().equals(expected.getHttpsDomainPath()));
     }
 
     /** 结束接收与文件封装是不同阶段，等待钩子时保留当前进度并标明封装中。 */

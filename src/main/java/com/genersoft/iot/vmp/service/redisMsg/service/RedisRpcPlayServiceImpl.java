@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg.service;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.PlaybackSessionId;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -98,13 +99,24 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         }
     }
 
+    /** 旧RPC请求不添加会话字段，保持平台调用的确定性共享行为。 */
     @Override
     public void playback(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback) {
+        playback(serverId, channelId, startTime, endTime, null, callback);
+    }
 
+    /** 发送独立回放请求，规范化标识后完整透传到设备所属节点。 */
+    @Override
+    public void playback(String serverId, Integer channelId, String startTime, String endTime,
+                         String sessionId, ErrorCallback<StreamInfo> callback) {
+        String normalizedSessionId = sessionId == null ? null : PlaybackSessionId.normalize(sessionId);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("channelId", channelId);
         jsonObject.put("startTime", startTime);
         jsonObject.put("endTime", endTime);
+        if (normalizedSessionId != null) {
+            jsonObject.put("sessionId", normalizedSessionId);
+        }
         RedisRpcRequest request = buildRequest("channel/playback", jsonObject.toString());
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MILLISECONDS);

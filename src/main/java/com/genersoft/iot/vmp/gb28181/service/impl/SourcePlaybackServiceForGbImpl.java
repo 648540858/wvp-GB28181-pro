@@ -30,10 +30,24 @@ public class SourcePlaybackServiceForGbImpl implements ISourcePlaybackService {
     @Autowired
     private IDeviceChannelService channelService;
 
+    /** 旧通用入口保留内部共享回放语义。 */
     @Override
     public void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
         try {
             playService.playBack(channel, startTime, stopTime, callback);
+        } catch (PlayException e) {
+            callback.run(e.getCode(), e.getMsg(), null);
+        } catch (Exception e) {
+            callback.run(Response.BUSY_HERE, "busy here", null);
+        }
+    }
+
+    /** 将播放器会话标识交给国标播放服务，避免同区间控制相互覆盖。 */
+    @Override
+    public void playback(CommonGBChannel channel, Long startTime, Long stopTime,
+                         String sessionId, ErrorCallback<StreamInfo> callback) {
+        try {
+            playService.playBack(channel, startTime, stopTime, sessionId, callback);
         } catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
         } catch (Exception e) {

@@ -347,8 +347,20 @@ public class PlayServiceImpl implements IPlayService {
         if (!MediaStreamUtil.isGB28181(event.getApp(), event.getStream())) {
             return;
         }
-        String[] s = event.getStream().split("_");
-        if ((s.length != 2 && s.length != 4)) {
+        String[] s = event.getStream().split("_", -1);
+        if (s.length != 2 && s.length != 4 && s.length != 5) {
+            return;
+        }
+        String sessionId = null;
+        if (s.length == 5) {
+            try {
+                // 自动恢复必须沿用 URL 所属会话，不能生成新身份而恢复到另一股流。
+                sessionId = PlaybackSessionId.normalize(s[2]);
+            } catch (ControllerException exception) {
+                return;
+            }
+        }
+        if (s[0].isEmpty() || s[1].isEmpty()) {
             return;
         }
         String deviceId = s[0];
@@ -364,22 +376,29 @@ public class PlayServiceImpl implements IPlayService {
         if (s.length == 2) {
             log.info("[ZLM HOOK] 预览流未找到, 发起自动点播：{}->{}->{}/{}", event.getMediaServer().getId(), event.getSchema(), event.getApp(), event.getStream());
             play(event.getMediaServer(), deviceId, channelId, null, (code, msg, data) -> {});
-        } else if (s.length == 4) {
-            // 此时为录像回放， 录像回放格式为> 设备ID_通道ID_开始时间_结束时间
-            String startTimeStr = s[2];
-            String endTimeStr = s[3];
+        } else {
+            // 五段把会话身份放在时间之前，保留末尾两个时间段供既有消费者解析时长。
+            int timeOffset = s.length == 5 ? 3 : 2;
+            String startTimeStr = s[timeOffset];
+            String endTimeStr = s[timeOffset + 1];
             if (startTimeStr == null || endTimeStr == null || startTimeStr.length() != 14 || endTimeStr.length() != 14) {
                 return;
             }
-            String startTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(startTimeStr);
-            String endTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(endTimeStr);
+            String startTime;
+            String endTime;
+            try {
+                startTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(startTimeStr);
+                endTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(endTimeStr);
+            } catch (java.time.DateTimeException exception) {
+                return;
+            }
             log.info("[ZLM HOOK] 回放流未找到, 发起自动点播：{}->{}->{}/{}-{}-{}",
                     event.getMediaServer().getId(), event.getSchema(),
                     event.getApp(), event.getStream(),
                     startTime, endTime
             );
 
-            playBack(event.getMediaServer(), device, deviceChannel, startTime, endTime, (code, msg, data) -> {});
+            playBack(event.getMediaServer(), device, deviceChannel, startTime, endTime, sessionId, (code, msg, data) -> {});
         }
     }
 
@@ -841,6 +860,14 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void playBack(Device device, DeviceChannel channel, String startTime,
                          String endTime, ErrorCallback<StreamInfo> callback) {
+        playBack(device, channel, startTime, endTime, null, callback);
+    }
+
+    /** 将显式会话身份透传至设备所属节点，不传时仍复用原有共享回放。 */
+    @Override
+    public void playBack(Device device, DeviceChannel channel, String startTime,
+                         String endTime, String sessionId, ErrorCallback<StreamInfo> callback) {
+        sessionId = sessionId == null ? null : PlaybackSessionId.normalize(sessionId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
         }
@@ -848,7 +875,11 @@ public class PlayServiceImpl implements IPlayService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            redisRpcPlayService.playback(device.getServerId(), channel.getId(), startTime, endTime, callback);
+            if (sessionId == null) {
+                redisRpcPlayService.playback(device.getServerId(), channel.getId(), startTime, endTime, callback);
+            } else {
+                redisRpcPlayService.playback(device.getServerId(), channel.getId(), startTime, endTime, sessionId, callback);
+            }
             return;
         }
 
@@ -861,7 +892,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "单端口收流时不支持TCP主动方式收流");
         }
 
-        playBack(newMediaServerItem, device, channel, startTime, endTime, callback);
+        playBack(newMediaServerItem, device, channel, startTime, endTime, sessionId, callback);
     }
 
     /**
@@ -870,16 +901,25 @@ public class PlayServiceImpl implements IPlayService {
     private void playBack(MediaServer mediaServer,
                          Device device, DeviceChannel channel, String startTime,
                          String endTime, ErrorCallback<StreamInfo> callback) {
+        playBack(mediaServer, device, channel, startTime, endTime, null, callback);
+    }
 
-        String stream = receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime);
+    /** 显式会话只改变完整流名，沿用原认领、缓存校验和回调归属边界。 */
+    private void playBack(MediaServer mediaServer,
+                         Device device, DeviceChannel channel, String startTime,
+                         String endTime, String sessionId, ErrorCallback<StreamInfo> callback) {
+        String normalizedSessionId = sessionId == null ? null : PlaybackSessionId.normalize(sessionId);
+        String stream = normalizedSessionId == null
+                ? receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime)
+                : receiveRtpServerService.getPlaybackStream(device, channel, startTime, endTime, normalizedSessionId);
         synchronized (playbackLifecycleLock(stream)) {
-            startPlayback(mediaServer, device, channel, startTime, endTime, stream, callback);
+            startPlayback(mediaServer, device, channel, startTime, endTime, stream, normalizedSessionId, callback);
         }
     }
 
     /** 在同名回放的临界区内完成认领和创建，回调也必须验证本轮身份后才能改变状态。 */
     private void startPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
-                               String startTime, String endTime, String stream, ErrorCallback<StreamInfo> callback) {
+                               String startTime, String endTime, String stream, String sessionId, ErrorCallback<StreamInfo> callback) {
         // 原子认领回放发起权，并发请求只有一个能发起invite，其余等待结果
         boolean first = inviteStreamService.onceAndFirst(InviteSessionType.PLAYBACK, channel.getId(), stream, callback);
         if (!first) {
@@ -950,8 +990,9 @@ public class PlayServiceImpl implements IPlayService {
                     inviteStreamService.call(InviteSessionType.PLAYBACK, channel.getId(), stream, code, msg, null);
                 }
             };
-            SSRCInfo ssrcInfo = receiveRtpServerService.openGbRTPServerForPlayback(
-                    mediaServer, device, channel, startTime, endTime, receiveCallback);
+            SSRCInfo ssrcInfo = sessionId == null
+                    ? receiveRtpServerService.openGbRTPServerForPlayback(mediaServer, device, channel, startTime, endTime, receiveCallback)
+                    : receiveRtpServerService.openGbRTPServerForPlayback(mediaServer, device, channel, startTime, endTime, sessionId, receiveCallback);
             if (ssrcInfo == null || ssrcInfo.getPort() <= 0) {
                 log.info("[回放端口/SSRC]获取失败，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channel.getDeviceId(), ssrcInfo);
                 playbackAttempts.remove(stream, attempt);
@@ -2147,6 +2188,14 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
+        playBack(channel, startTime, stopTime, null, callback);
+    }
+
+    /** 将通用通道转换为源设备后继续透传播放器会话身份。 */
+    @Override
+    public void playBack(CommonGBChannel channel, Long startTime, Long stopTime,
+                         String sessionId, ErrorCallback<StreamInfo> callback) {
+        sessionId = sessionId == null ? null : PlaybackSessionId.normalize(sessionId);
         if (startTime == null || stopTime == null) {
             throw new PlayException(Response.BAD_REQUEST, "bad request");
         }
@@ -2163,7 +2212,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         String startTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime);
         String stopTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(stopTime);
-        playBack(device, deviceChannel, startTimeStr, stopTimeStr, callback);
+        playBack(device, deviceChannel, startTimeStr, stopTimeStr, sessionId, callback);
     }
 
     @Override

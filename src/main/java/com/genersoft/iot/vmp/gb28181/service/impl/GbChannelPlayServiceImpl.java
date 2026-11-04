@@ -109,8 +109,16 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             callback.run(code, msg, data);
         });
     }
+    /** 内部调用沿用确定性共享回放，不为平台协议隐式分配新会话。 */
     @Override
     public void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
+        playback(channel, startTime, stopTime, null, callback);
+    }
+
+    /** 按通道协议分派独立回放，并完整透传播放器会话标识。 */
+    @Override
+    public void playback(CommonGBChannel channel, Long startTime, Long stopTime,
+                         String sessionId, ErrorCallback<StreamInfo> callback) {
         log.info("[通用通道] 回放， 类型： {}， 编号：{}", ChannelDataType.getDateTypeDesc(channel.getDataType()), channel.getGbDeviceId());
         Integer dataType = channel.getDataType();
         ISourcePlaybackService playbackService = sourcePlaybackServiceMap.get(ChannelDataType.PLAYBACK_SERVICE + dataType);
@@ -119,7 +127,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             log.error("[点播通用通道] 类型编号： {} 不支持回放", dataType);
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
-        playbackService.playback(channel, startTime, stopTime, callback);
+        playbackService.playback(channel, startTime, stopTime, sessionId, callback);
     }
 
     @Override

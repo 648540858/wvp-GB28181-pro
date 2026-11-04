@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.PlaybackSessionId;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.MediaStreamUtil;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -175,9 +176,18 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         return ssrcInfo;
     }
 
+    /** 内部共享回放沿用旧四段流名。 */
     @Override
     public SSRCInfo openGbRTPServerForPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
                                                String startTime, String endTime, ErrorCallback<OpenRTPServerResult> callback) {
+        return openGbRTPServerForPlayback(mediaServer, device, channel, startTime, endTime, null, callback);
+    }
+
+    /** 为独立回放创建接收器和鉴权映射，二者必须使用相同的完整会话流名。 */
+    @Override
+    public SSRCInfo openGbRTPServerForPlayback(MediaServer mediaServer, Device device, DeviceChannel channel,
+                                              String startTime, String endTime, String sessionId,
+                                              ErrorCallback<OpenRTPServerResult> callback) {
         if (callback == null) {
             log.warn("[开启国标回放RTP收流] 失败，回调为NULL");
             return null;
@@ -187,11 +197,12 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             return null;
         }
 
+        // 在申请SSRC前校验会话标识，拒绝非法输入时不占用媒体资源。
+        String streamReplace = getPlaybackStream(device, channel, startTime, endTime, sessionId);
         // 获取 mediaServer 可用的 ssrc
         String ssrc = ssrcFactory.getPlayBackSsrc(mediaServer);
 
         String streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
-        String streamReplace = getPlaybackStream(device, channel, startTime, endTime);
 
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
 
@@ -205,8 +216,16 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         return ssrcInfo;
     }
 
+    /** 为平台和录像下载保留原有确定性四段回放流名。 */
     @Override
     public String getPlaybackStream(Device device, DeviceChannel channel, String startTime, String endTime) {
+        return getPlaybackStream(device, channel, startTime, endTime, null);
+    }
+
+    /** 以规范UUID隔离回放，并保留末尾两个时间段供现有播放器提取录像时长。 */
+    @Override
+    public String getPlaybackStream(Device device, DeviceChannel channel, String startTime, String endTime, String sessionId) {
+        String normalizedSessionId = sessionId == null ? null : PlaybackSessionId.normalize(sessionId);
         String startTimeStr = startTime.replace("-", "")
                 .replace(":", "")
                 .replace(" ", "");
@@ -214,7 +233,12 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                 .replace(":", "")
                 .replace(" ", "");
 
-        return device.getDeviceId() + "_" + channel.getDeviceId() + "_" + startTimeStr + "_" + endTimeTimeStr;
+        String prefix = device.getDeviceId() + "_" + channel.getDeviceId();
+        if (normalizedSessionId != null) {
+            // 会话放在第三段，避免破坏现用fMP4适配器匹配URL尾部开始/结束时间的契约。
+            prefix += "_" + normalizedSessionId;
+        }
+        return prefix + "_" + startTimeStr + "_" + endTimeTimeStr;
     }
 
     @Override

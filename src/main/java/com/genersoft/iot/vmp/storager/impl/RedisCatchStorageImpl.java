@@ -155,14 +155,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.delete(key);
         // 同时删除所有注册时间和心跳时间缓存列表
-        Set<String> registerKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_REGISTER_PREFIX + "*");
-        if (registerKeys != null && !registerKeys.isEmpty()) {
-            stringRedisTemplate.delete(registerKeys);
-        }
-        Set<String> keepaliveKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + "*");
-        if (keepaliveKeys != null && !keepaliveKeys.isEmpty()) {
-            stringRedisTemplate.delete(keepaliveKeys);
-        }
+        RedisUtil.deleteByPattern(stringRedisTemplate, VideoManagerConstants.DEVICE_REGISTER_PREFIX + "*");
+        RedisUtil.deleteByPattern(stringRedisTemplate, VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + "*");
     }
 
     @Override

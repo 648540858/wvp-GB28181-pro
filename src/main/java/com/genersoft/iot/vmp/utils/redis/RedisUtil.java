@@ -41,6 +41,33 @@ public class RedisUtil {
 
         return Lists.newArrayList(resultKeys);
     }
+
+    /**
+     * 根据 pattern 删除 key，使用 SCAN 分批遍历，避免 KEYS 命令阻塞 Redis
+     * 注意：pattern 为完整的匹配表达式，不会再额外添加通配符
+     *
+     * @param redisTemplate redis 模板
+     * @param pattern       匹配表达式，例如 VMP_DEVICE_REGISTER:*
+     */
+    public static void deleteByPattern(RedisTemplate redisTemplate, String pattern) {
+        redisTemplate.execute((RedisCallback<Void>) connection -> {
+            ScanOptions scanOptions = ScanOptions.scanOptions().match(pattern).count(1000).build();
+            List<byte[]> keys = new ArrayList<>(1000);
+            try (Cursor<byte[]> cursor = connection.scan(scanOptions)) {
+                while (cursor.hasNext()) {
+                    keys.add(cursor.next());
+                    if (keys.size() >= 1000) {
+                        connection.del(keys.toArray(new byte[0][]));
+                        keys.clear();
+                    }
+                }
+            }
+            if (!keys.isEmpty()) {
+                connection.del(keys.toArray(new byte[0][]));
+            }
+            return null;
+        });
+    }
 }
 
 

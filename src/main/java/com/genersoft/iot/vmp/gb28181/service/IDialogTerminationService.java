@@ -35,6 +35,12 @@ public interface IDialogTerminationService {
     /** 设备主动BYE仅确认原Call-ID的结束记录，不发送BYE或按逻辑流清理其他会话。 */
     boolean confirmDeviceBye(String callId);
 
+    /** 自然设备BYE经协议入口校验并完成媒体收口后，持久化原快照的确认结果并清理本地索引。 */
+    boolean confirmDeviceRecordBye(SsrcTransaction snapshot);
+
+    /** 原录像Dialog有精确匹配的协议确认凭据且本地活动/待关闭索引均清理后才返回true。 */
+    boolean isDeviceRecordDialogTerminated(SsrcTransaction snapshot);
+
     /**
      * 停止平台侧事务。
      *

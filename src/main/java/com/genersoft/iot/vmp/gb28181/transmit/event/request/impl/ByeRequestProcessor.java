@@ -305,14 +305,14 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		SsrcTransaction indexed = sessionManager.getSsrcTransactionByStream(transaction.getApp(), transaction.getStream());
 		if (indexed == null || !Objects.equals(callId, deviceDialogCallId(indexed))) {
 			// 迟到旧BYE只清原Call-ID；条件删除保护新Call已占用的stream指针。
-			sessionManager.removeByCallId(storedCallId, transaction);
+			dialogTerminationService.confirmDeviceRecordBye(transaction);
 			return;
 		}
 		try {
 			// 由原播放锁串行核对SSRC和节点；DOWNLOAD必须保留随后到达的MP4完成上下文。
 			playService.handleDeviceRecordBye(transaction);
 		} finally {
-			sessionManager.removeByCallId(storedCallId, transaction);
+			dialogTerminationService.confirmDeviceRecordBye(transaction);
 		}
 	}
 

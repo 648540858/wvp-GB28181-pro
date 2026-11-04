@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.RecordDialogCloseReceipt;
 import com.genersoft.iot.vmp.gb28181.bean.PendingDialogClose;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -22,18 +24,25 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 
 /**
  * 覆盖 #2216 的第 3 条根因：清理旧 Call-ID 时不得删掉已被新会话覆盖的 stream 索引。
@@ -56,6 +65,9 @@ class SipInviteSessionManagerTest {
     @Mock
     private RedisOperations<String, Object> redisOperations;
 
+    @Mock
+    private ValueOperations<String, Object> valueOperations;
+
     /** 用内存 Map 模拟 Redis Hash，便于断言键是否真的被删除 */
     private final Map<String, Map<Object, Object>> store = new HashMap<>();
 
@@ -76,6 +88,7 @@ class SipInviteSessionManagerTest {
         ReflectionTestUtils.setField(sessionManager, "redisTemplate", redisTemplate);
 
         lenient().when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         lenient().when(hashOperations.get(anyString(), any())).thenAnswer(
                 invocation -> bucket(invocation.getArgument(0)).get(invocation.getArgument(1)));
         lenient().doAnswer(invocation -> {
@@ -199,6 +212,40 @@ class SipInviteSessionManagerTest {
         assertEquals("initial", sessionManager.getPendingDialogClose(OLD_CALL_ID).getAttemptId());
         assertTrue(sessionManager.updatePendingDialogClose(OLD_CALL_ID, "initial", null));
         assertNull(sessionManager.getPendingDialogClose(OLD_CALL_ID));
+    }
+
+    /** 确认凭据原子写入带30分钟TTL的独立实例键，不能留在getAll或pending列表中。 */
+    @Test
+    void recordCloseReceiptHasBoundedTtlAndDoesNotEnterSessionIndexes() {
+        RecordDialogCloseReceipt receipt = new RecordDialogCloseReceipt();
+        receipt.setCallId(OLD_CALL_ID);
+        sessionManager.saveRecordDialogCloseReceipt(OLD_CALL_ID, receipt);
+        verify(valueOperations).set(eq(callIdKey() + ":RECORD_CLOSED:" + OLD_CALL_ID),
+                same(receipt), eq(Duration.ofMinutes(30)));
+        assertTrue(sessionManager.getAll().isEmpty());
+        assertTrue(sessionManager.getPendingDialogCloses().isEmpty());
+    }
+
+    /** 已过期、未知或不兼容缓存值均视为没有凭据，不根据空Hash补造确认。 */
+    @Test
+    void recordCloseReceiptReadTreatsMissingAndWrongTypesAsUnknown() {
+        RecordDialogCloseReceipt receipt = new RecordDialogCloseReceipt();
+        String key = callIdKey() + ":RECORD_CLOSED:" + OLD_CALL_ID;
+        when(valueOperations.get(key)).thenReturn(receipt, null, "unknown");
+        assertSame(receipt, sessionManager.getRecordDialogCloseReceipt(OLD_CALL_ID));
+        assertNull(sessionManager.getRecordDialogCloseReceipt(OLD_CALL_ID));
+        assertNull(sessionManager.getRecordDialogCloseReceipt(OLD_CALL_ID));
+        assertNull(sessionManager.getRecordDialogCloseReceipt(null));
+    }
+
+    /** 写失败必须上抛，使终止owner保留confirmed pending，而非先删除最后确认依据。 */
+    @Test
+    void recordCloseReceiptWriteFailureIsNotSilentlyIgnored() {
+        RecordDialogCloseReceipt receipt = new RecordDialogCloseReceipt();
+        doThrow(new IllegalStateException("Redis不可用")).when(valueOperations)
+                .set(anyString(), same(receipt), any(Duration.class));
+        assertThrows(IllegalStateException.class,
+                () -> sessionManager.saveRecordDialogCloseReceipt(OLD_CALL_ID, receipt));
     }
 
     @Test

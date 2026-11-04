@@ -52,8 +52,12 @@ class RecordDialogTerminationTest {
         transaction.setApp("rtp");
         transaction.setStream("original-stream");
         transaction.setMediaServerId("original-media");
+        transaction.setSsrc("1200000001");
         SipTransactionInfo sip = new SipTransactionInfo();
         sip.setCallId("dialog");
+        sip.setFromTag("original-from");
+        sip.setToTag("original-to");
+        sip.setViaBranch("original-branch");
         transaction.setSipTransactionInfo(sip);
         sessions.active.put("dialog", transaction);
         doAnswer(invocation -> {
@@ -112,7 +116,7 @@ class RecordDialogTerminationTest {
         sessions.operations.clear();
         respond(0, code);
         assertNull(sessions.getPendingDialogClose("dialog"));
-        assertEquals(List.of("save", "remove-active", "remove-pending"), sessions.operations);
+        assertEquals(List.of("save", "remove-active", "save-receipt", "remove-pending"), sessions.operations);
     }
 
     /** 鉴权失败、设备失败与超时均不能伪装为设备资源已经释放。 */
@@ -125,6 +129,7 @@ class RecordDialogTerminationTest {
         assertEquals(PendingDialogClose.UNKNOWN, pending.getState());
         assertEquals(code, pending.getResponseCode());
         assertTrue(sessions.active.isEmpty());
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
     }
 
     /** 重复stop在同一关闭轮次中不创建第二个BYE事务。 */
@@ -271,7 +276,7 @@ class RecordDialogTerminationTest {
         service.retryPendingRecordCloses();
         assertNull(sessions.getPendingDialogClose("dialog"));
         assertTrue(sessions.active.isEmpty());
-        assertEquals(List.of("remove-active", "remove-pending"), sessions.operations);
+        assertEquals(List.of("remove-active", "save-receipt", "remove-pending"), sessions.operations);
         assertEquals(1, replies.size());
     }
 
@@ -309,14 +314,221 @@ class RecordDialogTerminationTest {
         assertTrue(sessions.pending.isEmpty());
     }
 
+    /** 两类Hash都空且没有凭据时仍未知，不能把本地不存在当成设备确认。 */
+    @Test
+    void emptyIndexesWithoutReceiptAreNotTerminationConfirmation() {
+        sessions.active.clear();
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        assertFalse(service.isDeviceRecordDialogTerminated(null));
+    }
+
+    /** 200系列与481均保存原身份凭据，pending撤销后才对分段驱动返回确认。 */
+    @ParameterizedTest
+    @ValueSource(ints = {200, 204, 481})
+    void protocolTerminalReceiptConfirmsOnlyAfterIndexesAreClean(int code) {
+        stop();
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        respond(0, code);
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        assertEquals(code, sessions.receipts.get("dialog").getResponseCode());
+        assertTrue(sessions.getPendingDialogCloses().isEmpty());
+        sessions.active.put("dialog", transaction);
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+    }
+
+    /** 匹配设备BYE通过原owner落下确认凭据，不另发第二个BYE。 */
+    @Test
+    void matchingDeviceByeCreatesReceiptWithoutAnotherBye() {
+        stop();
+        assertTrue(service.confirmDeviceBye("dialog"));
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        assertEquals(1, replies.size());
+        assertFalse(service.confirmDeviceBye("unknown-dialog"));
+    }
+
+    /** 无pending的自然BYE必须先保存confirmed，再清理活动索引并留下原身份凭据。 */
+    @Test
+    void naturalDeviceByeConfirmsOriginalSnapshotWithoutSendingBye() {
+        assertTrue(service.confirmDeviceRecordBye(transaction));
+        assertEquals(List.of(PendingDialogClose.CONFIRMED), sessions.savedStates);
+        assertEquals(List.of("save", "remove-active", "save-receipt", "remove-pending"), sessions.operations);
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        assertTrue(sessions.getPendingDialogCloses().isEmpty());
+        verifyNoInteractions(commander);
+    }
+
+    /** 自然BYE确认写入失败时保留活动身份，不能清掉最后可恢复的原始快照。 */
+    @Test
+    void naturalDeviceByePersistenceConflictKeepsOriginalIdentity() {
+        sessions.refuseSave = true;
+        assertFalse(service.confirmDeviceRecordBye(transaction));
+        assertSame(transaction, sessions.active.get("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        verifyNoInteractions(commander);
+    }
+
+    /** 自然BYE的receipt失败可在重启后恢复，整个补偿过程都不发送平台BYE。 */
+    @Test
+    void naturalDeviceByeReceiptFailureRecoversWithoutAnyBye() {
+        sessions.failReceiptSave = true;
+        assertThrows(IllegalStateException.class, () -> service.confirmDeviceRecordBye(transaction));
+        assertEquals(PendingDialogClose.CONFIRMED, sessions.getPendingDialogClose("dialog").getState());
+        assertEquals(0, sessions.getPendingDialogClose("dialog").getAttempts());
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        sessions.failReceiptSave = false;
+        service = restart();
+        service.retryPendingRecordCloses();
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        verifyNoInteractions(commander);
+    }
+
+    /** 收口期间新建的pending若与传入快照不同，不能凭相同Call-ID确认另一个Dialog。 */
+    @Test
+    void naturalDeviceByeRejectsMismatchedPendingSnapshot() {
+        stop();
+        SsrcTransaction other = new SsrcTransaction();
+        org.springframework.beans.BeanUtils.copyProperties(transaction, other);
+        other.setSsrc("1200000002");
+        assertFalse(service.confirmDeviceRecordBye(other));
+        assertEquals(PendingDialogClose.PENDING, sessions.getPendingDialogClose("dialog").getState());
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        assertEquals(1, replies.size());
+    }
+
+    /** 历史自然BYE缺少SIP快照仍沿原语义清理，但不能取得强确认凭据。 */
+    @Test
+    void incompleteNaturalDeviceByeCleansLocallyWithoutStrongReceipt() {
+        transaction.setSipTransactionInfo(null);
+        assertTrue(service.confirmDeviceRecordBye(transaction));
+        assertTrue(sessions.active.isEmpty());
+        assertNull(sessions.getPendingDialogClose("dialog"));
+        assertNull(sessions.getRecordDialogCloseReceipt("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        verifyNoInteractions(commander);
+    }
+
+    /** 历史confirmed缺少SIP身份时重启只补清理，不能NPE、重发BYE或补造receipt。 */
+    @Test
+    void incompleteConfirmedPendingRecoversWithoutReceiptOrBye() {
+        transaction.setSipTransactionInfo(null);
+        sessions.refuseRemoval = true;
+        assertTrue(service.confirmDeviceRecordBye(transaction));
+        assertEquals(PendingDialogClose.CONFIRMED, sessions.getPendingDialogClose("dialog").getState());
+        sessions.refuseRemoval = false;
+        service = restart();
+        service.retryPendingRecordCloses();
+        assertTrue(sessions.active.isEmpty());
+        assertNull(sessions.getPendingDialogClose("dialog"));
+        assertNull(sessions.getRecordDialogCloseReceipt("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        verifyNoInteractions(commander);
+    }
+
+    /** 缺失SSRC或标签的历史pending虽有协议终态，也不能被coordinator接受为强身份确认。 */
+    @Test
+    void incompleteIdentityTerminalDoesNotPublishReceipt() {
+        stop();
+        transaction.setSsrc(null);
+        respond(0, 200);
+        assertNull(sessions.getPendingDialogClose("dialog"));
+        assertNull(sessions.getRecordDialogCloseReceipt("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "deviceId,other-device", "channelId,18", "type,PLAY", "ssrc,1200000002",
+            "app,other-app", "stream,other-stream", "mediaServerId,other-media",
+            "callId,other-stored-call", "fromTag,other-from", "toTag,other-to",
+            "viaBranch,other-branch", "sipCallId,other-call", "fromTag,''"})
+    /** 同Call-ID旧凭据不能确认不同设备、流或SIP标签的新轮次，缺少身份也必须拒绝。 */
+    void receiptIdentityMismatchCannotConfirmNewRound(String field, String value) {
+        stop();
+        respond(0, 200);
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        if (field.equals("channelId")) {
+            transaction.setChannelId(Integer.parseInt(value));
+        } else if (field.equals("type")) {
+            transaction.setType(InviteSessionType.valueOf(value));
+        } else if (Set.of("fromTag", "toTag", "viaBranch", "sipCallId").contains(field)) {
+            ReflectionTestUtils.setField(transaction.getSipTransactionInfo(),
+                    field.equals("sipCallId") ? "callId" : field, value);
+        } else {
+            ReflectionTestUtils.setField(transaction, field, value);
+        }
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+    }
+
+    /** 凭据写入异常必须保留已确认pending，恢复只补保存和清理，不重发BYE。 */
+    @ParameterizedTest
+    @ValueSource(ints = {200, 481})
+    void receiptPersistenceFailureRecoversWithoutAnotherBye(int code) {
+        stop();
+        sessions.failReceiptSave = true;
+        assertThrows(IllegalStateException.class, () -> respond(0, code));
+        assertNotNull(sessions.getPendingDialogClose("dialog"));
+        assertNull(sessions.getRecordDialogCloseReceipt("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        service = restart();
+        service.retryPendingRecordCloses();
+        assertEquals(1, replies.size());
+        sessions.failReceiptSave = false;
+        service.retryPendingRecordCloses();
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        assertEquals(1, replies.size());
+    }
+
+    /** 写入凭据后pending清理失败仍须返回false，补偿结束后才能启动下一段。 */
+    @Test
+    void receiptCannotHidePendingCleanupFailure() {
+        stop();
+        sessions.refusePendingRemoval = true;
+        respond(0, 200);
+        assertNotNull(sessions.getRecordDialogCloseReceipt("dialog"));
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+        sessions.refusePendingRemoval = false;
+        service.retryPendingRecordCloses();
+        assertTrue(service.isDeviceRecordDialogTerminated(transaction));
+        assertEquals(1, replies.size());
+    }
+
+    /** Redis读取异常必须保持未知，不能把错误降级为结束成功。 */
+    @Test
+    void receiptReadFailureRemainsUnknown() {
+        stop();
+        respond(0, 200);
+        sessions.failReceiptRead = true;
+        assertFalse(service.isDeviceRecordDialogTerminated(transaction));
+    }
+
     /** 仅模拟存储协议，不替代生产关闭状态机；真实Redis合并和CAS由独立仓储用例验证。 */
     private static final class MemorySessions extends SipInviteSessionManager {
         final Map<String, SsrcTransaction> active = new LinkedHashMap<>();
         final Map<String, PendingDialogClose> pending = new LinkedHashMap<>();
+        final Map<String, RecordDialogCloseReceipt> receipts = new LinkedHashMap<>();
         final List<String> operations = new ArrayList<>();
+        final List<String> savedStates = new ArrayList<>();
         boolean failRemoval;
         boolean refuseRemoval;
         boolean refuseSave;
+        boolean failReceiptSave;
+        boolean failReceiptRead;
+        boolean refusePendingRemoval;
+
+        /** 模拟独立确认凭据的持久化，故障不能影响已确认pending的保留。 */
+        @Override
+        public void saveRecordDialogCloseReceipt(String callId, RecordDialogCloseReceipt receipt) {
+            if (failReceiptSave) { throw new IllegalStateException("确认凭据暂不可写"); }
+            operations.add("save-receipt");
+            receipts.put(callId, receipt);
+        }
+
+        /** 查询仅返回已存凭据，读取失败交由服务层按未知处理。 */
+        @Override
+        public RecordDialogCloseReceipt getRecordDialogCloseReceipt(String callId) {
+            if (failReceiptRead) { throw new IllegalStateException("确认凭据暂不可读"); }
+            return receipts.get(callId);
+        }
 
         /** 从活动和待确认事务中保留同设备的可停止对话身份。 */
         @Override
@@ -350,9 +562,15 @@ class RecordDialogTerminationTest {
         @Override
         public boolean updatePendingDialogClose(String callId, String expected, PendingDialogClose replacement) {
             PendingDialogClose previous = pending.get(callId);
-            if (refuseSave || !Objects.equals(expected, previous == null ? null : previous.getAttemptId())) { return false; }
+            if (refuseSave || (replacement == null && refusePendingRemoval)
+                    || !Objects.equals(expected, previous == null ? null : previous.getAttemptId())) { return false; }
             operations.add(replacement == null ? "remove-pending" : "save");
-            if (replacement == null) { pending.remove(callId); } else { pending.put(callId, copy(replacement)); }
+            if (replacement == null) {
+                pending.remove(callId);
+            } else {
+                savedStates.add(replacement.getState());
+                pending.put(callId, copy(replacement));
+            }
             return true;
         }
 

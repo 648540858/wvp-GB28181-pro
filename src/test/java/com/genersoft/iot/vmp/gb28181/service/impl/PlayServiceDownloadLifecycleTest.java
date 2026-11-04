@@ -103,6 +103,13 @@ class PlayServiceDownloadLifecycleTest {
             return type == null || type == InviteSessionType.DOWNLOAD ? cache.get(STREAM) : null;
         }).when(invites).getInviteInfo(nullable(InviteSessionType.class), nullable(Integer.class), eq(STREAM));
         doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class));
+        lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStream(null, STREAM);
+        lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStreamPreferPlay(STREAM);
+        lenient().doAnswer(invocation -> {
+            InviteInfo current = cache.get(STREAM);
+            if (current != null) current.setCleanTime(System.currentTimeMillis() + invocation.<Long>getArgument(1));
+            return null;
+        }).when(invites).setInviteInfoCleanTime(any(), anyLong());
         lenient().doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class), anyLong());
         lenient().doAnswer(invocation -> {cache.remove(STREAM);return null;}).when(invites).removeInviteInfo(any(InviteInfo.class));
         lenient().doAnswer(invocation -> {cache.remove(STREAM);return null;}).when(invites).removeInviteInfo(any(InviteSessionType.class), any(), any());
@@ -111,18 +118,52 @@ class PlayServiceDownloadLifecycleTest {
         lenient().when(inviteRedis.opsForHash()).thenReturn(inviteHashes);
         ReflectionTestUtils.setField(playService, "receiveRtpServerService", receiver);
         when(receiver.getPlaybackStream(device, channel, START, END)).thenReturn(STREAM);
-        when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
+        lenient().when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
                 .thenReturn(new SSRCInfo(30000, "1234567890", MediaStreamUtil.RTP_APP, STREAM));
-        when(userSetting.getPlayTimeout()).thenReturn(1000);
+        lenient().when(userSetting.getPlayTimeout()).thenReturn(1000);
         lenient().when(userSetting.getServerId()).thenReturn(device.getServerId());
         lenient().when(sendRtpServerService.queryByStream(STREAM)).thenReturn(List.of());
         lenient().when(deviceService.getDeviceByDeviceId(device.getDeviceId())).thenReturn(device);
         lenient().when(deviceService.getDevice(anyInt())).thenReturn(device);
         lenient().when(deviceChannelService.getOneForSourceById(channel.getId())).thenReturn(channel);
         lenient().when(mediaServerService.getDownloadFilePath(eq(media), any(RecordInfo.class))).thenReturn(file);
-        doAnswer(invocation -> {
+        lenient().doAnswer(invocation -> {
             StreamInfo info = new StreamInfo();info.setApp(MediaStreamUtil.RTP_APP);info.setStream(STREAM);info.setMediaServer(media);return info;
         }).when(playService).onPublishHandler(eq(media), any(MediaInfo.class), eq(device), eq(channel));
+    }
+
+    /** 端口分配失败发生在SIP调用前，可明确证明没有设备副作用，不能永久占住父任务名额。 */
+    @Test
+    void nativeAllocationFailureProvesInviteWasNotSent() {
+        when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
+                .thenReturn(null);
+        Boolean attempted = playService.startNativeDownload(media, device, channel, START, END, 1,
+                ignored -> fail("未发INVITE不能产生Dialog身份"), callback);
+        assertEquals(Boolean.FALSE, attempted);
+        verifyNoInteractions(cmder);
+        verify(callback).run(eq(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode()), anyString(), isNull());
+    }
+
+    /** 真实原生适配器在SIP应答注册后、媒体回调前交出原Dialog，父任务不靠流消失猜测归属。 */
+    @Test
+    void nativeAdapterCapturesOriginalDialogBeforeFirstMedia() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<SsrcTransaction> captured = new java.util.concurrent.atomic.AtomicReference<>();
+        assertEquals(Boolean.TRUE, playService.startNativeDownload(media, device, channel, START, END, 1,
+                captured::set, callback));
+        assertNull(captured.get());
+        SsrcTransaction original = downloadTransaction("native-adapter-original");
+        when(sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(original);
+        ArgumentCaptor<SipSubscribe.Event> accepted = ArgumentCaptor.forClass(SipSubscribe.Event.class);
+        verify(cmder).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1),
+                any(), accepted.capture(), eq(1000L), any());
+        SIPResponse response = mock(SIPResponse.class);
+        when(response.getRawContent()).thenReturn("v=0\r\ny=1234567890\r\n".getBytes(StandardCharsets.UTF_8));
+        SipSubscribe.EventResult<ResponseEvent> ok = new SipSubscribe.EventResult<>();
+        ok.statusCode = 200;
+        ok.event = new ResponseEvent(this, null, null, response);
+        accepted.getValue().response(ok);
+        assertSame(original, captured.get());
+        verifyNoInteractions(callback);
     }
 
     // 真实现场先注销再通知 MP4；自然结束必须保留本轮结果，成品可被进度接口重复读取。

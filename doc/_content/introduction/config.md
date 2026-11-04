@@ -160,6 +160,39 @@ user-settings:
   stream-on-demand: true
 ```
 
+### 2.5 指定设备的录像分段下载
+
+仅对已验证需要短段兼容的设备配置 `devices`，默认空列表保留原生下载。
+下载开始、进度和停止接口保持原路径；内部串行取段，原 SIP 对话确认结束且媒体消失后才重试，
+每段最多三次。最后一段确认关闭后释放设备调度权，云端合并使用独立的有界工作线程，
+不阻塞该设备后续下载。完整字段 `downLoadFilePath` 只提供验证通过的成品，部分文件使用
+`partialDownloadFilePath`，不应据此认定下载成功。
+
+```yaml
+record-download:
+  segmented:
+    devices: []
+    public-base-url: https://media.example.invalid/record-download
+    directory: ./data/record-download
+    max-workers: 2
+    max-job-bytes: 4294967296
+    max-total-bytes: 6442450944
+```
+
+启用前须提供 `ffmpeg`、`ffprobe`（已验证 FFmpeg 4.2，含 libx264/AAC），并确保 WVP 能访问
+ZLM 的录像文件接口，媒体节点 `recordPath` 是规范绝对目录。
+`public-base-url` 的 `GET/HEAD /record-download/*` 必须路由到保存成品的 WVP 实例；
+文件由有限期随机令牌授权，支持 Content-Length 和单 Range，不要求控制接口的登录 Cookie。
+如果调用方限制受信文件域名，应沿已有受信域名配置这一条 HTTP 路径。
+
+目录须由本实例专用，磁盘额度应大于累计预算并留出余量；发布后删除源片，成品默认保留一天。
+进程重启不重放不确定的建流，先收口有原身份的会话；未知关闭状态不作为重试许可。
+本地临时卷丢失后成品明确报错，不继续返回失效文件。
+
+接缝依据实际解码帧唯一对齐并逐帧核验丢弃的重叠内容，失败时不补帧凑时长。
+媒体时长校验不能证明设备内录像时钟连续，也不能恢复源端缺失画面；设备关键帧回退造成的
+起始误差仍可能存在。关闭开关只影响新任务，已有任务继续由新版本收口。
+
 更多完整的配置信息参考"src/main/resources/配置详情.yml"文件，需要那个配置项，复制到正在使用的配置文件中对应的文件即可。
 
 如果配置信息无误，你可以启动zlm，再启动wvp来测试了，启动成功的话，你可以在wvp的日志下看到zlm已连接的提示。

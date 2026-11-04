@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.HexFormat;
+import java.security.SecureRandom;
 
 /** 用单个服务节点Hash持久化下载任务，在同一事务中保留设备名额与任务版本。 */
 @Component
@@ -76,6 +79,107 @@ public class SegmentedDownloadStore {
             if (result != null) return result;
         }
         throw new IllegalStateException("下载任务认领发生持续并发冲突");
+    }
+
+    /**
+     * 显式重做只替换已确认关闭的失败轮次；校验和替换处于同一WATCH事务。
+     * 新任务只能从事务内原快照复制来源，旧回调和旧finally仍只拥有原UUID。
+     * 相同旧UUID的重复请求找回已提交的新轮次，不因HTTP结果未知重复合并。
+     */
+    public SegmentedDownloadTask resumeMerge(SegmentedDownloadTask expected, String oldTaskId,
+                                              String workerId, int timeoutSeconds) {
+        validate(expected);
+        if (!isUuid(oldTaskId) || workerId == null || workerId.isBlank()
+                || timeoutSeconds < 1 || timeoutSeconds > 21600) {
+            throw new IllegalArgumentException("重做合并请求缺少有效身份或期限");
+        }
+        for (int retry = 0; retry < MAX_RETRIES; retry++) {
+            SegmentedDownloadTask result = redis.execute(new SessionCallback<>() {
+                /** 只写原canonical字段，任何取消、普通启动和旧版本更新都会使CAS重新核对。 */
+                @Override
+                @SuppressWarnings("unchecked")
+                public <K, V> SegmentedDownloadTask execute(RedisOperations<K, V> operations) {
+                    RedisOperations<String, String> ops = (RedisOperations<String, String>) operations;
+                    ops.watch(key);
+                    boolean transactionOpen = false;
+                    try {
+                        SegmentedDownloadTask current = decode(ops.opsForHash().get(key, expected.getStream()));
+                        if (!sameDownload(current, expected)) {
+                            throw new IllegalStateException("原录像下载身份或来源已变化");
+                        }
+                        if (oldTaskId.equals(current.getResumedFromTaskId())) {
+                            if (!current.isSafeToStart() || current.isCancelRequested()
+                                    || (current.getState() != SegmentedDownloadTask.State.MERGING
+                                    && current.getState() != SegmentedDownloadTask.State.COMPLETED)) {
+                                throw new IllegalStateException("本轮重做合并已失败或取消，禁止重复创建");
+                            }
+                            ops.unwatch();
+                            return current;
+                        }
+                        if (!oldTaskId.equals(expected.getId()) || !isCurrent(current, expected, expected.getVersion())
+                                || current.getState() != SegmentedDownloadTask.State.FAILED
+                                || !current.isSafeToStart() || current.isCancelRequested()
+                                || current.getSegments() == null || current.getSegments().isEmpty()
+                                || current.getSegmentIndex() != current.getSegments().size()) {
+                            throw new IllegalStateException("原录像下载不满足仅重做合并条件");
+                        }
+                        SegmentedDownloadTask candidate = snapshot(current);
+                        candidate.setId(UUID.randomUUID().toString());
+                        candidate.setResumedFromTaskId(oldTaskId);
+                        byte[] token = new byte[32];
+                        new SecureRandom().nextBytes(token);
+                        candidate.setArtifactToken(HexFormat.of().formatHex(token));
+                        candidate.setWorkerId(workerId);
+                        candidate.setState(SegmentedDownloadTask.State.MERGING);
+                        candidate.setSafeToStart(true);
+                        candidate.setCancelRequested(false);
+                        candidate.setDialog(null);
+                        candidate.setChildStream(null);
+                        candidate.setChildInfo(null);
+                        candidate.setFinalFile(null);
+                        candidate.setError(null);
+                        candidate.setAttempt(0);
+                        candidate.setChildStartedAt(0);
+                        candidate.setVersion(1);
+                        long now = System.currentTimeMillis();
+                        candidate.setCreatedAt(now);
+                        candidate.setUpdatedAt(now);
+                        candidate.setNextActionAt(now);
+                        candidate.setDeadlineAt(now + timeoutSeconds * 1000L);
+                        String encoded = JSON.toJSONString(candidate);
+                        ops.multi();
+                        transactionOpen = true;
+                        ops.opsForHash().put(key, candidate.getStream(), encoded);
+                        List<Object> committed = ops.exec();
+                        transactionOpen = false;
+                        return wasCommitted(committed) ? decode(encoded) : null;
+                    } catch (RuntimeException error) {
+                        abort(ops, transactionOpen, error);
+                        throw error;
+                    }
+                }
+            });
+            if (result != null) return result;
+        }
+        throw new IllegalStateException("重做合并任务认领发生持续并发冲突");
+    }
+
+    /** 归属、区间、节点和完整来源快照同时一致，不能把同名或其他来源的任务当作幂等结果。 */
+    private boolean sameDownload(SegmentedDownloadTask current, SegmentedDownloadTask expected) {
+        return current != null && Objects.equals(current.getStream(), expected.getStream())
+                && Objects.equals(current.getServerId(), expected.getServerId())
+                && Objects.equals(current.getDeviceId(), expected.getDeviceId())
+                && Objects.equals(current.getChannelId(), expected.getChannelId())
+                && Objects.equals(current.getStartTime(), expected.getStartTime())
+                && Objects.equals(current.getEndTime(), expected.getEndTime())
+                && Objects.equals(current.getMediaServerId(), expected.getMediaServerId())
+                && Objects.equals(JSON.toJSONString(current.getSegments()), JSON.toJSONString(expected.getSegments()));
+    }
+
+    /** 重做来源必须精确指定规范UUID，不把空值或相似字符串视为默认启动。 */
+    private boolean isUuid(String id) {
+        try { return id != null && UUID.fromString(id).toString().equals(id); }
+        catch (IllegalArgumentException error) { return false; }
     }
 
     /** 仅更新相同任务身份和预期版本，成功提交后才推进调用方快照版本。 */

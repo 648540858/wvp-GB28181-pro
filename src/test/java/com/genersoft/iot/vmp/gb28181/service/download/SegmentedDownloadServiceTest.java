@@ -988,4 +988,14 @@ class SegmentedDownloadServiceTest {
         assertTrue(service.isChildStream(attempt.stream));
         assertFalse(service.isChildStream("unrelated-stream"));
     }
+
+    /** 一次取消只拥有首次读取的UUID；CAS冲突后不能顺着canonical误取消新轮次。 */
+    @Test
+    void cancel_taskReplacedDuringCas_doesNotCancelReplacement() {
+        startFirstChild();String oldId=current().getId();forcedSaveConflicts=1;
+        beforeConflict=ignored->rewrite(task->{task.setId(java.util.UUID.randomUUID().toString());
+            task.setState(State.MERGING);task.setSafeToStart(true);task.setCancelRequested(false);});
+        assertThrows(ControllerException.class,()->service.cancel(device,channel,PARENT));
+        assertNotEquals(oldId,current().getId());assertEquals(State.MERGING,current().getState());assertFalse(current().isCancelRequested());
+    }
 }

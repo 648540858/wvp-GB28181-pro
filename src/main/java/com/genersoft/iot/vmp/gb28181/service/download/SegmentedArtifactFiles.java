@@ -261,6 +261,24 @@ public class SegmentedArtifactFiles {
                 || !file.toRealPath().getParent().equals(directory)) throw new IllegalStateException("录像成品路径无效");
     }
 
+    /** 显式重做仅接受原节点的完整来源，复用同一URI及recordPath边界且不触发网络或复制。 */
+    void validateReusableSources(SegmentedDownloadTask task, MediaServer media) {
+        validateTask(task);
+        if (media == null || !Objects.equals(task.getMediaServerId(), media.getId())
+                || !Objects.equals(task.getServerId(), media.getServerId())
+                || task.getSegments() == null || task.getSegments().isEmpty()) {
+            throw new IllegalStateException("原录像来源节点不完整");
+        }
+        for (SegmentedDownloadTask.Segment segment : task.getSegments()) {
+            if (segment == null || segment.getInfo() == null
+                    || !"completed".equals(segment.getInfo().getDownloadStatus())
+                    || segment.getInfo().getDownLoadFilePath() == null) {
+                throw new IllegalStateException("原录像来源不是完整分段");
+            }
+            sourceFilePath(segment.getInfo().getDownLoadFilePath(), media);
+        }
+    }
+
     /** 只解码一次file_path并限制在该媒体节点录像根目录内；原URL主机永远不参与请求。 */
     private String sourceFilePath(DownloadFileInfo info, MediaServer media) {
         if (info == null || media == null || media.getRecordPath() == null) throw new IllegalStateException("录像源信息不完整");

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.download;
 
+import com.alibaba.fastjson2.JSON;
+
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -374,5 +376,74 @@ class SegmentedDownloadRedisIntegrationTest {
         sip.setCallId(callId);sip.setFromTag("from-" + callId);sip.setToTag("to-" + callId);sip.setViaBranch("branch-" + callId);
         dialog.setSipTransactionInfo(sip);
         return dialog;
+    }
+
+    /** 为显式合并恢复持久化一段完整合成来源，不连接HTTP、SIP或媒体进程。 */
+    private SegmentedDownloadTask failedMergeSource() {
+        SegmentedDownloadTask source=first.reserve(task(0));source.setState(SegmentedDownloadTask.State.FAILED);
+        source.setMediaServerId("synthetic-media");source.setArtifactToken("a".repeat(64));
+        StreamInfo info=new StreamInfo();info.setApp("rtp");info.setStream(source.getStream());
+        info.setStartTime(source.getStartTime());info.setEndTime(source.getEndTime());
+        info.setDownloadStatus("completed");info.setProgress(1);info.setDownloadedDuration(60.0);
+        DownloadFileInfo file=new DownloadFileInfo();file.setHttpsPath("https://example.invalid/index/api/downloadFile?file_path=%2Frecord%2Fsynthetic.mp4");info.setDownLoadFilePath(file);
+        SegmentedDownloadTask.Segment segment=new SegmentedDownloadTask.Segment();segment.setStream(source.getStream());
+        segment.setStartTime(source.getStartTime());segment.setEndTime(source.getEndTime());segment.setInfo(info);
+        source.setSegments(new ArrayList<>(List.of(segment)));source.setSegmentIndex(1);
+        assertTrue(first.save(source,source.getVersion()));return source;
+    }
+
+    /** 八个并发显式重试只提交一个新UUID，其余请求必须找回同一MERGING检查点。 */
+    @Test
+    void concurrentMergeResumeCommitsOnlyOneNewRound() throws Exception {
+        SegmentedDownloadTask source=failedMergeSource();
+        List<String> ids=concurrent(index->(index%2==0?first:second).resumeMerge(source,source.getId(),"worker-"+index,21600).getId());
+        assertEquals(1,ids.stream().distinct().count());assertNotEquals(source.getId(),ids.getFirst());
+        SegmentedDownloadTask current=first.get(source.getStream());assertEquals(SegmentedDownloadTask.State.MERGING,current.getState());
+        assertEquals(source.getId(),current.getResumedFromTaskId());assertEquals(1,current.getVersion());
+        assertEquals(21600000L,current.getDeadlineAt()-current.getCreatedAt());
+        assertFalse(first.save(source,source.getVersion()));assertFalse(first.deleteIfCurrent(source));
+    }
+
+    /** 真实Redis里的取消与恢复竞争只能有一个身份获胜，取消绝不能写入替代轮次。 */
+    @Test
+    void mergeResumeRacingCancellationNeverCancelsReplacement() throws Exception {
+        SegmentedDownloadTask source=failedMergeSource();
+        concurrent(index->{
+            if(index%2==0){
+                try { return first.resumeMerge(source,source.getId(),"resume-worker",300).getId(); }
+                catch(IllegalStateException rejected){return "resume-rejected";}
+            }
+            SegmentedDownloadTask cancellation=JSON.parseObject(JSON.toJSONString(source),SegmentedDownloadTask.class);
+            cancellation.setCancelRequested(true);cancellation.setState(SegmentedDownloadTask.State.CANCELLED);
+            return second.save(cancellation,source.getVersion())?"cancelled":"stale-cancel-rejected";
+        });
+        SegmentedDownloadTask current=first.get(source.getStream());
+        if(source.getId().equals(current.getId())){
+            assertTrue(current.isCancelRequested());assertEquals(SegmentedDownloadTask.State.CANCELLED,current.getState());
+        }else{
+            assertFalse(current.isCancelRequested());assertEquals(SegmentedDownloadTask.State.MERGING,current.getState());
+            assertEquals(source.getId(),current.getResumedFromTaskId());
+        }
+    }
+
+    /** 普通start抢先换轮或恢复抢先进入MERGING时，后来的操作不能混入另一轮来源。 */
+    @Test
+    void mergeResumeRacingNormalStartPreservesWinningRound() throws Exception {
+        SegmentedDownloadTask source=failedMergeSource();
+        concurrent(index->{
+            if(index%2==0){
+                try{return first.resumeMerge(source,source.getId(),"resume-worker",300).getId();}
+                catch(IllegalStateException rejected){return "resume-rejected";}
+            }
+            return second.reserve(task(0)).getId();
+        });
+        SegmentedDownloadTask current=first.get(source.getStream());assertNotEquals(source.getId(),current.getId());
+        if(current.getState()==SegmentedDownloadTask.State.MERGING){
+            assertEquals(source.getId(),current.getResumedFromTaskId());assertEquals(1,current.getSegments().size());
+        }else{
+            assertEquals(SegmentedDownloadTask.State.QUEUED,current.getState());assertNull(current.getResumedFromTaskId());
+            assertTrue(current.getSegments().isEmpty());
+        }
+        assertFalse(first.save(source,source.getVersion()));
     }
 }

@@ -22,6 +22,8 @@ public class SegmentedDownloadTask {
     private String childStream;
     private String error;
     private String artifactToken;
+    // 显式重做合并的来源轮次；同一旧UUID的重复请求只能找回本轮，不能再次创建工作。
+    private String resumedFromTaskId;
     private Integer channelId;
     private int downloadSpeed;
     private int segmentIndex;

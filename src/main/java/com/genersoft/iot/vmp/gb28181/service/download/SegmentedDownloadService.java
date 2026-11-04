@@ -52,6 +52,7 @@ public class SegmentedDownloadService {
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")
             .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter STREAM_TIME = DateTimeFormatter.ofPattern("uuuuMMddHHmmss");
+    private static final int MAX_RESUME_SEGMENTS = 256;
     private final SegmentedDownloadSettings settings;
     private final SegmentedDownloadStore store;
     private final NativeDownloadGateway nativeDownload;
@@ -172,6 +173,98 @@ public class SegmentedDownloadService {
         }
     }
 
+    /**
+     * 仅显式指定的安全失败轮次可重做合并；不申请、停止或查询任何设备侧媒体会话。
+     * 持久化来源和原区间必须完整一致，CAS提交后新UUID独占自己的临时目录与工作期限。
+     */
+    public void resumeMerge(Device device, DeviceChannel channel, String start, String end,
+                            String oldTaskId, ErrorCallback<StreamInfo> callback) {
+        StreamInfo result;
+        try {
+            settings.validateEnabled();
+            if (!isEnabled(device.getDeviceId()) || oldTaskId == null
+                    || !UUID.fromString(oldTaskId).toString().equals(oldTaskId)) {
+                throw new IllegalArgumentException("缺少有效的原分段任务身份");
+            }
+            LocalDateTime first = LocalDateTime.parse(start, TIME);
+            LocalDateTime last = LocalDateTime.parse(end, TIME);
+            long seconds = Duration.between(first, last).getSeconds();
+            if (seconds <= 0 || seconds > settings.getMaxRequestSeconds()) {
+                throw new IllegalArgumentException("原录像区间超出合并范围");
+            }
+            String stream = canonicalStream(device.getDeviceId(), channel.getDeviceId(), first, last);
+            synchronized (lock(stream)) {
+                SegmentedDownloadTask previous = store.get(stream);
+                requireOwner(previous, device, channel);
+                if (!Objects.equals(previous.getStream(), stream)
+                        || !Objects.equals(previous.getStartTime(), start) || !Objects.equals(previous.getEndTime(), end)
+                        || !Objects.equals(previous.getServerId(), userSetting.getServerId())
+                        || !Objects.equals(device.getServerId(), userSetting.getServerId())
+                        || (!oldTaskId.equals(previous.getId()) && !oldTaskId.equals(previous.getResumedFromTaskId()))) {
+                    throw new IllegalStateException("原录像任务身份或区间不一致");
+                }
+                boolean duplicate = oldTaskId.equals(previous.getResumedFromTaskId());
+                if (!previous.isSafeToStart() || previous.isCancelRequested()
+                        || (!duplicate && previous.getState() != State.FAILED)
+                        || (duplicate && previous.getState() != State.MERGING && previous.getState() != State.COMPLETED)) {
+                    throw new IllegalStateException("原录像任务不是可重做的安全失败轮次");
+                }
+                device(previous);
+                DeviceChannel sourceChannel = channel(previous);
+                if (!Objects.equals(sourceChannel.getDeviceId(), channel.getDeviceId())) {
+                    throw new IllegalStateException("原录像通道归属已变化");
+                }
+                MediaServer sourceMedia = media(previous);
+                validateMergeCoverage(previous, sourceChannel, first, last);
+                files.validateReusableSources(previous, sourceMedia);
+                SegmentedDownloadTask task = store.resumeMerge(previous, oldTaskId, workerId, settings.getJobTimeoutSeconds());
+                if (task.getState() == State.COMPLETED && files.resolve(task.getArtifactToken()) == null) {
+                    throw new IllegalStateException("本轮合并成品已失效");
+                }
+                result = view(task);
+            }
+        } catch (RuntimeException error) {
+            // 明确失败且保留原状态，不能把未知结果降级为普通下载而重放NVR请求。
+            callback.run(-1, "未重做合并：原任务身份、安全关闭或完整来源校验未通过", null);
+            return;
+        }
+        callback.run(0, "success", result);
+    }
+
+    /** 按真实有序区间验证完整覆盖，不能用各段时长之和掩盖缺段、重排或部分文件。 */
+    private void validateMergeCoverage(SegmentedDownloadTask task, DeviceChannel channel,
+                                        LocalDateTime first, LocalDateTime last) {
+        List<SegmentedDownloadTask.Segment> segments = task.getSegments();
+        if (segments == null || segments.isEmpty() || segments.size() > MAX_RESUME_SEGMENTS || task.getSegmentIndex() != segments.size()) {
+            throw new IllegalStateException("原录像分段数量不完整");
+        }
+        LocalDateTime covered = first;
+        LocalDateTime previousStart = null;
+        for (SegmentedDownloadTask.Segment segment : segments) {
+            if (segment == null || segment.getInfo() == null) throw new IllegalStateException("原录像分段缺失");
+            LocalDateTime begin = LocalDateTime.parse(segment.getStartTime(), TIME);
+            LocalDateTime end = LocalDateTime.parse(segment.getEndTime(), TIME);
+            StreamInfo info = segment.getInfo();
+            long seconds = Duration.between(begin, end).getSeconds();
+            if (seconds <= 0 || (previousStart == null && !begin.equals(first))
+                    || (previousStart != null && !begin.isAfter(previousStart))
+                    || begin.isAfter(covered) || !end.isAfter(covered)
+                    || !canonicalStream(task.getDeviceId(), channel.getDeviceId(), begin, end).equals(segment.getStream())
+                    || !Objects.equals(segment.getStream(), info.getStream())
+                    || !Objects.equals(segment.getStartTime(), info.getStartTime())
+                    || !Objects.equals(segment.getEndTime(), info.getEndTime())
+                    || !MediaStreamUtil.RTP_APP.equals(info.getApp()) || !"completed".equals(info.getDownloadStatus())
+                    || info.getDownLoadFilePath() == null || Double.compare(info.getProgress(), 1.0) != 0
+                    || info.getDownloadedDuration() == null || !Double.isFinite(info.getDownloadedDuration())
+                    || Math.abs(info.getDownloadedDuration() - seconds) > 2.0) {
+                throw new IllegalStateException("原录像分段没有完整且有序的区间覆盖");
+            }
+            covered = end;
+            previousStart = begin;
+        }
+        if (covered.isBefore(last)) throw new IllegalStateException("原录像分段尚未覆盖申请尾部");
+    }
+
     /** 父任务只按设备与数据库通道匹配，不能仅靠可猜测流名跨设备查询或停止。 */
     public boolean owns(Device device, DeviceChannel channel, String stream) {
         if (stream == null) {
@@ -199,9 +292,14 @@ public class SegmentedDownloadService {
     /** 取消持久化后禁止任何下一段，完成文件保留；协议关闭由原身份继续确认。 */
     public void cancel(Device device, DeviceChannel channel, String stream) {
         synchronized (lock(stream)) {
+            String taskId = null;
             for (int retry = 0; retry < 6; retry++) {
                 SegmentedDownloadTask task = store.get(stream);
                 requireOwner(task, device, channel);
+                if (taskId == null) taskId = task.getId();
+                else if (!Objects.equals(taskId, task.getId())) {
+                    throw new ControllerException(-1, "录像任务身份已变化，请重新查询");
+                }
                 if (task.getState() == State.COMPLETED || task.getState() == State.CANCELLED) {
                     return;
                 }

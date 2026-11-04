@@ -392,4 +392,103 @@ class SegmentedDownloadStoreTest {
         assertThrows(IllegalArgumentException.class, () -> store.reserve(null));
         verify(redis, never()).execute(any(SessionCallback.class));
     }
+
+    /** 只生成合成完整来源；节点和URI细节由Service及ArtifactFiles专项验证。 */
+    private SegmentedDownloadTask failedMergeTask() {
+        SegmentedDownloadTask input = task(java.util.UUID.randomUUID().toString(), "resume-stream", "resume-device");
+        input.setState(SegmentedDownloadTask.State.FAILED);input.setMediaServerId("resume-media");
+        input.setArtifactToken("a".repeat(64));input.setDownloadSpeed(4);input.setWorkerId("old-worker");
+        StreamInfo info = new StreamInfo();info.setDownloadStatus("completed");
+        SegmentedDownloadTask.Segment segment = new SegmentedDownloadTask.Segment();segment.setStream("synthetic-source");segment.setInfo(info);
+        input.setSegments(new ArrayList<>(List.of(segment)));input.setSegmentIndex(1);
+        return store.reserve(input);
+    }
+
+    /** 事务内从原快照生成新UUID和令牌，所有旧写回及旧清理都失去新轮次的所有权。 */
+    @Test
+    void resumeMerge_newIdentityOwnsIndependentSourcesAndDeadline() {
+        SegmentedDownloadTask old = failedMergeTask();long before = System.currentTimeMillis();
+        SegmentedDownloadTask next = store.resumeMerge(old, old.getId(), "new-worker", 21600);
+        assertNotEquals(old.getId(), next.getId());assertEquals(old.getId(), next.getResumedFromTaskId());
+        assertNotEquals(old.getArtifactToken(), next.getArtifactToken());assertTrue(next.getArtifactToken().matches("[a-f0-9]{64}"));
+        assertEquals(SegmentedDownloadTask.State.MERGING, next.getState());assertTrue(next.isSafeToStart());
+        assertFalse(next.isCancelRequested());assertEquals("new-worker",next.getWorkerId());assertNull(next.getDialog());
+        assertNull(next.getChildInfo());assertNull(next.getChildStream());assertNull(next.getFinalFile());
+        assertEquals(1,next.getVersion());assertTrue(next.getCreatedAt()>=before);
+        assertEquals(21600000L,next.getDeadlineAt()-next.getCreatedAt());
+        assertEquals(JSON.toJSONString(old.getSegments()),JSON.toJSONString(next.getSegments()));
+        next.getSegments().getFirst().setStream("mutated-response");
+        assertEquals("synthetic-source",store.get(old.getStream()).getSegments().getFirst().getStream());
+        old.setCancelRequested(true);assertFalse(store.save(old,old.getVersion()));assertFalse(store.deleteIfCurrent(old));
+        assertEquals(next.getId(),store.get(old.getStream()).getId());
+    }
+
+    /** HTTP结果未知时同一原UUID只返回已提交轮次，不刷新期限或重置版本。 */
+    @Test
+    void resumeMerge_sameSourceUuidIsIdempotentForMergingAndCompletedOnly() {
+        SegmentedDownloadTask old=failedMergeTask();SegmentedDownloadTask next=store.resumeMerge(old,old.getId(),"worker",21600);
+        SegmentedDownloadTask duplicate=store.resumeMerge(old,old.getId(),"other-worker",300);
+        assertEquals(next.getId(),duplicate.getId());assertEquals(next.getDeadlineAt(),duplicate.getDeadlineAt());
+        assertEquals("worker",duplicate.getWorkerId());
+        next.setState(SegmentedDownloadTask.State.COMPLETED);assertTrue(store.save(next,next.getVersion()));
+        assertEquals(next.getId(),store.resumeMerge(old,old.getId(),"worker",300).getId());
+        next.setState(SegmentedDownloadTask.State.FAILED);assertTrue(store.save(next,next.getVersion()));
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(old,old.getId(),"worker",300));
+        next.setState(SegmentedDownloadTask.State.CANCELLED);assertTrue(store.save(next,next.getVersion()));
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(old,old.getId(),"worker",300));
+    }
+
+    /** 取消在WATCH提交前获胜时必须拒绝恢复，不把旧快照的safe标志覆盖回去。 */
+    @Test
+    void resumeMerge_cancelWinsWatchConflict_preservesCancellation() {
+        SegmentedDownloadTask old=failedMergeTask();abortExecs=1;abortWithEmptyResult=true;
+        competingWrite=()->{
+            SegmentedDownloadTask cancelled=store.get(old.getStream());cancelled.setCancelRequested(true);
+            cancelled.setState(SegmentedDownloadTask.State.CANCELLED);cancelled.setVersion(cancelled.getVersion()+1);
+            storage.put(old.getStream(),JSON.toJSONString(cancelled));
+        };
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(old,old.getId(),"worker",300));
+        assertEquals(old.getId(),store.get(old.getStream()).getId());assertTrue(store.get(old.getStream()).isCancelRequested());
+    }
+
+    /** 普通start抢先换轮后，旧resume不能覆盖新QUEUED身份或污染其来源。 */
+    @Test
+    void resumeMerge_normalStartWinsWatchConflict_preservesNewStart() {
+        SegmentedDownloadTask old=failedMergeTask();abortExecs=1;
+        String newer=java.util.UUID.randomUUID().toString();
+        competingWrite=()->{
+            SegmentedDownloadTask normal=store.get(old.getStream());normal.setId(newer);normal.setState(SegmentedDownloadTask.State.QUEUED);
+            normal.setSegments(new ArrayList<>());normal.setSegmentIndex(0);normal.setVersion(1);
+            storage.put(old.getStream(),JSON.toJSONString(normal));
+        };
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(old,old.getId(),"worker",300));
+        assertEquals(newer,store.get(old.getStream()).getId());assertEquals(SegmentedDownloadTask.State.QUEUED,store.get(old.getStream()).getState());
+    }
+
+    /** 同UUID另一恢复者先提交时，本请求只能找回那个新轮次而不能再写第二轮。 */
+    @Test
+    void resumeMerge_competingSameResume_returnsCommittedIdentity() {
+        SegmentedDownloadTask old=failedMergeTask();abortExecs=1;
+        SegmentedDownloadTask[] winner=new SegmentedDownloadTask[1];
+        competingWrite=()->winner[0]=store.resumeMerge(old,old.getId(),"winning-worker",300);
+        SegmentedDownloadTask result=store.resumeMerge(old,old.getId(),"losing-worker",300);
+        assertEquals(winner[0].getId(),result.getId());assertEquals("winning-worker",result.getWorkerId());
+        assertEquals(1,store.list().size());
+    }
+
+    /** 节点、区间、来源、版本或安全终态任一不符都必须在写回前失败。 */
+    @Test
+    void resumeMerge_rejectsChangedProofAndInvalidBounds() {
+        SegmentedDownloadTask old=failedMergeTask();
+        SegmentedDownloadTask changed=JSON.parseObject(JSON.toJSONString(old),SegmentedDownloadTask.class);changed.setStartTime("different");
+        SegmentedDownloadTask changedTime=changed;
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(changedTime,old.getId(),"worker",300));
+        changed=JSON.parseObject(JSON.toJSONString(old),SegmentedDownloadTask.class);changed.getSegments().getFirst().setStream("different");
+        SegmentedDownloadTask altered=changed;
+        assertThrows(IllegalStateException.class,()->store.resumeMerge(altered,old.getId(),"worker",300));
+        assertThrows(IllegalArgumentException.class,()->store.resumeMerge(old,old.getId(),"worker",21601));
+        assertThrows(IllegalArgumentException.class,()->store.resumeMerge(old,"invalid","worker",300));
+        assertThrows(IllegalArgumentException.class,()->store.resumeMerge(old,old.getId(),"",300));
+        assertEquals(old.getId(),store.get(old.getStream()).getId());
+    }
 }

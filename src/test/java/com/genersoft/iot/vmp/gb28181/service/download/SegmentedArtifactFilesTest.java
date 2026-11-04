@@ -304,4 +304,34 @@ class SegmentedArtifactFilesTest {
         assertThrows(IllegalStateException.class, () -> files.publish(second, secondArtifact));
         assertEquals(artifact, files.resolve(first.getArtifactToken()));
     }
+
+    /** 重做仅检查原固定节点与完整URI，不发HTTP也不读取请求指定的任意主机。 */
+    @Test
+    void reusableSources_requireOriginalNodeAndFinalFile_withoutNetwork() {
+        media.setId("resume-media");media.setServerId("artifact-test");
+        SegmentedDownloadTask task=task();task.setMediaServerId(media.getId());
+        task.getSegments().getFirst().getInfo().setDownloadStatus("completed");
+        files.validateReusableSources(task,media);assertEquals(0,requests.get());verifyNoInteractions(assembler);
+        media.setServerId("other-server");assertThrows(IllegalStateException.class,()->files.validateReusableSources(task,media));
+        media.setServerId("artifact-test");media.setId("other-media");assertThrows(IllegalStateException.class,()->files.validateReusableSources(task,media));
+        media.setId("resume-media");task.getSegments().getFirst().getInfo().setPartialDownloadFilePath(task.getSegments().getFirst().getInfo().getDownLoadFilePath());
+        task.getSegments().getFirst().getInfo().setDownLoadFilePath(null);
+        assertThrows(IllegalStateException.class,()->files.validateReusableSources(task,media));assertEquals(0,requests.get());
+    }
+
+    /** 重做来源沿用recordPath校验，不能借已完成标记绕过路径逃逸或参数歧义。 */
+    @Test
+    void reusableSources_rejectUnsafeUriBeforeAnyNetwork() {
+        media.setId("resume-media");media.setServerId("artifact-test");
+        for(String source:List.of("/index/api/downloadFile?file_path=%2Fetc%2Fprivate.mp4",
+                "/index/api/downloadFile?file_path=%2Frecord%2F..%2Fprivate.mp4",
+                "/index/api/downloadFile?file_path=%252Frecord%252Fa.mp4",
+                "/index/api/downloadFile?file_path=%2Frecord%2Fa.mp4&file_path=%2Frecord%2Fb.mp4")) {
+            SegmentedDownloadTask task=task();task.setMediaServerId(media.getId());
+            StreamInfo info=task.getSegments().getFirst().getInfo();info.setDownloadStatus("completed");
+            info.getDownLoadFilePath().setHttpPath("https://untrusted.invalid"+source);
+            assertThrows(IllegalStateException.class,()->files.validateReusableSources(task,media));
+        }
+        assertEquals(0,requests.get());verifyNoInteractions(assembler);
+    }
 }

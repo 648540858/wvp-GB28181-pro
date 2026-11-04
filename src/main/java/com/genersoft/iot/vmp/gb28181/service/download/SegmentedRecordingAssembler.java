@@ -527,6 +527,7 @@ public class SegmentedRecordingAssembler {
         List<AudioSpan> spans = new ArrayList<>();
         long total = 0, logical = 0, discarded = 0, prefixOverlap = 0;
         double previous = Double.NEGATIVE_INFINITY, firstCoveredEnd = Double.NEGATIVE_INFINITY;
+        double prefixLower = Double.NEGATIVE_INFINITY, prefixUpper = Double.POSITIVE_INFINITY;
         boolean initialOverlap = true;
         int frameIndex = 0;
         for (AudioFrame frame : input) {
@@ -537,8 +538,12 @@ public class SegmentedRecordingAssembler {
             previous = pts;
             double finish = pts + (double) count / rate;
             int removed = 0;
+            boolean prefixPhase = initialOverlap;
             if (frameIndex > 1) {
-                if (initialOverlap && pts < firstCoveredEnd - AUDIO_TIMESTAMP_ERROR) {
+                double untrimmedOrigin = pts - (double) logical / rate;
+                boolean explainedWithoutRemoval = Math.max(prefixLower, untrimmedOrigin - AUDIO_TIMESTAMP_ERROR)
+                        <= Math.min(prefixUpper, untrimmedOrigin + AUDIO_TIMESTAMP_ERROR) + CLOCK_NUMERIC_EPSILON;
+                if (initialOverlap && !explainedWithoutRemoval && pts < firstCoveredEnd - AUDIO_TIMESTAMP_ERROR) {
                     // 保持原先先到样本优先的起始重叠；首个未覆盖后缀出现后，不再把后续漂移当作重叠丢样本。
                     removed = sampleBoundary(firstCoveredEnd, pts, rate, count);
                     if (removed < count) initialOverlap = false;
@@ -550,6 +555,11 @@ public class SegmentedRecordingAssembler {
             int removedEnd = Math.min(removed, sampleBoundary(Math.min(end, finish), pts, rate, count));
             discarded = Math.addExact(discarded, Math.max(0, removedEnd - nominalBegin));
             if (removed < count) {
+                if (prefixPhase) {
+                    double origin = pts + (double) removed / rate - (double) logical / rate;
+                    prefixLower = Math.max(prefixLower, origin - AUDIO_TIMESTAMP_ERROR);
+                    prefixUpper = Math.min(prefixUpper, origin + AUDIO_TIMESTAMP_ERROR);
+                }
                 spans.add(new AudioSpan(Math.addExact(total, removed), logical, count - removed, pts + (double) removed / rate));
                 logical = Math.addExact(logical, count - removed);
             }

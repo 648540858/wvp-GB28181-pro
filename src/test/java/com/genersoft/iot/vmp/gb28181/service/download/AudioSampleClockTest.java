@@ -35,6 +35,16 @@ class AudioSampleClockTest {
         assertTrue(plan.clock().maxError() <= .0011);
     }
 
+    /** 第二帧早2ms后恢复也应先证明共同clock，不能按起始重叠额外删除32样本。 */
+    @Test
+    void initialRecoveredNegativeJitterIsNotTreatedAsDuplicateSamples() throws Exception {
+        var plan = assembler.planAudioSamples(frames(0, .062, .128, .192), 16000, .032, .160);
+        assertEquals(4096, plan.total());assertEquals(2048, plan.selected());assertEquals(0, plan.discarded());
+        assertEquals(0, plan.clock().prefixOverlap());
+        assertEquals(List.of(new SampleRange(528, 2576)), plan.ranges());
+        assertEquals(-.001, plan.clock().anchor(), 1e-9);
+    }
+
     /** 相邻时钟各自看似微小的误差不能无限累积，正负漂移都需统一证明。 */
     @ParameterizedTest
     @ValueSource(ints = {-1, 1})

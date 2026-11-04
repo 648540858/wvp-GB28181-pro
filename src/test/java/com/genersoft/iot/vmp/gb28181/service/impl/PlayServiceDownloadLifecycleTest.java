@@ -102,6 +102,7 @@ class PlayServiceDownloadLifecycleTest {
         lenient().doAnswer(invocation -> {cache.remove(STREAM);return null;}).when(invites).removeInviteInfo(any(InviteSessionType.class), any(), any());
         ReflectionTestUtils.setField(playService, "inviteStreamService", invites);
         ReflectionTestUtils.setField(invites, "redisTemplate", inviteRedis);
+        lenient().when(inviteRedis.opsForHash()).thenReturn(inviteHashes);
         ReflectionTestUtils.setField(playService, "receiveRtpServerService", receiver);
         when(receiver.getPlaybackStream(device, channel, START, END)).thenReturn(STREAM);
         when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
@@ -122,7 +123,6 @@ class PlayServiceDownloadLifecycleTest {
     @Test
     void download_departureBeforeRecord_keepsFinishedFileAvailable() throws Exception {
         HookSubscribe.Event record = startAndPublish();
-        when(inviteRedis.opsForHash()).thenReturn(inviteHashes);
         when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
         MediaDepartureEvent departed = new MediaDepartureEvent(this);departed.setApp(MediaStreamUtil.RTP_APP);departed.setStream(STREAM);departed.setSchema("rtsp");departed.setMediaServer(media);
 

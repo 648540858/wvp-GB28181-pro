@@ -269,7 +269,8 @@ public class SipInviteSessionManager {
                         ops.opsForHash().delete(streamKey(), field);
                     }
                     ops.opsForHash().delete(callIdKey(), storedCallId);
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(),
+                            hasStream && isStreamIndexOwnedBy(indexed, storedCallId) ? 2 : 1);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -305,7 +306,7 @@ public class SipInviteSessionManager {
                     if (indexed.getCallId() != null) {
                         ops.opsForHash().delete(callIdKey(), indexed.getCallId());
                     }
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(), indexed.getCallId() == null ? 1 : 2);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -341,7 +342,7 @@ public class SipInviteSessionManager {
                     if (indexed.getCallId() != null) {
                         ops.opsForHash().delete(callIdKey(), indexed.getCallId());
                     }
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(), indexed.getCallId() == null ? 1 : 2);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -440,7 +441,7 @@ public class SipInviteSessionManager {
                     } else {
                         ops.opsForHash().put(closingKey(), callId, replacement);
                     }
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(), 1);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -448,6 +449,17 @@ public class SipInviteSessionManager {
             }
         }
         return false;
+    }
+
+    /** WATCH冲突在Spring/Lettuce中可返回空列表，只有本事务全部命令有结果才允许撤销原结束凭据。 */
+    private boolean wasTransactionCommitted(List<Object> results, int commandCount) {
+        if (results == null || results.isEmpty()) {
+            return false;
+        }
+        if (results.size() != commandCount || results.stream().anyMatch(value -> value == null || value instanceof Throwable)) {
+            throw new IllegalStateException("SIP会话事务结果不可确认");
+        }
+        return true;
     }
 
     private void addAll(Map<String, SsrcTransaction> result, List<SsrcTransaction> transactions) {

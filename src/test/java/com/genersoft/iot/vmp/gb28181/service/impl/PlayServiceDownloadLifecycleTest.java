@@ -245,7 +245,8 @@ class PlayServiceDownloadLifecycleTest {
         assertEquals("interrupted", result.getDownloadStatus());
         assertEquals(27.392, result.getDownloadedDuration());
         assertTrue(result.getProgress() < 1);
-        assertSame(file, result.getDownLoadFilePath());
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
         assertEquals("interrupted", playService.getDownLoadInfo(device, channel, STREAM).getDownloadStatus());
     }
 
@@ -269,7 +270,8 @@ class PlayServiceDownloadLifecycleTest {
         assertEquals("interrupted", result.getDownloadStatus());
         assertEquals(27.392, result.getDownloadedDuration());
         assertTrue(result.getProgress() < 1);
-        assertSame(file, result.getDownLoadFilePath());
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
         assertEquals(START, result.getStartTime());
         assertEquals(END, result.getEndTime());
     }
@@ -366,7 +368,8 @@ class PlayServiceDownloadLifecycleTest {
         playService.onApplicationEvent(departure);
         StreamInfo result = playService.getDownLoadInfo(device, channel, STREAM);
         assertEquals("interrupted", result.getDownloadStatus());
-        assertSame(file, result.getDownLoadFilePath());
+        assertNull(result.getDownLoadFilePath(), "旧 SDK 完整字段不得包含部分文件");
+        assertSame(file, result.getPartialDownloadFilePath());
         assertEquals(27.392, result.getDownloadedDuration());
     }
 

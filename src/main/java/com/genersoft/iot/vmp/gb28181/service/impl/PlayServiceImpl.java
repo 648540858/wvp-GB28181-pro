@@ -1438,6 +1438,15 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
 
+        if ("interrupted".equals(inviteInfo.getStreamInfo().getDownloadStatus())) {
+            // 旧 SDK 不读取状态，任何旧完整字段中的 MP4 都会被当成成功，必须移出。
+            if (inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
+            return inviteInfo.getStreamInfo();
+        }
         if (inviteInfo.getStreamInfo().getProgress() == 1
                 || inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
             if (inviteInfo.getStreamInfo().getDownloadStatus() == null) {
@@ -1448,10 +1457,13 @@ public class PlayServiceImpl implements IPlayService {
                     inviteInfo.getStreamInfo().setDownloadedDuration(stored.getDownloadedDuration());
                     inviteInfo.getStreamInfo().setProgress(stored.getProgress());
                     inviteInfo.getStreamInfo().setDownLoadFilePath(stored.getDownLoadFilePath());
+                    inviteInfo.getStreamInfo().setPartialDownloadFilePath(stored.getPartialDownloadFilePath());
                     inviteStreamService.updateInviteInfo(inviteInfo);
                     return inviteInfo.getStreamInfo();
                 }
                 inviteInfo.getStreamInfo().setDownloadStatus("interrupted");
+                inviteInfo.getStreamInfo().setPartialDownloadFilePath(inviteInfo.getStreamInfo().getDownLoadFilePath());
+                inviteInfo.getStreamInfo().setDownLoadFilePath(null);
                 inviteInfo.getStreamInfo().setProgress(Math.min(inviteInfo.getStreamInfo().getProgress(), 0.99));
                 inviteStreamService.updateInviteInfo(inviteInfo);
             }
@@ -1527,6 +1539,12 @@ public class PlayServiceImpl implements IPlayService {
         double tolerance = Math.min(2000, Math.max(0, requestedMillis) * 0.01);
         boolean complete = requestedMillis > 0 && actual > 0 && record.getFileSize() > 0
                 && actual >= requestedMillis - tolerance;
+        if (!complete) {
+            info.setPartialDownloadFilePath(info.getDownLoadFilePath());
+            info.setDownLoadFilePath(null);
+        } else {
+            info.setPartialDownloadFilePath(null);
+        }
         info.setDownloadedDuration(actual / 1000.0);
         info.setDownloadStatus(complete ? "completed" : "interrupted");
         info.setProgress(complete ? 1 : requestedMillis > 0 ? Math.min(0.99, actual / requestedMillis) : 0);
@@ -2205,7 +2223,8 @@ public class PlayServiceImpl implements IPlayService {
             int failed = dialogTerminationService.stopDevice(device, channel, type, stream);
             if (inviteInfo != null) {
                 if (type == InviteSessionType.DOWNLOAD && inviteInfo.getStreamInfo() != null
-                        && inviteInfo.getStreamInfo().getDownLoadFilePath() != null) {
+                        && (inviteInfo.getStreamInfo().getDownLoadFilePath() != null
+                            || inviteInfo.getStreamInfo().getPartialDownloadFilePath() != null)) {
                     // 完成结果独立于设备终止：SDK停止确认不得抹掉已经可下载的文件信息。
                     inviteStreamService.setInviteInfoCleanTime(inviteInfo, DOWNLOAD_INVITE_KEEP_MS);
                 } else {

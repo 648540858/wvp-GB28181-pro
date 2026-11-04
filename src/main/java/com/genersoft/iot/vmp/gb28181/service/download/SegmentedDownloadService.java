@@ -659,6 +659,7 @@ public class SegmentedDownloadService {
                 save(current);
             }
         } catch (RuntimeException ex) {
+            log.warn("[分段录像下载] 合并失败，taskId={}，cause={}", task.getId(), mergeFailureDiagnostics(ex));
             synchronized (lock(task.getStream())) {
                 SegmentedDownloadTask current = store.get(task.getStream());
                 if (current != null && Objects.equals(task.getId(), current.getId()) && current.getState() == State.MERGING) {

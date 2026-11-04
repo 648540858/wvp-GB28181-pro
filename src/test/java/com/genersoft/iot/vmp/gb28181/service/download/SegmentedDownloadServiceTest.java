@@ -21,6 +21,10 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -824,6 +828,31 @@ class SegmentedDownloadServiceTest {
         assertEquals("replacement-id", current().getId());
         assertEquals(State.QUEUED, current().getState());
         assertEquals(0, current().getSegmentIndex());
+    }
+
+    /** 失败日志保留可定位的原因和代码位置，URL、凭据和路径不会进入日志或公开错误。 */
+    @Test
+    void failedMergeLogsBoundedCauseWithoutSourceCredentials() {
+        start();
+        rewrite(task -> { task.setState(State.MERGING);task.setSegmentIndex(10); });
+        String sensitive = "https://private.invalid/video?secret=never-log password=never-log /private/source.mp4";
+        when(files.assemble(any(), eq(media), any())).thenThrow(new IllegalStateException(sensitive,
+                new java.io.IOException("接缝不存在唯一连续帧锚点 " + sensitive)));
+        Logger logger = (Logger) LoggerFactory.getLogger(SegmentedDownloadService.class);
+        ListAppender<ILoggingEvent> captured = new ListAppender<>();captured.start();logger.addAppender(captured);
+        try {
+            service.advance(PARENT);
+            assertEquals(State.FAILED, current().getState());
+            assertEquals("合并录像未通过真实内容与完整性校验", current().getError());
+            verify(files).cleanup(any());verify(files, never()).publish(any(), any());
+            ILoggingEvent event = captured.list.stream().filter(item -> item.getFormattedMessage().contains("合并失败，taskId="))
+                    .findFirst().orElseThrow();
+            String text = event.getFormattedMessage();
+            assertTrue(text.contains("IOException:接缝不存在唯一连续帧锚点"));
+            assertTrue(text.contains("failedMergeLogsBoundedCauseWithoutSourceCredentials"));
+            assertFalse(text.contains("private.invalid"));assertFalse(text.contains("never-log"));
+            assertFalse(text.contains("/private/"));assertNull(event.getThrowableProxy());
+        } finally { logger.detachAppender(captured);captured.stop(); }
     }
 
     /** 合并期间取消时不能公开文件，也不能把已取消任务写回完成。 */

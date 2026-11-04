@@ -48,7 +48,7 @@ test('短文件中断时保留实际进度和手动入口，不自动下载也�
   const { vm, calls } = fixture(() => Promise.resolve({
     progress: 1, downloadStatus: 'interrupted', downloadedDuration: 115.263,
     downloadMessage: 'private internal detail',
-    downLoadFilePath: { httpsPath: 'https://example.invalid/partial.mp4' }
+    partialDownloadFilePath: { httpsPath: 'https://example.invalid/partial.mp4' }
   }))
   await vm.getProgress(vm.getProgressTimer)
   assert.equal(vm.downloadStatus, 'interrupted')
@@ -137,4 +137,39 @@ test('一次读取失败仍可继续轮询并恢复，连续三次失败才提�
   await vm.getProgress(vm.getProgressTimer)
   assert.equal(vm.getProgressRun, false)
   assert.equal(calls.warnings, 1)
+})
+
+
+test('中断结果只使用独立部分地址，不把旧完整字段当部分文件', async() => {
+  const { vm, calls } = fixture(() => Promise.resolve({
+    progress: 0.19, downloadStatus: 'interrupted', downloadedDuration: 115,
+    downLoadFilePath: { httpsPath: 'https://example.invalid/old.mp4' },
+    partialDownloadFilePath: { httpsPath: 'https://example.invalid/partial.mp4' }
+  }))
+  await vm.getProgress(vm.getProgressTimer)
+  assert.equal(vm.downloadFile, 'https://example.invalid/partial.mp4')
+  assert.equal(calls.downloads, 0)
+})
+
+test('仅部分地址且未声明完成不能触发旧服务兼容成功', async() => {
+  const { vm, calls } = fixture(() => Promise.resolve({
+    progress: 0.19, partialDownloadFilePath: { httpsPath: 'https://example.invalid/partial.mp4' }
+  }))
+  await vm.getProgress(vm.getProgressTimer)
+  assert.equal(vm.downloadFile, null)
+  assert.equal(vm.percentage, 19)
+  assert.equal(calls.downloads, 0)
+  assert.equal(vm.getProgressRun, true)
+})
+
+test('完整终态始终使用原完整字段，部分字段不替换最终成品', async() => {
+  const { vm, calls } = fixture(() => Promise.resolve({
+    progress: 1, downloadStatus: 'completed',
+    downLoadFilePath: { httpsPath: 'https://example.invalid/full.mp4' },
+    partialDownloadFilePath: { httpsPath: 'https://example.invalid/partial.mp4' }
+  }))
+  await vm.getProgress(vm.getProgressTimer)
+  assert.equal(vm.downloadFile, 'https://example.invalid/full.mp4')
+  assert.equal(vm.percentage, 100)
+  assert.equal(calls.downloads, 1)
 })

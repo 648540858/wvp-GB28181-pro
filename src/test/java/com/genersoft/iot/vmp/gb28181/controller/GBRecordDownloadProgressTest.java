@@ -51,7 +51,8 @@ class GBRecordDownloadProgressTest {
                     .andExpect(jsonPath("$.downloadStatus").value("interrupted"))
                     .andExpect(jsonPath("$.downloadedDuration").value(115.263))
                     .andExpect(jsonPath("$.progress").value(0.192))
-                    .andExpect(jsonPath("$.downLoadFilePath.httpsPath").value("https://example.invalid/partial.mp4"))
+                    .andExpect(jsonPath("$.partialDownloadFilePath.httpsPath").value("https://example.invalid/partial.mp4"))
+                    .andExpect(jsonPath("$.downLoadFilePath").isEmpty())
                     .andExpect(jsonPath("$.downloadMessage").doesNotExist());
         }
     }

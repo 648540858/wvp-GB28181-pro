@@ -127,7 +127,9 @@ export default {
             const durationText = this.downloadedDuration === null ? '' : '已收到 ' + Math.floor(this.downloadedDuration / 60) + '分' + Math.floor(this.downloadedDuration % 60) + '秒录像。'
             // 用户提示使用固定文案，避免接口诊断信息中的路径或内部异常出现在页面。
             this.statusDescription = durationText + '录像未覆盖申请时长，可能是媒体中断或源录像缺失。请检查录像区间后重试；已有部分文件可单独保存。'
-            this.downloadFile = file || null
+            // 部分文件必须使用独立字段，旧SDK只认识完整字段，不能让部分结果触发旧调用方的成功流程。
+            const partial = streamInfo.partialDownloadFilePath
+            this.downloadFile = (partial && (location.protocol === 'https:' ? partial.httpsPath : partial.httpPath)) || null
             this.getProgressRun = false
             this.clearProgressTimer()
           } else if (completed && file) {

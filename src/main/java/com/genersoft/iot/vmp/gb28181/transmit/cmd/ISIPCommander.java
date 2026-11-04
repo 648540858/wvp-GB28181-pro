@@ -17,6 +17,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -72,8 +73,9 @@ public interface ISIPCommander {
 	 * @param channel  预览通道
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param sessionGuard 在所属回放锁内验证请求身份并执行事务注册，返回 false 时拒绝旧响应
 	 */
-	void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInf, Device device, DeviceChannel channel, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException;
+	void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInf, Device device, DeviceChannel channel, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout, Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 请求历史媒体下载
@@ -83,10 +85,11 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param downloadSpeed 下载倍速参数
+	 * @param sessionGuard 在所属下载锁内验证请求身份并执行事务注册，拒绝已取消的旧响应
 	 */
 	void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                            String startTime, String endTime, int downloadSpeed,
-                           SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException;
+                           SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout, Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException;
 
 
 	/**

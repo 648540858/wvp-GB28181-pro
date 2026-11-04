@@ -36,6 +36,8 @@ import java.util.function.BooleanSupplier;
 @Component
 public class SegmentedRecordingAssembler {
     private static final double EPSILON = 0.000001;
+    private static final double AUDIO_TIMESTAMP_ERROR = 0.0011;
+    private static final double CLOCK_NUMERIC_EPSILON = 0.000000001;
     private static final double WINDOW_SECONDS = 30;
     private static final int MIN_ANCHOR_FRAMES = 8;
     private static final int MAX_INPUTS = 256;
@@ -411,7 +413,15 @@ public class SegmentedRecordingAssembler {
             entry.put("selectedSamples", selection.selected());
             entry.put("discardedOverlapSamples", selection.discarded());
             entry.put("sampleRate", selection.sampleRate());
-            entry.put("timestampQuantizationSeconds", 0.0011);
+            entry.put("timestampQuantizationSeconds", AUDIO_TIMESTAMP_ERROR);
+            AudioClockProof clock = selection.clock();
+            JSONObject sampleClock = new JSONObject();
+            sampleClock.put("originLowerSeconds", clock.lower());sampleClock.put("originUpperSeconds", clock.upper());
+            sampleClock.put("chosenOriginSeconds", clock.anchor());sampleClock.put("maxObservedErrorSeconds", clock.maxError());
+            sampleClock.put("observedFrames", clock.frames());sampleClock.put("initialOverlapSamples", clock.prefixOverlap());
+            sampleClock.put("logicalFirstSample", clock.firstSample());sampleClock.put("logicalEndSample", clock.endSample());
+            sampleClock.put("singleMeasurementBudgetSeconds", AUDIO_TIMESTAMP_ERROR);
+            entry.put("sampleClock", sampleClock);
             sourceAudio.add(entry);
         }
         result.put("sourceAudio", sourceAudio);
@@ -483,7 +493,7 @@ public class SegmentedRecordingAssembler {
                 "-c:a", "pcm_f32le", "-rf64", "auto", audioPart(video).toString()), video.getFileName() + "-wrap-audio", context);
         Files.delete(raw);
         Files.delete(selected);
-        return new AudioSelection(plan.total(), plan.selected(), plan.discarded(), format.sampleRate());
+        return new AudioSelection(plan.total(), plan.selected(), plan.discarded(), format.sampleRate(), plan.clock());
     }
 
     /** 毫秒源PTS的量化误差仅保留原样本；超过量化范围的真实间隙必须拒绝。 */
@@ -491,51 +501,109 @@ public class SegmentedRecordingAssembler {
         Path metadata = run(List.of(settings.getFfprobe(), "-v", "error", "-threads", "1", "-select_streams", "a:0",
                 "-show_frames", "-show_entries", "frame=best_effort_timestamp_time,nb_samples:side_data=",
                 "-of", "compact=p=0:nk=0", cut.clip().input().toString()), label + "-source-audio-frames", context);
-        int rate = cut.clip().format().sampleRate();
-        if (rate <= 0 || cut.clip().format().channels() <= 0) throw new IOException("源音频格式无效");
-        double start = cut.clip().frames().get(cut.begin()).pts();
-        double end = endTime(cut.clip(), cut.end());
-        double covered = start;
-        double previous = Double.NEGATIVE_INFINITY;
-        long total = 0;
-        long selected = 0;
-        long discarded = 0;
-        int frames = 0;
-        List<SampleRange> ranges = new ArrayList<>();
+        List<AudioFrame> frames = new ArrayList<>();
         try (BufferedReader reader = Files.newBufferedReader(metadata)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 Map<String, String> fields = compactFields(line);
                 if (!fields.containsKey("nb_samples")) continue;
-                double pts = Double.parseDouble(fields.get("best_effort_timestamp_time"));
-                int count = Integer.parseInt(fields.get("nb_samples"));
-                if (!Double.isFinite(pts) || pts <= previous || count <= 0 || ++frames > 2_000_000) {
-                    throw new IOException("源音频解码样本时间戳无效");
-                }
-                previous = pts;
-                double finish = pts + (double) count / rate;
-                if (finish > start && pts < end) {
-                    if (pts > covered + 0.0011) throw new IOException("源音频存在真实间隙，禁止补样本");
-                    double beginTime = Math.max(start, pts);
-                    // WVP/ZLM源时间戳以毫秒量化；微小跳动不改样本，大重叠只剔除已覆盖时间。
-                    if (pts < covered - 0.0011) beginTime = Math.max(beginTime, covered);
-                    int begin = sampleBoundary(beginTime, pts, rate, count);
-                    int until = sampleBoundary(Math.min(end, finish), pts, rate, count);
-                    int nominalBegin = sampleBoundary(Math.max(start, pts), pts, rate, count);
-                    discarded = Math.addExact(discarded, Math.max(0, Math.min(begin, until) - nominalBegin));
-                    if (until > begin) {
-                        addSampleRange(ranges, Math.addExact(total, begin), Math.addExact(total, until));
-                        selected = Math.addExact(selected, until - begin);
-                        covered = Math.max(covered, Math.min(end, finish));
-                    }
-                }
-                total = Math.addExact(total, count);
+                frames.add(new AudioFrame(Double.parseDouble(fields.get("best_effort_timestamp_time")),
+                        Integer.parseInt(fields.get("nb_samples"))));
+                if (frames.size() > 2_000_000) throw new IOException("源音频解码样本时间戳无效");
             }
         } catch (NumberFormatException | NullPointerException error) {
             throw new IOException("源音频样本边界不可验证", error);
         }
-        if (selected == 0 || covered < end - 0.0011) throw new IOException("源音频首尾未覆盖视频裁剪范围");
-        return new AudioSamplePlan(total, selected, discarded, ranges);
+        if (cut.clip().format().channels() <= 0) throw new IOException("源音频格式无效");
+        return planAudioSamples(frames, cut.clip().format().sampleRate(),
+                cut.clip().frames().get(cut.begin()).pts(), endTime(cut.clip(), cut.end()));
+    }
+
+    /** 样本选择与工具读取分离，直接验证时钟、原始索引和边界，不生成任何音频样本。 */
+    AudioSamplePlan planAudioSamples(List<AudioFrame> input, int rate, double start, double end) throws IOException {
+        if (rate <= 0 || input == null || !Double.isFinite(start) || !Double.isFinite(end) || end <= start) {
+            throw new IOException("源音频格式无效");
+        }
+        List<AudioSpan> spans = new ArrayList<>();
+        long total = 0, logical = 0, discarded = 0, prefixOverlap = 0;
+        double previous = Double.NEGATIVE_INFINITY, firstCoveredEnd = Double.NEGATIVE_INFINITY;
+        boolean initialOverlap = true;
+        int frameIndex = 0;
+        for (AudioFrame frame : input) {
+            double pts = frame.pts();int count = frame.samples();
+            if (!Double.isFinite(pts) || pts <= previous || count <= 0 || ++frameIndex > 2_000_000) {
+                throw new IOException("源音频解码样本时间戳无效");
+            }
+            previous = pts;
+            double finish = pts + (double) count / rate;
+            int removed = 0;
+            if (frameIndex > 1) {
+                if (initialOverlap && pts < firstCoveredEnd - AUDIO_TIMESTAMP_ERROR) {
+                    // 保持原先先到样本优先的起始重叠；首个未覆盖后缀出现后，不再把后续漂移当作重叠丢样本。
+                    removed = sampleBoundary(firstCoveredEnd, pts, rate, count);
+                    if (removed < count) initialOverlap = false;
+                } else initialOverlap = false;
+            }
+            firstCoveredEnd = Math.max(firstCoveredEnd, finish);
+            prefixOverlap = Math.addExact(prefixOverlap, removed);
+            int nominalBegin = sampleBoundary(Math.max(start, pts), pts, rate, count);
+            int removedEnd = Math.min(removed, sampleBoundary(Math.min(end, finish), pts, rate, count));
+            discarded = Math.addExact(discarded, Math.max(0, removedEnd - nominalBegin));
+            if (removed < count) {
+                spans.add(new AudioSpan(Math.addExact(total, removed), logical, count - removed, pts + (double) removed / rate));
+                logical = Math.addExact(logical, count - removed);
+            }
+            total = Math.addExact(total, count);
+        }
+        // 只证明本次选取连续块；被裁掉的真实间隙不能被搬移或补齐到保留范围内。
+        List<AudioSpan> relevant = spans.stream().filter(span -> span.pts() < end
+                && span.pts() + (double) span.samples() / rate > start).toList();
+        if (relevant.isEmpty() || relevant.getFirst().pts() > start + AUDIO_TIMESTAMP_ERROR
+                || relevant.getLast().pts() + (double) relevant.getLast().samples() / rate < end - AUDIO_TIMESTAMP_ERROR) {
+            throw new IOException("源音频首尾未覆盖视频裁剪范围");
+        }
+        double lower = Double.NEGATIVE_INFINITY, upper = Double.POSITIVE_INFINITY;
+        long expected = relevant.getFirst().logicalBegin();
+        for (AudioSpan span : relevant) {
+            if (span.logicalBegin() != expected) throw new IOException("源音频选取样本不连续");
+            expected = Math.addExact(expected, span.samples());
+            double origin = span.pts() - (double) span.logicalBegin() / rate;
+            lower = Math.max(lower, origin - AUDIO_TIMESTAMP_ERROR);
+            upper = Math.min(upper, origin + AUDIO_TIMESTAMP_ERROR);
+            if (lower > upper + CLOCK_NUMERIC_EPSILON) {
+                throw new IOException("源音频存在真实间隙或无法解释的时钟漂移，禁止补样本");
+            }
+        }
+        double anchor = lower + (upper - lower) / 2;
+        double maxError = 0;
+        for (AudioSpan span : relevant) {
+            maxError = Math.max(maxError, Math.abs(anchor + (double) span.logicalBegin() / rate - span.pts()));
+        }
+        long availableBegin = relevant.getFirst().logicalBegin();
+        long availableEnd = Math.addExact(relevant.getLast().logicalBegin(), relevant.getLast().samples());
+        if (maxError > AUDIO_TIMESTAMP_ERROR + CLOCK_NUMERIC_EPSILON
+                || anchor + (double) availableBegin / rate > start + AUDIO_TIMESTAMP_ERROR
+                || anchor + (double) availableEnd / rate < end - AUDIO_TIMESTAMP_ERROR) {
+            throw new IOException("源音频首尾未覆盖视频裁剪范围");
+        }
+        long begin = Math.max(availableBegin, Math.min(availableEnd, (long) Math.ceil((start - anchor) * rate - EPSILON)));
+        long until = Math.max(availableBegin, Math.min(availableEnd, (long) Math.ceil((end - anchor) * rate - EPSILON)));
+        List<SampleRange> ranges = new ArrayList<>();
+        long selected = 0;
+        for (AudioSpan span : relevant) {
+            long from = Math.max(begin, span.logicalBegin());
+            long to = Math.min(until, Math.addExact(span.logicalBegin(), span.samples()));
+            if (to > from) {
+                // 一次性从共同clock映射回真实PCM物理索引；+2ms/-2ms不能造成后一帧额外删除32样本。
+                addSampleRange(ranges, Math.addExact(span.rawBegin(), from - span.logicalBegin()),
+                        Math.addExact(span.rawBegin(), to - span.logicalBegin()));
+                selected = Math.addExact(selected, to - from);
+            }
+        }
+        if (selected == 0) throw new IOException("源音频首尾未覆盖视频裁剪范围");
+        AudioClockProof proof = new AudioClockProof(lower, upper, anchor, maxError, relevant.size(),
+                prefixOverlap, availableBegin, availableEnd);
+        return new AudioSamplePlan(total, selected, discarded, ranges, proof);
     }
 
     /** 半开时间边界向上取最近真实样本，只处理元数据浮点舍入而不插入采样点。 */
@@ -707,12 +775,19 @@ public class SegmentedRecordingAssembler {
     private record Seam(int offset, int anchorFrames, int overlapFrames) {}
     /** 音轨首尾由实际解码样本数推导，不读取容器申报跨度替代。 */
     private record AudioRange(double first, double end, int frames, long samples, int sampleRate, double tolerance) {}
+    /** 真实解码音频帧的原始时间戳与样本数量。 */
+    record AudioFrame(double pts, int samples) {}
+    /** 起始重叠去重后的连续逻辑样本与原PCM字节的单调映射。 */
+    private record AudioSpan(long rawBegin, long logicalBegin, int samples, double pts) {}
+    /** 有界数值证明保留原每次测量误差预算，不允许时钟漂移逐帧累计。 */
+    record AudioClockProof(double lower, double upper, double anchor, double maxError, int frames,
+                           long prefixOverlap, long firstSample, long endSample) {}
     /** 物理样本索引采用半开区间，不包含任何生成的补齐音频。 */
-    private record SampleRange(long begin, long end) {}
+    record SampleRange(long begin, long end) {}
     /** 源样本计数用于校验解码字节量，丢弃计数只包含已覆盖的时间重叠。 */
-    private record AudioSamplePlan(long total, long selected, long discarded, List<SampleRange> ranges) {}
+    record AudioSamplePlan(long total, long selected, long discarded, List<SampleRange> ranges, AudioClockProof clock) {}
     /** 最终审计记录每个保留片段的真实音频处理量。 */
-    private record AudioSelection(long total, long selected, long discarded, int sampleRate) {}
+    private record AudioSelection(long total, long selected, long discarded, int sampleRate, AudioClockProof clock) {}
     /** 所有子进程共享单一取消信号、截止时间与磁盘预算。 */
     private record Context(Path root, Path staging, long sourceBytes, long deadline, BooleanSupplier cancelled) {}
 }

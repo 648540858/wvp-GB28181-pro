@@ -584,6 +584,26 @@ public class SegmentedDownloadService {
         }
     }
 
+    /** 只记录固定原因标签和有界代码位置，原异常消息可能包含源URL、路径或凭据，禁止直接入日志。 */
+    private String mergeFailureDiagnostics(Throwable failure) {
+        List<String> known = List.of("分段录像合并校验失败", "录像处理工具失败", "录像合并处理超时",
+                "录像合并超出任务空间预算", "录像临时存储已满或无法安全统计", "录像源文件超出字节上限",
+                "完整唯一视频帧不足申请时长", "接缝不存在唯一连续帧锚点", "接缝未证明新分段延续前段",
+                "接缝完整重叠超出30秒搜索边界", "接缝丢弃区含未验证相同的帧", "相邻分段的音视频格式不一致",
+                "合并成品的真实帧数或播放时长不满足申请范围", "成品实际音频首尾未覆盖视频范围", "源音频首尾未覆盖视频裁剪范围", "源音频存在真实间隙或无法解释的时钟漂移");
+        List<String> chain = new ArrayList<>();
+        for (Throwable current = failure; current != null && chain.size() < 8; current = current.getCause()) {
+            String message = current.getMessage();
+            String reason = known.stream().filter(label -> message != null && message.startsWith(label))
+                    .findFirst().orElse("异常详情已隐藏");
+            StackTraceElement[] frames = current.getStackTrace();
+            String position = frames.length == 0 ? "unknown" : frames[0].getClassName() + "."
+                    + frames[0].getMethodName() + ":" + frames[0].getLineNumber();
+            chain.add(current.getClass().getSimpleName() + ":" + reason + "@" + position);
+        }
+        return String.join(" <- ", chain);
+    }
+
     /** 异步处理器只有持有原任务及原尝试身份才能推进持久化状态。 */
     private void updateAttempt(SegmentedDownloadTask expected, Consumer<SegmentedDownloadTask> update) {
         // 原生 200/媒体回调持有子流锁；这里不能再取父锁，否则进度读取会形成父→子、子→父死锁。

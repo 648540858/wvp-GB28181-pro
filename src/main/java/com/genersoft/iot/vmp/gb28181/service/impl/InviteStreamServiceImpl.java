@@ -339,6 +339,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         return first.get();
     }
 
+    /** 检查既有回调认领，不触发超时回收、回调通知或Redis写入。 */
+    @Override
+    public boolean hasPendingInvite(InviteSessionType type, Integer channelId) {
+        return inviteCallbackMap.values().stream().anyMatch(holder ->
+                holder.type == type && Objects.equals(holder.channelId, channelId));
+    }
+
     /**
      * 注册一个等待回调。
      *

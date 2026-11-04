@@ -63,6 +63,24 @@ class InviteStreamServiceImplTest {
     @InjectMocks
     private InviteStreamServiceImpl inviteStreamService;
 
+    /** Redis 尚无会话时，按类型和通道查询既有认领；读取不能释放任何等待者或访问数据库。 */
+    @Test
+    void pendingInviteQueryTracksEveryStreamWithoutMutatingClaims() {
+        ErrorCallback<StreamInfo> first = mock(ErrorCallback.class);
+        ErrorCallback<StreamInfo> second = mock(ErrorCallback.class);
+        inviteStreamService.onceAndFirst(InviteSessionType.PLAYBACK, CHANNEL_ID, "one", first);
+        inviteStreamService.onceAndFirst(InviteSessionType.PLAYBACK, CHANNEL_ID, "two", second);
+        assertTrue(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, CHANNEL_ID));
+        assertTrue(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, CHANNEL_ID));
+        assertFalse(inviteStreamService.hasPendingInvite(InviteSessionType.DOWNLOAD, CHANNEL_ID));
+        assertFalse(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, CHANNEL_ID + 1));
+        verifyNoInteractions(first, second, redisTemplate, deviceMapper, deviceChannelMapper);
+        inviteStreamService.call(InviteSessionType.PLAYBACK, CHANNEL_ID, "one", InviteErrorCode.SUCCESS.getCode(), "ok", null);
+        assertTrue(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, CHANNEL_ID));
+        inviteStreamService.call(InviteSessionType.PLAYBACK, CHANNEL_ID, "two", InviteErrorCode.SUCCESS.getCode(), "ok", null);
+        assertFalse(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, CHANNEL_ID));
+    }
+
     @Test
     void call_shouldNotifyAllWaiters_andReleaseClaim() {
         ErrorCallback<StreamInfo> first = mock(ErrorCallback.class);

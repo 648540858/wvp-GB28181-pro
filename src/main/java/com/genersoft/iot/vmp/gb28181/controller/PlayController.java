@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -20,6 +21,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -35,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -42,6 +45,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -258,6 +262,103 @@ public class PlayController {
 		jsonObject.put("data", objects);
 		jsonObject.put("count", objects.size());
 		return jsonObject;
+	}
+
+	/** 只读返回设备任意通道的录像占用，供仅支持一路回放的物理设备排队。 */
+	@Operation(summary = "查询设备录像会话占用状态", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@GetMapping("/record/session/{deviceId}")
+	public WVPResult<Boolean> hasDeviceRecordSession(@PathVariable String deviceId) {
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+		}
+		if (hasStoredRecordSession(deviceId, null)) {
+			return WVPResult.success(true);
+		}
+		// 认领先于 InviteInfo 持久化；必须覆盖设备全部通道，包含尚未上线的通道。
+		for (Integer channelId : deviceChannelService.queryChaneIdListByDeviceDbIds(List.of(device.getId()))) {
+			if (inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, channelId)
+					|| inviteStreamService.hasPendingInvite(InviteSessionType.DOWNLOAD, channelId)) {
+				return WVPResult.success(true);
+			}
+		}
+		return WVPResult.success(false);
+	}
+
+	/** 只读返回指定设备通道是否仍被录像会话占用，不停止或回收任何资源。 */
+	@Operation(summary = "查询通道录像会话占用状态", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@GetMapping("/record/session/{deviceId}/{channelId}")
+	public WVPResult<Boolean> hasRecordSession(@PathVariable String deviceId, @PathVariable String channelId) {
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+		}
+		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+		if (channel == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
+		}
+		if (hasStoredRecordSession(deviceId, channel.getId())) {
+			return WVPResult.success(true);
+		}
+		// 数据库通道 ID 已经由设备/通道联合查询验证，且能定位 InviteInfo 写入前的 JVM 认领。
+		return WVPResult.success(inviteStreamService.hasPendingInvite(InviteSessionType.PLAYBACK, channel.getId())
+				|| inviteStreamService.hasPendingInvite(InviteSessionType.DOWNLOAD, channel.getId()));
+	}
+
+	/** 汇总设备的持久会话；通道为空表示整台设备，避免已删通道的真实事务被误判为空闲。 */
+	private boolean hasStoredRecordSession(String deviceId, Integer channelId) {
+		SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
+		if (segmented != null && segmented.hasBusyTask(deviceId, channelId)) {
+			return true;
+		}
+		// 父任务排队和重试可能尚无物理子段；设备关闭已确认的云端合并则不再占名额。
+		// 必须扫描全部会话；终态缓存不能遮蔽另一条 pending 回放或下载。
+		for (InviteInfo invite : inviteStreamService.getAllInviteInfo()) {
+			if (invite != null && Objects.equals(deviceId, invite.getDeviceId())
+					&& (channelId == null || Objects.equals(channelId, invite.getChannelId()))
+					&& isRecordSessionType(invite.getType()) && !isTerminalDownloadResult(invite)) {
+				return true;
+			}
+		}
+		// 已完成的下载结果可继续缓存；设备侧 SIP 事务尚未释放时仍属于传输占用。
+		for (SsrcTransaction transaction : sessionManager.getSsrcTransactionByDeviceId(deviceId)) {
+			if (transaction != null && transaction.getPlatformId() == null
+					&& Objects.equals(deviceId, transaction.getDeviceId())
+					&& (channelId == null || Objects.equals(channelId, transaction.getChannelId()))
+					&& isRecordSessionType(transaction.getType())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** 录像队列只等待回放与下载，直播和对讲使用各自既有生命周期。 */
+	private boolean isRecordSessionType(InviteSessionType type) {
+		return type == InviteSessionType.PLAYBACK || type == InviteSessionType.DOWNLOAD;
+	}
+
+	/** 中断和完整文件缓存不再占传输名额，是否真正释放仍由独立的 SIP 事务扫描确认。 */
+	private boolean isTerminalDownloadResult(InviteInfo invite) {
+		StreamInfo stream = invite.getStreamInfo();
+		if (invite.getType() != InviteSessionType.DOWNLOAD || stream == null) {
+			return false;
+		}
+		if ("interrupted".equals(stream.getDownloadStatus())) {
+			return true;
+		}
+		// 新协议中的封装与未知状态仍须等待；仅无状态的旧结果兼容进度和成品地址。
+		if (StringUtils.hasText(stream.getDownloadStatus()) && !"completed".equals(stream.getDownloadStatus())) {
+			return false;
+		}
+		if (!Double.isFinite(stream.getProgress()) || stream.getProgress() < 1) {
+			return false;
+		}
+		DownloadFileInfo file = stream.getDownLoadFilePath();
+		return file != null && (StringUtils.hasText(file.getHttpPath()) || StringUtils.hasText(file.getHttpsPath())
+				|| StringUtils.hasText(file.getHttpDomainPath()) || StringUtils.hasText(file.getHttpsDomainPath()));
 	}
 
 	@Operation(summary = "获取截图", security = @SecurityRequirement(name = JwtUtils.HEADER))

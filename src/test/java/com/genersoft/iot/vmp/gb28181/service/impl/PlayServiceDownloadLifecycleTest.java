@@ -153,7 +153,8 @@ class PlayServiceDownloadLifecycleTest {
         when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
         assertTrue(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
         verify(receiver).closeRTPServer(media, MediaStreamUtil.RTP_APP, STREAM);
-        assertFalse(invites.hasPendingInvite(InviteSessionType.DOWNLOAD, channel.getId()));
+        verify(invites).call(eq(InviteSessionType.DOWNLOAD), eq(channel.getId()), eq(STREAM),
+                eq(InviteErrorCode.FAIL.getCode()), anyString(), isNull());
         ArgumentCaptor<java.util.function.Predicate<Runnable>> guard = ArgumentCaptor.forClass(java.util.function.Predicate.class);
         verify(cmder).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1),
                 any(), any(), anyLong(), guard.capture());

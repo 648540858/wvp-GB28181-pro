@@ -434,6 +434,100 @@ class SegmentedDownloadServiceTest {
     }
 
 
+    /** 长课程须显式配置容量才能进入分段下载，配置上限仍然拒绝超过六小时的无界请求。 */
+    @Test
+    void explicitlyConfiguredLongLessonFitsBoundedRequestBudget() {
+        assertDoesNotThrow(settings::validateEnabled);
+        settings.setMaxRequestSeconds(7200);
+        assertDoesNotThrow(settings::validateEnabled);
+        service.start(device, channel, media, START, "2026-10-27 11:15:00", 1,
+                (code, message, info) -> {assertEquals(0, code); assertNotNull(info);});
+        assertEquals(1, durable.size());
+        settings.setMaxRequestSeconds(21601);
+        assertThrows(IllegalStateException.class, settings::validateEnabled);
+        verifyNoInteractions(gateway);
+    }
+
+    /** 未取得Dialog的失败只有原生owner完成撤销且确认无媒体后才释放，之后同设备的新区间可申请。 */
+    @Test
+    void unconfirmedFailedChildReleasesReservationAfterNativeCleanup() {
+        NativeAttempt attempt = startFirstChild();
+        attempt.result.run(-1, "synthetic missing dialog", null);
+        rewrite(task -> task.setNextActionAt(0));
+        when(gateway.releaseUnconfirmedNativeDownload(media, device, channel, attempt.stream)).thenReturn(true);
+        service.advance(PARENT);
+        assertEquals(State.FAILED, current().getState());
+        assertTrue(current().isSafeToStart());
+        assertFalse(service.hasBusyTask(DEVICE, channel.getId()));
+        service.start(device, channel, media, "2026-10-27 11:00:00", "2026-10-27 11:10:00", 1,
+                (code, message, info) -> assertEquals(0, code));
+        assertEquals(2, durable.size());
+        assertEquals(1, attempts.size(), "失败任务释放不能自动重发旧子段");
+        verify(gateway, never()).stopNativeDownload(any(), any(), any());
+    }
+
+    /** 原生清理同步通知等待者会更新CAS版本，关闭者必须用最新检查点保存安全终态。 */
+    @Test
+    void unconfirmedCleanupAcceptsSynchronousCallbackVersionChange() {
+        NativeAttempt attempt = startFirstChild();
+        attempt.result.run(-1, "synthetic missing dialog", null);
+        rewrite(task -> task.setNextActionAt(0));
+        long previousVersion = current().getVersion();
+        when(gateway.releaseUnconfirmedNativeDownload(media, device, channel, attempt.stream)).thenAnswer(call -> {
+            attempt.result.run(-1, "synthetic cleanup notification", null);
+            return true;
+        });
+        service.advance(PARENT);
+        assertEquals(State.FAILED, current().getState());
+        assertTrue(current().isSafeToStart());
+        assertTrue(current().getVersion() > previousVersion + 1);
+        assertEquals(1, attempts.size());
+    }
+
+    /** 清理过程中出现另一轮任务时不回写旧结果，替代任务必须保留自己的阶段与安全状态。 */
+    @Test
+    void unconfirmedCleanupCannotMarkReplacementTaskSafe() {
+        NativeAttempt attempt = startFirstChild();
+        attempt.result.run(-1, "synthetic missing dialog", null);
+        rewrite(task -> task.setNextActionAt(0));
+        when(gateway.releaseUnconfirmedNativeDownload(media, device, channel, attempt.stream)).thenAnswer(call -> {
+            rewrite(task -> {task.setId("synthetic-replacement");task.setState(State.STARTING);});
+            return true;
+        });
+        service.advance(PARENT);
+        assertEquals("synthetic-replacement", current().getId());
+        assertEquals(State.STARTING, current().getState());
+        assertFalse(current().isSafeToStart());
+        assertEquals(1, attempts.size());
+    }
+
+    /** 关闭接收器或媒体复查抛异常时保留原占用，不能在异常出口继续发送INVITE。 */
+    @Test
+    void unconfirmedCleanupFailureKeepsReservationUnsafe() {
+        NativeAttempt attempt = startFirstChild();
+        attempt.result.run(-1, "synthetic missing dialog", null);
+        rewrite(task -> task.setNextActionAt(0));
+        when(gateway.releaseUnconfirmedNativeDownload(media, device, channel, attempt.stream))
+                .thenThrow(new IllegalStateException("synthetic cleanup failure"));
+        assertThrows(IllegalStateException.class, () -> service.advance(PARENT));
+        assertFalse(current().isSafeToStart());
+        assertTrue(service.hasBusyTask(DEVICE, channel.getId()));
+        assertEquals(1, attempts.size());
+    }
+
+    /** 旧版本留下的取消失败检查点也必须在精确清理后退出忙碌投影，不能因重启继续占用设备。 */
+    @Test
+    void persistedCancelledFailureWithoutDialogCanBeReleased() {
+        NativeAttempt attempt = startFirstChild();
+        rewrite(task -> {task.setState(State.FAILED); task.setCancelRequested(true); task.setNextActionAt(0);});
+        when(gateway.releaseUnconfirmedNativeDownload(media, device, channel, attempt.stream)).thenReturn(true);
+        service.advance(PARENT);
+        assertEquals(State.CANCELLED, current().getState());
+        assertTrue(current().isSafeToStart());
+        assertTrue(service.sessionViews().isEmpty());
+        verify(files, never()).publish(any(), any());
+    }
+
     /** 只有明确FALSE证明未执行SIP发送时，分配失败才能安全退避，并在三次后释放逻辑名额。 */
     @Test
     void provenUnsentAllocationFailureRetriesThreeTimesThenFailsSafely() {

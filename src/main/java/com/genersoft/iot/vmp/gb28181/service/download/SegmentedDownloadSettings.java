@@ -41,7 +41,7 @@ public class SegmentedDownloadSettings {
         if (segmentSeconds < 20 || segmentSeconds > 120 || overlapSeconds < 2 || overlapSeconds > 20
                 || tailGuardSeconds < overlapSeconds || tailGuardSeconds > 30
                 || maxAttempts < 1 || maxAttempts > 3 || maxRequestSeconds < segmentSeconds
-                || maxRequestSeconds > 3600 || maxWorkers < 1 || maxWorkers > 4
+                || maxRequestSeconds > 21600 || maxWorkers < 1 || maxWorkers > 4
                 || childTimeoutSeconds < 30 || childTimeoutSeconds > 600
                 || closeTimeoutSeconds < 10 || closeTimeoutSeconds > 300
                 || jobTimeoutSeconds < childTimeoutSeconds || jobTimeoutSeconds > 21600

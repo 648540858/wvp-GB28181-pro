@@ -1263,6 +1263,38 @@ public class PlayServiceImpl implements IPlayService, NativeDownloadGateway {
         }
     }
 
+    /** 未建立Dialog的失败尝试由原生命周期锁收口，迟到应答必须先通过已撤销的尝试守卫。 */
+    @Override
+    public boolean releaseUnconfirmedNativeDownload(MediaServer media, Device device, DeviceChannel channel, String stream) {
+        synchronized (playbackLifecycleLock(stream)) {
+            if (hasRecordDialog(device, channel, stream) || !isNativeDownloadMediaGone(media, stream)) {
+                return false;
+            }
+            // 与200注册共用子流锁；先撤销原尝试，任何迟到200只能结束其自身Dialog，不能登记到新轮次。
+            downloadAttempts.remove(stream);
+            receiveRtpServerService.closeRTPServer(media, MediaStreamUtil.RTP_APP, stream);
+            subscribe.removeSubscribe(Hook.getInstance(HookType.on_record_mp4, MediaStreamUtil.RTP_APP, stream, media.getId()));
+            inviteStreamService.removeInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+            inviteStreamService.call(InviteSessionType.DOWNLOAD, channel.getId(), stream,
+                    InviteErrorCode.FAIL.getCode(), "录像下载请求已终止", null);
+            // 控制请求异常或复查失败均保留父任务占用，不能靠空缓存或发送超时宣告释放。
+            return !hasRecordDialog(device, channel, stream) && isNativeDownloadMediaGone(media, stream);
+        }
+    }
+
+    /** 同时核对活动Call-ID、流索引和待关闭凭据，任何同流录像Dialog都交回原终止owner处理。 */
+    private boolean hasRecordDialog(Device device, DeviceChannel channel, String stream) {
+        java.util.function.Predicate<SsrcTransaction> matches = transaction -> transaction != null
+                && Objects.equals(device.getDeviceId(), transaction.getDeviceId())
+                && Objects.equals(channel.getId(), transaction.getChannelId())
+                && Objects.equals(stream, transaction.getStream())
+                && (transaction.getType() == InviteSessionType.DOWNLOAD || transaction.getType() == InviteSessionType.PLAYBACK);
+        List<SsrcTransaction> byCallId = sessionManager.getAll();
+        List<SsrcTransaction> byStream = sessionManager.getAllStreamIndex();
+        return sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, stream) != null
+                || byCallId == null || byStream == null || byCallId.stream().anyMatch(matches) || byStream.stream().anyMatch(matches);
+    }
+
     /** 只有成功的空媒体列表才放行后续子段，未知状态保持占用。 */
     @Override
     public boolean isNativeDownloadMediaGone(MediaServer media, String stream) {

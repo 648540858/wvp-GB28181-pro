@@ -472,8 +472,23 @@ public class SegmentedDownloadService {
     /** 原 Dialog 协议确认且原媒体消失后，才接受成段或允许最多三次尝试。 */
     private void closeChild(SegmentedDownloadTask task) {
         if (task.getDialog() == null) {
-            // 缺少应答身份时，可能是尚未收到 200；不能把空会话列表当作设备已经释放。
-            if (System.currentTimeMillis() > task.getNextActionAt()) {
+            if (System.currentTimeMillis() <= task.getNextActionAt()) {
+                return;
+            }
+            // 不能仅凭超时放行；原生owner必须撤销旧尝试并确认无Dialog、无媒体，迟到200只能结束旧Dialog。
+            if (nativeDownload.releaseUnconfirmedNativeDownload(media(task), device(task), channel(task), task.getChildStream())) {
+                // 撤销等待者可能同步推进回调版本；重新核对身份和尝试，不能用关闭前快照覆盖取消或替代任务。
+                SegmentedDownloadTask current = store.get(task.getStream());
+                if (current == null || !Objects.equals(task.getId(), current.getId())
+                        || task.getAttempt() != current.getAttempt()
+                        || !Objects.equals(task.getChildStream(), current.getChildStream()) || current.getDialog() != null) {
+                    return;
+                }
+                current.setSafeToStart(true);
+                current.setState(current.isCancelRequested() ? State.CANCELLED : State.FAILED);
+                current.setError("原下载请求未建立对话，已撤销并释放接收资源");
+                save(current);
+            } else if (task.getState() != State.FAILED) {
                 task.setState(State.FAILED);
                 task.setError("原下载对话缺少关闭确认，禁止自动重试");
                 save(task);

@@ -98,11 +98,11 @@ class PlayServiceDownloadLifecycleTest {
         media = new MediaServer();media.setId("synthetic-media");
         file = new DownloadFileInfo();file.setHttpPath("http://synthetic.example/download.mp4");
         invites = spy(new InviteStreamServiceImpl());
-        doAnswer(invocation -> {
+        lenient().doAnswer(invocation -> {
             InviteSessionType type = invocation.getArgument(0);
             return type == null || type == InviteSessionType.DOWNLOAD ? cache.get(STREAM) : null;
         }).when(invites).getInviteInfo(nullable(InviteSessionType.class), nullable(Integer.class), eq(STREAM));
-        doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class));
+        lenient().doAnswer(invocation -> {cache.put(STREAM, invocation.getArgument(0));return null;}).when(invites).updateInviteInfo(any(InviteInfo.class));
         lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStream(null, STREAM);
         lenient().doAnswer(invocation -> cache.get(STREAM)).when(invites).getInviteInfoByStreamPreferPlay(STREAM);
         lenient().doAnswer(invocation -> {
@@ -117,7 +117,7 @@ class PlayServiceDownloadLifecycleTest {
         ReflectionTestUtils.setField(invites, "redisTemplate", inviteRedis);
         lenient().when(inviteRedis.opsForHash()).thenReturn(inviteHashes);
         ReflectionTestUtils.setField(playService, "receiveRtpServerService", receiver);
-        when(receiver.getPlaybackStream(device, channel, START, END)).thenReturn(STREAM);
+        lenient().when(receiver.getPlaybackStream(device, channel, START, END)).thenReturn(STREAM);
         lenient().when(receiver.openGbRTPServerForDownload(eq(media), eq(device), eq(channel), eq(START), eq(END), any()))
                 .thenReturn(new SSRCInfo(30000, "1234567890", MediaStreamUtil.RTP_APP, STREAM));
         lenient().when(userSetting.getPlayTimeout()).thenReturn(1000);
@@ -142,6 +142,66 @@ class PlayServiceDownloadLifecycleTest {
         assertEquals(Boolean.FALSE, attempted);
         verifyNoInteractions(cmder);
         verify(callback).run(eq(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode()), anyString(), isNull());
+    }
+
+    /** 失败清理撤销原尝试及等待者，迟到200的守卫只能结束旧Dialog而不能覆盖下一轮。 */
+    @Test
+    void unconfirmedAttemptCleanupInvalidatesLateResponseAndAllowsNextRequest() throws Exception {
+        assertEquals(Boolean.TRUE, playService.startNativeDownload(media, device, channel, START, END, 1,
+                ignored -> fail("未收到200不能产生Dialog"), callback));
+        when(sessionManager.getAll()).thenReturn(List.of());
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of());
+        assertTrue(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        verify(receiver).closeRTPServer(media, MediaStreamUtil.RTP_APP, STREAM);
+        assertFalse(invites.hasPendingInvite(InviteSessionType.DOWNLOAD, channel.getId()));
+        ArgumentCaptor<java.util.function.Predicate<Runnable>> guard = ArgumentCaptor.forClass(java.util.function.Predicate.class);
+        verify(cmder).downloadStreamCmd(eq(media), any(SSRCInfo.class), eq(device), eq(channel), eq(START), eq(END), eq(1),
+                any(), any(), anyLong(), guard.capture());
+        assertFalse(guard.getValue().test(() -> fail("撤销后的旧应答不能登记Dialog")));
+        assertEquals(Boolean.TRUE, playService.startNativeDownload(media, device, channel, START, END, 1,
+                ignored -> {}, callback));
+        assertFalse(guard.getValue().test(() -> fail("新尝试不能复活旧应答")));
+        verify(cmder, times(2)).downloadStreamCmd(any(), any(), any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
+    }
+
+    /** 已有下载或回放Dialog不能走无身份清理分支，更不能撤销当前媒体和等待者。 */
+    @Test
+    void unconfirmedCleanupRejectsExistingDialog() {
+        for (InviteSessionType type : List.of(InviteSessionType.DOWNLOAD, InviteSessionType.PLAYBACK)) {
+            SsrcTransaction dialog = downloadTransaction("synthetic-live-dialog");dialog.setType(type);
+            when(sessionManager.getAll()).thenReturn(List.of(dialog));
+            assertFalse(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        }
+        verifyNoInteractions(receiver, mediaServerService, dialogTerminationService);
+    }
+
+    /** Call-ID为空但流索引仍有残留时也拒绝清理，不能因两份索引不同步误停接收器。 */
+    @Test
+    void unconfirmedCleanupRejectsStreamIndexOnlyDialog() {
+        when(sessionManager.getAll()).thenReturn(List.of());
+        when(sessionManager.getAllStreamIndex()).thenReturn(List.of(downloadTransaction("synthetic-stream-only")));
+        assertFalse(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        verifyNoInteractions(receiver, mediaServerService, dialogTerminationService);
+    }
+
+    /** 流查询返回另一归属时保留其原接收器，不能按调用方身份过滤后把未知流视为空闲。 */
+    @Test
+    void unconfirmedCleanupRejectsUnknownStreamOwnership() {
+        SsrcTransaction other = downloadTransaction("synthetic-other-owner");other.setDeviceId("another-device");
+        when(sessionManager.getSsrcTransactionByStream(MediaStreamUtil.RTP_APP, STREAM)).thenReturn(other);
+        assertFalse(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        verifyNoInteractions(receiver, mediaServerService, dialogTerminationService);
+    }
+
+    /** 媒体查询失败或仍在收流都不能释放名额，不能把没有Dialog快照当作设备空闲。 */
+    @Test
+    void unconfirmedCleanupRequiresSuccessfulEmptyMediaQuery() {
+        when(sessionManager.getAll()).thenReturn(List.of());
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(null);
+        assertFalse(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        when(mediaServerService.getMediaList(media, MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(List.of(new StreamInfo()));
+        assertFalse(playService.releaseUnconfirmedNativeDownload(media, device, channel, STREAM));
+        verifyNoInteractions(receiver, dialogTerminationService);
     }
 
     /** 真实原生适配器在SIP应答注册后、媒体回调前交出原Dialog，父任务不靠流消失猜测归属。 */

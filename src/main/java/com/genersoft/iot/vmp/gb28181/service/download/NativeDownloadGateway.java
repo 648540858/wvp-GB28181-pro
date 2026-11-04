@@ -21,6 +21,9 @@ public interface NativeDownloadGateway {
     /** 只结束原 Dialog，禁止按父任务流名扩大停止范围。 */
     void stopNativeDownload(Device device, DeviceChannel channel, SsrcTransaction dialog);
 
+    /** 撤销未建立Dialog的原生尝试并核实媒体与物理索引，不能以超时本身证明已释放。 */
+    boolean releaseUnconfirmedNativeDownload(MediaServer media, Device device, DeviceChannel channel, String stream);
+
     /** 媒体节点成功返回空列表才代表已消失，网络错误不作为重试许可。 */
     boolean isNativeDownloadMediaGone(MediaServer media, String stream);
 }

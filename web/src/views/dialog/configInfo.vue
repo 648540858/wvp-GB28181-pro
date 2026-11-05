@@ -34,13 +34,38 @@
             </el-descriptions-item>
             <el-descriptions-item label="端口">{{ configInfoData.sip.port }}</el-descriptions-item>
             <el-descriptions-item label="密码">
-              <el-tag size="small">{{ configInfoData.sip.password }}</el-tag>
+              <span class="password-cell">
+                <el-tag size="small">{{ passwordDisplay(configInfoData.sip.password, sipPasswordVisible) }}</el-tag>
+                <el-button
+                  v-if="configInfoData.sip.password"
+                  type="text"
+                  size="mini"
+                  class="password-toggle"
+                  :title="sipPasswordVisible ? '隐藏密码' : '显示密码'"
+                  @click="sipPasswordVisible = !sipPasswordVisible"
+                >
+                  <svg-icon :icon-class="sipPasswordVisible ? 'eye-open' : 'eye'" />
+                </el-button>
+              </span>
             </el-descriptions-item>
           </el-descriptions>
           <el-descriptions v-if="key === 'jt1078Config' && configInfoData.jt1078Config" title="部标服务信息" :column="2">
             <el-descriptions-item label="端口">{{ configInfoData.jt1078Config.port }}</el-descriptions-item>
             <el-descriptions-item label="密码">
-              <el-tag size="small">{{ configInfoData.jt1078Config.password }}</el-tag>
+              <span class="password-cell">
+                <el-tag size="small">{{ passwordDisplay(configInfoData.jt1078Config.password, jtPasswordVisible) }}</el-tag>
+                <el-button
+                  v-if="configInfoData.jt1078Config.password"
+                  type="text"
+                  size="mini"
+                  class="password-toggle"
+                  :title="jtPasswordVisible ? '隐藏密码' : '显示密码'"
+                  @click="jtPasswordVisible = !jtPasswordVisible"
+                >
+                  <svg-icon :icon-class="jtPasswordVisible ? 'eye-open' : 'eye'" />
+                  {{ jtPasswordVisible ? '隐藏' : '显示' }}
+                </el-button>
+              </span>
             </el-descriptions-item>
           </el-descriptions>
         </div>
@@ -61,6 +86,9 @@
 import QRCode from 'qrcode'
 import elDragDialog from '@/directive/el-drag-dialog'
 
+// 固定长度掩码，避免通过掩码长度推测真实密码长度
+const PASSWORD_MASK = '••••••••'
+
 export default {
   name: 'ConfigInfo',
   directives: { elDragDialog },
@@ -73,7 +101,10 @@ export default {
         sip: {}
 
       },
-      qrCodeDataUrl: ''
+      qrCodeDataUrl: '',
+      // 密码默认隐藏，仅影响页面展示；复制与二维码仍使用明文
+      sipPasswordVisible: false,
+      jtPasswordVisible: false
     }
   },
   computed: {
@@ -102,6 +133,13 @@ export default {
   },
   created() {},
   methods: {
+    // 页面密码展示：默认掩码，显示时使用明文；空密码给出占位提示
+    passwordDisplay(password, visible) {
+      if (password === undefined || password === null || password === '') {
+        return '未设置'
+      }
+      return visible ? String(password) : PASSWORD_MASK
+    },
     onCopySuccess() {
       this.$message({ type: 'success', message: '平台信息已复制到剪贴板' })
     },
@@ -126,6 +164,9 @@ export default {
       this.showDialog = true
       this.key = key
       this.configInfoData = data
+      // 每次打开都从隐藏状态开始，避免沿用上次的展开状态
+      this.sipPasswordVisible = false
+      this.jtPasswordVisible = false
       if (this.isSipSection) {
         this.generateQrCode()
       }
@@ -160,6 +201,19 @@ export default {
   flex-wrap: wrap;
   row-gap: 6px;
   min-width: 0;
+}
+.password-cell {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.password-toggle {
+  padding: 0;
+  line-height: 1;
+}
+.password-toggle .svg-icon {
+  margin-right: 2px;
 }
 .config-info-qr {
   flex: 0 0 204px;

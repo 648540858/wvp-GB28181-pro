@@ -87,6 +87,11 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 				log.error("[命令发送失败] 国标级联 再次注册: {}", e.getMessage());
 			}
 		}else if (response.getStatusCode() == Response.OK){
+			if (!platformService.isPlatformOwner(platform)) {
+				log.warn("[集群] 平台 {}({}) 已不属于本节点，忽略{}响应",
+						platform.getName(), platFormServerGbId, action);
+				return;
+			}
 			if (subscribe.getSipTransactionInfo().getExpires()  > 0) {
 				SipTransactionInfo sipTransactionInfo = new SipTransactionInfo(response);
 				platformService.online(platform, sipTransactionInfo);

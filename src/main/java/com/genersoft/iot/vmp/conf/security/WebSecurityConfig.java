@@ -96,6 +96,12 @@ public class WebSecurityConfig {
         defaultExcludes.add("/record_proxy/*/**");
         defaultExcludes.add("/api/emit");
         defaultExcludes.add("/favicon.ico");
+        // 国标级联链路追踪页面与只读 WebSocket
+        defaultExcludes.add("/trace.html");
+        defaultExcludes.add("/mermaid.min.js");
+        defaultExcludes.add("/trace/cluster");
+        defaultExcludes.add("/channel/trace");
+        defaultExcludes.add("/channel/trace/**");
         defaultExcludes.add("/api/user/login");
         defaultExcludes.add("/index/hook/**");
         defaultExcludes.add("/api/device/query/snap/**");

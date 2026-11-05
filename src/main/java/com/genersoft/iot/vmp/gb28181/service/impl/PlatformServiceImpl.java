@@ -21,6 +21,7 @@ import com.genersoft.iot.vmp.gb28181.task.platformStatus.PlatformRegisterTaskInf
 import com.genersoft.iot.vmp.gb28181.task.platformStatus.PlatformStatusTaskRunner;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.HookData;
@@ -52,7 +53,9 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
@@ -114,6 +117,62 @@ public class PlatformServiceImpl implements IPlatformService {
     @Autowired
     private PlatformStatusTaskRunner statusTaskRunner;
 
+    /**
+     * 当前节点是否已被 fencing。
+     * 心跳连续 3 秒未写入成功，或无法确认平台归属时置为 true，所有级联动作停止。
+     */
+    private volatile boolean fenced = false;
+
+    @Override
+    public boolean isFenced() {
+        return fenced;
+    }
+
+    @Override
+    public void setFenced(boolean fenced) {
+        if (this.fenced != fenced) {
+            log.info("[集群] 平台级联 fencing 状态变更：{} -> {}", this.fenced, fenced);
+        }
+        this.fenced = fenced;
+    }
+
+    @Override
+    public boolean isPlatformOwner(Platform platform) {
+        return platform != null
+                && platform.isEnable()
+                && userSetting.getServerId().equals(platform.getServerId());
+    }
+
+    @Override
+    public void checkPlatformOwnership(boolean heartbeatHealthy) {
+        // 查询当前节点真正负责的平台
+        List<String> ownedList = platformMapper.queryOwnedPlatformGbIds(userSetting.getServerId());
+        Set<String> owned = new HashSet<>(ownedList);
+
+        // 本地还持有任务的平台中，已经不属于当前节点的，停止本地任务
+        for (String platformGbId : statusTaskRunner.getAllPlatformIds()) {
+            if (owned.contains(platformGbId)) {
+                continue;
+            }
+            log.info("[集群] 平台 {} 已不属于本节点，停止本地注册/心跳/订阅任务", platformGbId);
+            statusTaskRunner.removeRegisterTask(platformGbId);
+            statusTaskRunner.removeKeepAliveTask(platformGbId);
+            subscribeHolder.removeCatalogSubscribe(platformGbId);
+            subscribeHolder.removeMobilePositionSubscribe(platformGbId);
+        }
+
+        // 归属查询成功，且心跳正常时才解除 fencing
+        if (heartbeatHealthy) {
+            setFenced(false);
+        }
+    }
+
+    private void addKeepAliveTask(Platform platform) {
+        PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(
+                platform.getServerGBId(), platform.getKeepTimeout() * 1000L, this::keepaliveExpire);
+        statusTaskRunner.addKeepAliveTask(keepaliveTask);
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady(){
 
@@ -150,21 +209,29 @@ public class PlatformServiceImpl implements IPlatformService {
             return;
         }
         for (PlatformRegisterTaskInfo taskInfo : registerTaskInfoList) {
-            log.info("[国标级联] 启动服务是发现平台注册仍在有效期，注销： {}", taskInfo.getPlatformServerId());
             Platform platform = queryPlatformByServerGBId(taskInfo.getPlatformServerId());
             if (platform == null) {
                 statusTaskRunner.removeRegisterTask(taskInfo.getPlatformServerId());
                 continue;
             }
-            if (userSetting.getServerId().equals(platform.getServerId())) {
-                sendUnRegister(platform, taskInfo.getSipTransactionInfo());
+            if (!userSetting.getServerId().equals(platform.getServerId())) {
+                // 平台在停机期间已被其他节点接管，只清理本节点遗留的任务，不能再注销
+                log.info("[集群] 平台 {}({}) 已不属于本节点，清理遗留注册任务",
+                        platform.getName(), platform.getServerGBId());
+                statusTaskRunner.removeRegisterTask(taskInfo.getPlatformServerId());
+                continue;
             }
+            log.info("[国标级联] 启动服务是发现平台注册仍在有效期，注销： {}", taskInfo.getPlatformServerId());
+            sendUnRegister(platform, taskInfo.getSipTransactionInfo());
         }
         // 启动时所有平台默认离线
         platformMapper.offlineAll(userSetting.getServerId());
     }
-    @Scheduled(fixedDelay = 20, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
+    @Scheduled(fixedDelay = 20, timeUnit = TimeUnit.SECONDS)   //每20秒执行一次
     public void statusLostCheck(){
+        if (fenced) {
+            return;
+        }
         // 每隔20秒检测，是否存在启用但是未注册的平台，存在则发起注册
         // 获取所有在线并且启用的平台
         List<Platform> platformList = platformMapper.queryServerIdsWithEnableAndServer(userSetting.getServerId());
@@ -172,21 +239,27 @@ public class PlatformServiceImpl implements IPlatformService {
             return;
         }
         for (Platform platform : platformList) {
-             if (statusTaskRunner.containsRegister(platform.getServerGBId()) && statusTaskRunner.containsKeepAlive(platform.getServerGBId())) {
-                 continue;
-             }
-             if (statusTaskRunner.containsRegister(platform.getServerGBId())) {
-                 SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platform.getServerGBId());
-                 // 注销后出发平台离线， 如果是启用的平台，那么下次丢失检测会检测到并重新注册上线
-                 sendUnRegister(platform, transactionInfo);
-             }else {
-                 statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
-                 sendRegister(platform, null);
-             }
+            if (statusTaskRunner.containsRegister(platform.getServerGBId())) {
+                // 注册任务已存在，说明正在注册或已注册。
+                // 心跳任务可能在发送过程中被短暂移除，这里只补任务，不注销平台。
+                if (!statusTaskRunner.containsKeepAlive(platform.getServerGBId())) {
+                    addKeepAliveTask(platform);
+                }
+                continue;
+            }
+            statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
+            sendRegister(platform, null);
         }
     }
 
     private void sendRegister(Platform platform, SipTransactionInfo sipTransactionInfo) {
+        if (fenced) {
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            log.info("[集群] 平台 {}({}) 不属于本节点，跳过注册", platform.getName(), platform.getServerGBId());
+            return;
+        }
         try {
             commanderForPlatform.register(platform, sipTransactionInfo, eventResult -> {
                 log.info("[国标级联] {}（{}）,注册失败", platform.getName(), platform.getServerGBId());
@@ -194,10 +267,18 @@ public class PlatformServiceImpl implements IPlatformService {
             }, null);
         } catch (InvalidArgumentException | ParseException | SipException e) {
             log.error("[命令发送失败] 国标级联: {}", e.getMessage());
+            statusTaskRunner.removeRegisterTask(platform.getServerGBId());
         }
     }
 
     private void sendUnRegister(Platform platform, SipTransactionInfo sipTransactionInfo) {
+        if (fenced) {
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            log.info("[集群] 平台 {}({}) 不属于本节点，跳过注销", platform.getName(), platform.getServerGBId());
+            return;
+        }
         statusTaskRunner.removeRegisterTask(platform.getServerGBId());
         statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
         try {
@@ -209,60 +290,108 @@ public class PlatformServiceImpl implements IPlatformService {
         }
     }
 
-    // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
-    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
+    // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则由其他节点竞争接管
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
     public void execute(){
-        if (!userSetting.isAutoRegisterPlatform()) {
+        if (!userSetting.isAutoRegisterPlatform() || fenced) {
             return;
         }
-        // 查找非平台的国标级联执行服务Id
-        List<String> serverIds = platformMapper.queryServerIdsWithEnableAndNotInServer(userSetting.getServerId());
-        if (serverIds == null || serverIds.isEmpty()) {
+
+        // 查出所有启用但不属于当前节点的平台，逐个原子抢占
+        List<Platform> candidates = platformMapper.queryEnablePlatformsNotOwnedBy(userSetting.getServerId());
+        if (candidates == null || candidates.isEmpty()) {
             return;
         }
-        serverIds.forEach(serverId -> {
-           // 检查每个是否存活
-            ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
-            if (serverInfo != null) {
-                return;
+
+        for (Platform platform : candidates) {
+            String owner = platform.getServerId();
+            if (owner != null && owner.isEmpty()) {
+                owner = null;
             }
-            log.info("[集群] 检测到 {} 已离线", serverId);
-            redisCatchStorage.removeOfflineWVPInfo(serverId);
-            String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
-            if (!userSetting.getServerId().equals(chooseServerId)){
-                return;
-            }
-            // 此平台需要选择新平台处理， 确定由当前平台即开始处理
-            List<Platform> platformList = platformMapper.queryByServerId(serverId);
-            platformList.forEach(platform -> {
-                log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
-                // 设置平台使用当前平台的IP
-                platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
-                platform.setServerId(userSetting.getServerId());
-                platformMapper.update(platform);
-                // 检查就平台是否注册到期，没有则注销，由本平台重新注册
-                List<PlatformRegisterTaskInfo> taskInfoList = statusTaskRunner.getRegisterTransactionInfoByServerId(serverId);
-                boolean needUnregister = false;
-                SipTransactionInfo sipTransactionInfo = null;
-                if (!taskInfoList.isEmpty()) {
-                    for (PlatformRegisterTaskInfo taskInfo : taskInfoList) {
-                        if (taskInfo.getPlatformServerId().equals(platform.getServerGBId())
-                                && taskInfo.getSipTransactionInfo() != null) {
-                            needUnregister = true;
-                            sipTransactionInfo = taskInfo.getSipTransactionInfo();
-                            break;
-                        }
+
+            // 检查原 owner 是否存活，Redis 异常时本轮不接管
+            if (owner != null) {
+                try {
+                    if (redisCatchStorage.queryServerInfo(owner) != null) {
+                        continue;
                     }
+                } catch (Exception e) {
+                    log.warn("[集群] 查询节点 {} 在线状态失败，跳过本轮接管", owner, e);
+                    continue;
                 }
-                if (needUnregister) {
-                    sendUnRegister(platform, sipTransactionInfo);
-                }else {
-                    // 开始注册
-                    // 注册成功时由程序直接调用了online方法
-                    sendRegister(platform, null);
+                log.info("[集群] 检测到 {} 已离线", owner);
+                try {
+                    redisCatchStorage.removeOfflineWVPInfo(owner);
+                } catch (Exception e) {
+                    log.warn("[集群] 移除离线节点 {} 失败", owner, e);
                 }
-            });
-        });
+            }
+
+            // 接管后使用当前节点同网段的地址
+            String newAddress;
+            try {
+                newAddress = getIpWithSameNetwork(platform.getAddress());
+            } catch (Exception e) {
+                log.warn("[集群] 解析平台 {} 的地址失败，保留原地址：{}",
+                        platform.getServerGBId(), platform.getAddress(), e);
+                newAddress = platform.getAddress();
+            }
+
+            // 原子抢占：数据库行锁保证同一平台只有一个节点成功
+            int affected;
+            try {
+                affected = platformMapper.claimOwner(platform.getId(), userSetting.getServerId(), owner,
+                        newAddress, DateUtil.getNow());
+            } catch (Exception e) {
+                log.warn("[集群] 抢占平台 {}({}) 失败", platform.getName(), platform.getServerGBId(), e);
+                continue;
+            }
+            if (affected != 1) {
+                // 被其他节点抢走，或原 owner 刚好恢复
+                continue;
+            }
+
+            log.info("[集群] 由本平台接管上级平台{}({})，原负责节点：{}",
+                    platform.getName(), platform.getServerGBId(), owner);
+            platform.setAddress(newAddress);
+            platform.setServerId(userSetting.getServerId());
+
+            // 尝试用原 owner 的注册事务信息注销，再重新注册
+            SipTransactionInfo oldTransactionInfo = findRegisterTransactionInfo(owner, platform.getServerGBId());
+            takeOverRegister(platform, oldTransactionInfo);
+        }
+    }
+
+    private SipTransactionInfo findRegisterTransactionInfo(String ownerServerId, String platformGbId) {
+        if (ownerServerId == null || ownerServerId.isEmpty()) {
+            return null;
+        }
+        List<PlatformRegisterTaskInfo> taskInfoList = statusTaskRunner.getRegisterTransactionInfoByServerId(ownerServerId);
+        if (taskInfoList == null || taskInfoList.isEmpty()) {
+            return null;
+        }
+        for (PlatformRegisterTaskInfo taskInfo : taskInfoList) {
+            if (platformGbId.equals(taskInfo.getPlatformServerId())
+                    && taskInfo.getSipTransactionInfo() != null) {
+                return taskInfo.getSipTransactionInfo();
+            }
+        }
+        return null;
+    }
+
+    private void takeOverRegister(Platform platform, SipTransactionInfo oldTransactionInfo) {
+        if (oldTransactionInfo == null) {
+            sendRegister(platform, null);
+            return;
+        }
+        try {
+            commanderForPlatform.unregister(platform, oldTransactionInfo,
+                    event -> sendRegister(platform, null),
+                    event -> sendRegister(platform, null));
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            log.error("[命令发送失败] 国标级联 接管注销: {}", e.getMessage());
+            sendRegister(platform, null);
+        }
     }
 
     /**
@@ -396,6 +525,8 @@ public class PlatformServiceImpl implements IPlatformService {
         if (platform.getCatalogGroup() == 0) {
             platform.setCatalogGroup(1);
         }
+        // 前端更新时可能不携带 serverId，不能让它把归属清空
+        platform.setServerId(platformInDb.getServerId());
         platformMapper.update(platform);
         if (statusTaskRunner.containsRegister(platformInDb.getServerGBId())) {
             SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platformInDb.getServerGBId());
@@ -410,6 +541,17 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public void online(Platform platform, SipTransactionInfo sipTransactionInfo) {
+        if (platform == null) {
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            // 平台已被其他节点接管，忽略本节点的注册成功回调，并清理本地任务
+            log.warn("[集群] 平台 {}({}) 已不属于本节点，忽略上线回调",
+                    platform.getName(), platform.getServerGBId());
+            statusTaskRunner.removeRegisterTask(platform.getServerGBId());
+            statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
+            return;
+        }
         log.info("[国标级联]：{}, 平台上线", platform.getServerGBId());
         PlatformRegisterTask registerTask = new PlatformRegisterTask(platform.getServerGBId(), platform.getExpires() * 1000L - 500L,
                 sipTransactionInfo, (platformServerGbId) -> {
@@ -420,7 +562,7 @@ public class PlatformServiceImpl implements IPlatformService {
         PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
                 this::keepaliveExpire);
         statusTaskRunner.addKeepAliveTask(keepaliveTask);
-        platformMapper.updateStatus(platform.getId(), true, userSetting.getServerId());
+        platformMapper.updateStatus(platform.getId(), true);
 
         if (platform.getAutoPushChannel() != null && platform.getAutoPushChannel()) {
             if (subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) == null) {
@@ -443,6 +585,24 @@ public class PlatformServiceImpl implements IPlatformService {
         Platform platform = queryPlatformByServerGBId(platformServerId);
         if (platform == null || !platform.isEnable()) {
             log.info("[国标级联] 注册到期， 上级平台编号： {}, 平台不存在或者未启用， 忽略", platformServerId);
+            statusTaskRunner.removeRegisterTask(platformServerId);
+            statusTaskRunner.removeKeepAliveTask(platformServerId);
+            return;
+        }
+        if (fenced) {
+            // 临时 fencing：保留任务，5 秒后重试，解除 fencing 后可以立即恢复
+            log.info("[集群] 节点处于 fencing 状态，平台 {}({}) 注册任务 5 秒后重试",
+                    platform.getName(), platformServerId);
+            PlatformRegisterTask retryTask = new PlatformRegisterTask(platformServerId, 5000L,
+                    transactionInfo, (id) -> this.registerExpire(id, transactionInfo));
+            statusTaskRunner.addRegisterTask(retryTask);
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            log.info("[集群] 平台 {}({}) 不属于本节点，停止注册任务",
+                    platform.getName(), platformServerId);
+            statusTaskRunner.removeRegisterTask(platformServerId);
+            statusTaskRunner.removeKeepAliveTask(platformServerId);
             return;
         }
         sendRegister(platform, transactionInfo);
@@ -452,8 +612,35 @@ public class PlatformServiceImpl implements IPlatformService {
         Platform platform = queryPlatformByServerGBId(platformServerId);
         if (platform == null || !platform.isEnable()) {
             log.info("[国标级联] 心跳到期， 上级平台编号： {}, 平台不存在或者未启用， 忽略", platformServerId);
+            statusTaskRunner.removeKeepAliveTask(platformServerId);
+            statusTaskRunner.removeRegisterTask(platformServerId);
             return;
         }
+        if (fenced) {
+            // 临时 fencing：保留任务，5 秒后重试，解除 fencing 后可以立即恢复
+            log.info("[集群] 节点处于 fencing 状态，平台 {}({}) 心跳任务 5 秒后重试",
+                    platform.getName(), platformServerId);
+            PlatformKeepaliveTask retryTask = new PlatformKeepaliveTask(
+                    platform.getServerGBId(), 5000L, this::keepaliveExpire);
+            retryTask.setFailCount(failCount);
+            statusTaskRunner.addKeepAliveTask(retryTask);
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            log.info("[集群] 平台 {}({}) 不属于本节点，停止心跳任务",
+                    platform.getName(), platformServerId);
+            statusTaskRunner.removeKeepAliveTask(platformServerId);
+            statusTaskRunner.removeRegisterTask(platformServerId);
+            return;
+        }
+
+        // 先补下一个心跳任务，保证心跳发送期间 containsKeepAlive 不会为 false，
+        // 避免 statusLostCheck 误判平台未注册而触发注销/重注册。
+        PlatformKeepaliveTask nextKeepaliveTask = new PlatformKeepaliveTask(
+                platform.getServerGBId(), platform.getKeepTimeout() * 1000L, this::keepaliveExpire);
+        nextKeepaliveTask.setFailCount(failCount);
+        statusTaskRunner.addKeepAliveTask(nextKeepaliveTask);
+
         try {
             commanderForPlatform.keepalive(platform, eventResult -> {
                 // 心跳失败
@@ -461,30 +648,22 @@ public class PlatformServiceImpl implements IPlatformService {
                     log.warn("[国标级联] 发送心跳收到错误，code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
                 }
 
-                // 心跳超时失败
                 if (failCount < 2) {
                     log.info("[国标级联] 心跳发送超时， 平台服务编号： {}", platformServerId);
-                    PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
-                            this::keepaliveExpire);
-                    keepaliveTask.setFailCount(failCount + 1);
-                    statusTaskRunner.addKeepAliveTask(keepaliveTask);
+                    nextKeepaliveTask.setFailCount(failCount + 1);
                 }else {
                     // 心跳超时三次, 不再发送心跳， 平台离线
                     log.info("[国标级联] 心跳发送超时三次，平台离线， 平台服务编号： {}", platformServerId);
                     offline(platform);
                 }
             }, eventResult -> {
-                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
-                        this::keepaliveExpire);
-                statusTaskRunner.addKeepAliveTask(keepaliveTask);
+                // 心跳成功，重置失败次数
+                nextKeepaliveTask.setFailCount(0);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
             if (failCount < 2) {
-                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
-                        this::keepaliveExpire);
-                keepaliveTask.setFailCount(failCount + 1);
-                statusTaskRunner.addKeepAliveTask(keepaliveTask);
+                nextKeepaliveTask.setFailCount(failCount + 1);
             }else {
                 // 心跳超时三次, 不再发送心跳， 平台离线
                 log.info("[国标级联] 心跳发送失败三次，平台离线， 平台服务编号： {}", platformServerId);
@@ -502,6 +681,19 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public void offline(Platform platform) {
+        if (platform == null) {
+            return;
+        }
+        if (!isPlatformOwner(platform)) {
+            // 平台已不属于本节点，只清理本地任务，不修改数据库状态
+            log.info("[集群] 平台 {}({}) 已不属于本节点，仅清理本地任务",
+                    platform.getName(), platform.getServerGBId());
+            statusTaskRunner.removeRegisterTask(platform.getServerGBId());
+            statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
+            subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
+            subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
+            return;
+        }
         log.info("[平台离线]：{}({})", platform.getName(), platform.getServerGBId());
         statusTaskRunner.removeRegisterTask(platform.getServerGBId());
         statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
@@ -509,7 +701,7 @@ public class PlatformServiceImpl implements IPlatformService {
         subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
         subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
 
-        platformMapper.updateStatus(platform.getId(), false, userSetting.getServerId());
+        platformMapper.updateStatus(platform.getId(), false);
 
         // 停止所有推流
         log.info("[平台离线] {}({}), 停止所有推流", platform.getName(),  platform.getServerGBId());

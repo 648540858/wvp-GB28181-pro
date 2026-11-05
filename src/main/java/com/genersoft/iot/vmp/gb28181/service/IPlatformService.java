@@ -84,6 +84,24 @@ public interface IPlatformService {
      */
     List<Platform> queryEnablePlatformListWithAsMessageChannel(String serverId);
 
+    /**
+     * 当前节点是否是该平台的负责节点
+     */
+    boolean isPlatformOwner(Platform platform);
+
+    /**
+     * 当前节点是否已被 fencing（心跳中断或无法确认归属）
+     */
+    boolean isFenced();
+
+    void setFenced(boolean fenced);
+
+    /**
+     * 平台归属巡检：清理已不属于当前节点的本地任务。
+     * @param heartbeatHealthy 心跳是否正常，正常时才允许解除 fencing
+     */
+    void checkPlatformOwnership(boolean heartbeatHealthy);
+
     boolean delete(Integer platformId);
 
     List<Platform> queryAll(String serverId);

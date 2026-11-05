@@ -89,8 +89,35 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
     Platform query(int id);
 
-    @Update("UPDATE wvp_platform SET status=#{online}, server_id = #{serverId} WHERE id=#{id}" )
-    int updateStatus(@Param("id") int id, @Param("online") boolean online, @Param("serverId") String serverId);
+    @Update("UPDATE wvp_platform SET status=#{online} WHERE id=#{id}" )
+    int updateStatus(@Param("id") int id, @Param("online") boolean online);
+
+    /**
+     * 原子抢占平台归属，只有当前归属仍然是 expectedOwner 时才会成功。
+     */
+    @Update(" <script>" +
+            "UPDATE wvp_platform SET server_id=#{me}, address=#{address}, status=false, update_time=#{updateTime} WHERE id=#{id} " +
+            " <choose>" +
+            "  <when test='expectedOwner != null'>AND server_id=#{expectedOwner}</when>" +
+            "  <otherwise>AND (server_id IS NULL OR server_id = '')</otherwise>" +
+            " </choose>" +
+            " </script>")
+    int claimOwner(@Param("id") Integer id, @Param("me") String me,
+                   @Param("expectedOwner") String expectedOwner,
+                   @Param("address") String address,
+                   @Param("updateTime") String updateTime);
+
+    /**
+     * 查询当前节点负责的、启用的平台国标编号
+     */
+    @Select("SELECT server_gb_id FROM wvp_platform WHERE enable=true and server_id=#{serverId}")
+    List<String> queryOwnedPlatformGbIds(@Param("serverId") String serverId);
+
+    /**
+     * 查询启用但不由当前节点负责的平台（含历史数据中 server_id 为空的情况）
+     */
+    @Select("SELECT * FROM wvp_platform WHERE enable=true and (server_id != #{serverId} OR server_id IS NULL)")
+    List<Platform> queryEnablePlatformsNotOwnedBy(@Param("serverId") String serverId);
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
     List<String> queryServerIdsWithEnableAndNotInServer(@Param("serverId") String serverId);

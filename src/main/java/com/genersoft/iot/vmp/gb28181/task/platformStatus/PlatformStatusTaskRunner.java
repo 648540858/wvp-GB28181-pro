@@ -11,8 +11,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
@@ -45,10 +47,12 @@ public class PlatformStatusTaskRunner {
             try {
                 take = registerDelayQueue.take();
                 try {
-                    removeRegisterTask(take.getPlatformServerId());
+                    // 不在回调前移除任务，避免 statusLostCheck 在注册进行中误判平台未注册。
+                    // 任务由 registerExpire 在成功(onLine)或失败(offline)时替换/移除。
                     take.expired();
                 }catch (Exception e) {
-                    log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
+                    log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
+                    removeRegisterTask(take.getPlatformServerId());
                 }
             } catch (InterruptedException e) {
                 log.error("[平台注册到期] ", e);
@@ -62,10 +66,12 @@ public class PlatformStatusTaskRunner {
             try {
                 take = keepaliveTaskDelayQueue.take();
                 try {
-                    removeKeepAliveTask(take.getPlatformServerId());
+                    // 不在回调前移除任务，避免 statusLostCheck 在心跳发送过程中误判平台未注册。
+                    // 任务由 keepaliveExpire 重新添加或移除。
                     take.expired();
                 }catch (Exception e) {
-                    log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId());
+                    log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
+                    removeKeepAliveTask(take.getPlatformServerId());
                 }
             } catch (InterruptedException e) {
                 log.error("[平台心跳到期] ", e);
@@ -141,6 +147,15 @@ public class PlatformStatusTaskRunner {
 
     public boolean containsKeepAlive(String platformServerId) {
         return keepaliveSubscribes.containsKey(platformServerId);
+    }
+
+    /**
+     * 当前节点内存中持有任务的平台编号集合（注册任务和心跳任务的并集）
+     */
+    public Set<String> getAllPlatformIds() {
+        Set<String> platformIds = new HashSet<>(registerSubscribes.keySet());
+        platformIds.addAll(keepaliveSubscribes.keySet());
+        return platformIds;
     }
 
     public List<PlatformRegisterTaskInfo> getRegisterTransactionInfoByServerId(String serverId) {

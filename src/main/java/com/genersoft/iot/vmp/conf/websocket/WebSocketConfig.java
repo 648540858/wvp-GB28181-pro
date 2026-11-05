@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.websocket;
 
+import com.genersoft.iot.vmp.conf.trace.TraceChannel;
 import com.genersoft.iot.vmp.conf.webLog.LogChannel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ public class WebSocketConfig {
     public ServerEndpointExporter serverEndpointExporter(){
         ServerEndpointExporter endpointExporter = new ServerEndpointExporter();
 
-        endpointExporter.setAnnotatedEndpointClasses(LogChannel.class);
+        endpointExporter.setAnnotatedEndpointClasses(LogChannel.class, TraceChannel.class);
 
         return endpointExporter;
     }

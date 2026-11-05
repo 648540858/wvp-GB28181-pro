@@ -70,6 +70,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateWVPInfo(ServerInfo serverInfo, int time) {
+        serverInfo.setServerId(userSetting.getServerId());
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(time);
         redisTemplate.opsForValue().set(key, serverInfo, duration);
@@ -152,14 +153,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.delete(key);
         // 同时删除所有注册时间和心跳时间缓存列表
-        Set<String> registerKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_REGISTER_PREFIX + "*");
-        if (registerKeys != null && !registerKeys.isEmpty()) {
-            stringRedisTemplate.delete(registerKeys);
-        }
-        Set<String> keepaliveKeys = stringRedisTemplate.keys(VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + "*");
-        if (keepaliveKeys != null && !keepaliveKeys.isEmpty()) {
-            stringRedisTemplate.delete(keepaliveKeys);
-        }
+        RedisUtil.deleteByPattern(stringRedisTemplate, VideoManagerConstants.DEVICE_REGISTER_PREFIX + "*");
+        RedisUtil.deleteByPattern(stringRedisTemplate, VideoManagerConstants.DEVICE_KEEPALIVE_PREFIX + "*");
     }
 
     @Override
@@ -534,6 +529,34 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public ServerInfo queryServerInfo(String serverId) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + serverId;
         return (ServerInfo)redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public List<ServerInfo> queryOnlineServerInfoList() {
+        String listKey = VideoManagerConstants.WVP_SERVER_LIST;
+        Set<Object> serverIds = redisTemplate.opsForZSet().range(listKey, 0, -1);
+        if (serverIds == null || serverIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ServerInfo> result = new ArrayList<>();
+        for (Object serverIdObj : serverIds) {
+            if (serverIdObj == null) {
+                continue;
+            }
+            String serverId = String.valueOf(serverIdObj);
+            ServerInfo serverInfo = queryServerInfo(serverId);
+            if (serverInfo == null) {
+                // 心跳 key 已过期，清理 ZSet 中的历史残留
+                redisTemplate.opsForZSet().remove(listKey, serverId);
+                continue;
+            }
+            serverInfo.setServerId(serverId);
+            if (serverInfo.getIp() == null || serverInfo.getIp().isEmpty() || serverInfo.getPort() <= 0) {
+                continue;
+            }
+            result.add(serverInfo);
+        }
+        return result;
     }
 
     @Override

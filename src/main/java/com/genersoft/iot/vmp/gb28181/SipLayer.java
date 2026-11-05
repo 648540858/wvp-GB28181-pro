@@ -97,7 +97,8 @@ public class SipLayer{
 	private void addListeningPoint(String monitorIp, int port){
 		SipStackImpl sipStack;
 		try {
-			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties("GB28181_SIP", userSetting.getSipLog(), userSetting.isSipCacheServerConnections()));
+			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties("GB28181_SIP",
+					userSetting.getSipLog(), userSetting.isSipCacheServerConnections(), sipConfig.isNioMessageProcessor()));
 			sipStack.setMessageParserFactory(new GbStringMsgParserFactory());
 		} catch (PeerUnavailableException e) {
 			log.error("[SIP SERVER] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);

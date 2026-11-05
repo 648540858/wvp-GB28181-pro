@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WVP 国标级联链路追踪</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --border: #e4e8ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --green: #16a34a;
+      --orange: #d97706;
+      --red: #dc2626;
+      --cyan: #0891b2;
+      --purple: #7c3aed;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+    }
+    header {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: #111827;
+      color: #fff;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    header h1 { font-size: 15px; font-weight: 600; margin: 0; white-space: nowrap; }
+    header .hint { font-size: 12px; color: #9ca3af; }
+    header .spacer { flex: 1; }
+    header .stat { font-size: 12px; color: #d1d5db; }
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button:hover { border-color: var(--primary); color: var(--primary); }
+    button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    button.primary:hover { background: #1d4ed8; color: #fff; }
+    button.danger { color: var(--red); border-color: #fecaca; }
+    button.danger:hover { background: #fef2f2; }
+    button.small { padding: 3px 7px; font-size: 11px; }
+    input, select {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 12px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 12px;
+      padding: 12px;
+      height: calc(100vh - 52px);
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .card-title .spacer { flex: 1; }
+    .card-body { padding: 10px 12px; overflow: auto; min-height: 0; }
+    .conn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      background: #fafbfc;
+    }
+    .conn-row .row1 { display: flex; align-items: center; gap: 8px; }
+    .conn-row .name { font-weight: 600; flex: 1; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; flex: none; }
+    .dot.on { background: var(--green); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15); }
+    .dot.off { background: var(--red); }
+    .dot.wait { background: var(--orange); }
+    .conn-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 4px; }
+    .filters { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .filters input { flex: 1; min-width: 100px; }
+    .trace-list { overflow: auto; min-height: 0; flex: 1; }
+    .trace-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .trace-item:hover { background: #f8fafc; }
+    .trace-item.active { background: #eff6ff; border-left: 3px solid var(--primary); padding-left: 9px; }
+    .trace-item .icon { font-size: 14px; line-height: 1.2; flex: none; }
+    .trace-item .main { flex: 1; min-width: 0; }
+    .trace-item .line1 { display: flex; align-items: center; gap: 6px; }
+    .trace-item .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .trace-item .time { font-size: 11px; color: var(--muted); flex: none; }
+    .trace-item .desc { font-size: 11px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .trace-item .badges { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+    .badge.dup { background: #fef2f2; color: var(--red); }
+    .badge.miss { background: #fffbeb; color: var(--orange); }
+    .badge.ok { background: #f0fdf4; color: var(--green); }
+    .badge.auto { background: #e0f2fe; color: #075985; }
+    .empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 12px; }
+    .warn {
+      margin: 8px 0 12px;
+      padding: 8px 10px;
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .warn code { background: #fef3c7; padding: 1px 4px; border-radius: 3px; }
+    .diagram-wrap { flex: 1; overflow: auto; padding: 12px; min-height: 0; }
+    .diagram-wrap svg { max-width: 100%; height: auto; }
+    .diagram-toolbar { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .diagram-toolbar .spacer { flex: 1; }
+    .stats { display: flex; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+    .stats b { color: var(--text); }
+    .detail {
+      border-top: 1px solid var(--border);
+      max-height: 240px;
+      overflow: auto;
+      padding: 10px 12px;
+      background: #0b1220;
+      color: #d1d5db;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .detail:empty { display: none; }
+    .muted { color: var(--muted); }
+    .tag {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 10px;
+      background: #e5e7eb;
+      color: #374151;
+      margin-right: 4px;
+    }
+    .stage-REDIS_IN { background: #dcfce7; color: #166534; }
+    .stage-FORWARD { background: #e0f2fe; color: #075985; }
+    .stage-SIP_SEND { background: #ede9fe; color: #5b21b6; }
+    .stage-SIP_RECV { background: #fef3c7; color: #92400e; }
+    .stage-REDIS_OUT { background: #fce7f3; color: #9d174d; }
+    .switch { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #111827;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 50;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; height: auto; }
+      .card { max-height: 70vh; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>WVP 国标级联链路追踪</h1>
+  <span class="hint">需要 WVP 开启 <code>trace.enabled=true</code></span>
+  <span class="spacer"></span>
+  <span class="stat" id="globalStat">事件 0 · 链路 0</span>
+  <button id="btnPause">暂停</button>
+  <button id="btnClear">清空</button>
+</header>
+
+<div class="layout">
+  <div class="card">
+    <div class="card-title">
+      <span>WVP 连接</span>
+      <span class="spacer"></span>
+      <button class="small" id="btnRefreshCluster">刷新集群节点</button>
+      <button class="small" id="btnAddDefault">添加当前</button>
+    </div>
+    <div class="card-body">
+      <div id="connList"></div>
+      <div class="conn-form">
+        <input id="newConnUrl" placeholder="输入 IP:端口，例如 192.168.1.66:18082">
+        <button class="primary" id="btnAddConn">添加</button>
+      </div>
+    </div>
+    <div class="card-title" style="border-top:1px solid var(--border); border-bottom:none;">
+      <span>链路列表</span>
+      <span class="spacer"></span>
+      <span class="muted" id="traceCount">0</span>
+    </div>
+    <div class="filters">
+      <input id="searchInput" placeholder="按 traceId / 描述过滤">
+      <select id="filterSelect">
+        <option value="all">全部</option>
+        <option value="dup">仅重复</option>
+        <option value="abnormal">仅异常</option>
+        <option value="ok">仅正常</option>
+      </select>
+    </div>
+    <div class="trace-list" id="traceList">
+      <div class="empty">暂无数据</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="diagram-toolbar">
+      <span class="muted" id="selectedTitle">未选择链路</span>
+      <span class="spacer"></span>
+      <button class="small" id="btnExport">导出 JSON</button>
+    </div>
+    <div class="diagram-wrap" id="diagram">
+      <div class="empty">选择左侧链路查看时序图</div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="detail" id="detail"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./mermaid.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "wvp-trace-endpoints";
+  const MAX_TRACES = 500;
+  const MAX_EVENTS_PER_TRACE = 200;
+
+  const state = {
+    connections: [],
+    traces: new Map(), // traceId -> { traceId, events: [], eventIds: Set, firstTs, lastTs }
+    selectedTraceId: null,
+    paused: false,
+    filter: "all",
+    search: "",
+    totalEvents: 0,
+    renderTimer: null,
+    diagramTimer: null,
+    // 当前页面所在 WVP 集群的节点（IP:端口），用于区分本地/远端
+    localClusterHosts: new Set(location.host ? [location.host] : [])
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function toast(msg) {
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => el.classList.remove("show"), 2200);
+  }
+
+  function escapeHtml(text) {
+    return String(text == null ? "" : text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function fmtTime(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    const pad = (n, w = 2) => String(n).padStart(w, "0");
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+  }
+
+  function shortTraceId(traceId) {
+    if (!traceId) return "-";
+    return traceId.length > 18 ? traceId.slice(0, 18) + "…" : traceId;
+  }
+
+  // ---------------- connections ----------------
+
+  function defaultEndpoint() {
+    if (!location.host) return null;
+    const proto = location.protocol === "https:" ? "wss://" : "ws://";
+    return { name: location.host, url: proto + location.host + "/channel/trace" };
+  }
+
+  // 只保留 IP:端口 作为名称，完整 ws 地址不再展示
+  function deriveName(url) {
+    if (!url) {
+      return "";
+    }
+    try {
+      return new URL(url).host || url;
+    } catch (e) {
+      return url.replace(/^wss?:\/\//i, "").replace(/\/.*$/, "");
+    }
+  }
+
+  // 输入只需要 IP:端口，路径固定为 /channel/trace
+  function normalizeWsUrl(input) {
+    let value = (input || "").trim();
+    if (!value) {
+      return "";
+    }
+    const defaultScheme = location.protocol === "https:" ? "wss:" : "ws:";
+    let scheme = defaultScheme;
+    if (/^wss?:\/\//i.test(value)) {
+      try {
+        const parsed = new URL(value);
+        scheme = parsed.protocol;
+        value = parsed.host;
+      } catch (e) {
+        return "";
+      }
+    } else if (/^https?:\/\//i.test(value)) {
+      try {
+        const parsed = new URL(value);
+        scheme = parsed.protocol === "https:" ? "wss:" : "ws:";
+        value = parsed.host;
+      } catch (e) {
+        return "";
+      }
+    } else {
+      // 允许直接粘贴 IP:端口，也兼容误粘贴的 .../channel/trace
+      value = value.replace(/\/.*$/, "");
+    }
+    if (!value) {
+      return "";
+    }
+    return scheme + "//" + value + "/channel/trace";
+  }
+
+  function loadConnections() {
+    let list = [];
+    try {
+      list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    } catch (e) {
+      list = [];
+    }
+    if (!Array.isArray(list) || list.length === 0) {
+      const def = defaultEndpoint();
+      if (def) list = [def];
+    }
+    state.connections = list.map((item, index) => {
+      const url = normalizeWsUrl(item.url || item.name || "");
+      return {
+        id: "c" + index + "_" + Math.random().toString(36).slice(2, 8),
+        name: deriveName(url),
+        url: url,
+        auto: !!item.auto,
+        ws: null,
+        status: "off",
+        retry: 0,
+        timer: null,
+        manual: false
+      };
+    });
+    renderConnections();
+    state.connections.forEach(connect);
+  }
+
+  function saveConnections() {
+    const list = state.connections.map((c) => ({ url: c.url, auto: !!c.auto }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  function renderConnections() {
+    const box = $("connList");
+    if (!state.connections.length) {
+      box.innerHTML = '<div class="empty" style="padding:12px 0;">暂无连接，请添加</div>';
+      return;
+    }
+    box.innerHTML = state.connections.map((c) => `
+      <div class="conn-row">
+        <div class="row1">
+          <span class="dot ${c.status}" id="dot-${c.id}"></span>
+          <span class="name">${escapeHtml(c.name)}</span>
+          ${c.auto ? '<span class="badge auto">自动</span>' : ""}
+          <button class="small danger" data-remove="${c.id}">移除</button>
+        </div>
+      </div>
+    `).join("");
+    box.querySelectorAll("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => removeConnection(btn.getAttribute("data-remove")));
+    });
+  }
+
+  function addConnection(input, auto) {
+    const url = normalizeWsUrl(input);
+    if (!url) { toast("请输入 IP:端口，例如 192.168.1.66:18082"); return; }
+    const conn = {
+      id: "c" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+      name: deriveName(url),
+      url: url,
+      auto: !!auto,
+      ws: null,
+      status: "off",
+      retry: 0,
+      timer: null,
+      manual: false
+    };
+    state.connections.push(conn);
+    saveConnections();
+    renderConnections();
+    connect(conn);
+  }
+
+  let clusterLoading = false;
+
+  async function loadClusterNodes(manual) {
+    if (clusterLoading) {
+      return;
+    }
+    clusterLoading = true;
+    try {
+      const resp = await fetch("./trace/cluster", { cache: "no-store" });
+      if (!resp.ok) {
+        if (manual) {
+          toast("获取集群节点失败：" + resp.status);
+        }
+        return;
+      }
+      const json = await resp.json();
+      // 兼容统一响应包装：{ code, msg, data: { nodes: [...] } }
+      const data = json && json.data ? json.data : json;
+      const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+      const clusterHosts = new Set();
+      const localHosts = new Set(location.host ? [location.host] : []);
+      nodes.forEach((node) => {
+        if (node && node.ip && node.port) {
+          const host = node.ip + ":" + node.port;
+          clusterHosts.add(host);
+          localHosts.add(host);
+        }
+      });
+      state.localClusterHosts = localHosts;
+
+      let removed = 0;
+      if (nodes.length > 0) {
+        // 只清理自动发现的节点，手动添加的远端节点保留
+        const removedConns = state.connections.filter((c) =>
+          c.auto && c.name !== location.host && !clusterHosts.has(c.name));
+        removedConns.forEach((c) => {
+          c.manual = true;
+          if (c.timer) clearTimeout(c.timer);
+          if (c.ws) {
+            try { c.ws.close(); } catch (e) {}
+          }
+        });
+        if (removedConns.length) {
+          state.connections = state.connections.filter((c) => !removedConns.includes(c));
+          removed = removedConns.length;
+        }
+      }
+
+      let added = 0;
+      nodes.forEach((node) => {
+        if (!node || !node.ip || !node.port) {
+          return;
+        }
+        const host = node.ip + ":" + node.port;
+        if (host === location.host) {
+          return;
+        }
+        if (state.connections.some((c) => c.name === host)) {
+          return;
+        }
+        const scheme = location.protocol === "https:" ? "wss" : "ws";
+        addConnection(scheme + "://" + host + "/channel/trace", true);
+        added++;
+      });
+
+      if (removed > 0 || added > 0) {
+        saveConnections();
+        renderConnections();
+      }
+      if (manual) {
+        toast(`集群节点已刷新：新增 ${added} 个，移除 ${removed} 个`);
+      } else if (added > 0) {
+        toast(`已自动发现本地集群节点 ${added} 个`);
+      }
+      if (state.selectedTraceId) {
+        scheduleDiagram();
+      }
+    } catch (e) {
+      if (manual) {
+        toast("获取集群节点失败");
+      }
+    } finally {
+      clusterLoading = false;
+    }
+  }
+
+  function removeConnection(id) {
+    const idx = state.connections.findIndex((c) => c.id === id);
+    if (idx < 0) return;
+    const conn = state.connections[idx];
+    conn.manual = true;
+    if (conn.timer) clearTimeout(conn.timer);
+    if (conn.ws) {
+      try { conn.ws.close(); } catch (e) {}
+    }
+    state.connections.splice(idx, 1);
+    saveConnections();
+    renderConnections();
+  }
+
+  function setConnStatus(conn, status) {
+    conn.status = status;
+    const dot = document.getElementById("dot-" + conn.id);
+    if (dot) dot.className = "dot " + status;
+  }
+
+  function connect(conn) {
+    if (!conn.url) return;
+    if (conn.ws) {
+      try { conn.ws.close(); } catch (e) {}
+      conn.ws = null;
+    }
+    conn.manual = false;
+    setConnStatus(conn, "wait");
+    let ws;
+    try {
+      ws = new WebSocket(conn.url);
+    } catch (e) {
+      setConnStatus(conn, "off");
+      scheduleReconnect(conn);
+      return;
+    }
+    conn.ws = ws;
+    ws.onopen = () => {
+      conn.retry = 0;
+      setConnStatus(conn, "on");
+    };
+    ws.onmessage = (evt) => {
+      try {
+        const event = JSON.parse(evt.data);
+        if (event && event.stage) handleEvent(event, conn);
+      } catch (e) {
+        // ignore non-json
+      }
+    };
+    ws.onerror = () => {
+      setConnStatus(conn, "off");
+    };
+    ws.onclose = () => {
+      setConnStatus(conn, "off");
+      conn.ws = null;
+      if (!conn.manual) scheduleReconnect(conn);
+    };
+  }
+
+  function scheduleReconnect(conn) {
+    if (conn.manual) return;
+    if (conn.timer) clearTimeout(conn.timer);
+    const delay = Math.min(30000, 1000 * Math.pow(2, Math.min(conn.retry, 5)));
+    conn.retry = (conn.retry || 0) + 1;
+    conn.timer = setTimeout(() => connect(conn), delay);
+  }
+
+  // ---------------- trace store ----------------
+
+  function handleEvent(event, conn) {
+    const traceId = event.traceId || event.description || event.eventId || "unknown";
+    let trace = state.traces.get(traceId);
+    if (!trace) {
+      trace = {
+        traceId: traceId,
+        events: [],
+        eventIds: new Set(),
+        firstTs: event.timestamp || Date.now(),
+        lastTs: event.timestamp || Date.now()
+      };
+      state.traces.set(traceId, trace);
+    }
+    const eventKey = event.eventId || (event.stage + "|" + event.timestamp + "|" + (event.sipCallId || ""));
+    if (trace.eventIds.has(eventKey)) return;
+    trace.eventIds.add(eventKey);
+    if (trace.events.length >= MAX_EVENTS_PER_TRACE) {
+      trace.events.shift();
+    }
+    trace.events.push(event);
+    trace.lastTs = Math.max(trace.lastTs, event.timestamp || Date.now());
+    trace.firstTs = Math.min(trace.firstTs, event.timestamp || Date.now());
+    state.totalEvents++;
+
+    if (!state.paused) {
+      scheduleRender();
+      if (state.selectedTraceId === traceId) {
+        scheduleDiagram();
+      }
+    }
+    updateGlobalStat();
+  }
+
+  function trimTraces() {
+    if (state.traces.size <= MAX_TRACES) return;
+    const arr = Array.from(state.traces.values()).sort((a, b) => a.lastTs - b.lastTs);
+    const remove = arr.slice(0, state.traces.size - MAX_TRACES);
+    remove.forEach((t) => state.traces.delete(t.traceId));
+  }
+
+  function scheduleRender() {
+    if (state.renderTimer) return;
+    state.renderTimer = setTimeout(() => {
+      state.renderTimer = null;
+      trimTraces();
+      renderTraceList();
+    }, 200);
+  }
+
+  function updateGlobalStat() {
+    $("globalStat").textContent = `事件 ${state.totalEvents} · 链路 ${state.traces.size}`;
+    $("traceCount").textContent = String(state.traces.size);
+  }
+
+  // ---------------- trace analysis ----------------
+
+  function analyze(trace) {
+    const events = trace.events;
+    const count = (stage) => events.filter((e) => e.stage === stage).length;
+    const redisIn = count("REDIS_IN");
+    const forward = count("FORWARD");
+    const sipSend = count("SIP_SEND");
+    const sipRecv = count("SIP_RECV");
+    const redisOut = count("REDIS_OUT");
+
+    const sends = events.filter((e) => e.stage === "SIP_SEND");
+    const recvs = events.filter((e) => e.stage === "SIP_RECV");
+    const unmatchedSends = sends.filter((send) =>
+      !recvs.some((recv) => send.sipCallId && recv.sipCallId && send.sipCallId === recv.sipCallId));
+    const unmatchedRecvs = recvs.filter((recv) =>
+      !sends.some((send) => send.sipCallId && recv.sipCallId && send.sipCallId === recv.sipCallId));
+
+    // 重复 = 同一个目标/同一个对端出现多条，而不是“发给了多个不同对端”
+    const targetCounts = {};
+    sends.forEach((send) => {
+      const key = send.target || send.nodeName || "unknown";
+      targetCounts[key] = (targetCounts[key] || 0) + 1;
+    });
+    const dupSend = Object.values(targetCounts).some((value) => value > 1);
+    const outCounts = {};
+    events.filter((e) => e.stage === "REDIS_OUT").forEach((e) => {
+      const key = e.nodeName || "unknown";
+      outCounts[key] = (outCounts[key] || 0) + 1;
+    });
+    const dupOut = Object.values(outCounts).some((value) => value > 1);
+    const dup = dupSend || dupOut;
+
+    const incomplete = unmatchedSends.length > 0 || unmatchedRecvs.length > 0;
+    const miss = redisIn > 0 && redisOut === 0 && Date.now() - trace.firstTs > 10000;
+    const ok = redisIn >= 1 && sipSend >= 1 && sipRecv >= 1 && redisOut >= 1 && !dup && !incomplete;
+    let status = "ok";
+    if (dup) status = "dup";
+    else if (miss) status = "miss";
+    else if (incomplete) status = "incomplete";
+    else if (!ok) status = "wait";
+    const first = events.reduce((min, e) => Math.min(min, e.timestamp || Infinity), Infinity);
+    const last = events.reduce((max, e) => Math.max(max, e.timestamp || 0), 0);
+    const latency = (isFinite(first) && last) ? (last - first) : 0;
+    return { redisIn, forward, sipSend, sipRecv, redisOut, dup, miss, incomplete, unmatchedSends, unmatchedRecvs, ok, status, latency };
+  }
+
+  function statusIcon(status) {
+    if (status === "ok") return "✅";
+    if (status === "dup") return "⚠️";
+    if (status === "incomplete") return "🔶";
+    if (status === "miss") return "❌";
+    return "⏳";
+  }
+
+  function traceDescription(trace) {
+    const withDesc = trace.events.find((e) => e.description);
+    return withDesc ? withDesc.description : trace.traceId;
+  }
+
+  // ---------------- list render ----------------
+
+  function renderTraceList() {
+    const list = Array.from(state.traces.values()).sort((a, b) => b.lastTs - a.lastTs);
+    const filtered = list.filter((trace) => {
+      if (state.search) {
+        const text = (trace.traceId + " " + traceDescription(trace)).toLowerCase();
+        if (!text.includes(state.search.toLowerCase())) return false;
+      }
+      const info = analyze(trace);
+      if (state.filter === "dup") return info.dup;
+      if (state.filter === "abnormal") return info.dup || info.miss || info.incomplete;
+      if (state.filter === "ok") return info.ok;
+      return true;
+    });
+    const box = $("traceList");
+    if (!filtered.length) {
+      box.innerHTML = '<div class="empty">暂无数据</div>';
+      return;
+    }
+    box.innerHTML = filtered.map((trace) => {
+      const info = analyze(trace);
+      const badges = [];
+      if (info.dup) badges.push('<span class="badge dup">重复</span>');
+      if (info.incomplete) badges.push('<span class="badge miss">缺少远端</span>');
+      if (info.miss) badges.push('<span class="badge miss">无输出</span>');
+      if (info.ok && !info.dup && !info.incomplete) badges.push('<span class="badge ok">正常</span>');
+      return `
+        <div class="trace-item ${trace.traceId === state.selectedTraceId ? "active" : ""}" data-trace="${escapeHtml(trace.traceId)}">
+          <span class="icon">${statusIcon(info.status)}</span>
+          <div class="main">
+            <div class="line1">
+              <span class="time">${fmtTime(trace.firstTs)}</span>
+              <span class="tid">${escapeHtml(shortTraceId(trace.traceId))}</span>
+            </div>
+            <div class="desc">${escapeHtml(traceDescription(trace))}</div>
+            <div class="badges">
+              <span class="badge">IN ${info.redisIn}</span>
+              <span class="badge">SEND ${info.sipSend}</span>
+              <span class="badge">RECV ${info.sipRecv}</span>
+              <span class="badge">OUT ${info.redisOut}</span>
+              ${badges.join("")}
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+    box.querySelectorAll("[data-trace]").forEach((el) => {
+      el.addEventListener("click", () => selectTrace(el.getAttribute("data-trace")));
+    });
+  }
+
+  function selectTrace(traceId) {
+    state.selectedTraceId = traceId;
+    renderTraceList();
+    renderDiagram();
+  }
+
+  // ---------------- diagram ----------------
+
+  function sanitize(text) {
+    return String(text == null ? "" : text)
+      .replace(/[\r\n]+/g, " ")
+      .replace(/;/g, ",")
+      .replace(/#/g, "＃")
+      .replace(/"/g, "'");
+  }
+
+  function shortText(text, max) {
+    const value = sanitize(text || "");
+    return value.length > max ? value.slice(0, max) + "…" : value;
+  }
+
+  function traceNodes(trace) {
+    const allNodes = [];
+    trace.events.forEach((e) => {
+      if (e.nodeName && !allNodes.includes(e.nodeName)) {
+        allNodes.push(e.nodeName);
+      }
+    });
+    // 以“页面所在 WVP 集群”为本地，其余节点为远端
+    const localSet = (state.localClusterHosts && state.localClusterHosts.size)
+        ? state.localClusterHosts
+        : new Set(location.host ? [location.host] : []);
+    const localNodes = allNodes.filter((node) => localSet.has(node));
+    const remoteNodes = allNodes.filter((node) => !localSet.has(node));
+    return {
+      localNodes,
+      remoteNodes,
+      local: localNodes[0] || "",
+      peers: remoteNodes
+    };
+  }
+
+  function buildMermaid(trace) {
+    const events = trace.events.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const nodes = traceNodes(trace);
+    const localNodes = nodes.localNodes;
+    const remoteNodes = nodes.remoteNodes;
+    const localSet = new Set(localNodes);
+    const remoteSet = new Set(remoteNodes);
+
+    const sends = events.filter((e) => e.stage === "SIP_SEND");
+    const recvs = events.filter((e) => e.stage === "SIP_RECV");
+
+    // 严格按 sipCallId 配对，每个接收事件只使用一次
+    const matchedRecv = new Map(); // sendEventId -> recv
+    const sendByRecv = new Map(); // recvEventId -> send
+    const usedRecv = new Set();
+    sends.forEach((send) => {
+      const recv = recvs.find((r) =>
+        !usedRecv.has(r.eventId)
+        && send.sipCallId && r.sipCallId
+        && send.sipCallId === r.sipCallId);
+      if (recv) {
+        matchedRecv.set(send.eventId, recv);
+        sendByRecv.set(recv.eventId, send);
+        usedRecv.add(recv.eventId);
+      }
+    });
+    const unmatchedSends = sends.filter((send) => !matchedRecv.has(send.eventId));
+
+    // 角色：本地REDIS、本地节点（页面所在 WVP 集群）、远端节点
+    const participantLines = [];
+    const added = {};
+    function addParticipant(id, alias) {
+      if (!added[id]) {
+        added[id] = true;
+        participantLines.push(`participant ${id} as ${alias}`);
+      }
+    }
+    if (localNodes.length) {
+      addParticipant("LR", "本地REDIS");
+    }
+    localNodes.forEach((node, index) => addParticipant("L" + index, "本地 " + node));
+    remoteNodes.forEach((node, index) => addParticipant("R" + index, "远端 " + node));
+    if (unmatchedSends.length) {
+      addParticipant("RU", "远端（未连接）");
+    }
+
+    function localId(node) {
+      const index = localNodes.indexOf(node);
+      return index >= 0 ? "L" + index : (localNodes.length ? "L0" : "LR");
+    }
+    function remoteId(node) {
+      const index = remoteNodes.indexOf(node);
+      return index >= 0 ? "R" + index : (unmatchedSends.length ? "RU" : (localNodes.length ? "L0" : "LR"));
+    }
+    function nodeId(node) {
+      return localSet.has(node) ? localId(node) : remoteId(node);
+    }
+
+    const lines = [];
+    const sendNodes = new Set(sends.map((e) => e.nodeName));
+
+    // 按时间顺序逐条生成，保证图上的先后关系
+    events.forEach((e) => {
+      if (e.stage === "REDIS_IN") {
+        if (localSet.has(e.nodeName)) {
+          // 本地 Redis -> 本地 WVP
+          lines.push(`LR->>${localId(e.nodeName)}: alarm_receive ${shortText(e.description, 40)} 收到 ${fmtTime(e.timestamp)}`);
+        } else if (e.nodeName) {
+          // 远端 WVP 从自己的 Redis 收到：用远端节点自消息表示
+          const id = remoteId(e.nodeName);
+          lines.push(`${id}-->>${id}: 从远端 Redis 收到 ${shortText(e.description, 40)} ${fmtTime(e.timestamp)}`);
+        }
+      } else if (e.stage === "SIP_SEND") {
+        const isLocal = localSet.has(e.nodeName);
+        const fromId = isLocal ? localId(e.nodeName) : remoteId(e.nodeName);
+        const target = e.target ? " " + sanitize(e.target) : "";
+        const match = matchedRecv.get(e.eventId);
+        if (match) {
+          const toId = nodeId(match.nodeName);
+          lines.push(`${fromId}->>${toId}: SIP Alarm${target} 发送 ${fmtTime(e.timestamp)}`);
+        } else {
+          lines.push(`${fromId}->>RU: SIP Alarm${target} 发送 ${fmtTime(e.timestamp)}`);
+        }
+      } else if (e.stage === "SIP_RECV") {
+        const matchSend = sendByRecv.get(e.eventId);
+        if (matchSend) {
+          const fromId = nodeId(matchSend.nodeName);
+          const toId = nodeId(e.nodeName);
+          const latency = (e.timestamp && matchSend.timestamp) ? ` (${e.timestamp - matchSend.timestamp}ms)` : "";
+          const label = remoteSet.has(e.nodeName) ? "远端已收到" : "已收到";
+          lines.push(`${toId}-->>${fromId}: ${label} ${fmtTime(e.timestamp)}${latency}`);
+        } else {
+          const id = nodeId(e.nodeName);
+          const label = remoteSet.has(e.nodeName)
+            ? "收到 SIP Alarm（缺少本地发送事件）"
+            : "收到 SIP Alarm（缺少发送事件）";
+          lines.push(`${id}-->>${id}: ${label} ${fmtTime(e.timestamp)}`);
+        }
+      } else if (e.stage === "FORWARD") {
+        // 已经画出 SIP_SEND 的节点不再重复展示 FORWARD
+        if (sendNodes.has(e.nodeName)) {
+          return;
+        }
+        const id = nodeId(e.nodeName);
+        const target = sanitize(`${e.targetType || ""} ${e.target || ""}`).trim();
+        lines.push(`${id}-->>${id}: 准备转发 ${target} ${fmtTime(e.timestamp)}`);
+      } else if (e.stage === "REDIS_OUT") {
+        if (localSet.has(e.nodeName)) {
+          // 本地 WVP -> 本地 Redis
+          lines.push(`${localId(e.nodeName)}->>LR: 投递 Redis ${fmtTime(e.timestamp)}`);
+        } else {
+          // 远端 WVP 投递自己的 Redis：用远端节点自消息表示
+          const id = remoteId(e.nodeName);
+          lines.push(`${id}-->>${id}: 投递 Redis ${fmtTime(e.timestamp)}`);
+        }
+      }
+    });
+
+    if (unmatchedSends.length) {
+      let targets = unmatchedSends
+        .map((send) => send.target || send.description || "")
+        .filter(Boolean)
+        .join(", ");
+      targets = sanitize(targets);
+      if (!targets) {
+        targets = "未知";
+      }
+      lines.push(`Note over RU: 未连接远端：${targets}`);
+    }
+
+    if (!lines.length) {
+      return null;
+    }
+    if (!localNodes.length && remoteNodes.length) {
+      lines.push(`Note over ${remoteId(remoteNodes[0])}: 当前链路没有经过本地 WVP（页面地址）`);
+    }
+    return ["sequenceDiagram", ...participantLines, ...lines].join("\n");
+  }
+
+  async function renderDiagram() {
+    const traceId = state.selectedTraceId;
+    const trace = traceId ? state.traces.get(traceId) : null;
+    const box = $("diagram");
+    const stats = $("stats");
+    const detail = $("detail");
+    if (!trace) {
+      $("selectedTitle").textContent = "未选择链路";
+      box.innerHTML = '<div class="empty">选择左侧链路查看时序图</div>';
+      stats.innerHTML = "";
+      detail.textContent = "";
+      return;
+    }
+    const info = analyze(trace);
+    const nodes = traceNodes(trace);
+    const localTitle = nodes.localNodes.join(", ")
+        || ("未连接（页面 " + (location.host || "未知") + "）");
+    $("selectedTitle").textContent = `链路 ${trace.traceId} · 本地 ${localTitle}` +
+        (nodes.remoteNodes.length ? ` · 远端 ${nodes.remoteNodes.join(", ")}` : "");
+    const warning = nodes.localNodes.length ? "" :
+        '<div class="warn">当前链路没有经过本地 WVP（页面地址 <code>' +
+        escapeHtml(location.host || "未知") +
+        '</code>）。请确认左侧已连接本地 WVP，或该链路的事件确实不来自当前页面所在的 WVP。</div>';
+    stats.innerHTML = `
+      <span>IN <b>${info.redisIn}</b></span>
+      <span>FORWARD <b>${info.forward}</b></span>
+      <span>SIP_SEND <b>${info.sipSend}</b></span>
+      <span>SIP_RECV <b>${info.sipRecv}</b></span>
+      <span>OUT <b>${info.redisOut}</b></span>
+      <span>耗时 <b>${info.latency} ms</b></span>
+      ${info.incomplete ? `<span>缺少远端接收 <b>${info.unmatchedSends.length}</b></span>` : ""}
+      <span>${info.dup ? '<b style="color:var(--red)">存在重复</b>' : (info.incomplete ? '<b style="color:var(--orange)">缺少远端</b>' : (info.ok ? '<b style="color:var(--green)">正常</b>' : '<b style="color:var(--orange)">待完成</b>'))}</span>
+    `;
+    const mermaidText = buildMermaid(trace);
+    if (!mermaidText) {
+      box.innerHTML = warning + '<div class="empty">暂无可渲染的事件</div>';
+      return;
+    }
+    try {
+      if (!window.mermaid) {
+        box.innerHTML = warning + '<div class="empty">mermaid.min.js 未加载</div>';
+        return;
+      }
+      window.mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: "default" });
+      const renderId = "trace-diagram-" + Date.now();
+      const result = await window.mermaid.render(renderId, mermaidText);
+      box.innerHTML = warning + result.svg;
+    } catch (e) {
+      box.innerHTML = warning + '<pre style="white-space:pre-wrap;color:#b91c1c;">Mermaid 渲染失败：' + escapeHtml(e && e.message ? e.message : e) + "\n\n" + escapeHtml(mermaidText) + "</pre>";
+    }
+    detail.textContent = JSON.stringify(trace.events, null, 2);
+  }
+
+  function scheduleDiagram() {
+    if (state.diagramTimer) return;
+    state.diagramTimer = setTimeout(() => {
+      state.diagramTimer = null;
+      renderDiagram();
+    }, 300);
+  }
+
+  // ---------------- events ----------------
+
+  $("btnPause").addEventListener("click", () => {
+    state.paused = !state.paused;
+    $("btnPause").textContent = state.paused ? "继续" : "暂停";
+    if (!state.paused) {
+      renderTraceList();
+      scheduleDiagram();
+    }
+  });
+
+  $("btnClear").addEventListener("click", () => {
+    state.traces.clear();
+    state.selectedTraceId = null;
+    state.totalEvents = 0;
+    renderTraceList();
+    renderDiagram();
+    updateGlobalStat();
+  });
+
+  $("btnRefreshCluster").addEventListener("click", () => loadClusterNodes(true));
+
+  $("btnAddDefault").addEventListener("click", () => {
+    const def = defaultEndpoint();
+    if (!def) { toast("无法获取当前地址"); return; }
+    addConnection(def.url);
+  });
+
+  $("btnAddConn").addEventListener("click", () => {
+    const url = $("newConnUrl").value.trim();
+    addConnection(url);
+    $("newConnUrl").value = "";
+  });
+
+  $("newConnUrl").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") $("btnAddConn").click();
+  });
+
+  $("searchInput").addEventListener("input", (e) => {
+    state.search = e.target.value.trim();
+    renderTraceList();
+  });
+
+  $("filterSelect").addEventListener("change", (e) => {
+    state.filter = e.target.value;
+    renderTraceList();
+  });
+
+  $("btnExport").addEventListener("click", () => {
+    const traceId = state.selectedTraceId;
+    const trace = traceId ? state.traces.get(traceId) : null;
+    if (!trace) { toast("请先选择链路"); return; }
+    const blob = new Blob([JSON.stringify(trace.events, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "trace-" + trace.traceId + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  loadConnections();
+  loadClusterNodes(false);
+  updateGlobalStat();
+})();
+</script>
+</body>
+</html>

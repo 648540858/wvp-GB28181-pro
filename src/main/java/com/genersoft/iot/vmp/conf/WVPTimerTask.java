@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.ServerInfo;
+import com.genersoft.iot.vmp.conf.trace.TraceIpUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,6 @@ public class WVPTimerTask {
 
     @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
     public void execute(){
-        redisCatchStorage.updateWVPInfo(ServerInfo.create(sipConfig.getShowIp(), serverPort), 3);
+        redisCatchStorage.updateWVPInfo(ServerInfo.create(TraceIpUtil.resolveSipShowIp(sipConfig), serverPort), 3);
     }
 }

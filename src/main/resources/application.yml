@@ -6,3 +6,9 @@ spring:
       enabled: true
   profiles:
     active: standalone
+
+# 国标级联链路追踪（消息通道排查用）
+# 开启后可通过 WebSocket /channel/trace 查看完整时序图
+# 节点名自动使用 IP:serverPort，无需额外配置
+trace:
+  enabled: false

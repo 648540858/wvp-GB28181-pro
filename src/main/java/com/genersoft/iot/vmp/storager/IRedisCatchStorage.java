@@ -182,6 +182,11 @@ public interface IRedisCatchStorage {
 
     ServerInfo queryServerInfo(String serverId);
 
+    /**
+     * 查询当前集群内所有在线节点（有心跳 key 的节点）
+     */
+    List<ServerInfo> queryOnlineServerInfoList();
+
     String chooseOneServer(String serverId);
 
     void updateDeviceKeepaliveTimeStamp(List<Device> deviceList);

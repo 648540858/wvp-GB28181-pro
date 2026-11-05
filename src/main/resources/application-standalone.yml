@@ -1,0 +1,51 @@
+spring:
+  cache:
+    type: caffeine
+  thymeleaf:
+    cache: false
+
+# [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
+server:
+  port: 18080
+  ssl:
+    enabled: false
+
+# 作为28181服务器的配置
+sip:
+  show-ip: 192.168.1.3
+  port: 50060
+  domain: 4101050000
+  id: 41010500002000000001
+  password: 12345678
+
+# 做为JT1078服务器的配置
+ftp:
+  enable: true
+  port: 2121
+  passive-ports: 10000-10500
+
+jt1078:
+  enable: true
+  port: 18088
+  password: admin123
+  reader-idle-time: 20
+
+media:
+  id: XwFtVZrtZbHJq4UV
+  ip: 192.168.1.3
+  http-port: 7082
+  secret: TWSYFgYJOQWB4ftgeYut8DW4wbs7pQnj
+  record-day: 10
+  record-path: ./www/record
+  rtp:
+    enable: true
+    port-range: 30000,40000
+    send-port-range: 40200,50005
+
+
+logging:
+  level:
+    root: info
+  logback:
+    rollingpolicy:
+      max-history: 30

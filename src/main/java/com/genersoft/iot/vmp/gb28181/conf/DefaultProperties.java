@@ -12,7 +12,14 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String name, boolean sipLog, boolean sipCacheServerConnections) {
+    /**
+     * SIP 出站 TCP 建链超时(毫秒)，仅 NIO 模式生效。
+     * 协议栈默认为 10000，这里给予更短的超时，避免目标不可达时长时间占用线程。
+     */
+    private static final int NIO_CONNECTION_TIMEOUT = 3000;
+
+    public static Properties getProperties(String name, boolean sipLog, boolean sipCacheServerConnections,
+                                           boolean nioMessageProcessor) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", name);
 //        properties.setProperty("javax.sip.IP_ADDRESS", ip);
@@ -51,7 +58,16 @@ public class DefaultProperties {
         // 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
         properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", String.valueOf(sipCacheServerConnections));
 
-        properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", "com.genersoft.iot.vmp.gb28181.conf.CustomMessageProcessorFactory");
+        // SIP(TCP) 默认使用协议栈自带的阻塞 IO(TCPMessageProcessor)，与历史稳定版本保持一致。
+        // 若需要 NIO，使用协议栈标准的 NioMessageProcessorFactory，并用 CONNECTION_TIMEOUT 控制建链超时，
+        // 避免不可达目标长时间阻塞发送。
+        // 注意：不要使用带同步连通性预检的自定义处理器（CustomMessageProcessorFactory），
+        // 它会在协议栈分发线程上同步阻塞建链，且预检失败时直接丢弃消息（返回 null），高并发下会导致消息发不出去。
+        if (nioMessageProcessor) {
+            properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY",
+                    "gov.nist.javax.sip.stack.NioMessageProcessorFactory");
+            properties.setProperty("gov.nist.javax.sip.CONNECTION_TIMEOUT", String.valueOf(NIO_CONNECTION_TIMEOUT));
+        }
 
         /**
          * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE

@@ -61,21 +61,23 @@ public class SourcePlaybackServiceForGbImpl implements ISourcePlaybackService {
         }
     }
 
+    /** 恢复指定国标回放会话，不能误发暂停命令。 */
     @Override
     public void playbackResume(CommonGBChannel channel, String stream) {
         // 国标通道
         try {
-            playService.playbackPause(stream);
+            playService.playbackResume(stream);
         }  catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }
     }
 
+    /** 将拖动位置传给指定回放会话，避免被误映射为暂停。 */
     @Override
     public void playbackSeek(CommonGBChannel channel, String stream, long seekTime) {
         // 国标通道
         try {
-            playService.playbackPause(stream);
+            playService.playbackSeek(stream, seekTime);
         }  catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }

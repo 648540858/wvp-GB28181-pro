@@ -57,6 +57,12 @@ public class SsrcTransaction {
      */
     private InviteSessionType type;
 
+    /** 结束结果尚未清理时的状态，空值表示普通活动会话。 */
+    private String terminationState;
+
+    /** 最近一次BYE应答码；超时或本地发送异常使用负值。 */
+    private Integer terminationResponseCode;
+
     public static SsrcTransaction buildForDevice(String deviceId, Integer channelId, String callId, String app, String stream,
                                                  String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type) {
         SsrcTransaction ssrcTransaction = new SsrcTransaction();

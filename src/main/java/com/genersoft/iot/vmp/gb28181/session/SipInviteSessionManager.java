@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.PendingDialogClose;
+import com.genersoft.iot.vmp.gb28181.bean.RecordDialogCloseReceipt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisOperations;
@@ -16,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.time.Duration;
 
 /**
  * 视频流session管理器，管理视频预览、预览回放的通信句柄
@@ -30,6 +33,7 @@ import java.util.Objects;
 public class SipInviteSessionManager {
 
     private static final int MAX_RETRY = 3;
+    private static final Duration RECORD_CLOSE_RECEIPT_TTL = Duration.ofMinutes(30);
 
     @Autowired
     private UserSetting userSetting;
@@ -238,10 +242,16 @@ public class SipInviteSessionManager {
      * 使用 WATCH/MULTI 保证“检查 + 删除”原子化。
      */
     public boolean removeByCallId(String callId) {
+        return removeByCallId(callId, null);
+    }
+
+    /** 已确认结束时允许使用持久化快照清理，活动索引已删除也不能丢失原stream归属。 */
+    public boolean removeByCallId(String callId, SsrcTransaction confirmedSnapshot) {
         if (callId == null) {
             return false;
         }
-        SsrcTransaction transaction = getSsrcTransactionByCallId(callId);
+        SsrcTransaction transaction = confirmedSnapshot == null
+                ? getSsrcTransactionByCallId(callId) : confirmedSnapshot;
         if (transaction == null) {
             return false;
         }
@@ -262,7 +272,8 @@ public class SipInviteSessionManager {
                         ops.opsForHash().delete(streamKey(), field);
                     }
                     ops.opsForHash().delete(callIdKey(), storedCallId);
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(),
+                            hasStream && isStreamIndexOwnedBy(indexed, storedCallId) ? 2 : 1);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -298,7 +309,7 @@ public class SipInviteSessionManager {
                     if (indexed.getCallId() != null) {
                         ops.opsForHash().delete(callIdKey(), indexed.getCallId());
                     }
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(), indexed.getCallId() == null ? 1 : 2);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -334,7 +345,7 @@ public class SipInviteSessionManager {
                     if (indexed.getCallId() != null) {
                         ops.opsForHash().delete(callIdKey(), indexed.getCallId());
                     }
-                    return ops.exec() != null;
+                    return wasTransactionCommitted(ops.exec(), indexed.getCallId() == null ? 1 : 2);
                 }
             });
             if (Boolean.TRUE.equals(result)) {
@@ -363,20 +374,117 @@ public class SipInviteSessionManager {
         return indexed != null && callId != null && callId.equals(indexed.getCallId());
     }
 
+    /** 合并活动事务与未确认结束的录像事务，不能把本地清理误报为设备已结束。 */
     public List<SsrcTransaction> getAll() {
         List<Object> values = redisTemplate.opsForHash().values(callIdKey());
-        List<SsrcTransaction> result = new ArrayList<>();
-        if (values == null) {
-            return result;
+        Map<String, SsrcTransaction> result = new LinkedHashMap<>();
+        if (values != null) {
+            for (Object value : values) {
+                if (value instanceof SsrcTransaction) {
+                    SsrcTransaction transaction = (SsrcTransaction) value;
+                    result.put(transaction.getCallId(), transaction);
+                }
+            }
         }
-        for (Object value : values) {
-            if (value instanceof SsrcTransaction) {
-                result.add((SsrcTransaction) value);
+        for (PendingDialogClose close : getPendingDialogCloses()) {
+            SsrcTransaction transaction = close.getTransaction();
+            if (transaction != null) {
+                transaction.setTerminationState(close.getState());
+                transaction.setTerminationResponseCode(close.getResponseCode());
+                result.put(transaction.getCallId(), transaction);
+            }
+        }
+        return new ArrayList<>(result.values());
+    }
+
+    /** 结束记录独立于活动索引，流注销、停止和重启不能丢失待确认的对话身份。 */
+    private String closingKey() {
+        return VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + "CLOSING_" + userSetting.getServerId();
+    }
+
+    /** 根据原对话Call-ID读取持久化的结束状态。 */
+    public PendingDialogClose getPendingDialogClose(String callId) {
+        Object value = redisTemplate.opsForHash().get(closingKey(), callId);
+        return value instanceof PendingDialogClose ? (PendingDialogClose) value : null;
+    }
+
+    /** 独立有界键不进入原pending Hash，避免终态继续影响getAll和SDK busy语义。 */
+    private String recordCloseReceiptKey(String callId) {
+        return callIdKey() + ":RECORD_CLOSED:" + callId;
+    }
+
+    /** 写失败直接抛出，调用方必须保留confirmed pending供后续补存而非重发BYE。 */
+    public void saveRecordDialogCloseReceipt(String callId, RecordDialogCloseReceipt receipt) {
+        redisTemplate.opsForValue().set(recordCloseReceiptKey(callId), receipt, RECORD_CLOSE_RECEIPT_TTL);
+    }
+
+    /** 未找到或过期凭据返回空，空活动索引本身永远不代表协议终止成功。 */
+    public RecordDialogCloseReceipt getRecordDialogCloseReceipt(String callId) {
+        if (callId == null || callId.isBlank()) {
+            return null;
+        }
+        Object value = redisTemplate.opsForValue().get(recordCloseReceiptKey(callId));
+        return value instanceof RecordDialogCloseReceipt ? (RecordDialogCloseReceipt) value : null;
+    }
+
+    /** 读取本实例全部待收口记录，供原结束owner有界重试和本地清理。 */
+    public List<PendingDialogClose> getPendingDialogCloses() {
+        List<PendingDialogClose> result = new ArrayList<>();
+        List<Object> values = redisTemplate.opsForHash().values(closingKey());
+        if (values != null) {
+            for (Object value : values) {
+                if (value instanceof PendingDialogClose) {
+                    result.add((PendingDialogClose) value);
+                }
             }
         }
         return result;
     }
 
+    /** 按本轮令牌比较更新，迟到应答或超时不得覆盖下一轮结束请求。 */
+    public boolean updatePendingDialogClose(String callId, String expectedAttempt, PendingDialogClose replacement) {
+        for (int i = 0; i < MAX_RETRY; i++) {
+            Boolean result = redisTemplate.execute(new SessionCallback<Boolean>() {
+                /** 沿用现有WATCH/MULTI约定，将身份校验和写入作为一个Redis原子操作。 */
+                @Override
+                @SuppressWarnings("unchecked")
+                public <K, V> Boolean execute(RedisOperations<K, V> operations) {
+                    RedisOperations<String, Object> ops = (RedisOperations<String, Object>) operations;
+                    ops.watch(closingKey());
+                    Object value = ops.opsForHash().get(closingKey(), callId);
+                    PendingDialogClose current = value instanceof PendingDialogClose ? (PendingDialogClose) value : null;
+                    if (!Objects.equals(expectedAttempt, current == null ? null : current.getAttemptId())) {
+                        ops.unwatch();
+                        return false;
+                    }
+                    ops.multi();
+                    if (replacement == null) {
+                        ops.opsForHash().delete(closingKey(), callId);
+                    } else {
+                        ops.opsForHash().put(closingKey(), callId, replacement);
+                    }
+                    return wasTransactionCommitted(ops.exec(), 1);
+                }
+            });
+            if (Boolean.TRUE.equals(result)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** WATCH冲突在Spring/Lettuce中可返回空列表，只有本事务全部命令有结果才允许撤销原结束凭据。 */
+    private boolean wasTransactionCommitted(List<Object> results, int commandCount) {
+        if (results == null || results.isEmpty()) {
+            return false;
+        }
+        if (results.size() != commandCount || results.stream().anyMatch(value -> value == null || value instanceof Throwable)) {
+            throw new IllegalStateException("SIP会话事务结果不可确认");
+        }
+        return true;
+    }
+
+    /** 汇总活动与待关闭事务时按Dialog身份去重，空列表不制造占用记录。 */
     private void addAll(Map<String, SsrcTransaction> result, List<SsrcTransaction> transactions) {
         if (transactions == null) {
             return;

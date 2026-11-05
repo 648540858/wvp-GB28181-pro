@@ -44,6 +44,7 @@ import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -307,7 +308,8 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime,
-                                  SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException {
+                                  SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent, Long timeout,
+                                  Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException {
 
 
         log.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
@@ -388,8 +390,20 @@ public class SIPCommander implements ISIPCommander {
                     channel.getId(), response.getCallIdHeader().getCallId(), ssrcInfo.getApp(),
                     ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAYBACK);
-            registerTransaction(device, channel, ssrcTransaction);
-            okEvent.response(event);
+            // 事务注册会替换同流旧 Dialog，必须与上层身份校验共处一个临界区。
+            // 不能先注册再通知上层，否则迟到的 A 响应会先向当前 B 会话发 BYE。
+            boolean accepted = sessionGuard.test(() -> {
+                registerTransaction(device, channel, ssrcTransaction);
+                okEvent.response(event);
+            });
+            if (!accepted) {
+                // 只终止该响应自带的旧 Dialog，不查询或修改同流的新会话索引。
+                try {
+                    streamByeCmd(device, channel.getDeviceId(), ssrcTransaction.getSipTransactionInfo(), null);
+                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                    log.warn("[录像回放] 终止迟到响应对应的旧会话失败", e);
+                }
+            }
         }, timeout);
     }
 
@@ -399,7 +413,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime, int downloadSpeed,
-                                  SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout) throws InvalidArgumentException, SipException, ParseException {
+                                  SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout, Predicate<Runnable> sessionGuard) throws InvalidArgumentException, SipException, ParseException {
 
         log.info("[发送-请求历史媒体下载-命令] 流ID： {}，节点为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
         String sdpIp;
@@ -481,8 +495,19 @@ public class SIPCommander implements ISIPCommander {
             SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(),
                     response.getCallIdHeader().getCallId(), ssrcInfo.getApp(), ssrcInfo.getStream(), ssrc,
                     mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
-            registerTransaction(device, channel, ssrcTransaction);
-            okEvent.response(event);
+            // 下载的旧 200 也可能晚于停止重下，事务替换必须在上层归属临界区内执行。
+            boolean accepted = sessionGuard.test(() -> {
+                registerTransaction(device, channel, ssrcTransaction);
+                okEvent.response(event);
+            });
+            if (!accepted) {
+                try {
+                    // 只结束该响应自身的 Dialog，不按流名查找可能已属于新下载的事务。
+                    streamByeCmd(device, channel.getDeviceId(), ssrcTransaction.getSipTransactionInfo(), null);
+                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                    log.warn("[录像下载] 终止迟到响应对应的旧会话失败", e);
+                }
+            }
         }, timeout);
     }
 
@@ -569,14 +594,28 @@ public class SIPCommander implements ISIPCommander {
                 && !sameDialog(oldTransaction, newTransaction)) {
             if (oldTransaction.getSipTransactionInfo() != null) {
                 try {
+                    String oldCallId = oldTransaction.getCallId() != null
+                            ? oldTransaction.getCallId() : oldTransaction.getSipTransactionInfo().getCallId();
+                    // 新流可先绑定新Dialog，但旧Call-ID仍须保留到设备确认，条件删除不会清掉新流索引。
+                    SipSubscribe.Event confirmed = result -> {
+                        if (isByeTerminationConfirmed(result)) {
+                            sessionManager.removeByCallId(oldCallId);
+                        }
+                    };
+                    SipSubscribe.Event failed = result -> {
+                        if (isByeTerminationConfirmed(result)) {
+                            confirmed.response(result);
+                        } else {
+                            log.warn("[注册SIP事务] 旧Dialog尚未确认停止，保留事务, callId={}, status={}", oldCallId, result.statusCode);
+                        }
+                    };
                     if (InviteSessionType.BROADCAST.equals(oldTransaction.getType())) {
                         streamByeCmdForDeviceInvite(device, channel.getDeviceId(),
-                                oldTransaction.getSipTransactionInfo(), null);
+                                oldTransaction.getSipTransactionInfo(), confirmed, failed);
                     } else {
                         streamByeCmd(device, channel.getDeviceId(),
-                                oldTransaction.getSipTransactionInfo(), null);
+                                oldTransaction.getSipTransactionInfo(), confirmed, failed);
                     }
-                    sessionManager.removeByCallId(oldTransaction.getCallId());
                 } catch (Exception e) {
                     log.warn("[注册SIP事务] 旧 Dialog BYE 失败，保留事务等待后续清理, callId={}",
                             oldTransaction.getCallId(), e);
@@ -589,6 +628,7 @@ public class SIPCommander implements ISIPCommander {
         sessionManager.put(newTransaction);
     }
 
+    // 按双方实际Call-ID判断是否同一Dialog，避免同流重建时误停当前会话。
     private boolean sameDialog(SsrcTransaction left, SsrcTransaction right) {
         String leftCallId = left.getSipTransactionInfo() != null
                 ? left.getSipTransactionInfo().getCallId() : left.getCallId();
@@ -606,39 +646,68 @@ public class SIPCommander implements ISIPCommander {
             log.warn("[发送BYE] device为null");
             return;
         }
-        SsrcTransaction ssrcTransaction = null;
+        SsrcTransaction transaction = null;
         if (callId != null) {
-            ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callId);
-        }else if (stream != null) {
-            ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
+            transaction = sessionManager.getSsrcTransactionByCallId(callId);
+        } else if (stream != null) {
+            transaction = sessionManager.getSsrcTransactionByStream(app, stream);
         }
-
-        if (ssrcTransaction == null) {
+        if (transaction == null) {
             log.info("[发送BYE] 未找到事务信息,设备： device: {}, channel: {}", device.getDeviceId(), channelId);
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
         }
-
-        log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
-        Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
-        // 发送成功后再清理事务，避免构造/发送失败时事务已丢失，导致后续无法重试发送 BYE
-        String removeCallId = ssrcTransaction.getCallId();
-        if (removeCallId == null && ssrcTransaction.getSipTransactionInfo() != null) {
-            removeCallId = ssrcTransaction.getSipTransactionInfo().getCallId();
-        }
-        sessionManager.removeByCallId(removeCallId);
+        String terminatedCallId = transaction.getCallId() != null
+                ? transaction.getCallId() : transaction.getSipTransactionInfo().getCallId();
+        // 发送到本机协议栈不等于设备已释放；只在终态响应后删除原Dialog，超时仍可再次停止。
+        SipSubscribe.Event confirmed = result -> {
+            if (isByeTerminationConfirmed(result)) {
+                sessionManager.removeByCallId(terminatedCallId);
+                if (okEvent != null) {
+                    okEvent.response(result);
+                }
+            }
+        };
+        SipSubscribe.Event failed = result -> {
+            if (isByeTerminationConfirmed(result)) {
+                confirmed.response(result);
+            } else {
+                log.warn("[发送BYE] 设备尚未确认停止，保留事务, callId={}, status={}", terminatedCallId, result.statusCode);
+            }
+        };
+        streamByeCmd(device, channelId, transaction.getSipTransactionInfo(), confirmed, failed);
     }
 
+    // 兼容原成功回调入口，可靠发送及双向结果统一由新重载承接。
     @Override
     public void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
-        Request byteRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+        streamByeCmd(device, channelId, sipTransactionInfo, okEvent, null);
     }
 
+    // 按精确Dialog构造一次BYE，将确认和失败交还上层，不在本层提前丢弃会话。
+    @Override
+    public void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo,
+                             SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+        Request byeRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byeRequest, errorEvent, okEvent);
+    }
+
+    // 保留设备发起Dialog的原有入口，参数方向仍由专用请求构造器处理。
     @Override
     public void streamByeCmdForDeviceInvite(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
-        Request byteRequest = headerProvider.createByteRequestForDeviceInvite(device, channelId, sipTransactionInfo);
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+        streamByeCmdForDeviceInvite(device, channelId, sipTransactionInfo, okEvent, null);
+    }
+
+    // 对设备发起的Dialog提供独立确认和失败回调，不改变其From/To方向。
+    @Override
+    public void streamByeCmdForDeviceInvite(Device device, String channelId, SipTransactionInfo sipTransactionInfo,
+                                            SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+        Request byeRequest = headerProvider.createByteRequestForDeviceInvite(device, channelId, sipTransactionInfo);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byeRequest, errorEvent, okEvent);
+    }
+
+    // 2xx为停止确认；481明确表示对端已不存在此Dialog，其余失败都不能假定设备已释放。
+    private boolean isByeTerminationConfirmed(SipSubscribe.EventResult<?> result) {
+        return result != null && ((result.statusCode >= 200 && result.statusCode < 300) || result.statusCode == 481);
     }
 
     /**

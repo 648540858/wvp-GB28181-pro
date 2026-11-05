@@ -11,6 +11,9 @@ import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.download.SegmentedDownloadService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import org.springframework.beans.factory.ObjectProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +53,9 @@ public class GBRecordController {
 
 	@Autowired
 	private IPlayService playService;
+
+	@Autowired
+	private ObjectProvider<SegmentedDownloadService> segmentedDownloads;
 
 	@Autowired
 	private IDeviceChannelService channelService;
@@ -101,15 +108,24 @@ public class GBRecordController {
 	}
 
 
+	/** 旧Java调用继续使用原下载语义，不隐式触发任何合并恢复。 */
+	public DeferredResult<WVPResult<StreamContent>> download(HttpServletRequest request, String deviceId, String channelId,
+			String startTime, String endTime, String downloadSpeed) {
+		return download(request, deviceId, channelId, startTime, endTime, downloadSpeed, null);
+	}
+
+	/** 默认仍由原播放服务下载；只有显式旧UUID才申请复用完整来源重做合并。 */
 	@Operation(summary = "开始历史媒体下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "startTime", description = "开始时间", required = true)
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@Parameter(name = "downloadSpeed", description = "下载倍速", required = true)
+	@Parameter(name = "resumeTaskId", description = "可选原失败分段任务UUID；仅重做合并，不重新向设备下载")
 	@GetMapping("/download/start/{deviceId}/{channelId}")
 	public DeferredResult<WVPResult<StreamContent>> download(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
-															 String startTime, String endTime, String downloadSpeed) {
+															 String startTime, String endTime, String downloadSpeed,
+                                                             @RequestParam(required = false) String resumeTaskId) {
 
 		log.info("[开始历史媒体下载] deviceId: {}, channelId: {}, startTime: {}, endTime: {}, downloadSpeed: {}", deviceId, channelId, startTime, endTime, downloadSpeed);
 
@@ -132,8 +148,7 @@ public class GBRecordController {
 			log.warn("[开始历史媒体下载] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + channelId);
 		}
-		playService.download(device, channel, startTime, endTime, Integer.parseInt(downloadSpeed),
-		(code, msg, data)->{
+		ErrorCallback<StreamInfo> callback = (code, msg, data)->{
 
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
@@ -153,7 +168,17 @@ public class GBRecordController {
 			}
 			requestMessage.setData(wvpResult);
 			resultHolder.invokeResult(requestMessage);
-		});
+		};
+		if (resumeTaskId == null) {
+			playService.download(device, channel, startTime, endTime, Integer.parseInt(downloadSpeed), callback);
+		} else {
+			SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getIfAvailable();
+			if (segmented == null) {
+				callback.run(-1, "当前节点不支持显式重做合并", null);
+			} else {
+				segmented.resumeMerge(device, channel, startTime, endTime, resumeTaskId, callback);
+			}
+		}
 
 		return result;
 	}

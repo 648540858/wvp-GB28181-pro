@@ -23,6 +23,34 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016、部标808、部标1078标准实�
 - 支持跨网网闸平台互联。
 
 
+# 快速开始
+
+`application.yml` 默认激活 `standalone` 配置，内置 H2 文件数据库和内存 Redis，不需要安装 MySQL、Redis。
+
+依赖：JDK 21、Maven、Node.js，以及自行准备的 ZLMediaKit。
+
+```bash
+# 1. 按需修改默认配置：sip.show-ip、sip.ip、media.ip、media.secret 等
+#    文件位置：src/main/resources/application-standalone.yml
+
+# 2. 构建前端（输出到 src/main/resources/static）
+cd web
+npm install
+npm run build:prod
+cd ..
+
+# 3. 打包
+mvn clean package -Dmaven.test.skip=true
+
+# 4. 启动
+java -jar target/wvp-pro-*.jar
+```
+
+访问 `http://127.0.0.1:18080`，默认账号 `admin` / `admin`，首次登录需修改密码。
+
+启动前确认 ZLMediaKit 已运行，且 `application-standalone.yml` 中的媒体地址与密钥和 ZLM 一致。数据库文件保存在 `./data`，重启后保留。
+
+
 # 文档
 wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)  
 ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)

@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.jt1078.session;
 import com.genersoft.iot.vmp.jt1078.bean.JTRecordDownloadCatch;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.J9206;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -23,16 +25,18 @@ public class FtpDownloadManager {
 
     private final Map<String, SynchronousQueue<Object>> topicSubscribers = new ConcurrentHashMap<>();
 
-    // 下载过期检查
-    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
-    public void downloadCatchCheck(){
-        while (!downloadCatchQueue.isEmpty()) {
-            try {
-                JTRecordDownloadCatch take = downloadCatchQueue.take();
-                downloadCatchMap.remove(take.getPath());
-            } catch (InterruptedException e) {
-                log.error("[下载过期] ", e);
-            }
+    private Thread consumerThread;
+
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("jt-download-consumer", downloadCatchQueue,
+                downloadCatch -> downloadCatchMap.remove(downloadCatch.getPath()));
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
         }
     }
 

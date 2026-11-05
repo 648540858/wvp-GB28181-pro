@@ -2,15 +2,16 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.VectorTileSource;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.DelayQueue;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -18,6 +19,21 @@ public class VectorTileCatch {
 
     private final Map<String, VectorTileSource> vectorTileMap = new ConcurrentReferenceHashMap<>();
     private final DelayQueue<VectorTileSource> delayQueue = new DelayQueue<>();
+
+    private Thread consumerThread;
+
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("vector-tile-consumer", delayQueue,
+                vectorTileSource -> vectorTileMap.remove(vectorTileSource.getId()));
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
+        }
+    }
 
     public void addVectorTile(String id, String key, byte[] content) {
         VectorTileSource vectorTileSource = vectorTileMap.get(id);
@@ -76,20 +92,6 @@ public class VectorTileCatch {
         vectorTileMap.remove(id);
         delayQueue.remove(vectorTileSource);
         vectorTileMap.put("DEFAULT", vectorTileSource);
-    }
-
-
-    // 缓存数据过期检查
-    @Scheduled(fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
-    public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            try {
-                VectorTileSource vectorTileSource = delayQueue.take();
-                vectorTileMap.remove(vectorTileSource.getId());
-            } catch (InterruptedException e) {
-                log.error("[清理过期的抽稀数据] ", e);
-            }
-        }
     }
 
 }

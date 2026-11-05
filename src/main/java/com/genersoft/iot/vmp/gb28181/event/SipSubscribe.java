@@ -2,11 +2,13 @@ package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.sip.DialogTerminatedEvent;
@@ -29,24 +31,29 @@ public class SipSubscribe {
 
     private final DelayQueue<SipEvent> delayQueue = new DelayQueue<>();
 
+    private Thread consumerThread;
 
-    @Scheduled(fixedDelay = 200)   //每200毫秒执行
-    public void execute(){
-        while (!delayQueue.isEmpty()) {
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("sip-subscribe-consumer", delayQueue, take -> {
             try {
-                SipEvent take = delayQueue.take();
-                // 出现超时异常
-                if(take.getErrorEvent() != null) {
+                if (take.getErrorEvent() != null) {
                     EventResult<Object> eventResult = new EventResult<>();
                     eventResult.type = EventResultType.timeout;
                     eventResult.msg = "消息超时未回复";
                     eventResult.statusCode = -1024;
                     take.getErrorEvent().response(eventResult);
                 }
+            } finally {
                 subscribes.remove(take.getKey());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
+        });
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
         }
     }
 

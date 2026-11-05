@@ -2,11 +2,13 @@ package com.genersoft.iot.vmp.gb28181.task.deviceSubscribe;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -33,22 +35,24 @@ public class SubscribeTaskRunner{
 
     private final String prefix = "VMP_DEVICE_SUBSCRIBE";
 
-    // 订阅过期检查
-    @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
-    public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            SubscribeTask take = null;
+    private Thread consumerThread;
+
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("device-subscribe-consumer", delayQueue, take -> {
             try {
-                take = delayQueue.take();
-                try {
-                    removeSubscribe(take.getKey());
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[设备订阅任务] ", e);
+                removeSubscribe(take.getKey());
+                take.expired();
+            } catch (Exception e) {
+                log.error("[设备订阅到期] {} 到期处理时出现异常， 设备编号: {} ", take.getName(), take.getDeviceId());
             }
+        });
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
         }
     }
 

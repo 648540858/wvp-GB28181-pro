@@ -7,13 +7,15 @@ import com.genersoft.iot.vmp.gb28181.bean.Preset;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
 import gov.nist.javax.sip.message.SIPRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
@@ -47,6 +49,28 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     private final Map<String, MessageResponseTask<Preset>> mesageMap = new ConcurrentHashMap<>();
 
     private final DelayQueue<MessageResponseTask<Preset>> delayQueue = new DelayQueue<>();
+
+    private Thread consumerThread;
+
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("preset-query-consumer", delayQueue, take -> {
+            try {
+                responseMessageHandler.handMessageEvent(take.getElement(), take.getData());
+            } catch (Exception e) {
+                log.error("[预置位查询到期] {} 到期处理时出现异常", take.getKey());
+            } finally {
+                mesageMap.remove(take.getKey());
+            }
+        });
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
+        }
+    }
 
 
     @Override
@@ -149,25 +173,6 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 messageResponseTask.setKey(key);
                 mesageMap.put(key, messageResponseTask);
                 delayQueue.offer(messageResponseTask);
-            }
-        }
-    }
-
-    // 处理过期的缓存
-    @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
-    public void expirationCheck(){
-        while (!delayQueue.isEmpty()) {
-            MessageResponseTask<Preset> take = null;
-            try {
-                take = delayQueue.take();
-                try {
-                    responseMessageHandler.handMessageEvent(take.getElement(), take.getData());
-                    mesageMap.remove(take.getKey());
-                }catch (Exception e) {
-                    log.error("[预置位查询到期] {} 到期处理时出现异常", take.getKey());
-                }
-            } catch (InterruptedException e) {
-                log.error("[设备订阅任务] ", e);
             }
         }
     }

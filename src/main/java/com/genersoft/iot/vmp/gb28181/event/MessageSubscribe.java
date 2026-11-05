@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -21,22 +23,27 @@ public class MessageSubscribe {
 
     private final DelayQueue<MessageEvent<?>> delayQueue = new DelayQueue<>();
 
-    @Scheduled(fixedDelay = 200)   //每200毫秒执行
-    public void execute(){
-        while (!delayQueue.isEmpty()) {
+    private Thread consumerThread;
+
+    @PostConstruct
+    public void start() {
+        consumerThread = DelayQueueConsumer.start("message-subscribe-consumer", delayQueue, event -> {
             try {
-                MessageEvent<?> take = delayQueue.take();
-                // 出现超时异常
-                if(take.getCallback() != null) {
-                    take.getCallback().run(ErrorCode.ERROR486.getCode(), "消息超时未回复", null);
+                if (event.getCallback() != null) {
+                    event.getCallback().run(ErrorCode.ERROR486.getCode(), "消息超时未回复", null);
                 }
-                subscribes.remove(take.getKey());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            } finally {
+                subscribes.remove(event.getKey());
             }
-        }
+        });
     }
 
+    @PreDestroy
+    public void stop() {
+        if (consumerThread != null) {
+            consumerThread.interrupt();
+        }
+    }
 
     public void addSubscribe(MessageEvent<?> event) {
         MessageEvent<?> messageEvent = subscribes.get(event.getKey());

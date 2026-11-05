@@ -2,11 +2,13 @@ package com.genersoft.iot.vmp.gb28181.task.platformStatus;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
+import com.genersoft.iot.vmp.utils.DelayQueueConsumer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -39,43 +41,41 @@ public class PlatformStatusTaskRunner {
 
     private final String prefix = "VMP_PLATFORM_STATUS";
 
-    // 订阅过期检查
-    @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
-    public void expirationCheckForRegister(){
-        while (!registerDelayQueue.isEmpty()) {
-            PlatformRegisterTask take = null;
+    private Thread registerConsumerThread;
+
+    private Thread keepaliveConsumerThread;
+
+    @PostConstruct
+    public void start() {
+        registerConsumerThread = DelayQueueConsumer.start("platform-register-consumer", registerDelayQueue, take -> {
             try {
-                take = registerDelayQueue.take();
-                try {
-                    // 不在回调前移除任务，避免 statusLostCheck 在注册进行中误判平台未注册。
-                    // 任务由 registerExpire 在成功(onLine)或失败(offline)时替换/移除。
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
-                    removeRegisterTask(take.getPlatformServerId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[平台注册到期] ", e);
+                // 不在回调前移除任务，避免 statusLostCheck 在注册进行中误判平台未注册。
+                // 任务由 registerExpire 在成功(onLine)或失败(offline)时替换/移除。
+                take.expired();
+            } catch (Exception e) {
+                log.error("[平台注册到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
+                removeRegisterTask(take.getPlatformServerId());
             }
-        }
+        });
+        keepaliveConsumerThread = DelayQueueConsumer.start("platform-keepalive-consumer", keepaliveTaskDelayQueue, take -> {
+            try {
+                // 不在回调前移除任务，避免 statusLostCheck 在心跳发送过程中误判平台未注册。
+                // 任务由 keepaliveExpire 重新添加或移除。
+                take.expired();
+            } catch (Exception e) {
+                log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
+                removeKeepAliveTask(take.getPlatformServerId());
+            }
+        });
     }
-    @Scheduled(fixedDelay = 500, timeUnit = TimeUnit.MILLISECONDS)
-    public void expirationCheckForKeepalive(){
-        while (!keepaliveTaskDelayQueue.isEmpty()) {
-            PlatformKeepaliveTask take = null;
-            try {
-                take = keepaliveTaskDelayQueue.take();
-                try {
-                    // 不在回调前移除任务，避免 statusLostCheck 在心跳发送过程中误判平台未注册。
-                    // 任务由 keepaliveExpire 重新添加或移除。
-                    take.expired();
-                }catch (Exception e) {
-                    log.error("[平台心跳到期] 到期处理时出现异常， 平台上级编号: {} ", take.getPlatformServerId(), e);
-                    removeKeepAliveTask(take.getPlatformServerId());
-                }
-            } catch (InterruptedException e) {
-                log.error("[平台心跳到期] ", e);
-            }
+
+    @PreDestroy
+    public void stop() {
+        if (registerConsumerThread != null) {
+            registerConsumerThread.interrupt();
+        }
+        if (keepaliveConsumerThread != null) {
+            keepaliveConsumerThread.interrupt();
         }
     }
 

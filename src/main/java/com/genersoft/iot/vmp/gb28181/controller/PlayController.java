@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.download.SegmentedDownloadService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -55,6 +56,9 @@ public class PlayController {
 
 	@Autowired
 	private SipInviteSessionManager sessionManager;
+
+	@Autowired
+	private org.springframework.beans.factory.ObjectProvider<SegmentedDownloadService> segmentedDownloads;
 
 	@Autowired
 	private IInviteStreamService inviteStreamService;
@@ -219,6 +223,7 @@ public class PlayController {
 		playService.stopAudioBroadcast(device, channel);
 	}
 
+	/** 列出活动及尚未确认结束的事务，状态消失不能早于已知设备终止结果。 */
 	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@GetMapping("/ssrc")
 	public JSONObject getSSRC() {
@@ -227,15 +232,28 @@ public class PlayController {
 		}
 		JSONArray objects = new JSONArray();
 		List<SsrcTransaction> allSsrc = sessionManager.getAll();
+		SegmentedDownloadService segmented = segmentedDownloads == null ? null : segmentedDownloads.getObject();
 		for (SsrcTransaction transaction : allSsrc) {
+			if (segmented != null && transaction.getType() == InviteSessionType.DOWNLOAD
+                    && segmented.isChildStream(transaction.getStream())) {
+				continue;
+			}
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("deviceId", transaction.getDeviceId());
 			jsonObject.put("channelId", transaction.getChannelId());
 			jsonObject.put("ssrc", transaction.getSsrc());
 			jsonObject.put("streamId", transaction.getStream());
+			if (transaction.getTerminationState() != null) {
+				jsonObject.put("terminationState", transaction.getTerminationState());
+				jsonObject.put("terminationResponseCode", transaction.getTerminationResponseCode());
+			}
 			objects.add(jsonObject);
 		}
 
+		if (segmented != null) {
+			// 对外只投影原始区间；逻辑任务不写入真实 SIP 事务表。
+			objects.addAll(segmented.sessionViews());
+		}
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("data", objects);
 		jsonObject.put("count", objects.size());

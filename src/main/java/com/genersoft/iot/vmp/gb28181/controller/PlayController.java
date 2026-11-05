@@ -219,6 +219,7 @@ public class PlayController {
 		playService.stopAudioBroadcast(device, channel);
 	}
 
+	/** 列出活动及尚未确认结束的事务，状态消失不能早于已知设备终止结果。 */
 	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@GetMapping("/ssrc")
 	public JSONObject getSSRC() {
@@ -233,6 +234,10 @@ public class PlayController {
 			jsonObject.put("channelId", transaction.getChannelId());
 			jsonObject.put("ssrc", transaction.getSsrc());
 			jsonObject.put("streamId", transaction.getStream());
+			if (transaction.getTerminationState() != null) {
+				jsonObject.put("terminationState", transaction.getTerminationState());
+				jsonObject.put("terminationResponseCode", transaction.getTerminationResponseCode());
+			}
 			objects.add(jsonObject);
 		}
 

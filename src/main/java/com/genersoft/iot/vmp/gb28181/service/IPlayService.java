@@ -38,6 +38,9 @@ public interface IPlayService {
 
     StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream);
 
+    /** 设备主动结束录像时仅清理本轮媒体，并保留下载文件完成上下文。 */
+    void handleDeviceRecordBye(SsrcTransaction transaction);
+
     void zlmServerOnline(MediaServer mediaServer);
 
     AudioBroadcastResult audioBroadcast(String deviceId, String channelDeviceId, Boolean broadcastMode);

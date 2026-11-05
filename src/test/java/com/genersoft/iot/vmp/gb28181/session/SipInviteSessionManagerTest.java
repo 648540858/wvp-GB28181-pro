@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.PendingDialogClose;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,7 +60,12 @@ class SipInviteSessionManagerTest {
     private final Map<String, Map<Object, Object>> store = new HashMap<>();
 
     private SipInviteSessionManager sessionManager;
+    private final List<Runnable> queued = new ArrayList<>();
+    private final List<Object> commandResults = new ArrayList<>();
+    private boolean transactionOpen;
+    private int emptyAborts;
 
+    /** 初始化隔离的Hash与独立Value存储，避免确认凭据混入原活动列表。 */
     @BeforeEach
     void setUp() {
         UserSetting userSetting = new UserSetting();
@@ -72,19 +79,34 @@ class SipInviteSessionManagerTest {
         lenient().when(hashOperations.get(anyString(), any())).thenAnswer(
                 invocation -> bucket(invocation.getArgument(0)).get(invocation.getArgument(1)));
         lenient().doAnswer(invocation -> {
-            bucket(invocation.getArgument(0)).put(invocation.getArgument(1), invocation.getArgument(2));
+            String key = invocation.getArgument(0);Object field = invocation.getArgument(1);Object value = invocation.getArgument(2);
+            mutate(() -> bucket(key).put(field, value), Boolean.TRUE);
             return null;
         }).when(hashOperations).put(anyString(), any(), any());
         lenient().when(hashOperations.delete(anyString(), any())).thenAnswer(invocation -> {
-            bucket(invocation.getArgument(0)).remove(invocation.getArgument(1));
+            String key = invocation.getArgument(0);Object field = invocation.getArgument(1);
+            mutate(() -> bucket(key).remove(field), 1L);
             return 1L;
         });
         lenient().when(hashOperations.values(anyString())).thenAnswer(invocation ->
                 new ArrayList<>(bucket(invocation.getArgument(0)).values()));
 
         lenient().when(redisOperations.opsForHash()).thenReturn(hashOperations);
-        lenient().when(redisOperations.exec()).thenReturn(Collections.emptyList());
-        lenient().doNothing().when(redisOperations).multi();
+        lenient().when(redisOperations.exec()).thenAnswer(invocation -> {
+            assertTrue(transactionOpen, "EXEC必须在MULTI之后执行");
+            transactionOpen = false;
+            if (emptyAborts > 0) {
+                emptyAborts--;queued.clear();commandResults.clear();
+                return Collections.emptyList();
+            }
+            queued.forEach(Runnable::run);
+            List<Object> result = new ArrayList<>(commandResults);
+            queued.clear();commandResults.clear();
+            return result;
+        });
+        lenient().doAnswer(invocation -> {
+            transactionOpen = true;queued.clear();commandResults.clear();return null;
+        }).when(redisOperations).multi();
         lenient().doNothing().when(redisOperations).watch(anyString());
         lenient().doNothing().when(redisOperations).unwatch();
         lenient().when(redisTemplate.execute(any(SessionCallback.class))).thenAnswer(invocation -> {
@@ -93,24 +115,90 @@ class SipInviteSessionManagerTest {
         });
     }
 
+    /** MULTI内只排队，真实提交才修改Hash，并为每条命令保留一个驱动回复。 */
+    private void mutate(Runnable mutation, Object reply) {
+        if (transactionOpen) { queued.add(mutation);commandResults.add(reply); }
+        else mutation.run();
+    }
+
+    /** 返回当前测试节点的精确Hash，不访问外部Redis命名空间。 */
     private Map<Object, Object> bucket(String key) {
         return store.computeIfAbsent(key, k -> new HashMap<>());
     }
 
+    /** 构造当前测试节点的流索引键。 */
     private String streamKey() {
         return VideoManagerConstants.SIP_INVITE_SESSION_STREAM + SERVER_ID;
     }
 
+    /** 构造当前测试节点的原Dialog索引键。 */
     private String callIdKey() {
         return VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + SERVER_ID;
     }
 
+    /** 构造固定逻辑流的事务身份，便于验证不同Call-ID之间的条件清理。 */
     private static SsrcTransaction transaction(String callId) {
         SsrcTransaction transaction = new SsrcTransaction();
         transaction.setApp(APP);
         transaction.setStream(STREAM);
         transaction.setCallId(callId);
         return transaction;
+    }
+
+
+    /** 空EXEC意味着WATCH冲突，不能假报原Call-ID和stream双索引已经删除。 */
+    @Test
+    void emptyExecCannotReportCallIdRemovalAsCommitted() {
+        sessionManager.put(transaction(OLD_CALL_ID));
+        emptyAborts = 3;
+        assertFalse(sessionManager.removeByCallId(OLD_CALL_ID));
+        assertNotNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
+        assertNotNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+        assertTrue(sessionManager.removeByCallId(OLD_CALL_ID));
+        assertNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
+        assertNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+    }
+
+    /** 两种条件删除都必须核实两条命令真实提交，暂时冲突可以重试但耗尽不能清掉身份。 */
+    @Test
+    void emptyExecCannotReportConditionalCallOrSsrcRemovalAsCommitted() {
+        SsrcTransaction original = transaction(OLD_CALL_ID);original.setSsrc("1234567890");
+        sessionManager.put(original);
+        emptyAborts = 3;
+        assertFalse(sessionManager.removeByStreamIfCallId(APP, STREAM, OLD_CALL_ID));
+        assertNotNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
+        assertNotNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+        emptyAborts = 3;
+        assertFalse(sessionManager.removeByStreamIfSsrc(APP, STREAM, original.getSsrc()));
+        assertNotNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
+        assertNotNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+        assertTrue(sessionManager.removeByStreamIfSsrc(APP, STREAM, original.getSsrc()));
+        assertNull(sessionManager.getSsrcTransactionByCallId(OLD_CALL_ID));
+        sessionManager.put(original);
+        emptyAborts = 1;
+        assertTrue(sessionManager.removeByStreamIfCallId(APP, STREAM, OLD_CALL_ID));
+        assertNull(sessionManager.getSsrcTransactionByStream(APP, STREAM));
+    }
+
+    /** pending关闭记录的创建、替换和删除都不能把空事务回复当成已提交。 */
+    @Test
+    void emptyExecCannotReportPendingCloseUpdateAsCommitted() {
+        PendingDialogClose initial = new PendingDialogClose();
+        initial.setAttemptId("initial");initial.setState(PendingDialogClose.PENDING);initial.setTransaction(transaction(OLD_CALL_ID));
+        emptyAborts = 3;
+        assertFalse(sessionManager.updatePendingDialogClose(OLD_CALL_ID, null, initial));
+        assertNull(sessionManager.getPendingDialogClose(OLD_CALL_ID));
+        assertTrue(sessionManager.updatePendingDialogClose(OLD_CALL_ID, null, initial));
+        PendingDialogClose replacement = new PendingDialogClose();
+        replacement.setAttemptId("replacement");replacement.setState(PendingDialogClose.CONFIRMED);
+        emptyAborts = 3;
+        assertFalse(sessionManager.updatePendingDialogClose(OLD_CALL_ID, "initial", replacement));
+        assertEquals("initial", sessionManager.getPendingDialogClose(OLD_CALL_ID).getAttemptId());
+        emptyAborts = 3;
+        assertFalse(sessionManager.updatePendingDialogClose(OLD_CALL_ID, "initial", null));
+        assertEquals("initial", sessionManager.getPendingDialogClose(OLD_CALL_ID).getAttemptId());
+        assertTrue(sessionManager.updatePendingDialogClose(OLD_CALL_ID, "initial", null));
+        assertNull(sessionManager.getPendingDialogClose(OLD_CALL_ID));
     }
 
     @Test

@@ -135,6 +135,10 @@ sip:
     alarm: false
     # 命令发送等待回复的超时时间, 单位:毫秒
     timeout: 1000
+    # [可选] SIP(TCP) 是否使用协议栈的 NIO 消息处理器
+    # 默认 false：使用协议栈默认的阻塞 IO，与历史稳定版本一致
+    # 设置为 true 时使用协议栈标准 NioMessageProcessorFactory，并启用 3000ms 建链超时
+    nio-message-processor: false
 
 # 做为JT1078服务器的配置
 ftp:

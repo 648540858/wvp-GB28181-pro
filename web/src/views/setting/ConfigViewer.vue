@@ -5,11 +5,13 @@
     :size="drawerSize"
     :wrapper-closable="true"
     custom-class="config-viewer"
+    :before-close="handleBeforeClose"
     @closed="handleClosed"
   >
     <div v-loading="loading" class="viewer-body">
       <div class="viewer-toolbar">
         <el-input
+          v-if="!editing"
           v-model="keyword"
           size="mini"
           clearable
@@ -17,11 +19,52 @@
           placeholder="在文件中查找"
           class="viewer-search"
         />
+        <div v-else class="viewer-editing-tip">
+          <i class="el-icon-edit-outline" /> 编辑模式 · {{ fileName }}
+        </div>
         <div class="viewer-actions">
-          <el-tag v-if="matchCount > 0" size="mini" type="info">{{ matchCount }} 处匹配</el-tag>
-          <el-button size="mini" icon="el-icon-refresh" :disabled="loading" @click="reload">刷新</el-button>
-          <el-button size="mini" icon="el-icon-document-copy" :disabled="loading || !rawContent" @click="copyContent">复制</el-button>
-          <el-button size="mini" icon="el-icon-download" :disabled="loading || !rawContent" @click="downloadContent">下载</el-button>
+          <el-tag v-if="!editing && matchCount > 0" size="mini" type="info">{{ matchCount }} 处匹配</el-tag>
+          <el-button
+            v-if="!editing && detail.editable"
+            size="mini"
+            icon="el-icon-edit"
+            :disabled="loading"
+            @click="startEdit"
+          >
+            编辑
+          </el-button>
+          <el-button v-if="!editing" size="mini" icon="el-icon-refresh" :disabled="loading" @click="reload">刷新</el-button>
+          <el-button
+            v-if="!editing"
+            size="mini"
+            icon="el-icon-document-copy"
+            :disabled="loading || !rawContent"
+            @click="copyContent"
+          >
+            复制
+          </el-button>
+          <el-button
+            v-if="!editing"
+            size="mini"
+            icon="el-icon-download"
+            :disabled="loading || !rawContent"
+            @click="downloadContent"
+          >
+            下载
+          </el-button>
+          <template v-if="editing">
+            <el-button size="mini" icon="el-icon-refresh-left" :disabled="!dirty" @click="resetEdit">还原</el-button>
+            <el-button size="mini" icon="el-icon-close" @click="cancelEdit">取消</el-button>
+            <el-button
+              type="primary"
+              size="mini"
+              icon="el-icon-check"
+              :loading="saving"
+              @click="saveContent"
+            >
+              保存
+            </el-button>
+          </template>
         </div>
       </div>
 
@@ -29,9 +72,28 @@
         <span class="meta-item"><i class="el-icon-document" /> {{ fileName }}</span>
         <span v-if="profilePath" class="meta-item"><i class="el-icon-folder-opened" /> {{ profilePath }}</span>
         <span class="meta-item"><i class="el-icon-tickets" /> {{ lines.length }} 行</span>
+        <span v-if="detail.active" class="meta-item"><el-tag size="mini" type="success">使用中</el-tag></span>
       </div>
 
-      <div class="code-wrapper">
+      <el-alert
+        v-if="editing && detail.mainConfig"
+        type="info"
+        :closable="false"
+        show-icon
+        title="主配置文件在线编辑不支持修改 spring.profiles.active，如需切换配置请使用「切换到此配置」功能。"
+        class="viewer-alert"
+      />
+      <el-alert
+        v-if="saveError"
+        type="error"
+        :closable="true"
+        show-icon
+        :title="saveError"
+        class="viewer-alert"
+        @close="saveError = ''"
+      />
+
+      <div v-if="!editing" class="code-wrapper">
         <div v-if="!loading && lines.length === 0" class="code-empty">文件内容为空</div>
         <div
           v-for="line in lines"
@@ -49,24 +111,47 @@
           </span>
         </div>
       </div>
+
+      <div v-else class="code-editor-wrapper">
+        <codemirror
+          ref="editor"
+          v-model="draft"
+          :options="editorOptions"
+          class="code-editor"
+        />
+      </div>
     </div>
 
     <div v-if="showFooter" class="viewer-footer">
-      <el-button size="mini" @click="visible = false">关闭</el-button>
-      <el-button
-        v-if="switchable"
-        type="primary"
-        size="mini"
-        :disabled="isActive"
-        @click="emitSwitch"
-      >
-        {{ isActive ? '当前已使用' : '切换到此配置' }}
-      </el-button>
+      <template v-if="editing">
+        <span class="footer-tip">
+          <template v-if="dirty">有未保存的修改</template>
+          <template v-else>内容未修改</template>
+        </span>
+      </template>
+      <template v-else>
+        <el-button size="mini" @click="visible = false">关闭</el-button>
+        <el-button
+          v-if="switchable && !detail.mainConfig"
+          type="primary"
+          size="mini"
+          :disabled="isActive"
+          @click="emitSwitch"
+        >
+          {{ isActive ? '当前已使用' : '切换到此配置' }}
+        </el-button>
+      </template>
     </div>
   </el-drawer>
 </template>
 
 <script>
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/theme/eclipse.css'
+import 'codemirror/mode/yaml/yaml'
+import 'codemirror/addon/edit/matchbrackets'
+
 const COMMENT_CLASS = 'tok-comment'
 const KEY_CLASS = 'tok-key'
 const VALUE_CLASS = 'tok-value'
@@ -75,6 +160,7 @@ const HIT_CLASS = 'tok-hit'
 
 export default {
   name: 'ConfigViewer',
+  components: { codemirror },
   props: {
     // 是否允许从查看器直接切换配置
     switchable: {
@@ -90,11 +176,33 @@ export default {
     return {
       visible: false,
       loading: false,
+      saving: false,
       keyword: '',
       rawContent: '',
+      draft: '',
+      originalContent: '',
+      editing: false,
+      saveError: '',
       profileId: '',
       fileName: '',
-      profilePath: ''
+      profilePath: '',
+      detail: {
+        writable: false,
+        editable: false,
+        active: false,
+        mainConfig: false,
+        contentHash: ''
+      },
+      editorOptions: {
+        mode: 'text/x-yaml',
+        theme: 'eclipse',
+        lineNumbers: true,
+        lineWrapping: false,
+        indentUnit: 2,
+        tabSize: 2,
+        matchBrackets: true,
+        autofocus: false
+      }
     }
   },
   computed: {
@@ -102,10 +210,13 @@ export default {
       return window.innerWidth < 1200 ? '80%' : '60%'
     },
     showFooter() {
-      return this.switchable
+      return this.detail.editable || this.switchable
     },
     title() {
       return this.fileName ? `配置文件 · ${this.fileName}` : '配置文件'
+    },
+    dirty() {
+      return this.editing && this.draft !== this.originalContent
     },
     lines() {
       const raw = this.rawContent || ''
@@ -137,16 +248,36 @@ export default {
       this.profileId = row.id
       this.fileName = row.name
       this.profilePath = row.path
+      this.editing = false
+      this.draft = ''
+      this.originalContent = ''
+      this.saveError = ''
       this.load()
     },
     load() {
       this.loading = true
-      this.$store.dispatch('setting/getProfileContent', this.profileId)
+      this.$store.dispatch('setting/getProfileDetail', this.profileId)
         .then(data => {
-          this.rawContent = data || ''
+          if (!data) {
+            return
+          }
+          this.rawContent = data.content || ''
+          this.draft = this.rawContent
+          this.originalContent = this.rawContent
+          this.fileName = data.fileName || this.fileName
+          this.profilePath = data.path || ''
+          this.detail = {
+            writable: !!data.writable,
+            editable: !!data.editable,
+            active: !!data.active,
+            mainConfig: !!data.mainConfig,
+            contentHash: data.contentHash || ''
+          }
+          this.saveError = ''
         })
         .catch(error => {
           this.rawContent = ''
+          this.draft = ''
           this.$message.error(typeof error === 'string' ? error : '读取配置文件失败')
         })
         .finally(() => {
@@ -154,17 +285,146 @@ export default {
         })
     },
     reload() {
-      this.load()
+      this.confirmDiscard().then(ok => {
+        if (ok) {
+          this.editing = false
+          this.load()
+        }
+      })
+    },
+    startEdit() {
+      this.draft = this.rawContent
+      this.originalContent = this.rawContent
+      this.editing = true
+      this.saveError = ''
+      this.$nextTick(() => {
+        const editor = this.$refs.editor
+        if (editor && editor.codemirror) {
+          editor.codemirror.focus()
+        }
+      })
+    },
+    resetEdit() {
+      this.confirmReset().then(ok => {
+        if (ok) {
+          this.draft = this.originalContent
+          this.saveError = ''
+        }
+      })
+    },
+    cancelEdit() {
+      this.confirmDiscard().then(ok => {
+        if (ok) {
+          this.editing = false
+          this.draft = this.originalContent
+          this.saveError = ''
+        }
+      })
+    },
+    saveContent() {
+      if (!this.draft || !this.draft.trim()) {
+        this.saveError = '配置文件内容不能为空'
+        return
+      }
+      this.saving = true
+      this.saveError = ''
+      this.$store.dispatch('setting/saveProfileContent', {
+        profileId: this.profileId,
+        content: this.draft,
+        contentHash: this.detail.contentHash
+      }).then(data => {
+        if (!data) {
+          return
+        }
+        this.rawContent = data.content || this.draft
+        this.draft = this.rawContent
+        this.originalContent = this.rawContent
+        this.detail.contentHash = data.contentHash || ''
+        this.detail.active = !!data.active
+        this.editing = false
+        this.$message.success('配置文件已保存')
+        this.$emit('saved', {
+          profileId: this.profileId,
+          active: !!data.active
+        })
+      }).catch(error => {
+        const message = typeof error === 'string'
+          ? error
+          : (error && error.message) || '保存配置文件失败'
+        this.saveError = message
+        this.locateError(message)
+      }).finally(() => {
+        this.saving = false
+      })
+    },
+    /**
+     * 后端返回的 YAML 错误包含行号时, 将光标定位到对应行
+     */
+    locateError(message) {
+      const match = /第(\d+)行/.exec(message || '')
+      const editor = this.$refs.editor
+      if (!match || !editor || !editor.codemirror) {
+        return
+      }
+      const line = Math.max(Number(match[1]) - 1, 0)
+      editor.codemirror.setCursor({ line: line, ch: 0 })
+      editor.codemirror.scrollIntoView({ line: line, ch: 0 }, 120)
+    },
+    confirmDiscard() {
+      if (!this.dirty) {
+        return Promise.resolve(true)
+      }
+      return this.$confirm(
+        '配置已修改但尚未保存，确认放弃本次修改吗？',
+        '放弃修改',
+        {
+          confirmButtonText: '放弃修改',
+          cancelButtonText: '继续编辑',
+          type: 'warning'
+        }
+      ).then(() => true).catch(() => false)
+    },
+    confirmReset() {
+      if (!this.dirty) {
+        return Promise.resolve(true)
+      }
+      return this.$confirm(
+        '确认将内容还原为打开时的版本吗？',
+        '还原内容',
+        {
+          confirmButtonText: '还原',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(() => true).catch(() => false)
+    },
+    handleBeforeClose(done) {
+      this.confirmDiscard().then(ok => {
+        if (ok) {
+          done()
+        }
+      })
     },
     handleClosed() {
       this.rawContent = ''
+      this.draft = ''
+      this.originalContent = ''
       this.keyword = ''
+      this.editing = false
+      this.saveError = ''
+      this.detail = {
+        writable: false,
+        editable: false,
+        active: false,
+        mainConfig: false,
+        contentHash: ''
+      }
     },
     emitSwitch() {
       this.$emit('switch', { id: this.profileId, name: this.fileName })
     },
     copyContent() {
-      const text = this.rawContent
+      const text = this.editing ? this.draft : this.rawContent
       const done = () => this.$message.success('已复制到剪贴板')
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(done).catch(() => this.copyByTextarea(text, done))
@@ -188,7 +448,8 @@ export default {
       document.body.removeChild(textarea)
     },
     downloadContent() {
-      const blob = new Blob([this.rawContent], { type: 'text/yaml;charset=utf-8' })
+      const text = this.editing ? this.draft : this.rawContent
+      const blob = new Blob([text], { type: 'text/yaml;charset=utf-8' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -307,6 +568,11 @@ export default {
   width: 260px;
 }
 
+.viewer-editing-tip {
+  font-size: 12px;
+  color: #606266;
+}
+
 .viewer-actions {
   display: flex;
   align-items: center;
@@ -333,6 +599,10 @@ export default {
   word-break: break-all;
 }
 
+.viewer-alert {
+  margin-bottom: 8px;
+}
+
 .code-wrapper {
   flex: 1;
   overflow: auto;
@@ -343,6 +613,25 @@ export default {
   font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
   font-size: 12px;
   line-height: 20px;
+}
+
+.code-editor-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+.code-editor {
+  height: calc(100vh - 250px);
+}
+
+.code-editor >>> .CodeMirror {
+  height: 100%;
+  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .code-line {
@@ -399,9 +688,16 @@ export default {
 
 .viewer-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid #ebeef5;
+}
+
+.footer-tip {
+  margin-right: auto;
+  font-size: 12px;
+  color: #909399;
 }
 </style>

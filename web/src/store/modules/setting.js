@@ -1,4 +1,23 @@
-import { getProfileList, getProfileContent, switchProfile, restartServer, getWebServerConfig, saveWebServerConfig, getSipServerConfig, saveSipServerConfig, getJtServerConfig, saveJtServerConfig, getUserSettingConfig, saveUserSettingConfig, getAlarmTypes } from '@/api/setting'
+import {
+  getProfileList,
+  getProfileContent,
+  getProfileDetail,
+  saveProfileContent,
+  createProfile,
+  uploadProfile,
+  deleteProfile,
+  switchProfile,
+  restartServer,
+  getWebServerConfig,
+  saveWebServerConfig,
+  getSipServerConfig,
+  saveSipServerConfig,
+  getJtServerConfig,
+  saveJtServerConfig,
+  getUserSettingConfig,
+  saveUserSettingConfig,
+  getAlarmTypes
+} from '@/api/setting'
 
 const actions = {
   getProfileList({ commit }) {
@@ -16,6 +35,55 @@ const actions = {
       getProfileContent(profileId).then(response => {
         const { data } = response
         resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getProfileDetail({ commit }, profileId) {
+    return new Promise((resolve, reject) => {
+      getProfileDetail(profileId).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  saveProfileContent({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      saveProfileContent(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  createProfile({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      createProfile(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  uploadProfile({ commit }, formData) {
+    return new Promise((resolve, reject) => {
+      uploadProfile(formData).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  deleteProfile({ commit }, profileId) {
+    return new Promise((resolve, reject) => {
+      deleteProfile(profileId).then(response => {
+        resolve(response)
       }).catch(error => {
         reject(error)
       })

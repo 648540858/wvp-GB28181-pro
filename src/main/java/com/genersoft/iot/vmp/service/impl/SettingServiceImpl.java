@@ -11,7 +11,11 @@ import com.genersoft.iot.vmp.service.bean.ConfigEntry;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileCreateRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDeleteRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDetail;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileSaveRequest;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
@@ -25,15 +29,26 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.error.MarkedYAMLException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -72,6 +87,18 @@ public class SettingServiceImpl implements ISettingService {
      */
     private static final Pattern PROFILE_FILE_PATTERN =
             Pattern.compile("^application-(.+)\\.(yml|yaml)$", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 配置文件ID命名规则, 用于新建/上传, 避免路径穿越
+     */
+    private static final Pattern PROFILE_ID_PATTERN =
+            Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
+
+    /**
+     * 上传文件的命名规则 application-{id}.yml / application-{id}.yaml
+     */
+    private static final Pattern PROFILE_FILE_NAME_PATTERN =
+            Pattern.compile("^application-([A-Za-z0-9_-]{1,64})\\.(yml|yaml)$", Pattern.CASE_INSENSITIVE);
 
     /**
      * 主配置文件名称, 其中保存 spring.profiles.active
@@ -310,6 +337,387 @@ public class SettingServiceImpl implements ISettingService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "配置文件过大, 不支持在线查看");
         }
         return new String(entry.getContent(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public ProfileDetail queryProfileDetail(String profileId) {
+        return toProfileDetail(resolveEntry(profileId));
+    }
+
+    @Override
+    public ProfileDetail saveProfileContent(ProfileSaveRequest request) {
+        if (request == null || ObjectUtils.isEmpty(request.getProfileId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件ID不能为空");
+        }
+        ConfigEntry entry = resolveEntry(request.getProfileId());
+        if (!entry.isWritable() || entry.getFile() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "当前配置文件位于jar内部或不可写, 无法修改。请使用 --spring.config.location 指定外部配置目录");
+        }
+        String content = request.getContent();
+        if (content == null || content.trim().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件内容不能为空");
+        }
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > MAX_CONTENT_LENGTH) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件过大, 最大支持 2MB");
+        }
+        if (isMainConfig(entry)) {
+            String oldActive = extractActiveProfile(entry.getContent());
+            String newActive = extractActiveProfile(bytes);
+            if (!Objects.equals(oldActive, newActive)) {
+                throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                        "主配置文件不支持修改 spring.profiles.active, 请使用配置文件切换功能");
+            }
+        }
+        validateYamlContent(content, entry.getFileName());
+
+        String currentHash = sha256(entry.getContent());
+        if (!ObjectUtils.isEmpty(request.getContentHash()) && !currentHash.equals(request.getContentHash())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件已被其他操作修改, 请刷新后重试");
+        }
+
+        File backup = backup(entry.getFile());
+        writeAtomically(entry.getFile(), bytes);
+        log.info("[系统设置] 配置文件内容已保存: {} (备份: {})", entry.getPath(), backup.getAbsolutePath());
+        return queryProfileDetail(request.getProfileId());
+    }
+
+    @Override
+    public ProfileDetail createProfile(ProfileCreateRequest request) {
+        if (request == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置不能为空");
+        }
+        String profileId = normalizeProfileId(request.getProfileId());
+        File dir = resolveWritableConfigDir();
+        File target = new File(dir, "application-" + profileId + ".yml");
+        File yamlTarget = new File(dir, "application-" + profileId + ".yaml");
+        if (target.exists() || yamlTarget.exists()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件已存在: " + profileId);
+        }
+        String content = request.getContent() == null ? "" : request.getContent();
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > MAX_CONTENT_LENGTH) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件过大, 最大支持 2MB");
+        }
+        if (!content.trim().isEmpty()) {
+            validateYamlContent(content, target.getName());
+        }
+        try {
+            Files.write(target.toPath(), bytes, StandardOpenOption.CREATE_NEW);
+        } catch (FileAlreadyExistsException e) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件已存在: " + profileId);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "创建配置文件失败: " + e.getMessage());
+        }
+        log.info("[系统设置] 配置文件已创建: {}", target.getAbsolutePath());
+        return queryProfileDetail(profileId);
+    }
+
+    @Override
+    public ProfileDetail uploadProfile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "请选择要上传的配置文件");
+        }
+        String fileName = extractFileName(file.getOriginalFilename());
+        Matcher matcher = PROFILE_FILE_NAME_PATTERN.matcher(fileName);
+        if (!matcher.matches()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                    "文件名必须为 application-{id}.yml 或 application-{id}.yaml");
+        }
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取上传文件失败: " + e.getMessage());
+        }
+        if (bytes.length == 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "上传的配置文件内容不能为空");
+        }
+        if (bytes.length > MAX_CONTENT_LENGTH) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件过大, 最大支持 2MB");
+        }
+        validateYamlContent(new String(bytes, StandardCharsets.UTF_8), fileName);
+
+        File dir = resolveWritableConfigDir();
+        File target = new File(dir, fileName);
+        if (target.exists()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件已存在: " + fileName);
+        }
+        try {
+            Files.write(target.toPath(), bytes, StandardOpenOption.CREATE_NEW);
+        } catch (FileAlreadyExistsException e) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件已存在: " + fileName);
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入配置文件失败: " + e.getMessage());
+        }
+        log.info("[系统设置] 配置文件已上传: {}", target.getAbsolutePath());
+        return queryProfileDetail(matcher.group(1));
+    }
+
+    @Override
+    public void deleteProfile(ProfileDeleteRequest request) {
+        if (request == null || ObjectUtils.isEmpty(request.getProfileId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件ID不能为空");
+        }
+        ConfigEntry entry = resolveEntry(request.getProfileId());
+        if (isMainConfig(entry)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "主配置文件不允许删除");
+        }
+        if (!entry.isWritable() || entry.getFile() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前配置文件不可写, 无法删除");
+        }
+        if (isActiveEntry(entry)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "当前生效的配置文件不允许删除, 请先切换到其他配置");
+        }
+        File backup = backup(entry.getFile());
+        try {
+            Files.delete(entry.getFile().toPath());
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "删除配置文件失败: " + e.getMessage());
+        }
+        log.info("[系统设置] 配置文件已删除: {} (备份: {})", entry.getPath(), backup.getAbsolutePath());
+    }
+
+    /**
+     * 将配置文件条目转换为详情
+     */
+    private ProfileDetail toProfileDetail(ConfigEntry entry) {
+        byte[] content = entry.getContent() == null ? new byte[0] : entry.getContent();
+        if (content.length > MAX_CONTENT_LENGTH) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "配置文件过大, 不支持在线查看");
+        }
+        ProfileDetail detail = new ProfileDetail();
+        detail.setProfileId(entry.getId() != null ? entry.getId() : parseProfileId(entry.getFileName()));
+        detail.setFileName(entry.getFileName());
+        detail.setPath(entry.getPath());
+        detail.setContent(new String(content, StandardCharsets.UTF_8));
+        detail.setContentHash(sha256(content));
+        detail.setWritable(entry.isWritable());
+        detail.setEditable(entry.isWritable());
+        detail.setMainConfig(isMainConfig(entry));
+        detail.setActive(isActiveEntry(entry));
+        detail.setUpdateTime(formatUpdateTime(entry.getFile()));
+        return detail;
+    }
+
+    /**
+     * 判断配置文件条目是否为当前生效配置
+     */
+    private boolean isActiveEntry(ConfigEntry entry) {
+        if (entry == null) {
+            return false;
+        }
+        ConfigSource source = resolveConfigSource();
+        if (source.isNone()) {
+            return false;
+        }
+        ConfigEntry mainConfig = resolveMainConfig(source);
+        if (isMainConfig(entry)) {
+            // 未配置 spring.profiles 时, 主配置文件即当前配置
+            return mainConfig != null && !hasProfilesConfig(mainConfig.getContent());
+        }
+        String activeId = resolveActiveProfileId(mainConfig);
+        String id = entry.getId() != null ? entry.getId() : parseProfileId(entry.getFileName());
+        return activeId != null && activeId.equals(id);
+    }
+
+    private String formatUpdateTime(File file) {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+        try {
+            BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+            return DATE_TIME_FORMATTER.format(
+                    LocalDateTime.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneId.systemDefault()));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 校验配置文件ID命名, 避免路径穿越
+     */
+    private String normalizeProfileId(String profileId) {
+        if (ObjectUtils.isEmpty(profileId)) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "配置文件ID不能为空");
+        }
+        String id = profileId.trim();
+        if (!PROFILE_ID_PATTERN.matcher(id).matches()) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                    "配置文件ID只能包含字母、数字、下划线和中划线, 长度 1-64");
+        }
+        return id;
+    }
+
+    /**
+     * 从上传文件名中提取纯文件名, 忽略浏览器携带的路径
+     */
+    private String extractFileName(String originalFilename) {
+        if (ObjectUtils.isEmpty(originalFilename)) {
+            return "";
+        }
+        String name = originalFilename.replace('\\', '/');
+        int index = name.lastIndexOf('/');
+        return index >= 0 ? name.substring(index + 1) : name;
+    }
+
+    /**
+     * 解析当前生效的配置文件目录, 并确保可写
+     */
+    private File resolveWritableConfigDir() {
+        ConfigSource source = resolveConfigSource();
+        if (source.isNone()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "未找到配置目录, 请使用 --spring.config.location 指定外部配置目录");
+        }
+        File dir = source.getDir();
+        if (dir == null) {
+            // classpath 来源: 开发环境下 classpath 可能指向 target/classes 等真实目录, 此时允许新建/上传/删除;
+            // 打包进 jar 后资源无法解析为文件, 仍然拒绝。
+            ConfigEntry mainConfig = resolveMainConfig(source);
+            if (mainConfig != null && mainConfig.getFile() != null) {
+                dir = mainConfig.getFile().getParentFile();
+            }
+            if (dir == null) {
+                for (ConfigEntry entry : listProfileEntries(source)) {
+                    if (entry.getFile() != null) {
+                        dir = entry.getFile().getParentFile();
+                        break;
+                    }
+                }
+            }
+        }
+        if (dir == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),
+                    "配置文件位于jar内部, 无法修改。请使用 --spring.config.location 指定外部配置目录");
+        }
+        if (!dir.isDirectory() || !dir.canWrite()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "配置目录不存在或不可写: " + dir);
+        }
+        return dir;
+    }
+
+    /**
+     * 校验 YAML 语法, 失败时返回行列信息
+     */
+    private void validateYamlContent(String content, String fileName) {
+        try {
+            LoaderOptions options = new LoaderOptions();
+            options.setAllowDuplicateKeys(true);
+            Yaml yaml = new Yaml(new SafeConstructor(options));
+            for (Object ignored : yaml.loadAll(content)) {
+                // 仅做语法校验
+            }
+        } catch (MarkedYAMLException e) {
+            int line = e.getProblemMark() != null ? e.getProblemMark().getLine() + 1 : 0;
+            int column = e.getProblemMark() != null ? e.getProblemMark().getColumn() + 1 : 0;
+            throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                    String.format("YAML语法错误(%s) 第%d行第%d列: %s", fileName, line, column, e.getProblem()));
+        } catch (Exception e) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(),
+                    "YAML解析失败(" + fileName + "): " + e.getMessage());
+        }
+    }
+
+    /**
+     * 解析 spring.profiles.active 的值, 用于保护主配置文件
+     */
+    private String extractActiveProfile(byte[] content) {
+        if (content == null || content.length == 0) {
+            return null;
+        }
+        try {
+            Object loaded = new Yaml(new SafeConstructor(new LoaderOptions()))
+                    .load(new String(content, StandardCharsets.UTF_8));
+            if (!(loaded instanceof Map)) {
+                return null;
+            }
+            Object spring = ((Map<?, ?>) loaded).get("spring");
+            if (!(spring instanceof Map)) {
+                return null;
+            }
+            Object profiles = ((Map<?, ?>) spring).get("profiles");
+            if (!(profiles instanceof Map)) {
+                return null;
+            }
+            Object active = ((Map<?, ?>) profiles).get("active");
+            return active == null ? null : String.valueOf(active);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 生成内容摘要, 用于保存时的并发校验
+     */
+    private String sha256(byte[] content) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(content == null ? new byte[0] : content);
+            StringBuilder builder = new StringBuilder(hash.length * 2);
+            for (byte item : hash) {
+                builder.append(String.format("%02x", item & 0xff));
+            }
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("当前JVM不支持SHA-256", e);
+        }
+    }
+
+    /**
+     * 覆盖前生成 .bak 备份
+     */
+    private File backup(File file) {
+        File backup = new File(file.getParentFile(), file.getName() + ".bak");
+        try {
+            Files.copy(file.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return backup;
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "备份配置文件失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 原子写入文件, 避免写入中途失败导致配置文件损坏
+     */
+    private void writeAtomically(File target, byte[] content) {
+        Path tmp = null;
+        try {
+            Path dir = target.toPath().toAbsolutePath().getParent();
+            Set<PosixFilePermission> permissions = null;
+            try {
+                permissions = Files.getPosixFilePermissions(target.toPath());
+            } catch (UnsupportedOperationException | IOException ignored) {
+                // 非 POSIX 文件系统(如 Windows) 无需保留权限
+            }
+            tmp = Files.createTempFile(dir, "." + target.getName() + ".", ".tmp");
+            if (permissions != null) {
+                try {
+                    Files.setPosixFilePermissions(tmp, permissions);
+                } catch (UnsupportedOperationException | IOException ignored) {
+                    // 权限设置失败不影响写入
+                }
+            }
+            Files.write(tmp, content, StandardOpenOption.TRUNCATE_EXISTING);
+            try {
+                Files.move(tmp, target.toPath(), StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            tmp = null;
+        } catch (IOException e) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入配置文件失败: " + e.getMessage());
+        } finally {
+            if (tmp != null) {
+                try {
+                    Files.deleteIfExists(tmp);
+                } catch (IOException ignored) {
+                    // 临时文件清理失败不影响主流程
+                }
+            }
+        }
     }
 
     @Override

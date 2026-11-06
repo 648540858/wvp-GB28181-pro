@@ -20,6 +20,55 @@ export function getProfileContent(profileId) {
   })
 }
 
+// 查询配置文件详情(内容、摘要、可写/可编辑状态)
+export function getProfileDetail(profileId) {
+  return request({
+    method: 'get',
+    url: `/api/setting/profile/detail`,
+    params: {
+      profileId: profileId
+    }
+  })
+}
+
+// 保存配置文件内容(在线编辑)
+export function saveProfileContent(data) {
+  return request({
+    method: 'post',
+    url: `/api/setting/profile/content`,
+    data
+  })
+}
+
+// 新建配置文件
+export function createProfile(data) {
+  return request({
+    method: 'post',
+    url: `/api/setting/profile/create`,
+    data
+  })
+}
+
+// 上传配置文件
+export function uploadProfile(formData) {
+  return request({
+    method: 'post',
+    url: `/api/setting/profile/upload`,
+    data: formData
+  })
+}
+
+// 删除配置文件
+export function deleteProfile(profileId) {
+  return request({
+    method: 'post',
+    url: `/api/setting/profile/delete`,
+    data: {
+      profileId: profileId
+    }
+  })
+}
+
 // 切换配置文件(修改 spring.profiles.active, 需重启生效)
 export function switchProfile(profileId) {
   return request({

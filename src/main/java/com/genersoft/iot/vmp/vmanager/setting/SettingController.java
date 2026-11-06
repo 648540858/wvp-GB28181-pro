@@ -2,11 +2,17 @@ package com.genersoft.iot.vmp.vmanager.setting;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.conf.security.SecurityUtils;
+import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.service.IApplicationRestartService;
 import com.genersoft.iot.vmp.service.ISettingService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileCreateRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDeleteRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDetail;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileSaveRequest;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
@@ -25,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -76,6 +83,70 @@ public class SettingController {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "触发重启失败, 请检查重启脚本是否存在于jar同级目录");
         }
         return WVPResult.success(null, "服务将在数秒后重启, 请稍后刷新页面");
+    }
+
+    @ResponseBody
+    @GetMapping("/profile/detail")
+    @Operation(summary = "查询配置文件详情", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "profileId", description = "配置文件ID", required = true)
+    public ProfileDetail profileDetail(@RequestParam String profileId) {
+        ProfileDetail detail = settingService.queryProfileDetail(profileId);
+        detail.setEditable(detail.isWritable() && isSuperAdmin());
+        return detail;
+    }
+
+    @ResponseBody
+    @PostMapping("/profile/content")
+    @Operation(summary = "保存配置文件内容", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public ProfileDetail saveProfileContent(@RequestBody ProfileSaveRequest request) {
+        checkSuperAdmin();
+        ProfileDetail detail = settingService.saveProfileContent(request);
+        detail.setEditable(true);
+        return detail;
+    }
+
+    @ResponseBody
+    @PostMapping("/profile/create")
+    @Operation(summary = "新建配置文件", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public ProfileDetail createProfile(@RequestBody ProfileCreateRequest request) {
+        checkSuperAdmin();
+        ProfileDetail detail = settingService.createProfile(request);
+        detail.setEditable(true);
+        return detail;
+    }
+
+    @ResponseBody
+    @PostMapping("/profile/upload")
+    @Operation(summary = "上传配置文件", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public ProfileDetail uploadProfile(@RequestParam("file") MultipartFile file) {
+        checkSuperAdmin();
+        ProfileDetail detail = settingService.uploadProfile(file);
+        detail.setEditable(true);
+        return detail;
+    }
+
+    @ResponseBody
+    @PostMapping("/profile/delete")
+    @Operation(summary = "删除配置文件", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public WVPResult<String> deleteProfile(@RequestBody ProfileDeleteRequest request) {
+        checkSuperAdmin();
+        settingService.deleteProfile(request);
+        return WVPResult.success(null, "配置文件已删除, 已保留 .bak 备份");
+    }
+
+    /**
+     * 是否为超级管理员
+     */
+    private boolean isSuperAdmin() {
+        LoginUser user = SecurityUtils.getUserInfo();
+        // JWT 认证构建的用户仅包含角色ID, 这里与项目内其他权限判断保持一致, 使用角色ID判断超级管理员
+        return user != null && user.getRole() != null && user.getRole().getId() == 1;
+    }
+
+    private void checkSuperAdmin() {
+        if (!isSuperAdmin()) {
+            throw new ControllerException(ErrorCode.ERROR403.getCode(), "仅超级管理员可修改配置文件");
+        }
     }
 
     @ResponseBody

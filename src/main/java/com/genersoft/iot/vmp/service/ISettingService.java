@@ -2,11 +2,17 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileCreateRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDeleteRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDetail;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileSaveRequest;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
 import com.genersoft.iot.vmp.vmanager.bean.WebServerConfig;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +48,48 @@ public interface ISettingService {
      * @return 配置文件文本内容
      */
     String readProfileContent(String profileId);
+
+    /**
+     * 查询配置文件详情(内容、摘要、可写状态等)
+     *
+     * @param profileId 配置文件ID
+     */
+    ProfileDetail queryProfileDetail(String profileId);
+
+    /**
+     * 保存配置文件内容(在线编辑)
+     * <p>
+     * 仅允许超级管理员调用, 主配置文件不允许修改 spring.profiles.active
+     *
+     * @param request 保存请求, contentHash 用于并发校验
+     * @return 保存后的配置文件详情
+     */
+    ProfileDetail saveProfileContent(ProfileSaveRequest request);
+
+    /**
+     * 新建配置文件 application-{id}.yml
+     *
+     * @param request 新建请求
+     * @return 新建后的配置文件详情
+     */
+    ProfileDetail createProfile(ProfileCreateRequest request);
+
+    /**
+     * 上传配置文件 application-{id}.yml / application-{id}.yaml
+     *
+     * @param file 上传的文件
+     * @return 上传后的配置文件详情
+     */
+    ProfileDetail uploadProfile(MultipartFile file);
+
+    /**
+     * 删除配置文件(删除前生成 .bak 备份)
+     * <p>
+     * 不允许删除当前生效的配置文件与主配置文件
+     *
+     * @param request 删除请求
+     */
+    void deleteProfile(ProfileDeleteRequest request);
 
     /**
      * 查询 WEB服务(server)配置

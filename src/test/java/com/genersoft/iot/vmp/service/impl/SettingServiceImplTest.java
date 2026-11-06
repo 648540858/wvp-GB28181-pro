@@ -1,9 +1,14 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.vmanager.bean.JtServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileCreateRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDeleteRequest;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileDetail;
 import com.genersoft.iot.vmp.vmanager.bean.ProfileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ProfileSaveRequest;
 import com.genersoft.iot.vmp.vmanager.bean.SipServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingConfig;
 import com.genersoft.iot.vmp.vmanager.bean.UserSettingSaveResult;
@@ -12,6 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -1147,5 +1153,206 @@ class SettingServiceImplTest {
         assertFalse(types.isEmpty());
         assertTrue(types.stream().anyMatch(item -> "IntrusionDetection".equals(item.get("name"))));
         assertTrue(types.stream().anyMatch(item -> item.get("description") != null));
+    }
+
+    /**
+     * 查询配置文件详情: 应返回内容、摘要、可写状态与是否当前配置
+     */
+    @Test
+    void queryProfileDetail_returnsContentHashAndActive() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDetail detail = service.queryProfileDetail("dev");
+
+        assertEquals("dev", detail.getProfileId());
+        assertEquals("application-dev.yml", detail.getFileName());
+        assertTrue(detail.isWritable());
+        assertTrue(detail.isActive());
+        assertFalse(detail.isMainConfig());
+        assertNotNull(detail.getContentHash());
+        assertTrue(detail.getContent().contains("18080"));
+    }
+
+    /**
+     * 保存配置文件内容: 应写入文件并生成 .bak 备份
+     */
+    @Test
+    void saveProfileContent_writesFileAndBackup() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDetail detail = service.queryProfileDetail("dev");
+        ProfileSaveRequest request = new ProfileSaveRequest();
+        request.setProfileId("dev");
+        request.setContent("server:\n  port: 18081\n");
+        request.setContentHash(detail.getContentHash());
+
+        ProfileDetail saved = service.saveProfileContent(request);
+
+        assertTrue(Files.readString(configDir.resolve("application-dev.yml")).contains("18081"));
+        assertTrue(Files.exists(configDir.resolve("application-dev.yml.bak")));
+        assertNotEquals(detail.getContentHash(), saved.getContentHash());
+    }
+
+    /**
+     * 保存配置文件内容: 摘要不一致时应拒绝, 避免覆盖他人修改
+     */
+    @Test
+    void saveProfileContent_hashMismatch_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileSaveRequest request = new ProfileSaveRequest();
+        request.setProfileId("dev");
+        request.setContent("server:\n  port: 18081\n");
+        request.setContentHash("stale-hash");
+
+        assertThrows(ControllerException.class, () -> service.saveProfileContent(request));
+        assertTrue(Files.readString(configDir.resolve("application-dev.yml")).contains("18080"));
+    }
+
+    /**
+     * 保存配置文件内容: YAML 语法错误时应拒绝且不修改原文件
+     */
+    @Test
+    void saveProfileContent_invalidYaml_keepsOriginal() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDetail detail = service.queryProfileDetail("dev");
+        ProfileSaveRequest request = new ProfileSaveRequest();
+        request.setProfileId("dev");
+        request.setContent("server: [\n");
+        request.setContentHash(detail.getContentHash());
+
+        assertThrows(ControllerException.class, () -> service.saveProfileContent(request));
+        assertTrue(Files.readString(configDir.resolve("application-dev.yml")).contains("18080"));
+    }
+
+    /**
+     * 主配置文件不允许通过内容编辑修改 spring.profiles.active
+     */
+    @Test
+    void saveProfileContent_mainConfigCannotChangeActive() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDetail main = service.queryProfileDetail("application");
+        assertTrue(main.isMainConfig());
+
+        ProfileSaveRequest request = new ProfileSaveRequest();
+        request.setProfileId("application");
+        request.setContent("spring:\n  profiles:\n    active: prod\n");
+        request.setContentHash(main.getContentHash());
+
+        assertThrows(ControllerException.class, () -> service.saveProfileContent(request));
+    }
+
+    /**
+     * 新建配置文件
+     */
+    @Test
+    void createProfile_writesNewFile() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileCreateRequest request = new ProfileCreateRequest();
+        request.setProfileId("test");
+        request.setContent("server:\n  port: 18082\n");
+
+        ProfileDetail detail = service.createProfile(request);
+
+        assertTrue(Files.exists(configDir.resolve("application-test.yml")));
+        assertEquals("test", detail.getProfileId());
+        assertFalse(detail.isActive());
+    }
+
+    /**
+     * 新建配置文件: 同名文件已存在时应拒绝
+     */
+    @Test
+    void createProfile_duplicate_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileCreateRequest request = new ProfileCreateRequest();
+        request.setProfileId("dev");
+
+        assertThrows(ControllerException.class, () -> service.createProfile(request));
+    }
+
+    /**
+     * 上传配置文件
+     */
+    @Test
+    void uploadProfile_writesFile() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        MockMultipartFile file = new MockMultipartFile("file", "application-upload.yml",
+                "text/yaml", "server:\n  port: 18083\n".getBytes(StandardCharsets.UTF_8));
+
+        ProfileDetail detail = service.uploadProfile(file);
+
+        assertTrue(Files.exists(configDir.resolve("application-upload.yml")));
+        assertEquals("upload", detail.getProfileId());
+    }
+
+    /**
+     * 上传配置文件: 同名文件已存在时应拒绝覆盖
+     */
+    @Test
+    void uploadProfile_existing_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-upload.yml", "server:\n  port: 18083\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        MockMultipartFile file = new MockMultipartFile("file", "application-upload.yml",
+                "text/yaml", "server:\n  port: 18084\n".getBytes(StandardCharsets.UTF_8));
+
+        assertThrows(ControllerException.class, () -> service.uploadProfile(file));
+        assertTrue(Files.readString(configDir.resolve("application-upload.yml")).contains("18083"));
+    }
+
+    /**
+     * 删除配置文件: 当前生效的配置不允许删除
+     */
+    @Test
+    void deleteProfile_active_throws() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDeleteRequest request = new ProfileDeleteRequest();
+        request.setProfileId("dev");
+
+        assertThrows(ControllerException.class, () -> service.deleteProfile(request));
+    }
+
+    /**
+     * 删除配置文件: 删除前生成 .bak 备份
+     */
+    @Test
+    void deleteProfile_createsBackup() throws IOException {
+        writeFile("application.yml", "spring:\n  profiles:\n    active: dev\n");
+        writeFile("application-dev.yml", "server:\n  port: 18080\n");
+        writeFile("application-prod.yml", "server:\n  port: 18090\n");
+        inject(envWithLocation("optional:file:" + configDir.toAbsolutePath() + "/"));
+
+        ProfileDeleteRequest request = new ProfileDeleteRequest();
+        request.setProfileId("prod");
+        service.deleteProfile(request);
+
+        assertFalse(Files.exists(configDir.resolve("application-prod.yml")));
+        assertTrue(Files.exists(configDir.resolve("application-prod.yml.bak")));
     }
 }

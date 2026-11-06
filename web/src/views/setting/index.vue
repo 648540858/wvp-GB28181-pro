@@ -29,7 +29,9 @@
             <span class="pb-name" :title="currentProfileName">{{ currentProfileName || '—' }}</span>
           </div>
           <div class="pb-actions">
-            <el-button size="mini" icon="el-icon-view" :disabled="!currentProfileName" @click="viewCurrentConfig">查看</el-button>
+            <el-button v-if="isSuperAdmin" size="mini" icon="el-icon-edit" @click="editMainConfig">编辑主配置</el-button>
+            <el-button v-if="isSuperAdmin" size="mini" icon="el-icon-plus" @click="openCreateDialog">新建</el-button>
+            <el-button v-if="isSuperAdmin" size="mini" icon="el-icon-upload2" @click="openUploadDialog">上传</el-button>
             <el-button size="mini" icon="el-icon-refresh" :loading="profileLoading" @click="getProfileList">刷新</el-button>
             <el-button
               size="mini"
@@ -67,6 +69,14 @@
                   :loading="profileSaving && switchTarget === item.id"
                   @click="switchToProfile(item)"
                 >切换</el-button>
+                <el-button
+                  v-if="isSuperAdmin && !item.active"
+                  type="text"
+                  size="mini"
+                  icon="el-icon-delete"
+                  class="pc-delete"
+                  @click="deleteProfile(item)"
+                >删除</el-button>
               </div>
             </div>
             <div v-if="!profileLoading && profileList.length === 0" class="profile-empty">未找到配置文件</div>
@@ -133,7 +143,15 @@
       :switchable="switchable"
       :is-active="viewerIsActive"
       @switch="handleViewerSwitch"
+      @saved="handleViewerSaved"
     />
+
+    <new-profile-dialog
+      ref="newProfile"
+      :active-profile-id="activeProfileId"
+      @created="handleProfileChanged"
+    />
+    <upload-profile-dialog ref="uploadProfile" @uploaded="handleProfileChanged" />
   </div>
 </template>
 
@@ -143,13 +161,24 @@ import WebServerConfig from './WebServerConfig.vue'
 import SipServerConfig from './SipServerConfig.vue'
 import JtServerConfig from './JtServerConfig.vue'
 import GlobalPolicyConfig from './GlobalPolicyConfig.vue'
+import NewProfileDialog from './NewProfileDialog.vue'
+import UploadProfileDialog from './UploadProfileDialog.vue'
 
 export default {
   name: 'SettingIndex',
-  components: { ConfigViewer, WebServerConfig, SipServerConfig, JtServerConfig, GlobalPolicyConfig },
+  components: {
+    ConfigViewer,
+    WebServerConfig,
+    SipServerConfig,
+    JtServerConfig,
+    GlobalPolicyConfig,
+    NewProfileDialog,
+    UploadProfileDialog
+  },
   data() {
     return {
       activeTab: 'webService',
+      authority: null,
       profileLoading: false,
       profileList: [],
       savedProfile: '',
@@ -190,6 +219,14 @@ export default {
     currentItem() {
       return this.menuList.find(item => item.key === this.activeTab) || {}
     },
+    // 角色权限标识, 0 为超级管理员
+    isSuperAdmin() {
+      return String(this.authority) === '0'
+    },
+    activeProfileId() {
+      const item = this.profileList.find(row => row.active)
+      return item ? item.id : ''
+    },
     currentTitle() {
       return this.currentItem.title
     },
@@ -216,8 +253,19 @@ export default {
   },
   created() {
     this.getProfileList()
+    this.getAuthority()
   },
   methods: {
+    // 获取当前用户角色, 用于控制配置文件管理入口
+    getAuthority() {
+      this.$store.dispatch('user/getUserInfo')
+        .then(data => {
+          this.authority = data && data.role ? data.role.authority : null
+        })
+        .catch(() => {
+          this.authority = null
+        })
+    },
     handleSelect(key) {
       this.activeTab = key
     },
@@ -244,6 +292,47 @@ export default {
     viewConfig(row) {
       this.viewerProfileId = row.id
       this.$refs.viewer.open(row)
+    },
+    editMainConfig() {
+      this.viewerProfileId = 'application'
+      this.$refs.viewer.open({ id: 'application', name: 'application.yml', path: '' })
+    },
+    openCreateDialog() {
+      this.$refs.newProfile.open()
+    },
+    openUploadDialog() {
+      this.$refs.uploadProfile.open()
+    },
+    deleteProfile(item) {
+      this.$confirm(
+        `确认删除配置文件「${item.name}」吗？删除前会生成 ${item.name}.bak 备份，删除后无法通过页面恢复。`,
+        '删除配置文件',
+        {
+          confirmButtonText: '删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(() => {
+        this.$store.dispatch('setting/deleteProfile', item.id)
+          .then(() => {
+            this.$message.success('配置文件已删除')
+            this.getProfileList()
+          })
+          .catch(error => {
+            this.$message.error(typeof error === 'string' ? error : '删除配置文件失败')
+          })
+      }).catch(() => {})
+    },
+    handleProfileChanged() {
+      this.getProfileList()
+    },
+    handleViewerSaved(payload) {
+      this.getProfileList()
+      if (payload && payload.active) {
+        this.confirmRestart()
+      } else {
+        this.$message.info('配置文件已保存，切换到该配置并重启后生效')
+      }
     },
     handleViewerSwitch(payload) {
       this.$refs.viewer.visible = false
@@ -276,12 +365,6 @@ export default {
       }).finally(() => {
         this.switchTarget = ''
       })
-    },
-    viewCurrentConfig() {
-      const item = this.profileList.find(row => row.active)
-      if (item) {
-        this.viewConfig(item)
-      }
     },
     doSaveProfile(target, needRestart) {
       this.profileSaving = true
@@ -607,6 +690,10 @@ export default {
   align-items: center;
   gap: 4px;
   margin-top: 8px;
+}
+
+.pc-actions .pc-delete {
+  color: #f56c6c;
 }
 
 .profile-empty {

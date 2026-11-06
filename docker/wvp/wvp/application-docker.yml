@@ -83,7 +83,7 @@ media:
   id: polaris
   # [必须修改] ZLM 内网IP与端口
   ip: ${ZLM_HOST:127.0.0.1}
-  http-port: 80
+  http-port: ${MediaHttp:80}
   # [可选] 返回流地址时的ip，置空使用 media.ip
   stream-ip: ${Stream_IP}
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
@@ -91,15 +91,15 @@ media:
   # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
   hook-ip: ${ZLM_HOOK_HOST}
   # [可选] sslport
-  http-ssl-port: 0
-  flv-port: ${MediaHttp:}
-  flv-ssl-port: ${MediaHttps:}
-  ws-flv-port: ${MediaHttp:}
-  ws-flv-ssl-port: ${MediaHttps:}
-  rtp-proxy-port: ${MediaRtp:}
-  rtmp-port: ${MediaRtmp:}
+  http-ssl-port: ${MediaHttps:443}
+  flv-port: ${MediaHttp:80}
+  flv-ssl-port: ${MediaHttps:443}
+  ws-flv-port: ${MediaHttp:80}
+  ws-flv-ssl-port: ${MediaHttps:443}
+  rtp-proxy-port: ${MediaRtp:10003}
+  rtmp-port: ${MediaRtmp:10001}
   rtmp-ssl-port: 0
-  rtsp-port: ${MediaRtsp:}
+  rtsp-port: ${MediaRtsp:10002}
   rtsp-ssl-port: 0
   # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
   auto-config: true

@@ -1,3 +1,12 @@
+FROM node:18-bullseye AS frontend-builder
+
+WORKDIR /build/web
+COPY ./web/package*.json ./
+RUN npm --registry=https://registry.npmmirror.com install
+COPY ./web ./
+RUN npm run build:prod
+
+
 FROM ringcentral/jdk:21.0.9 AS builder
 
 EXPOSE 18978/tcp
@@ -5,67 +14,40 @@ EXPOSE 8116/tcp
 EXPOSE 8116/udp
 EXPOSE 8080/tcp
 
-#RUN apt-get update && \
-         #DEBIAN_FRONTEND="noninteractive" \
-         #apt-get install -y --no-install-recommends \
-         #wget \
-         #cmake \
-         #maven \
-         #git \
-         #ca-certificates \
-         #tzdata \
-         #curl \
-         #libpcre3 \
-         #libpcre3-dev \
-         #zlib1g-dev \
-         #openssl \
-         #libssl-dev \
-         #gdb && \
-         #apt-get autoremove -y && \
-         #apt-get clean -y && \
-         #rm -rf /var/lib/apt/lists/*
-
-## install jdk1.8
-#RUN mkdir -p /opt/download
-#WORKDIR /opt/download
-#RUN if [ "$Platfrom" = "arm64" ]; \
-    #then \
-        #wget https://polaris-tian-generic.pkg.coding.net/qt/autopliot/jdk-8u411-linux-aarch64.tar.gz?version=latest --no-check-certificate -O jdk-8.tar.gz && \
-        #tar -zxvf /opt/download/jdk-8.tar.gz -C /usr/local/ --transform 's/jdk1.8.0_411/java/' && \
-        #rm /opt/download/jdk-8.tar.gz; \
-    #else \
-        #wget https://polaris-tian-generic.pkg.coding.net/qt/autopliot/jdk-8u202-linux-x64.tar.gz?version=latest --no-check-certificate -O jdk-8.tar.gz && \
-        #tar -zxvf /opt/download/jdk-8.tar.gz -C /usr/local/ --transform 's/jdk1.8.0_202/java/' && \
-        #rm /opt/download/jdk-8.tar.gz; \
-    #fi
-
-#ENV JAVA_HOME /usr/local/java/
-#ENV JRE_HOME ${JAVA_HOME}/jre
-#ENV CLASSPATH .:${JAVA_HOME}/lib:${JRE_HOME}/lib
-#ENV PATH ${JAVA_HOME}/bin:$PATH
-
 RUN java -version && javac -version
-
-#RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
 RUN apt-get update && \
     apt-get install -y maven && \
     rm -rf /var/lib/apt/lists/*
 
-
 COPY . /build
+COPY --from=frontend-builder /build/src/main/resources/static /build/src/main/resources/static
 WORKDIR /build
-RUN ls && mvn clean package -Dmaven.test.skip=true
+RUN mvn clean package -Dmaven.test.skip=true
 WORKDIR /build/target
-#ȷ���ļ���һ��
 RUN mv wvp-pro-*.jar wvp.jar
 
 
 FROM ringcentral/jdk:21.0.9
-RUN mkdir -p /opt/wvp
+
+EXPOSE 18978/tcp
+EXPOSE 8116/tcp
+EXPOSE 8116/udp
+EXPOSE 8080/tcp
+
+RUN apt-get update && \
+    apt-get install -y nginx gettext-base && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /opt/wvp /opt/dist /opt/ylcx/wvp /etc/nginx/templates /opt/dist/static/js
 WORKDIR /opt/wvp
 COPY --from=builder /build/target /opt/wvp
-COPY ./docker/wvp/wvp /opt/wvp
-ENTRYPOINT ["java", "-Xms512m", "-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/opt/ylcx/", "-jar", "wvp.jar", "--spring.config.location=/opt/ylcx/wvp/application.yml"]
+COPY --from=frontend-builder /build/src/main/resources/static /opt/dist
+COPY ./docker/wvp/wvp /opt/ylcx/wvp
+COPY ./docker/wvp/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY ./docker/wvp/entrypoint.sh /entrypoint.sh
+COPY ./web/public/static/js/config.js /opt/dist/static/js/config.js
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 
 

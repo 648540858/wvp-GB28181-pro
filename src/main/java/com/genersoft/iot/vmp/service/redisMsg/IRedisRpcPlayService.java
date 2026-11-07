@@ -16,6 +16,10 @@ public interface IRedisRpcPlayService {
 
     void playback(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
 
+    /** 将独立回放标识路由到设备所属节点，空标识保留旧RPC共享会话。 */
+    void playback(String serverId, Integer channelId, String startTime, String endTime,
+                  String sessionId, ErrorCallback<StreamInfo> callback);
+
     void playbackPause(String serverId, String streamId);
 
     void playbackResume(String serverId, String streamId);

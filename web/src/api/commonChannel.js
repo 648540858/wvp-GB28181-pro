@@ -569,14 +569,16 @@ export function queryRecord({ channelId, startTime, endTime }) {
     }
   })
 }
-export function playback({ channelId, startTime, endTime }) {
+/** 默认复用同区间回放，显式身份用于支持并发回放的设备及同一会话重试。 */
+export function playback({ channelId, startTime, endTime, sessionId }) {
   return request({
     method: 'get',
     url: '/api/common/channel/playback',
     params: {
       channelId: channelId,
       startTime: startTime,
-      endTime: endTime
+      endTime: endTime,
+      ...(sessionId !== undefined && sessionId !== null ? { sessionId } : {})
     }
   })
 }

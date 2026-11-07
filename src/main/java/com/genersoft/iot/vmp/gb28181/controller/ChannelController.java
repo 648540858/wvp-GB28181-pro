@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.PlaybackSessionId;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
@@ -389,6 +391,7 @@ public class ChannelController {
         channelPlayService.stopBroadcast(channel);
     }
 
+    /** 查询指定时间区间的录像，并通过异步结果返回设备查询响应。 */
     @Operation(summary = "录像查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channelId", description = "通道ID", required = true)
     @Parameter(name = "startTime", description = "开始时间", required = true)
@@ -422,15 +425,20 @@ public class ChannelController {
         return result;
     }
 
+    /** 默认保持共享回放，仅为显式国标会话身份启用独立控制。 */
     @Operation(summary = "录像回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channelId", description = "通道ID", required = true)
     @Parameter(name = "startTime", description = "开始时间", required = true)
     @Parameter(name = "endTime", description = "结束时间", required = true)
+    @Parameter(name = "sessionId", description = "可选国标播放器会话 UUID；不传时同一区间共享回放，显式传入时独立建流，其他协议保持原行为")
     @GetMapping("/playback")
-    public DeferredResult<WVPResult<StreamContent>> playback(HttpServletRequest request, Integer channelId, String startTime, String endTime){
+    public DeferredResult<WVPResult<StreamContent>> playback(HttpServletRequest request, Integer channelId, String startTime, String endTime, String sessionId){
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
+
+        String playbackSessionId = Integer.valueOf(ChannelDataType.GB28181).equals(channel.getDataType())
+                ? PlaybackSessionId.resolve(sessionId) : null;
 
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
@@ -465,7 +473,7 @@ public class ChannelController {
             }
         };
         channelPlayService.playback(channel, DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime),
-                DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime), callback);
+                DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime), playbackSessionId, callback);
         return result;
     }
 

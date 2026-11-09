@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -351,6 +352,22 @@ public class ChannelController {
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
         channelPlayService.stopPlay(channel);
+    }
+
+    @Operation(summary = "停止收流会话", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "type", description = "会话类型：PLAY/PLAYBACK/DOWNLOAD/BROADCAST", required = true)
+    @Parameter(name = "channelDbId", description = "通道 ID", required = true)
+    @Parameter(name = "stream", description = "流ID，PLAY 类型可为空", required = false)
+    @GetMapping("/invite/stop")
+    public void stopInvite(@RequestParam InviteSessionType type,
+                           @RequestParam Integer channelDbId,
+                           @RequestParam(required = false) String stream) {
+        Assert.notNull(type, "类型不可为NULL");
+        Assert.notNull(channelDbId, "通道ID不可为NULL");
+        Assert.isTrue(type == InviteSessionType.PLAY || !ObjectUtils.isEmpty(stream), "流ID不可为空");
+        CommonGBChannel channel = channelService.getOne(channelDbId);
+        Assert.notNull(channel, "通道不存在");
+        channelPlayService.stopInvite(type, channel, stream);
     }
 
     @Operation(summary = "开始对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))

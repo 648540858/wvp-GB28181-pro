@@ -18,6 +18,7 @@ import {
   setBasicParam,
   setGuard,
   setVideoParamOpt,
+  stopStreamInvite,
   subscribeCatalog, subscribeForAlarm,
   subscribeMobilePosition,
   sync, teleboot,
@@ -190,6 +191,16 @@ const actions = {
   queryHasStreamChannels({commit}, params) {
     return new Promise((resolve, reject) => {
       queryHasStreamChannels(params).then(response => {
+        const {data} = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  stopStreamInvite({commit}, params) {
+    return new Promise((resolve, reject) => {
+      stopStreamInvite(params).then(response => {
         const {data} = response
         resolve(data)
       }).catch(error => {

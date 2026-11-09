@@ -174,14 +174,28 @@ export function queryChannels(deviceId, params) {
 }
 
 export function queryHasStreamChannels(params) {
-  const {page, count, query} = params
+  const {page, count, query, mediaServerId} = params
   return request({
     method: 'get',
     url: `/api/device/query/streams`,
     params: {
       page: page,
       count: count,
-      query: query
+      query: query,
+      mediaServerId: mediaServerId
+    }
+  })
+}
+
+export function stopStreamInvite(params) {
+  const {type, channelDbId, stream} = params
+  return request({
+    method: 'get',
+    url: '/api/common/channel/invite/stop',
+    params: {
+      type: type,
+      channelDbId: channelDbId,
+      stream: stream
     }
   })
 }

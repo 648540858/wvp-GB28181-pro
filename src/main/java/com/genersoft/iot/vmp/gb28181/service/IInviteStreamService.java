@@ -101,6 +101,11 @@ public interface IInviteStreamService {
      */
     int getStreamInfoCount(String mediaServerId);
 
+    /**
+     * 获取指定媒体节点上正在收流的会话列表
+     */
+    List<InviteInfo> getInviteInfoList(String mediaServerId);
+
 
     /**
      * 获取MediaServer下的流信息

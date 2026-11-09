@@ -67,8 +67,8 @@ export default {
       this.chartData.rows = data
     },
     onClick(v) {
-      if (v.seriesName === "国标收流") {
-        this.$refs.hasStreamChannel.openDialog();
+      if (v.seriesName === "国标收流" && v.name) {
+        this.$refs.hasStreamChannel.openDialog(v.name);
       }
     }
   }

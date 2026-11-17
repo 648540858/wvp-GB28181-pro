@@ -125,7 +125,7 @@
 <script>
 import DeviceTree from '../common/DeviceTree.vue'
 import queryTrace from './queryTrace.vue'
-import MapComponent from '../common/MapComponent.vue'
+import MapComponent from '../common/MapComponent3D.vue'
 import player from '../channel/player.vue'
 import CommonChannelEditDialog from '../dialog/commonChannelEditDialog.vue'
 import DrawThinProgress from './dialog/drawThinProgress.vue'
@@ -178,6 +178,10 @@ export default {
       this.mapTileList = this.$refs.mapComponent.mapTileList
       // 获取所有有位置的通道
       this.closeInfoBox()
+      if (channelLayer) {
+        // 样式切换后 style.load 会按新坐标系重建已有图层，无需重复创建描述符
+        return
+      }
 
       let clientEvent = data => {
         this.closeInfoBox()
@@ -324,12 +328,12 @@ export default {
     },
     changeLayerType: function (index) {
       this.layerType = index
-      if (index === 0) {
-        this.$refs.mapComponent.removeLayer(channelTileLayer)
-        return
-      }
       if (channelTileLayer) {
         this.$refs.mapComponent.removeLayer(channelTileLayer)
+        channelTileLayer = null
+      }
+      if (index === 0) {
+        return
       }
 
       const baseUrl = window.baseUrl ? window.baseUrl : ''
@@ -448,8 +452,17 @@ export default {
       }
     },
     submitEdit: function(channel) {
-      let position = [channel.gbLongitude, channel.gbLatitude]
-      this.$store.dispatch('commonChanel/update', channel)
+      // 只提交位置字段：后端按通道ID更新，避免把整份旧对象写回覆盖其他字段
+      const updateData = {
+        gbId: channel.gbId,
+        gbLongitude: Number(channel.gbLongitude),
+        gbLatitude: Number(channel.gbLatitude)
+      }
+      const position = [updateData.gbLongitude, updateData.gbLatitude]
+      // 输入框绑定的是字符串，保存前归一化为数字，避免后续图层/树使用字符串坐标
+      channel.gbLongitude = updateData.gbLongitude
+      channel.gbLatitude = updateData.gbLatitude
+      this.$store.dispatch('commonChanel/update', updateData)
         .then(data => {
           this.$message.success({
             showClose: true,

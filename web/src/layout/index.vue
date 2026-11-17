@@ -54,13 +54,15 @@ export default {
 
 <style lang="scss" scoped>
   @import "~@/styles/mixin.scss";
-  @import "~@/styles/variables.scss";
+  @import "~@/styles/variables.module.scss";
 
   .app-wrapper {
-    @include clearfix;
+    // 声明必须放在 @include clearfix 之前：clearfix 会展开出 &:after 嵌套规则，
+    // 反过来写会触发 sass 的 mixed-decls 弃用警告。
     position: relative;
     height: 100%;
     width: 100%;
+    @include clearfix;
     &.mobile.openSidebar{
       position: fixed;
       top: 0;

@@ -55,23 +55,27 @@ describe('Breadcrumb.vue', () => {
     localVue,
     router
   })
-  it('dashboard', () => {
-    router.push('/dashboard')
+  it('dashboard', async () => {
+    await router.push('/dashboard')
+    await wrapper.vm.$nextTick()
     const len = wrapper.findAll('.el-breadcrumb__inner').length
     expect(len).toBe(1)
   })
-  it('normal route', () => {
-    router.push('/menu/menu1')
+  it('normal route', async () => {
+    await router.push('/menu/menu1')
+    await wrapper.vm.$nextTick()
     const len = wrapper.findAll('.el-breadcrumb__inner').length
     expect(len).toBe(2)
   })
-  it('nested route', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-1')
+  it('nested route', async () => {
+    await router.push('/menu/menu1/menu1-2/menu1-2-1')
+    await wrapper.vm.$nextTick()
     const len = wrapper.findAll('.el-breadcrumb__inner').length
     expect(len).toBe(4)
   })
-  it('no meta.title', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-2')
+  it('no meta.title', async () => {
+    await router.push('/menu/menu1/menu1-2/menu1-2-2')
+    await wrapper.vm.$nextTick()
     const len = wrapper.findAll('.el-breadcrumb__inner').length
     expect(len).toBe(3)
   })
@@ -89,8 +93,9 @@ describe('Breadcrumb.vue', () => {
   //   const redirectBreadcrumb = breadcrumbArray.at(2)
   //   expect(redirectBreadcrumb.contains('a')).toBe(false)
   // })
-  it('last breadcrumb', () => {
-    router.push('/menu/menu1/menu1-2/menu1-2-1')
+  it('last breadcrumb', async () => {
+    await router.push('/menu/menu1/menu1-2/menu1-2-1')
+    await wrapper.vm.$nextTick()
     const breadcrumbArray = wrapper.findAll('.el-breadcrumb__inner')
     const redirectBreadcrumb = breadcrumbArray.at(3)
     expect(redirectBreadcrumb.contains('a')).toBe(false)

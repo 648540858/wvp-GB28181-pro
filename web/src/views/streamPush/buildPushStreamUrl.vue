@@ -71,7 +71,7 @@
 <script>
 
 import elDragDialog from '@/directive/el-drag-dialog'
-import crypto from "crypto";
+import md5 from "js-md5";
 
 
 export default {
@@ -96,10 +96,10 @@ export default {
         return ''
       }
       if (this.callId) {
-        return crypto.createHash('md5').update(this.callId + '_' + this.pushKey, 'utf8').digest('hex')
+        return md5(this.callId + '_' + this.pushKey)
 
       }else {
-        return crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+        return md5(this.pushKey)
       }
 
     },
@@ -107,7 +107,7 @@ export default {
       if (!this.mediaServer || !this.stream || !this.app) {
         return ''
       }
-      crypto.createHash('md5').update(this.pushKey, 'utf8').digest('hex')
+      md5(this.pushKey)
       if (this.callId) {
         return `rtsp://${this.mediaServer.streamIp}:${this.mediaServer.rtspPort}/${this.app}/${this.stream}?callId=${this.callId}&sign=${this.sign}`
       }else {

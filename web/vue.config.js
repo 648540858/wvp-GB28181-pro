@@ -1,5 +1,7 @@
 const path = require("path")
 const defaultSettings = require("./src/settings.js")
+// 副作用补丁：修复 vue-loader 15 + webpack 5 的 style default 导出告警
+require("./build/vue-style-pitcher")
 
 function resolve(dir) {
   return path.join(__dirname, dir)
@@ -28,15 +30,33 @@ module.exports = {
   assetsDir: "static",
   lintOnSave: false, // Disable ESLint to avoid warnings
   productionSourceMap: false,
-  transpileDependencies: ["ol"],
+  css: {
+    loaderOptions: {
+      css: {
+        url: {
+          // 以 /static/ 开头的资源由 public 目录原样提供，交给浏览器解析即可。
+          // 否则 css-loader 6 会把它们当成模块，从文件系统根目录解析导致构建失败。
+          filter: (url) => !url.startsWith("/static/"),
+        },
+      },
+    },
+  },
+  // webpack 5 可以直接解析 ES2020+ 语法，ol / maplibre-gl 自带的产物无需再经过 Babel。
+  // 尤其是 maplibre-gl：它的 Worker 通过 Function.toString() 内联，若被 Babel 转译，
+  // Worker 中会缺少模块顶层的 helper（如 _wrapNativeSuper）而导致地图无法加载。
+  transpileDependencies: [],
   devServer: {
-    public: "localhost:" + port,
     host: "localhost",
     port: port,
     open: true,
-    overlay: {
-      warnings: false,
-      errors: false, // Changed to false to hide ESLint errors
+    // webpack-dev-server 4 起 overlay 移到了 client 下
+    client: {
+      overlay: {
+        warnings: false,
+        errors: false,
+        // 不弹出运行时错误遮罩，避免遮住“登录已过期”等业务提示
+        runtimeErrors: false,
+      },
     },
     // before: require('./mock/mock-server.js'),
     proxy: {
@@ -60,6 +80,13 @@ module.exports = {
     // provide the app's title in webpack's name field, so that
     // it can be accessed in index.html to inject the correct title.
     name: name,
+    performance: {
+      // 项目内置 mermaid(3.2MB) / bg19.png(3MB) / libDecoder.wasm(2.3MB) 等资源，
+      // webpack 默认 244KiB 阈值必然告警。这里放大到实际可控范围，
+      // 仍保留对资源异常增长的提示。
+      maxAssetSize: 4 * 1024 * 1024,
+      maxEntrypointSize: 8 * 1024 * 1024,
+    },
     resolve: {
       alias: {
         "@": resolve("src"),
@@ -67,20 +94,6 @@ module.exports = {
     },
   },
   chainWebpack(config) {
-    // it can improve the speed of the first screen, it is recommended to turn on preload
-    config.plugin("preload").tap(() => [
-      {
-        rel: "preload",
-        // to ignore runtime.js
-        // https://github.com/vuejs/vue-cli/blob/dev/packages/@vue/cli-service/lib/config/app.js#L171
-        fileBlacklist: [/\.map$/, /hot-update\.js$/, /runtime\..*\.js$/],
-        include: "initial",
-      },
-    ])
-
-    // when there are many pages, it will cause too many meaningless requests
-    config.plugins.delete("prefetch")
-
     // set svg-sprite-loader
     config.module.rule("svg").exclude.add(resolve("src/icons")).end()
     config.module
@@ -96,16 +109,6 @@ module.exports = {
       .end()
 
     config.when(process.env.NODE_ENV !== "development", (config) => {
-      config
-        .plugin("ScriptExtHtmlWebpackPlugin")
-        .after("html")
-        .use("script-ext-html-webpack-plugin", [
-          {
-            // `runtime` must same as runtimeChunk name. default is `runtime`
-            inline: /runtime\..*\.js$/,
-          },
-        ])
-        .end()
       config.optimization.splitChunks({
         chunks: "all",
         cacheGroups: {

@@ -8,11 +8,11 @@ describe('Hamburger.vue', () => {
     wrapper.find('.hamburger').trigger('click')
     expect(mockFn).toBeCalled()
   })
-  it('prop isActive', () => {
+  it('prop isActive', async () => {
     const wrapper = shallowMount(Hamburger)
-    wrapper.setProps({ isActive: true })
-    expect(wrapper.contains('.is-active')).toBe(true)
-    wrapper.setProps({ isActive: false })
-    expect(wrapper.contains('.is-active')).toBe(false)
+    await wrapper.setProps({ isActive: true })
+    expect(wrapper.find('.is-active').exists()).toBe(true)
+    await wrapper.setProps({ isActive: false })
+    expect(wrapper.find('.is-active').exists()).toBe(false)
   })
 })

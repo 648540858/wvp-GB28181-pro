@@ -27,7 +27,7 @@
 
 <script>
 import ScrollPane from './ScrollPane'
-import path from 'path'
+import { resolvePath } from '@/utils/validate'
 
 export default {
   components: { ScrollPane },
@@ -74,7 +74,7 @@ export default {
       if (this.routes) {
         routes.forEach(route => {
           if (route.meta && route.meta.affix) {
-            const tagPath = path.resolve(basePath, route.path)
+            const tagPath = resolvePath(basePath, route.path)
             tags.push({
               fullPath: tagPath,
               path: tagPath,

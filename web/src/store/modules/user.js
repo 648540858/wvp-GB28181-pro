@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import md5 from 'js-md5'
 import {
   add,
   changePassword,
@@ -64,7 +64,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({
         username: username.trim(),
-        password: crypto.createHash('md5').update(password, 'utf8').digest('hex')
+        password: md5(password)
       }).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.accessToken)

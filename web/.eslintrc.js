@@ -6,7 +6,8 @@ module.exports = {
   },
   extends: ["plugin:vue/essential", "eslint:recommended"],
   parserOptions: {
-    parser: "babel-eslint",
+    parser: "@babel/eslint-parser",
+    requireConfigFile: false,
   },
   rules: {
     // Disable or downgrade problematic rules
@@ -25,6 +26,15 @@ module.exports = {
     "vue/valid-v-model": "warn",
     "vue/attributes-order": "off",
     "no-multiple-empty-lines": "warn",
+    // New rules from eslint-plugin-vue 9 that conflict with this legacy Vue 2 codebase
+    "vue/multi-word-component-names": "off",
+    "vue/no-mutating-props": "warn",
+    "vue/no-useless-template-attributes": "off",
+    "vue/no-reserved-component-names": "off",
+    "vue/no-v-model-argument": "off",
+    "no-useless-escape": "warn",
+    "no-extra-boolean-cast": "warn",
+    "no-empty": "warn",
 
     // Style rules - make them warnings instead of errors
     quotes: ["warn", "single"],

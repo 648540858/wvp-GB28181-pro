@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import crypto from 'crypto'
+import md5 from 'js-md5'
 
 export default {
   name: 'ForceChangePassword',
@@ -137,7 +137,7 @@ export default {
         }
         this.loading = true
         this.$store.dispatch('user/changePassword', {
-          oldPassword: crypto.createHash('md5').update(this.passwordForm.oldPassword, 'utf8').digest('hex'),
+          oldPassword: md5(this.passwordForm.oldPassword),
           password: this.passwordForm.password
         }).then(() => {
           this.$message({

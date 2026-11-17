@@ -194,12 +194,24 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
         }
-        // 确定编号是否重复
-        List<CommonGBChannel> channels = commonGBChannelMapper.queryByDeviceId(commonGBChannel.getGbDeviceId());
-        if (channels.size() > 1) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "国标编号重复，请修改编号后保存");
-        }
         CommonGBChannel oldChannel = commonGBChannelMapper.queryById(commonGBChannel.getGbId());
+        if (oldChannel == null) {
+            log.warn("[更新通道] 通道不存在，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
+            return 0;
+        }
+        // 只有“国标编号确实发生变化”时才校验重复：
+        // 数据库本身存在历史重复编号（本次没改编号）时直接放过，
+        // 避免只修改位置/名称等字段被重复校验卡住；
+        // 修改编号导致重复时，仍然按原提示拦截。
+        String newDeviceId = commonGBChannel.getGbDeviceId();
+        if (newDeviceId != null && !Objects.equals(newDeviceId, oldChannel.getGbDeviceId())) {
+            List<CommonGBChannel> channels = commonGBChannelMapper.queryByDeviceId(newDeviceId);
+            boolean conflict = channels.stream()
+                    .anyMatch(c -> !Objects.equals(c.getGbId(), commonGBChannel.getGbId()));
+            if (conflict) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "国标编号重复，请修改编号后保存");
+            }
+        }
         commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.update(commonGBChannel);
 

@@ -6,6 +6,7 @@
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import gcoord from 'gcoord'
+import { rewriteStyleOrigin } from '@/utils/mapStyle'
 
 /**
  * 3D地图组件（MapLibre GL 实现）
@@ -388,59 +389,88 @@ export default {
 
       const center = fromLonLat(mapParam.center || [116.41020, 39.915119])
 
-      this.map = new maplibregl.Map({
-        container: this.$refs.mapContainer,
-        // mapconfig 返回的三个地址为三个 style 地址，直接作为 style 渲染
-        style: this.styleForIndex(this.mapTileIndex, mapParam),
-        center: center,
-        zoom: mapParam.zoom || 10,
-        pitch: mapParam.pitch || 0,
-        minZoom: mapParam.minZoom || 1,
-        maxZoom: mapParam.maxZoom || 19,
-        attributionControl: false,
-        dragRotate: true,
-        fadeDuration: 0,
-        pitchWithRotate: true
-      })
+      // 先取到样式 JSON，把 source/sprite 地址统一成当前样式的协议、IP、端口，
+      // 再交给 MapLibre 渲染（MapLibre 直接使用 URL 时不会改写内部地址）。
+      return this.loadStyle(this.mapTileIndex, mapParam).then((style) => {
+        if (this._isDestroyed || !this.$refs.mapContainer) {
+          return
+        }
+        this.map = new maplibregl.Map({
+          container: this.$refs.mapContainer,
+          style: style,
+          center: center,
+          zoom: mapParam.zoom || 10,
+          pitch: mapParam.pitch || 0,
+          minZoom: mapParam.minZoom || 1,
+          maxZoom: mapParam.maxZoom || 19,
+          attributionControl: false,
+          dragRotate: true,
+          fadeDuration: 0,
+          pitchWithRotate: true
+        })
 
-      this.dragInteraction.bind(this.map, this)
+        this.dragInteraction.bind(this.map, this)
 
-      // 官方指南针控件：只保留指南针（缩放按钮由页面底部工具栏提供）。
-      // 这里只调用 onAdd 绑定官方的 rotate/pitch/roll 事件和拖拽旋转逻辑，
-      // 不挂到地图角落，DOM 由页面底部工具栏取走后挂载（见 getCompassElement）。
-      this.compassControl = new maplibregl.NavigationControl({
-        showZoom: false,
-        showCompass: true,
-        visualizePitch: true,
-        visualizeRoll: true
-      })
-      this._compassElement = this.compassControl.onAdd(this.map)
+        // 官方指南针控件：只保留指南针（缩放按钮由页面底部工具栏提供）。
+        // 这里只调用 onAdd 绑定官方的 rotate/pitch/roll 事件和拖拽旋转逻辑，
+        // 不挂到地图角落，DOM 由页面底部工具栏取走后挂载（见 getCompassElement）。
+        this.compassControl = new maplibregl.NavigationControl({
+          showZoom: false,
+          showCompass: true,
+          visualizePitch: true,
+          visualizeRoll: true
+        })
+        this._compassElement = this.compassControl.onAdd(this.map)
 
-      // style 加载完成（首次加载 & 每次 setStyle 之后）：重建用户图层
-      this.map.on('style.load', () => {
-        this._styleGen += 1
-        this.ensureIconImages().then(() => {
-          this.registerAllUserLayers()
+        // style 加载完成（首次加载 & 每次 setStyle 之后）：重建用户图层
+        this.map.on('style.load', () => {
+          this._styleGen += 1
+          this.ensureIconImages().then(() => {
+            this.registerAllUserLayers()
+            this.emitLoadedOnce()
+          })
+        })
+        this.map.on('zoom', () => {
+          this.$emit('zoomChange', this.map.getZoom())
+        })
+        this.map.on('error', (e) => {
+          const err = e && e.error
+          // 只记录 style 级别错误，瓦片/图层加载错误不打扰控制台
+          if (err && !e.sourceId && !e.layerId) {
+            console.error('map style error', err)
+            this.$message({
+              showClose: true,
+              message: '地图样式加载失败：' + (err.message || err),
+              type: 'error'
+            })
+          }
+          // style 地址不可达时同样触发一次 loaded，保证页面图层逻辑可继续
           this.emitLoadedOnce()
         })
       })
-      this.map.on('zoom', () => {
-        this.$emit('zoomChange', this.map.getZoom())
-      })
-      this.map.on('error', (e) => {
-        const err = e && e.error
-        // 只记录 style 级别错误，瓦片/图层加载错误不打扰控制台
-        if (err && !e.sourceId && !e.layerId) {
-          console.error('map style error', err)
-          this.$message({
-            showClose: true,
-            message: '地图样式加载失败：' + (err.message || err),
-            type: 'error'
-          })
-        }
-        // style 地址不可达时同样触发一次 loaded，保证页面图层逻辑可继续
-        this.emitLoadedOnce()
-      })
+    },
+    /**
+     * 拉取样式 JSON 并把其中的 source 地址统一成样式自身的协议/IP/端口。
+     * - 内联样式对象（raster 兜底）直接返回
+     * - 拉取失败时回退为原 URL，让 MapLibre 按原逻辑加载并暴露错误
+     */
+    loadStyle(index, mapParam) {
+      const style = this.styleForIndex(index, mapParam)
+      if (!style || typeof style !== 'string') {
+        return Promise.resolve(style)
+      }
+      return fetch(style)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('HTTP ' + response.status)
+          }
+          return response.json()
+        })
+        .then((styleJson) => rewriteStyleOrigin(styleJson, style))
+        .catch((err) => {
+          console.error('地图样式加载失败，回退为直接使用样式地址', style, err)
+          return style
+        })
     },
     emitLoadedOnce() {
       if (this._loadedEmitted) {
@@ -1400,16 +1430,25 @@ export default {
       const newConfig = this.mapTileList[index]
       window.coordinateSystem = newConfig.coordinateSystem
       const coordSystemChanged = !oldConfig || oldConfig.coordinateSystem !== newConfig.coordinateSystem
-      // setStyle 只接受 style JSON 或 URL（center/zoom/pitch 不是它的选项，
-      // 误传会被当成 style 校验，报 missing required property "version"）。
-      // diff:false 强制完整重建，确保触发 style.load 来重建用户图层。
-      this.map.setStyle(this.styleForIndex(index, mapParam), { diff: false })
-      if (coordSystemChanged) {
-        // 相机不会被 setStyle 重置，但坐标系变了以后同一屏幕位置对应的 WGS84 点会偏移，
-        // 需要按新坐标系重新投影原来的中心点
-        this.map.jumpTo({ center: fromLonLat(centerWgs), zoom, pitch, bearing })
-        this.$emit('coordinateSystemChange', newConfig.coordinateSystem)
-      }
+      // 样式需要先拉取再重写 source 地址，异步期间用户可能继续切换底图：
+      // 用序号保证只有最后一次请求的结果会被应用。
+      const requestSeq = (this._styleRequestSeq || 0) + 1
+      this._styleRequestSeq = requestSeq
+      this.loadStyle(index, mapParam).then((style) => {
+        if (!this.map || this._styleRequestSeq !== requestSeq) {
+          return
+        }
+        // setStyle 只接受 style JSON 或 URL（center/zoom/pitch 不是它的选项，
+        // 误传会被当成 style 校验，报 missing required property "version"）。
+        // diff:false 强制完整重建，确保触发 style.load 来重建用户图层。
+        this.map.setStyle(style, { diff: false })
+        if (coordSystemChanged) {
+          // 相机不会被 setStyle 重置，但坐标系变了以后同一屏幕位置对应的 WGS84 点会偏移，
+          // 需要按新坐标系重新投影原来的中心点
+          this.map.jumpTo({ center: fromLonLat(centerWgs), zoom, pitch, bearing })
+          this.$emit('coordinateSystemChange', newConfig.coordinateSystem)
+        }
+      })
     },
     getCoordSys() {
       return this.mapTileList[this.mapTileIndex].coordinateSystem

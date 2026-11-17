@@ -48,6 +48,7 @@
           <div class="map-tool-btn" @click="zoomOut">
             <i class="iconfont icon-minus1"></i>
           </div>
+          <div class="map-tool-btn map-view-btn" ref="compassHost"></div>
         </div>
       </div>
       <div class="map-tool-box-top-left">
@@ -175,6 +176,7 @@ export default {
   },
   methods: {
     initChannelLayer: function () {
+      this.attachCompass()
       this.mapTileList = this.$refs.mapComponent.mapTileList
       // 获取所有有位置的通道
       this.closeInfoBox()
@@ -194,7 +196,7 @@ export default {
         })
       }
 
-      channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, null)
+      channelLayer = this.$refs.mapComponent.addPointLayer([], clientEvent, { ignoreCollision: true })
     },
     refreshLayer(){
       this.closeInfoBox()
@@ -304,6 +306,20 @@ export default {
       this.infoBoxId = this.$refs.mapComponent.openInfoBox(position, this.$refs.infobox, [0, -50])
     },
     zoomChange: function(zoom) {},
+    attachCompass: function () {
+      // 把官方 NavigationControl 的指南针 DOM 挂到缩放按钮组最下方
+      const host = this.$refs.compassHost
+      const mapComponent = this.$refs.mapComponent
+      const el = mapComponent && mapComponent.getCompassElement()
+      if (!host || !el || el.parentElement === host) {
+        return
+      }
+      host.appendChild(el)
+      const btn = el.querySelector('button')
+      if (btn) {
+        btn.title = '点击归位：俯仰 / 旋转归零'
+      }
+    },
 
     changeMapTile: function (index) {
       if (this.showDrawThin) {
@@ -699,6 +715,9 @@ export default {
   position: absolute;
   right: 20px;
   bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 .map-tool-box-top-right {
   position: absolute;
@@ -742,6 +761,29 @@ export default {
 }
 .map-tool-btn i {
   font-size: 14px;
+}
+.map-tool-btn.map-view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 33px;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* 官方指南针控件融入现有按钮组：去掉自身外框，按钮尺寸与相邻按钮一致 */
+.map-view-btn .maplibregl-ctrl-group {
+  width: 32px;
+  height: 35px;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.map-view-btn .maplibregl-ctrl-group button {
+  width: 32px;
+  height: 35px;
+}
+.map-view-btn .maplibregl-ctrl-group button:focus {
+  box-shadow: none;
 }
 .map-tool-btn-group:last-child {
   border-bottom: none;

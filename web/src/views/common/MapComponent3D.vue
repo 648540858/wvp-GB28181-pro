@@ -16,7 +16,8 @@ import gcoord from 'gcoord'
  *
  * 与 2D 版的区别：
  * - mapconfig 返回的 tilesUrl 按 MapLibre style JSON 地址处理（三个地址即三套 style）
- * - 支持 3D 俯仰（NavigationControl 的 visualizePitch），style 内含 fill-extrusion 时自动立体渲染
+ * - 支持 3D 俯仰/旋转；复用官方 NavigationControl 的指南针（showZoom: false），
+ *   由页面底部工具栏通过 getCompassElement() 取走 DOM 挂载，图标与归位行为均与官方一致
  */
 
 // ---------------------------------------------------------------------------
@@ -329,6 +330,16 @@ export default {
       this._markers.clear()
     }
     if (this.map) {
+      // 指南针控件未通过 map.addControl 注册，需要手动解绑官方事件
+      if (this.compassControl) {
+        try {
+          this.compassControl.onRemove()
+        } catch (err) {
+          // ignore
+        }
+        this.compassControl = null
+        this._compassElement = null
+      }
       this.map.remove()
       this.map = null
     }
@@ -392,10 +403,18 @@ export default {
         pitchWithRotate: true
       })
 
-      // 3D 俯仰/指北控件
-      this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
-
       this.dragInteraction.bind(this.map, this)
+
+      // 官方指南针控件：只保留指南针（缩放按钮由页面底部工具栏提供）。
+      // 这里只调用 onAdd 绑定官方的 rotate/pitch/roll 事件和拖拽旋转逻辑，
+      // 不挂到地图角落，DOM 由页面底部工具栏取走后挂载（见 getCompassElement）。
+      this.compassControl = new maplibregl.NavigationControl({
+        showZoom: false,
+        showCompass: true,
+        visualizePitch: true,
+        visualizeRoll: true
+      })
+      this._compassElement = this.compassControl.onAdd(this.map)
 
       // style 加载完成（首次加载 & 每次 setStyle 之后）：重建用户图层
       this.map.on('style.load', () => {
@@ -626,6 +645,12 @@ export default {
         ['get', 'customIcon'],
         ['match', ['get', 'status'], 'ON', 'camera-on', 'OFF', 'camera-off', 'checked', 'camera-checked', 'camera-on']
       ]
+      // 可拖拽的点位图层不参与碰撞检测：拖动时图标与其他图标重叠也不会被
+      // MapLibre 的 placement 隐藏（否则拖动中的图标会突然消失）。
+      if (option.ignoreCollision) {
+        layout['icon-allow-overlap'] = true
+        layout['icon-ignore-placement'] = true
+      }
       const layer = {
         id: d.layerIds[0],
         type: 'symbol',
@@ -1182,6 +1207,9 @@ export default {
         return
       }
       this.map.zoomOut()
+    },
+    getCompassElement() {
+      return this._compassElement || null
     },
     centerAndZoom(point, zoom, callback) {
       const targetZoom = zoom || this.map.getZoom()

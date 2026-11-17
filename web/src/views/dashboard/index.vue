@@ -78,7 +78,7 @@ export default {
     this.loopForSystemInfo()
   },
   destroyed() {
-    window.clearImmediate(this.timer)
+    window.clearTimeout(this.timer)
   },
   methods: {
     loopForSystemInfo: function() {
@@ -86,7 +86,10 @@ export default {
         window.clearTimeout(this.timer)
       }
       this.timer = setTimeout(() => {
-        console.log(this.$route.name)
+        // 登录已失效时停止轮询，避免继续产生失败请求
+        if (!this.$store.getters.token) {
+          return
+        }
         if (this.$route.name === '控制台') {
           this.getSystemInfo()
           this.getLoad()
@@ -104,18 +107,21 @@ export default {
           this.$refs.consoleNet.setData(data.net, data.netTotal)
           this.$refs.consoleDisk.setData(data.disk)
         })
+        .catch(() => {})
     },
     getLoad: function() {
       this.$store.dispatch('server/getMediaServerLoad')
         .then(data => {
           this.$refs.consoleNodeLoad.setData(data)
         })
+        .catch(() => {})
     },
     getResourceInfo: function() {
       this.$store.dispatch('server/getResourceInfo')
         .then(data => {
           this.$refs.consoleResource.setData(data)
         })
+        .catch(() => {})
     }
   }
 }

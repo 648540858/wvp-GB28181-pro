@@ -241,6 +241,9 @@ export default {
             resolve(data)
           }
 
+        }).catch(() => {
+          // 请求失败（如登录过期）时结束当前节点加载，避免产生未处理的 Promise 拒绝
+          resolve([])
         }).finally(() => {
           this.locading = false
         })

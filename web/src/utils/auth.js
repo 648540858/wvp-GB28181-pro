@@ -4,7 +4,10 @@ const TokenKey = 'wvp_token'
 const NameKey = 'wvp_username'
 const serverIdKey = 'wvp_server_id'
 const defaultPasswordKey = 'wvp_default_password'
-const expires = 30
+// 与后端 JWT 的有效期保持一致（JwtUtils.EXPIRATION_TIME = 30 分钟）。
+// js-cookie 的 expires 单位是天，这里换算成 30 分钟，避免出现
+// "前端仍认为已登录、但所有接口都返回 401" 的状态。
+const expires = 30 / (24 * 60)
 
 export function getToken() {
   console.log('Getting token...')

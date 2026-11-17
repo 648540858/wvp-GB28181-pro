@@ -1,9 +1,10 @@
 import axios from 'axios'
-import { MessageBox, Message } from 'element-ui'
+import { Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
-let showLoginConfirm = false
+// 登录过期只处理一次，避免并发请求各自弹窗/各自跳转
+let isRelogin = false
 
 // create an axios instance
 const service = axios.create({
@@ -53,33 +54,25 @@ service.interceptors.response.use(
   },
   error => {
     console.log(error) // for debug
-    if (error.response.status === 401) {
-      if (!showLoginConfirm && store.getters.showConfirmBoxForLoginLose) {
-        // to re-login
-        showLoginConfirm = true
-        MessageBox.confirm('登录已经到期， 是否重新登录', '登录确认', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
-        }).catch(() => {
-          store.dispatch('user/closeConfirmBoxForLoginLose')
-          Message.warning({
-            type: 'warning',
-            message: '登录过期提示已经关闭，请注销后重新登录'
-          })
-          // 清除token， 后续请求不再继续
-
+    const response = error.response
+    if (response && response.status === 401) {
+      // 后端 JWT 已过期：清掉本地 token 后回到登录页。
+      // 不要弹确认框 —— 页面上的轮询接口会持续失败，导致刷屏。
+      if (!isRelogin) {
+        isRelogin = true
+        Message.warning({
+          message: '登录已过期，请重新登录',
+          showClose: true
+        })
+        store.dispatch('user/resetToken').finally(() => {
+          // 留一点时间让提示可见；reload 后 permission.js 会带上 redirect 跳到登录页
+          setTimeout(() => {
+            window.location.reload()
+          }, 800)
         })
       }
-    }else {
-      if (!store.getters.showConfirmBoxForLoginLose) {
-        return
-      }
-      let data = error.response.data
+    } else if (store.getters.showConfirmBoxForLoginLose) {
+      const data = response && response.data
       if (data && data.msg) {
         Message.error({
           message: data.msg,
@@ -92,7 +85,9 @@ service.interceptors.response.use(
         })
       }
     }
-    // return Promise.reject(error)
+    // 必须把错误继续抛出去，否则调用方会拿到 undefined，
+    // 进而在 response.data 处报 "Cannot read properties of undefined"
+    return Promise.reject(error)
   }
 )
 

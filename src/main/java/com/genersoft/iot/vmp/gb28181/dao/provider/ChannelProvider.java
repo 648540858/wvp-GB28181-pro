@@ -814,6 +814,39 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    public String queryListInPolygonForKingBase(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);
+        sqlBuild.append(" where wdc.channel_type = 0 AND wdc.data_type != 2 AND (wdc.gb_ptz_type is null or  ( wdc.gb_ptz_type != 98 AND wdc.gb_ptz_type != 99)) " +
+                " AND coalesce(wdc.gb_parent_id, wdc.parent_id) in (");
+
+        List<CameraGroup> groupList = (List<CameraGroup>)params.get("groupList");
+        for (int i = 0; i < groupList.size(); i++) {
+            if (i > 0) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append("#{groupList[").append(i).append("].deviceId}");
+        }
+        sqlBuild.append(" )");
+
+        StringBuilder geomSql = new StringBuilder("CONCAT('POLYGON(('");
+        List<Point> pointList = (List<Point>)params.get("pointList");
+        for (int i = 0; i < pointList.size(); i++) {
+            geomSql.append(", #{pointList[").append(i).append("].lng}, ' ', #{pointList[").append(i).append("].lat}");
+            if (i < pointList.size() - 1) {
+                geomSql.append(", ', '");
+            }
+        }
+        geomSql.append(", '))')");
+        sqlBuild.append("AND ST_Within(ST_MakePoint(coalesce(wdc.gb_longitude, wdc.longitude), coalesce(wdc.gb_latitude, wdc.latitude)), ST_GeomFromText(").append(geomSql).append("))");
+
+        if (params.get("level") != null) {
+            sqlBuild.append(" AND ( map_level <= #{level} or map_level is null )");
+        }
+
+        return sqlBuild.toString();
+    }
+
     public String queryGbChannelByChannelDeviceIdAndGbDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL_FOR_CAMERA_DEVICE);

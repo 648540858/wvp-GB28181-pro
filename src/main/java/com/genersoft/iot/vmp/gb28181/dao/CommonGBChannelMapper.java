@@ -646,7 +646,9 @@ public interface CommonGBChannelMapper {
     List<CameraChannel> queryListInCircle(@Param("centerLongitude") Double centerLongitude, @Param("centerLatitude") Double centerLatitude,
                                           @Param("radius") Double radius, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForMysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForMysql", databaseId = "mysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "kingbase")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInPolygonForKingBase", databaseId = "postgresql")
     List<CameraChannel> queryListInPolygon(@Param("pointList") List<Point> pointList, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListForSyMobile")

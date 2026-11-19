@@ -640,7 +640,9 @@ public interface CommonGBChannelMapper {
                                        @Param("minLatitude") Double minLatitude, @Param("maxLatitude") Double maxLatitude,
                                        @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForMysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForMysql", databaseId = "mysql")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForKingBase", databaseId = "kingbase")
+    @SelectProvider(type = ChannelProvider.class, method = "queryListInCircleForKingBase", databaseId = "postgresql")
     List<CameraChannel> queryListInCircle(@Param("centerLongitude") Double centerLongitude, @Param("centerLatitude") Double centerLatitude,
                                           @Param("radius") Double radius, @Param("level") Integer level, @Param("groupList") List<CameraGroup> groupList);
 

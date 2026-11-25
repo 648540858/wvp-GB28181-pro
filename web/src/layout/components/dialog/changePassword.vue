@@ -12,13 +12,13 @@
       <div id="shared" style="margin-right: 20px;">
         <el-form ref="passwordForm" :model="passwordForm" :rules="rules" status-icon label-width="80px">
           <el-form-item label="旧密码" prop="oldPassword">
-            <el-input v-model="passwordForm.oldPassword" autocomplete="off" />
+            <el-input v-model="passwordForm.oldPassword" type="password" show-password autocomplete="off" />
           </el-form-item>
           <el-form-item label="新密码" prop="newPassword">
-            <el-input v-model="passwordForm.newPassword" autocomplete="off" />
+            <el-input v-model="passwordForm.newPassword" type="password" show-password autocomplete="off" />
           </el-form-item>
           <el-form-item label="确认密码" prop="confirmPassword">
-            <el-input v-model="passwordForm.confirmPassword" autocomplete="off" />
+            <el-input v-model="passwordForm.confirmPassword" type="password" show-password autocomplete="off" />
           </el-form-item>
 
           <el-form-item>
@@ -47,15 +47,12 @@ export default {
       }
     }
     const validatePass1 = (rule, value, callback) => {
-      const username = this.$store.state.user.name || ''
       if (!value) {
         callback(new Error('请输入新密码'))
-      } else if (value.length < 10) {
-        callback(new Error('密码长度至少10位'))
-      } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{10,}$/.test(value)) {
-        callback(new Error('密码必须同时包含大写字母、小写字母、数字和特殊符号'))
-      } else if (username && value.toLowerCase().includes(username.toLowerCase())) {
-        callback(new Error('密码不能包含用户名'))
+      } else if (value.length < 6 || value.length > 20) {
+        callback(new Error('密码长度需为6-20位'))
+      } else if (!/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{6,20}$/.test(value)) {
+        callback(new Error('密码必须包含字母、数字和特殊符号'))
       } else {
         if (this.passwordForm.confirmPassword !== '') {
           this.$refs.passwordForm.validateField('confirmPassword')

@@ -12,8 +12,8 @@
       @close="close()"
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
-        <el-form ref="form" :model="group" label-width="140px">
-          <el-form-item label="节点编号" prop="id">
+        <el-form ref="form" :model="group" :rules="rules" label-width="140px">
+          <el-form-item label="节点编号" prop="deviceId">
             <el-input v-model="group.deviceId" placeholder="请输入编码">
               <el-button slot="append" @click="buildDeviceIdCode(group.deviceId)">生成</el-button>
             </el-input>
@@ -21,7 +21,7 @@
           <el-form-item label="节点名称" prop="name">
             <el-input v-model="group.name" clearable />
           </el-form-item>
-          <el-form-item label="行政区划" prop="name">
+          <el-form-item label="行政区划" prop="civilCode">
             <el-input v-model="group.civilCode">
               <el-button slot="append" @click="buildCivilCode(group.civilCode)">选择</el-button>
             </el-input>
@@ -67,6 +67,10 @@ export default {
         civilCode: '',
         platformId: ''
 
+      },
+      rules: {
+        deviceId: [{ required: true, message: '请输入节点编号', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入节点名称', trigger: 'blur' }]
       }
     }
   },
@@ -82,40 +86,45 @@ export default {
       this.submitCallback = callback
     },
     onSubmit: function() {
-      if (this.group.id) {
-        this.$store.dispatch('group/update', this.group)
-          .then(data => {
-            this.$message.success({
-              showClose: true,
-              message: '保存成功'
+      this.$refs.form.validate(valid => {
+        if (!valid) {
+          return
+        }
+        if (this.group.id) {
+          this.$store.dispatch('group/update', this.group)
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '保存成功'
+              })
+              if (this.submitCallback) this.submitCallback(this.group)
             })
-            if (this.submitCallback) this.submitCallback(this.group)
-          })
-          .catch((error) => {
-            this.$message({
-              showClose: true,
-              message: error,
-              type: 'error'
+            .catch((error) => {
+              this.$message({
+                showClose: true,
+                message: error,
+                type: 'error'
+              })
             })
-          })
-      } else {
-        this.$store.dispatch('group/add', this.group)
-          .then(data => {
-            this.$message.success({
-              showClose: true,
-              message: '保存成功'
+        } else {
+          this.$store.dispatch('group/add', this.group)
+            .then(data => {
+              this.$message.success({
+                showClose: true,
+                message: '保存成功'
+              })
+              if (this.submitCallback) this.submitCallback(this.group)
+              this.close()
             })
-            if (this.submitCallback) this.submitCallback(this.group)
-            this.close()
-          })
-          .catch((error) => {
-            this.$message({
-              showClose: true,
-              message: error,
-              type: 'error'
+            .catch((error) => {
+              this.$message({
+                showClose: true,
+                message: error,
+                type: 'error'
+              })
             })
-          })
-      }
+        }
+      })
     },
     buildDeviceIdCode: function(deviceId) {
       console.log(this.group)

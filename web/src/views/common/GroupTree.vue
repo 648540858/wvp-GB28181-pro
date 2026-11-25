@@ -8,7 +8,7 @@
         <!--        </el-select>-->
       </el-input>
     </div>
-    <div v-if="!searchStr" style="flex: 1; min-height: 0;">
+    <div v-if="!searchStr" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
       <el-alert
         v-if="showAlert && edit"
         title="操作提示"
@@ -16,59 +16,61 @@
         type="info"
         style="text-align: left"
       />
-      <div v-if="edit" style="margin-top: 10px; font-size: 14px;position: absolute;left: 270px;z-index: 100;" >
-        显示编号： <el-checkbox v-model="showCode" />
-      </div>
+      <div style="position: relative; flex: 1; min-height: 0;">
+        <div v-if="edit" class="show-code-switch">
+          显示编号： <el-checkbox v-model="showCode" />
+        </div>
 
-      <vue-easy-tree
-        ref="veTree"
-        class="flow-tree"
-        node-key="treeId"
-        :height="'100%'"
-        lazy
-        :load="loadNode"
-        :data="treeData"
-        :props="props"
-        :default-expanded-keys="['']"
-        @node-contextmenu="contextmenuEventHandler"
-        @node-click="nodeClickHandler"
-      >
-        <template v-slot:default="{ node, data }">
-          <span class="custom-tree-node">
-            <span
-              v-if="node.data.type === 0 && chooseId !== node.data.deviceId"
-              style="color: #409EFF"
-              class="iconfont icon-bianzubeifen3"
-            />
-            <span
-              v-if="node.data.type === 0 && chooseId === node.data.deviceId"
-              style="color: #c60135;"
-              class="iconfont icon-bianzubeifen3"
-            />
-            <span
-              v-if="node.data.type === 1 && node.data.status === 'ON'"
-              style="color: #409EFF"
-              class="iconfont icon-shexiangtou2"
-            />
-            <span
-              v-if="node.data.type === 1 && node.data.status !== 'ON'"
-              style="color: #808181"
-              class="iconfont icon-shexiangtou2"
-            />
-            <span
-              v-if="node.data.deviceId !=='' && showCode"
-              style=" padding-left: 1px"
-              :title="node.data.deviceId"
-            >{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
-            <span
-              v-if="node.data.deviceId ==='' || !showCode"
-              style=" padding-left: 1px"
-              :title="node.data.deviceId"
-            >{{ node.label }}</span>
-            <span v-if="node.data.longitude && showPosition" class="iconfont icon-gps"></span>
-          </span>
-        </template>
-      </vue-easy-tree>
+        <vue-easy-tree
+          ref="veTree"
+          class="flow-tree"
+          node-key="treeId"
+          :height="'100%'"
+          lazy
+          :load="loadNode"
+          :data="treeData"
+          :props="props"
+          :default-expanded-keys="['']"
+          @node-contextmenu="contextmenuEventHandler"
+          @node-click="nodeClickHandler"
+        >
+          <template v-slot:default="{ node, data }">
+            <span class="custom-tree-node">
+              <span
+                v-if="node.data.type === 0 && chooseId !== node.data.deviceId"
+                style="color: #409EFF"
+                class="iconfont icon-bianzubeifen3"
+              />
+              <span
+                v-if="node.data.type === 0 && chooseId === node.data.deviceId"
+                style="color: #c60135;"
+                class="iconfont icon-bianzubeifen3"
+              />
+              <span
+                v-if="node.data.type === 1 && node.data.status === 'ON'"
+                style="color: #409EFF"
+                class="iconfont icon-shexiangtou2"
+              />
+              <span
+                v-if="node.data.type === 1 && node.data.status !== 'ON'"
+                style="color: #808181"
+                class="iconfont icon-shexiangtou2"
+              />
+              <span
+                v-if="node.data.deviceId !=='' && showCode"
+                style=" padding-left: 1px"
+                :title="node.data.deviceId"
+              >{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
+              <span
+                v-if="node.data.deviceId ==='' || !showCode"
+                style=" padding-left: 1px"
+                :title="node.data.deviceId"
+              >{{ node.label }}</span>
+              <span v-if="node.data.longitude && showPosition" class="iconfont icon-gps"></span>
+            </span>
+          </template>
+        </vue-easy-tree>
+      </div>
     </div>
     <div v-if="searchStr" style="color: #606266; flex: 1; min-height: 0; overflow: auto;">
       <ul v-if="groupList.length > 0" style="list-style: none; margin: 0; padding: 10px">
@@ -568,6 +570,14 @@ export default {
 .flow-tree {
   overflow: auto;
   padding-top: 10px;
+}
+.show-code-switch {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  font-size: 14px;
+  line-height: 26px;
 }
 .flow-tree  .vue-recycle-scroller__item-wrapper{
   height: 100%;

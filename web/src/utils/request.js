@@ -16,9 +16,11 @@ const service = axios.create({
 // request interceptor
 service.interceptors.request.use(
   config => {
-    // do something before request is sent
-    if (store.getters.token && config.url.indexOf('api/user/login') < 0) {
-      config.headers['access-token'] = getToken()
+    // 用 cookie 里的真实 token 判断，避免 cookie 过期后把 undefined 写进请求头
+    // （axios 0.24 会把 undefined 序列化成字符串 "undefined"，后端会当成非法 token）
+    const token = getToken()
+    if (token && config.url.indexOf('api/user/login') < 0) {
+      config.headers['access-token'] = token
     }
     return config
   },

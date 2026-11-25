@@ -35,7 +35,7 @@
             :key="passwordType"
             v-model="passwordForm.password"
             :type="passwordType"
-            placeholder="至少10位，含大小写字母、数字及特殊符号"
+            placeholder="6-20位，含字母、数字及特殊符号"
             autocomplete="off"
           />
           <span class="show-pwd" @click="showPwd">
@@ -78,15 +78,12 @@ export default {
       }
     }
     const validatePassword = (rule, value, callback) => {
-      const username = this.$store.state.user.name || ''
       if (!value) {
         callback(new Error('请输入新密码'))
-      } else if (value.length < 10) {
-        callback(new Error('密码长度至少10位'))
-      } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,.\/]).{10,}$/.test(value)) {
-        callback(new Error('密码必须同时包含大写字母、小写字母、数字和特殊符号'))
-      } else if (username && value.toLowerCase().includes(username.toLowerCase())) {
-        callback(new Error('密码不能包含用户名'))
+      } else if (value.length < 6 || value.length > 20) {
+        callback(new Error('密码长度需为6-20位'))
+      } else if (!/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,.\/]).{6,20}$/.test(value)) {
+        callback(new Error('密码必须包含字母、数字和特殊符号'))
       } else {
         if (this.passwordForm.confirmPassword !== '') {
           this.$refs.passwordForm.validateField('confirmPassword')

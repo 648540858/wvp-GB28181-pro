@@ -94,7 +94,7 @@ public class UserController {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
             // 密码复杂度校验
-            if (!passwordComplexityValidator.validatePassword(password, username)) {
+            if (!passwordComplexityValidator.validatePassword(password)) {
                 throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
             }
             //int userId = SecurityUtils.getUserId();
@@ -120,7 +120,7 @@ public class UserController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "参数不可为空");
         }
         // 密码复杂度校验
-        if (!passwordComplexityValidator.validatePassword(password, username)) {
+        if (!passwordComplexityValidator.validatePassword(password)) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
         }
         // 获取当前登录用户id
@@ -217,9 +217,7 @@ public class UserController {
         Role role = userInfo.getRole();
         if (role != null && role.getId() == 1) {
             // 密码复杂度校验
-            User changeUser = userService.getUserById(userId);
-            String changeUsername = changeUser != null ? changeUser.getUsername() : String.valueOf(userId);
-            if (!passwordComplexityValidator.validatePassword(password, changeUsername)) {
+            if (!passwordComplexityValidator.validatePassword(password)) {
                 throw new ControllerException(ErrorCode.ERROR400.getCode(), passwordComplexityValidator.getValidationErrorMessage());
             }
             boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));

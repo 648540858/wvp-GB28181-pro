@@ -3,23 +3,25 @@
     <el-dialog
       v-el-drag-dialog
       title="选择行政区划"
-      width="30%"
+      width="40rem"
       top="5rem"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
-      <RegionTree
-        ref="regionTree"
-        :show-header="true"
-        :edit="true"
-        :enable-add-channel="false"
-        @clickEvent="treeNodeClickEvent"
-        :on-channel-change="onChannelChange"
-        :tree-height="'45vh'"
-      />
-      <el-form>
+      <div style="max-height: 55vh;overflow: auto">
+        <RegionTree
+          ref="regionTree"
+          :show-header="true"
+          :edit="true"
+          :enable-add-channel="false"
+          @clickEvent="treeNodeClickEvent"
+          :on-channel-change="onChannelChange"
+          :tree-height="'45vh'"
+        />
+      </div>
+      <el-form style="height: 5vh">
         <el-form-item>
           <div style="text-align: right">
             <el-button type="primary" @click="onSubmit">保存</el-button>

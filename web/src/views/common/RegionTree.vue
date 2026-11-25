@@ -1,5 +1,5 @@
 <template>
-  <div id="regionTree" style="border-right: 1px solid #EBEEF5; height: 100%; display: flex; flex-direction: column;">
+  <div id="regionTree" style="border-right: 1px solid #EBEEF5; display: flex; flex-direction: column;" :style="{ height: treeHeight || '100%' }">
     <div style="padding: 0 20px 0 10px; flex-shrink: 0;">
       <el-input size="small" v-model="searchStr" @input="searchChange" suffix-icon="el-icon-search" placeholder="请输入搜索内容" clearable>
 <!--        <el-select v-model="searchType" slot="prepend" placeholder="搜索类型" style="width: 80px">-->

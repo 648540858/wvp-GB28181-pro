@@ -49,7 +49,7 @@ public class GroupServiceImpl implements IGroupService {
     public void add(Group group) {
         Assert.notNull(group, "参数不可为NULL");
         Assert.notNull(group.getDeviceId(), "分组编号不可为NULL");
-        Assert.isTrue(group.getDeviceId().trim().length() == 20, "分组编号必须为20位");
+        Assert.isTrue(group.getDeviceId().trim().matches("\\d{20}"), "分组编号必须为20位纯数字");
         Assert.notNull(group.getName(), "分组名称不可为NULL");
 
         GbCode gbCode = GbCode.decode(group.getDeviceId());
@@ -111,6 +111,7 @@ public class GroupServiceImpl implements IGroupService {
     public void update(Group group) {
         Assert.isTrue(group.getId()> 0, "更新必须携带分组ID");
         Assert.notNull(group.getDeviceId(), "编号不可为NULL");
+        Assert.isTrue(group.getDeviceId().trim().matches("\\d{20}"), "分组编号必须为20位纯数字");
         Assert.notNull(group.getBusinessGroup(), "业务分组不可为NULL");
         Group groupInDb = groupManager.queryOne(group.getId());
         Assert.notNull(groupInDb, "分组不存在");

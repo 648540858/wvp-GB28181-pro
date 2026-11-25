@@ -69,7 +69,10 @@ export default {
 
       },
       rules: {
-        deviceId: [{ required: true, message: '请输入节点编号', trigger: 'blur' }],
+        deviceId: [
+          { required: true, message: '请输入节点编号', trigger: 'blur' },
+          { pattern: /^\d{20}$/, message: '节点编号必须为20位纯数字', trigger: 'blur' }
+        ],
         name: [{ required: true, message: '请输入节点名称', trigger: 'blur' }]
       }
     }

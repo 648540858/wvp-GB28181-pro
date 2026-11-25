@@ -4,7 +4,11 @@ const TokenKey = 'wvp_token'
 const NameKey = 'wvp_username'
 const serverIdKey = 'wvp_server_id'
 const defaultPasswordKey = 'wvp_default_password'
-const expires = 30
+// Cookie 只负责把 JWT 带给后端，真正的登录有效期由后端 JWT 的 exp 决定。
+// 这里必须比后端 login-timeout 长：如果 cookie 先过期，前端会取不到 token，
+// 请求头里就会出现 "undefined"，后端会当成非法 token（而不是正常的过期）。
+// 后端 JWT 过期后会返回 401，由 request.js 统一清理并跳转登录页。
+const expires = 7
 
 export function getToken() {
   return Cookies.get(TokenKey)

@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.conf.security;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 /**
@@ -61,23 +65,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String jwt = request.getHeader(JwtUtils.getHeader());
+        String jwt = normalizeToken(request.getHeader(JwtUtils.getHeader()));
         // 这里如果没有jwt，继续往后走，因为后面还有鉴权管理器等去判断是否拥有身份凭证，所以是可以放行的
         // 没有jwt相当于匿名访问，若有一些接口是需要权限的，则不能访问这些接口
 
         // websocket 鉴权信息默认存储在这里
         String secWebsocketProtocolHeader = request.getHeader(WSHeader);
-        if (StringUtils.isBlank(jwt)) {
+        if (jwt == null) {
 
             if (secWebsocketProtocolHeader != null) {
-                jwt = secWebsocketProtocolHeader;
+                jwt = normalizeToken(secWebsocketProtocolHeader);
                 response.setHeader(WSHeader, secWebsocketProtocolHeader);
             }else {
-                jwt = request.getParameter(JwtUtils.getHeader());
+                jwt = normalizeToken(request.getParameter(JwtUtils.getHeader()));
             }
-            if (StringUtils.isBlank(jwt)) {
-                jwt = request.getHeader(JwtUtils.getApiKeyHeader());
-                if (StringUtils.isBlank(jwt)) {
+            if (jwt == null) {
+                jwt = normalizeToken(request.getHeader(JwtUtils.getApiKeyHeader()));
+                if (jwt == null) {
                     chain.doFilter(request, response);
                     return;
                 }
@@ -85,21 +89,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         JwtUser jwtUser = JwtUtils.verifyToken(jwt);
-        String username = jwtUser.getUserName();
-        // TODO 处理各个状态
+        // 注意：token 失效时必须直接结束请求，不能继续 chain.doFilter。
+        // 否则浏览器若还持有有效会话，controller 会照常执行并返回成功数据，
+        // 最终形成 "HTTP 400/401 + 业务成功数据" 的矛盾响应。
         switch (jwtUser.getStatus()){
             case EXPIRED:
-                response.setStatus(401);
-                chain.doFilter(request, response);
-                // 异常
+                writeUnauthorized(response, "登录已过期，请重新登录");
                 return;
             case EXCEPTION:
-                // 过期
-                response.setStatus(400);
-                chain.doFilter(request, response);
+                writeUnauthorized(response, "登录凭证无效，请重新登录");
                 return;
             case EXPIRING_SOON:
-                // 即将过期
+                // 即将过期，继续正常处理
 //                return;
             default:
         }
@@ -128,5 +129,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, jwtUser.getPassword(), new ArrayList<>() );
         SecurityContextHolder.getContext().setAuthentication(token);
         chain.doFilter(request, response);
+    }
+
+    /**
+     * 前端 cookie 过期后可能把 undefined/null 作为 token 发过来，这里统一按未携带 token 处理
+     */
+    private String normalizeToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
+        String value = token.trim();
+        if ("undefined".equalsIgnoreCase(value) || "null".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * 直接返回 401，前端据此清理本地 token 并跳转登录页
+     */
+    private void writeUnauthorized(HttpServletResponse response, String msg) throws IOException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code", ErrorCode.ERROR401.getCode());
+        jsonObject.put("msg", msg);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().print(jsonObject.toJSONString());
     }
 }

@@ -393,25 +393,37 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public int getStreamInfoCount(String mediaServerId) {
-        int count = 0;
+        return getInviteInfoList(mediaServerId).size();
+    }
+
+    @Override
+    public List<InviteInfo> getInviteInfoList(String mediaServerId) {
+        List<InviteInfo> result = new ArrayList<>();
         String key = VideoManagerConstants.INVITE_PREFIX;
         List<Object> values = redisTemplate.opsForHash().values(key);
         if (values.isEmpty()) {
-            return count;
+            return result;
         }
         for (Object value : values) {
-            InviteInfo inviteInfo = (InviteInfo)value;
-            if (inviteInfo != null
-                    && inviteInfo.getStreamInfo() != null
-                    && inviteInfo.getStreamInfo().getMediaServer() != null
-                    && inviteInfo.getStreamInfo().getMediaServer().getId().equals(mediaServerId)) {
-                if (inviteInfo.getType().equals(InviteSessionType.DOWNLOAD) && inviteInfo.getStreamInfo().getProgress() == 1) {
-                    continue;
-                }
-                count++;
+            if (!(value instanceof InviteInfo)) {
+                // 跳过 Redis 中的脏数据，避免反序列化异常影响计数与列表
+                continue;
             }
+            InviteInfo inviteInfo = (InviteInfo) value;
+            if (inviteInfo.getChannelId() == null
+                    || inviteInfo.getStreamInfo() == null
+                    || inviteInfo.getStreamInfo().getMediaServer() == null
+                    || inviteInfo.getStreamInfo().getMediaServer().getId() == null
+                    || !inviteInfo.getStreamInfo().getMediaServer().getId().equals(mediaServerId)) {
+                continue;
+            }
+            if (InviteSessionType.DOWNLOAD.equals(inviteInfo.getType())
+                    && inviteInfo.getStreamInfo().getProgress() == 1) {
+                continue;
+            }
+            result.add(inviteInfo);
         }
-        return count;
+        return result;
     }
 
     @Override

@@ -97,6 +97,10 @@ public interface DeviceChannelMapper {
                                       @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online,
                                       @Param("channelIds") List<String> channelIds, @Param("hasStream") Boolean hasStream);
 
+    @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannelsByIds")
+    List<DeviceChannel> queryChannelsByIds(@Param("channelDbIds") List<Integer> channelDbIds,
+                                           @Param("query") String query);
+
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannelsByDeviceDbId")
     List<DeviceChannel> queryChannelsByDeviceDbId(@Param("dataDeviceId") int dataDeviceId);
 

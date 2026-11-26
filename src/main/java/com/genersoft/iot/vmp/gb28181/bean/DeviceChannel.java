@@ -195,6 +195,18 @@ public class DeviceChannel extends CommonGBChannel {
 
 	private Integer dataType = ChannelDataType.GB28181;
 
+	@Schema(description = "收流会话类型：PLAY/PLAYBACK/DOWNLOAD/BROADCAST")
+	private String inviteType;
+
+	@Schema(description = "收流会话的流ID")
+	private String inviteStream;
+
+	@Schema(description = "下载进度，仅 DOWNLOAD 类型有值")
+	private Double progress;
+
+	@Schema(description = "通道已被删除，仅残留会话占位行使用")
+	private boolean channelDeleted;
+
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
 		switch (ptzType) {

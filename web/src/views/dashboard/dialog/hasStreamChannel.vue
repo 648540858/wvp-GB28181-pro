@@ -4,7 +4,7 @@
       v-if="showDialog"
       v-el-drag-dialog
       :visible.sync="showDialog"
-      title="国标收流列表"
+      :title="dialogTitle"
       width="70%"
       top="5rem"
       append-to-body
@@ -17,7 +17,7 @@
             placeholder="关键字"
             prefix-icon="el-icon-search"
             clearable
-            @input="getChannelList"
+            @input="handleQueryChange"
           />
         </el-form-item>
       </el-form>
@@ -25,20 +25,31 @@
       <el-table v-loading="loading" :data="channelList" :height="500" stripe>
         <el-table-column prop="parentDeviceId" label="设备编号" min-width="180"/>
         <el-table-column prop="parentName" label="设备名称" min-width="180"/>
-        <el-table-column prop="deviceId" label="通道编号" min-width="180"/>
+        <el-table-column label="通道编号" min-width="180">
+          <template v-slot:default="scope">
+            <div>{{ scope.row.channelDeleted ? '通道已删除' : scope.row.deviceId }}</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="通道名称" min-width="180"/>
         <el-table-column prop="ptzType" label="摄像头类型" min-width="100">
           <template v-slot:default="scope">
             <div>{{ scope.row.ptzTypeText }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="120" fixed="right">
+        <el-table-column label="流类型" min-width="100">
+          <template v-slot:default="scope">
+            <div>{{ inviteTypeText(scope.row.inviteType) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="inviteStream" label="流ID" min-width="400" show-overflow-tooltip/>
+        <el-table-column label="操作" min-width="150" fixed="right">
           <template v-slot:default="scope">
             <el-button
               size="medium"
               icon="el-icon-video-play"
               type="text"
               :loading="scope.row.playing"
+              :disabled="scope.row.inviteType !== 'PLAY' || scope.row.channelDeleted"
               @click="sendDevicePush(scope.row)"
             >播放
             </el-button>
@@ -46,8 +57,9 @@
               size="medium"
               icon="el-icon-switch-button"
               type="text"
-              style="color: #f56c6c"
-              @click="stopDevicePush(scope.row)"
+              :style="scope.row.channelDeleted ? '' : 'color: #f56c6c'"
+              :disabled="scope.row.channelDeleted"
+              @click="stopStreamInvite(scope.row)"
             >停止
             </el-button>
           </template>
@@ -85,13 +97,24 @@ export default {
       playing: false,
       channelList: [],
       query: null,
+      mediaServerId: null,
       currentPage: 1,
       count: 15,
       total: 0
     }
   },
+  computed: {
+    dialogTitle: function () {
+      return this.mediaServerId
+        ? `国标收流列表（流媒体服务：${this.mediaServerId}）`
+        : '国标收流列表'
+    }
+  },
   methods: {
-    openDialog: function () {
+    openDialog: function (mediaServerId) {
+      this.mediaServerId = mediaServerId;
+      this.currentPage = 1;
+      this.query = null;
       this.showDialog = true;
       this.getChannelList();
     },
@@ -100,7 +123,8 @@ export default {
       this.$store.dispatch("device/queryHasStreamChannels", {
         page: this.currentPage,
         count: this.count,
-        query: this.query
+        query: this.query,
+        mediaServerId: this.mediaServerId
       }).then((data) => {
         this.total = data.total
         this.channelList = data.list
@@ -108,13 +132,22 @@ export default {
         this.loading = false
       })
     },
+    handleQueryChange: function () {
+      this.currentPage = 1
+      this.getChannelList()
+    },
     currentChange: function (val) {
       this.currentPage = val
       this.getChannelList()
     },
     handleSizeChange: function (val) {
       this.count = val
+      this.currentPage = 1
       this.getChannelList()
+    },
+    inviteTypeText: function (type) {
+      const typeMap = {PLAY: '点播', PLAYBACK: '回放', DOWNLOAD: '下载', BROADCAST: '广播', TALK: '对讲'}
+      return typeMap[type] || type
     },
     sendDevicePush: function (row) {
       const deviceId = row.parentDeviceId
@@ -131,18 +164,17 @@ export default {
           this.$set(row, "playing", false)
         })
     },
-    stopDevicePush: function (row) {
-      this.$store.dispatch("play/stop", {
-        deviceId: row.parentDeviceId,
-        channelId: row.deviceId
+    stopStreamInvite: function (row) {
+      this.$store.dispatch("device/stopStreamInvite", {
+        type: row.inviteType,
+        channelDbId: row.id,
+        stream: row.inviteStream
       }).then(_ => {
         this.getChannelList();
       }).catch((error) => {
-        if (error.response.status === 402) {
-          this.getChannelList();
-        } else {
-          this.$message.error({showClose: true, message: error})
-        }
+        const message = typeof error === 'string' ? error : (error && error.message ? error.message : '停止失败')
+        this.$message.error({showClose: true, message: message})
+        this.getChannelList();
       })
     }
   }

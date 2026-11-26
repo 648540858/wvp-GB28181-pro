@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -7,6 +8,8 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceBroadcastService;
 import com.genersoft.iot.vmp.gb28181.service.ISourceDownloadService;
 import com.genersoft.iot.vmp.gb28181.service.ISourcePlayService;
@@ -44,6 +47,12 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     @Autowired
     private Map<String, ISourceBroadcastService> sourceBroadcastServiceMap;
 
+    @Autowired
+    private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private IPlatformService platformService;
+
 
     @Override
     public void startInvite(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
@@ -79,6 +88,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
                 break;
             case DOWNLOAD:
                 stopDownload(channel, stream);
+                break;
+            case BROADCAST:
+                stopPlatformBroadcast(channel, stream);
                 break;
             default:
                 // 通道数据异常
@@ -299,5 +311,30 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             throw new PlayException(Response.BUSY_HERE, "channel not support");
         }
         broadcastService.stopBroadcast(channel);
+    }
+
+    /**
+     * 停止平台来源的语音喊话。
+     *
+     * <p>平台级联喊话的 InviteInfo 由 PlatformServiceImpl 写入，必须走平台 BYE 才能正确释放；
+     * 设备侧喊话不会写入 INVITE_PREFIX，查不到时回退到原有的设备侧停止逻辑。</p>
+     */
+    private void stopPlatformBroadcast(CommonGBChannel channel, String stream) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.BROADCAST, channel.getGbId(), stream);
+        StreamInfo streamInfo = inviteInfo == null ? null : inviteInfo.getStreamInfo();
+        if (streamInfo == null || streamInfo.getMediaServer() == null) {
+            stopBroadcast(channel);
+            return;
+        }
+        Platform platform = platformService.queryPlatformByServerGBId(inviteInfo.getDeviceId());
+        if (platform == null) {
+            log.warn("[停止喊话] 未找到来源平台, channelDbId={}, stream={}", channel.getGbId(), stream);
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "喊话来源平台不存在");
+        }
+        log.info("[通用通道] 停止平台喊话， 平台：{}， 通道：{}， 流：{}",
+                platform.getServerGBId(), channel.getGbDeviceId(), inviteInfo.getStream());
+        platformService.stopBroadcast(platform, channel, streamInfo.getApp(),
+                inviteInfo.getStream() != null ? inviteInfo.getStream() : streamInfo.getStream(),
+                true, streamInfo.getMediaServer());
     }
 }

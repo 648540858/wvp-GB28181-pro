@@ -517,6 +517,105 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public PageInfo<DeviceChannel> queryStreamChannels(String mediaServerId, String query, int page, int count) {
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<InviteInfo> inviteInfoList = inviteStreamService.getInviteInfoList(mediaServerId);
+        if (inviteInfoList.isEmpty()) {
+            return buildPageInfo(Collections.emptyList(), page, count);
+        }
+        Set<Integer> channelDbIds = new LinkedHashSet<>();
+        for (InviteInfo inviteInfo : inviteInfoList) {
+            if (inviteInfo.getChannelId() != null) {
+                channelDbIds.add(inviteInfo.getChannelId());
+            }
+        }
+        Map<Integer, DeviceChannel> channelMap = new HashMap<>();
+        if (!channelDbIds.isEmpty()) {
+            List<DeviceChannel> channelList = channelMapper.queryChannelsByIds(new ArrayList<>(channelDbIds), query);
+            for (DeviceChannel channel : channelList) {
+                channelMap.put(channel.getId(), channel);
+            }
+        }
+        List<DeviceChannel> rows = new ArrayList<>();
+        for (InviteInfo inviteInfo : inviteInfoList) {
+            DeviceChannel channel = channelMap.get(inviteInfo.getChannelId());
+            DeviceChannel row;
+            if (channel != null) {
+                row = new DeviceChannel();
+                row.setId(channel.getId());
+                row.setParentDeviceId(channel.getParentDeviceId());
+                row.setParentName(channel.getParentName());
+                row.setDeviceId(channel.getDeviceId());
+                row.setName(channel.getName());
+                row.setHasAudio(channel.isHasAudio());
+                if (channel.getPtzType() != null) {
+                    row.setPtzType(channel.getPtzType());
+                }
+            } else if (query == null) {
+                // 通道已删除但会话仍残留在 Redis 中，保留占位行以维持列表与会话计数一致
+                row = new DeviceChannel();
+                row.setId(inviteInfo.getChannelId());
+                row.setChannelDeleted(true);
+            } else {
+                // 搜索时占位行没有可匹配的编号/名称，直接跳过
+                continue;
+            }
+            row.setInviteType(inviteInfo.getType() == null ? null : inviteInfo.getType().name());
+            row.setInviteStream(inviteInfo.getStream() != null
+                    ? inviteInfo.getStream()
+                    : (inviteInfo.getStreamInfo() == null ? null : inviteInfo.getStreamInfo().getStream()));
+            if (InviteSessionType.DOWNLOAD.equals(inviteInfo.getType()) && inviteInfo.getStreamInfo() != null) {
+                row.setProgress(inviteInfo.getStreamInfo().getProgress());
+            }
+            rows.add(row);
+        }
+        // Redis Hash 的遍历顺序不保证稳定，排序后再分页，避免翻页重复或遗漏
+        rows.sort(Comparator
+                .comparing(DeviceChannel::isChannelDeleted)
+                .thenComparing(row -> row.getParentDeviceId() == null ? "" : row.getParentDeviceId())
+                .thenComparing(row -> row.getDeviceId() == null ? "" : row.getDeviceId())
+                .thenComparing(row -> row.getInviteType() == null ? "" : row.getInviteType())
+                .thenComparing(row -> row.getInviteStream() == null ? "" : row.getInviteStream()));
+        return buildPageInfo(rows, page, count);
+    }
+
+    private PageInfo<DeviceChannel> buildPageInfo(List<DeviceChannel> rows, int page, int count) {
+        if (page <= 0) {
+            page = 1;
+        }
+        if (count <= 0) {
+            count = 10;
+        }
+        PageInfo<DeviceChannel> pageInfo = new PageInfo<>();
+        int total = rows.size();
+        int pages = total == 0 ? 0 : (total + count - 1) / count;
+        int fromIndex = (page - 1) * count;
+        List<DeviceChannel> list;
+        if (total == 0 || fromIndex >= total) {
+            list = new ArrayList<>();
+        } else {
+            list = new ArrayList<>(rows.subList(fromIndex, Math.min(total, fromIndex + count)));
+        }
+        pageInfo.setPageNum(page);
+        pageInfo.setPageSize(count);
+        pageInfo.setSize(list.size());
+        pageInfo.setTotal(total);
+        pageInfo.setPages(pages);
+        pageInfo.setStartRow(total == 0 ? 0 : fromIndex + 1);
+        pageInfo.setEndRow(total == 0 ? 0 : fromIndex + list.size());
+        pageInfo.setIsFirstPage(page <= 1);
+        pageInfo.setIsLastPage(pages == 0 || page >= pages);
+        pageInfo.setHasPreviousPage(page > 1 && total > 0);
+        pageInfo.setHasNextPage(page < pages);
+        pageInfo.setList(list);
+        return pageInfo;
+    }
+
+    @Override
     public List<Device> queryDeviceWithAsMessageChannel() {
         return deviceMapper.queryDeviceWithAsMessageChannel();
     }

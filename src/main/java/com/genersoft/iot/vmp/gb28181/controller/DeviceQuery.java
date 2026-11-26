@@ -120,13 +120,20 @@ public class DeviceQuery {
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
 	@Parameter(name = "query", description = "查询内容")
+	@Parameter(name = "mediaServerId", description = "媒体节点ID")
 	public PageInfo<DeviceChannel> streamChannels(int page, int count,
-												  @RequestParam(required = false) String query) {
+												  @RequestParam(required = false) String query,
+												  @RequestParam(required = false) String mediaServerId) {
 		if (ObjectUtils.isEmpty(query)) {
 			query = null;
 		}
-
-		return deviceChannelService.queryChannels(query, true, null, null, true, page, count);
+		if (ObjectUtils.isEmpty(mediaServerId)) {
+			mediaServerId = null;
+		}
+		if (mediaServerId == null) {
+			return deviceChannelService.queryChannels(query, true, null, null, true, page, count);
+		}
+		return deviceChannelService.queryStreamChannels(mediaServerId, query, page, count);
 	}
 
 	@Operation(summary = "同步设备通道", security = @SecurityRequirement(name = JwtUtils.HEADER))

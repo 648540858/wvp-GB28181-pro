@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
@@ -46,6 +47,8 @@ public class RedisRpcConfig implements MessageListener {
     private RedisTemplate<String, Object> redisTemplate;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+
+    private final AtomicBoolean taskRunning = new AtomicBoolean();
 
     @Autowired
     private TaskExecutor taskExecutor;
@@ -86,26 +89,49 @@ public class RedisRpcConfig implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
-        if (isEmpty) {
-            taskExecutor.execute(() -> {
-                while (!taskQueue.isEmpty()) {
-                    Message msg = taskQueue.poll();
-                    try {
-                        RedisRpcMessage redisRpcMessage = JSON.parseObject(new String(msg.getBody()), RedisRpcMessage.class);
-                        if (redisRpcMessage.getRequest() != null) {
-                            handlerRequest(redisRpcMessage.getRequest());
-                        } else if (redisRpcMessage.getResponse() != null){
-                            handlerResponse(redisRpcMessage.getResponse());
-                        } else {
-                            log.error("[redis-rpc]解析失败 {}", JSON.toJSONString(redisRpcMessage));
-                        }
-                    } catch (Exception e) {
-                        log.error("[redis-rpc]解析异常 {}",new String(msg.getBody()), e);
-                    }
-                }
-            });
+        tryStartTask();
+    }
+
+    private void tryStartTask() {
+        if (!taskRunning.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            taskExecutor.execute(this::consumeTasks);
+        } catch (RuntimeException exception) {
+            taskRunning.set(false);
+            throw exception;
+        }
+    }
+
+    private void consumeTasks() {
+        try {
+            Message msg;
+            while ((msg = taskQueue.poll()) != null) {
+                consumeTask(msg);
+            }
+        } finally {
+            taskRunning.set(false);
+            if (!taskQueue.isEmpty()) {
+                tryStartTask();
+            }
+        }
+    }
+
+    private void consumeTask(Message msg) {
+        try {
+            RedisRpcMessage redisRpcMessage =
+                    JSON.parseObject(new String(msg.getBody()), RedisRpcMessage.class);
+            if (redisRpcMessage.getRequest() != null) {
+                handlerRequest(redisRpcMessage.getRequest());
+            } else if (redisRpcMessage.getResponse() != null) {
+                handlerResponse(redisRpcMessage.getResponse());
+            } else {
+                log.error("[redis-rpc]解析失败 {}", JSON.toJSONString(redisRpcMessage));
+            }
+        } catch (Exception e) {
+            log.error("[redis-rpc]解析异常 {}", new String(msg.getBody()), e);
         }
     }
 

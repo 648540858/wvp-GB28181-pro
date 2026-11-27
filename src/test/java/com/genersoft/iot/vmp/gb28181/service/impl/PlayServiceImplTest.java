@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDialogTerminationService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -66,12 +68,17 @@ class PlayServiceImplTest {
     @Mock
     private IReceiveRtpServerService receiveRtpServerService;
 
+    @Mock
+    private IMediaServerService mediaServerService;
+
     @InjectMocks
     private PlayServiceImpl playService;
 
     @Test
     void downloadDepartureShouldKeepInviteInfoUntilDownloadAddressIsReady() {
         InviteInfo inviteInfo = downloadInviteInfo();
+        when(mediaServerService.getMediaList(inviteInfo.getStreamInfo().getMediaServer(),
+                MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(Collections.emptyList());
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(inviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(inviteInfo), any())).thenReturn(false);
@@ -106,26 +113,29 @@ class PlayServiceImplTest {
     }
 
     @Test
-    void downloadDepartureWithoutStreamShouldRemoveInviteInfo() {
+    void downloadDepartureWithoutStreamShouldPreservePendingInviteInfo() {
         InviteInfo inviteInfo = downloadInviteInfo();
         inviteInfo.setStreamInfo(null);
+        inviteInfo.setStatus(InviteSessionStatus.ready);
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(inviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(inviteInfo), any())).thenReturn(false);
-        when(deviceService.getDeviceByDeviceId(DEVICE_ID)).thenReturn(new Device());
-        when(deviceChannelService.getOneForSourceById(CHANNEL_ID)).thenReturn(new DeviceChannel());
 
         playService.onApplicationEvent(departureEvent());
 
-        // 没有建立过流的下载没有下载地址可写，保持原有的立即清理
-        verify(inviteStreamService).removeInviteInfo(inviteInfo);
+        // 没有当前媒体身份的注销事件不能取消尚未注册的新一轮下载。
+        verify(inviteStreamService, never()).removeInviteInfo(any(InviteInfo.class));
         verify(inviteStreamService, never()).setInviteInfoCleanTime(any(InviteInfo.class), anyLong());
+        verifyNoInteractions(mediaServerService, deviceService, deviceChannelService,
+                dialogTerminationService, receiveRtpServerService);
     }
 
     @Test
     void departureShouldCleanPlaybackSessionWhenDownloadIsRetainedWithSameStream() {
         InviteInfo playbackInviteInfo = downloadInviteInfo();
         playbackInviteInfo.setType(InviteSessionType.PLAYBACK);
+        when(mediaServerService.getMediaList(playbackInviteInfo.getStreamInfo().getMediaServer(),
+                MediaStreamUtil.RTP_APP, STREAM, null)).thenReturn(Collections.emptyList());
         when(sendRtpServerService.queryByStream(anyString())).thenReturn(Collections.emptyList());
         when(inviteStreamService.getInviteInfoByStreamPreferPlay(STREAM)).thenReturn(playbackInviteInfo);
         when(inviteStreamService.isStaleStreamDeparture(eq(playbackInviteInfo), any())).thenReturn(false);

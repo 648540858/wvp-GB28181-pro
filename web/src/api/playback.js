@@ -2,10 +2,12 @@ import request from '@/utils/request'
 
 // 回放流播放API
 
-export function play([deviceId, channelId, startTime, endTime]) {
+/** 默认复用同区间回放，仅在调用方指定身份时请求设备提供独立会话。 */
+export function play([deviceId, channelId, startTime, endTime, sessionId]) {
   return request({
     method: 'get',
-    url: '/api/playback/start/' + deviceId + '/' + channelId + '?startTime=' + startTime + '&endTime=' + endTime
+    url: '/api/playback/start/' + deviceId + '/' + channelId,
+    params: { startTime, endTime, ...(sessionId !== undefined && sessionId !== null ? { sessionId } : {}) }
   })
 }
 export function resume(streamId) {

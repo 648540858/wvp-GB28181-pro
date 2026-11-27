@@ -226,6 +226,7 @@ import ChooseTimeRange from '../dialog/chooseTimeRange.vue'
 import moment from 'moment'
 import screenfull from 'screenfull'
 
+/** 展示通道录像，并将播放控制限定到当前播放器持有的会话。 */
 export default {
   name: 'CommonRecord',
   components: {
@@ -405,9 +406,11 @@ export default {
       this.playSeekValue += 5 * 1000
       this.play()
     },
+    /** 停止当前播放器所属的后端会话，再销毁本地播放器以回收完整生命周期。 */
     stopPLay() {
-      // 停止
-      this.$refs.recordVideoPlayer.destroy()
+      return this.stopPlayRecord(() => {
+        if (this.$refs.recordVideoPlayer) this.$refs.recordVideoPlayer.destroy()
+      })
     },
     pausePlay() {
       // 暂停
@@ -470,24 +473,34 @@ export default {
           this.recordsLoading = false
         })
     },
+    /** 仅停止本播放器持有的流，结束回调不能清掉期间切换得到的新会话。 */
     stopPlayRecord(callback) {
       console.log('停止录像回放')
       if (this.streamInfo !== null) {
+        const stoppedInfo = this.streamInfo
+        const stoppedStream = stoppedInfo.stream
         if (this.$refs.recordVideoPlayer) {
           this.$refs.recordVideoPlayer.pause()
         }
         this.videoUrl = ''
-        this.$store.dispatch('commonChanel/stopPlayback',
+        return this.$store.dispatch('commonChanel/stopPlayback',
           {
             channelId: this.channelId,
-            stream: this.streamInfo.stream
+            stream: stoppedStream
           })
           .then(() => {
-            this.streamInfo = null
-            if (callback) callback()
+            // 同区间重播仍使用相同流名，只有原对象才能代表本次停止所属的播放轮次。
+            if (this.streamInfo === stoppedInfo) {
+              this.streamInfo = null
+              if (typeof callback === 'function') callback()
+            }
+          })
+          .catch(() => {
+            this.$message.error('停止录像回放失败，请重试')
           })
       } else {
-        if (callback) callback()
+        if (typeof callback === 'function') callback()
+        return Promise.resolve()
       }
     },
     chooseFile(index) {

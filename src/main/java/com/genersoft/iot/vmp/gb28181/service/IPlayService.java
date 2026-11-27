@@ -32,6 +32,10 @@ public interface IPlayService {
     MediaServer getNewMediaServerItem(Device device);
 
     void playBack(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
+
+    /** 按显式会话标识启动国标回放，空标识保留内部共享会话语义。 */
+    void playBack(Device device, DeviceChannel channel, String startTime, String endTime,
+                  String sessionId, ErrorCallback<StreamInfo> callback);
     void zlmServerOffline(MediaServer mediaServer);
 
     void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
@@ -79,6 +83,10 @@ public interface IPlayService {
     void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream);
 
     void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
+
+    /** 经通用通道启动指定会话，透传标识保证播放器间控制相互隔离。 */
+    void playBack(CommonGBChannel channel, Long startTime, Long stopTime,
+                  String sessionId, ErrorCallback<StreamInfo> callback);
 
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback);
 

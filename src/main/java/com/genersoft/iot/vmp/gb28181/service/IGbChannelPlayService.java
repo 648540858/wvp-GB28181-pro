@@ -19,6 +19,10 @@ public interface IGbChannelPlayService {
 
     void playback(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
 
+    /** 将独立回放会话透传到实际通道协议，空标识保留旧共享行为。 */
+    void playback(CommonGBChannel channel, Long startTime, Long stopTime,
+                  String sessionId, ErrorCallback<StreamInfo> callback);
+
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,
                   ErrorCallback<StreamInfo> callback);
 

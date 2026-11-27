@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.PlaybackSessionId;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
@@ -71,14 +72,17 @@ public class PlaybackController {
 	@Autowired
 	private IDeviceChannelService channelService;
 
+	/** 默认复用同区间回放，显式会话键用于独立控制及同一播放意图重试。 */
 	@Operation(summary = "开始视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "startTime", description = "开始时间", required = true)
 	@Parameter(name = "endTime", description = "结束时间", required = true)
+	@Parameter(name = "sessionId", description = "可选播放器会话 UUID；不传时同一区间共享回放，显式传入时独立建流且同一身份重试复用")
 	@GetMapping("/start/{deviceId}/{channelId}")
 	public DeferredResult<WVPResult<StreamContent>> start(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
-														  String startTime, String endTime) {
+														  String startTime, String endTime, String sessionId) {
+		String playbackSessionId = PlaybackSessionId.resolve(sessionId);
 
 		log.info("[录像回放] deviceId: {}, channelId: {}, startTime: {}, endTime: {}", deviceId, channelId, startTime, endTime);
 
@@ -101,7 +105,7 @@ public class PlaybackController {
 			log.warn("[录像回放] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + channelId);
 		}
-		playService.playBack(device, channel, startTime, endTime,
+		playService.playBack(device, channel, startTime, endTime, playbackSessionId,
 				(code, msg, data)->{
 
 					WVPResult<StreamContent> wvpResult = new WVPResult<>();
